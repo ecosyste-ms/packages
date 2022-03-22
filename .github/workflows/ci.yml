@@ -1,0 +1,45 @@
+name: CI
+
+on: [push]
+
+jobs:
+  verify:
+    name: Build
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: packages
+          POSTGRES_DB: packages_test
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependent libraries
+        run: sudo apt-get install libpq-dev
+      - name: Set up Node
+        uses: actions/setup-node@v3.0.0
+        with:
+          node-version: 15
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1.1
+          bundler-cache: true
+
+      - name: Run tests
+        env:
+          RAILS_ENV: test
+          POSTGRES_DB: packages_test
+          POSTGRES_USER: packages
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
+        run: bundle exec rake db:create db:migrate test
