@@ -1,0 +1,709 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>PyPI recent updates</title>
+    <link>https://pypi.org/</link>
+    <description>Recent updates to the Python Package Index</description>
+    <language>en</language>
+    <item>
+      <title>GeoMeshPy 0.0.11</title>
+      <link>https://pypi.org/project/geomeshpy/0.0.11/</link>
+      <description>A Python package to convert the geology to in mesh generator (GMSH).</description>
+      <author>Ali.dashti@kit.edu</author>
+      <pubDate>Tue, 22 Mar 2022 16:54:42 GMT</pubDate>
+    </item>
+    <item>
+      <title>condor-git-config 0.1.5</title>
+      <link>https://pypi.org/project/condor-git-config/0.1.5/</link>
+      <description>dynamically configure an HTCondor node from a git repository</description>
+      <author>maxfischer2781@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:54:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>nerfvis 0.0.9</title>
+      <link>https://pypi.org/project/nerfvis/0.0.9/</link>
+      <description>NeRF visualization library</description>
+      <author>alexyu99126@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:54:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>compas-ui 0.4.0</title>
+      <link>https://pypi.org/project/compas-ui/0.4.0/</link>
+      <description>COMPAS UI provides basic functionality to build a user interface for a COMPAS app.</description>
+      <author>van.mele@arch.ethz.ch</author>
+      <pubDate>Tue, 22 Mar 2022 16:53:47 GMT</pubDate>
+    </item>
+    <item>
+      <title>ttscorpus 0.0.2</title>
+      <link>https://pypi.org/project/ttscorpus/0.0.2/</link>
+      <description>collection of different source of tts api for generating corpus.</description>
+      <author>voidful.stack@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:53:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>pyrustmpi 0.0.4</title>
+      <link>https://pypi.org/project/pyrustmpi/0.0.4/</link>
+      <description></description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:53:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>rastless-cli 0.2</title>
+      <link>https://pypi.org/project/rastless-cli/0.2/</link>
+      <description>A cli for managing data and user access for the cloud application rastless</description>
+      <author>siegmann@eomap.de</author>
+      <pubDate>Tue, 22 Mar 2022 16:53:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>zaber-motion 2.11.0</title>
+      <link>https://pypi.org/project/zaber-motion/2.11.0/</link>
+      <description>A library for communicating with Zaber devices</description>
+      <author>contact@zaber.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:52:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>waitprint 0.1.0</title>
+      <link>https://pypi.org/project/waitprint/0.1.0/</link>
+      <description></description>
+      <author>you@example.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:52:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>zaber-motion-bindings-darwin 2.11.0</title>
+      <link>https://pypi.org/project/zaber-motion-bindings-darwin/2.11.0/</link>
+      <description>Mac OS bindings for Zaber Motion Library</description>
+      <author>contact@zaber.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:52:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>zaber-motion-bindings-linux 2.11.0</title>
+      <link>https://pypi.org/project/zaber-motion-bindings-linux/2.11.0/</link>
+      <description>Linux bindings for Zaber Motion Library</description>
+      <author>contact@zaber.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:51:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>zaber-motion-bindings-windows 2.11.0</title>
+      <link>https://pypi.org/project/zaber-motion-bindings-windows/2.11.0/</link>
+      <description>Windows bindings for Zaber Motion Library</description>
+      <author>contact@zaber.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:51:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>koil 0.1.107</title>
+      <link>https://pypi.org/project/koil/0.1.107/</link>
+      <description>Async for a sync world</description>
+      <author>jhnnsrs@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:50:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>vz-recommender 0.0.1</title>
+      <link>https://pypi.org/project/vz-recommender/0.0.1/</link>
+      <description>vz recommender package</description>
+      <author>luyang.wang@verizon.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:50:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>damo 1.2.5</title>
+      <link>https://pypi.org/project/damo/1.2.5/</link>
+      <description>DAMON user-space tool</description>
+      <author>sj@kernel.org</author>
+      <pubDate>Tue, 22 Mar 2022 16:49:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>actions-test 1.3.4</title>
+      <link>https://pypi.org/project/actions-test/1.3.4/</link>
+      <description></description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:49:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>addonalok1210 0.0.5</title>
+      <link>https://pypi.org/project/addonalok1210/0.0.5/</link>
+      <description>Basic addition</description>
+      <author>ialok@outlook.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:49:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>simpel-settings 0.1</title>
+      <link>https://pypi.org/project/simpel-settings/0.1/</link>
+      <description>Django DB Settings Framework</description>
+      <author>sasri.works@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:49:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>compas-occ 0.4.1</title>
+      <link>https://pypi.org/project/compas-occ/0.4.1/</link>
+      <description>COMPAS wrapper for the Python bindings of OCC</description>
+      <author>van.mele@arch.ethz.ch</author>
+      <pubDate>Tue, 22 Mar 2022 16:48:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>sainpse 0.1.4</title>
+      <link>https://pypi.org/project/sainpse/0.1.4/</link>
+      <description>The Sainpse Institute Utility Python Packages - Bugfixes</description>
+      <author>marcusm@sainpse.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:48:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>checkov 2.0.982</title>
+      <link>https://pypi.org/project/checkov/2.0.982/</link>
+      <description>Infrastructure as code static analysis</description>
+      <author>meet@bridgecrew.io</author>
+      <pubDate>Tue, 22 Mar 2022 16:47:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>shadowserver-api 0.2.2</title>
+      <link>https://pypi.org/project/shadowserver-api/0.2.2/</link>
+      <description>Shadowserver API implementation library</description>
+      <author>georges.toth@govcert.etat.lu</author>
+      <pubDate>Tue, 22 Mar 2022 16:47:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>colourmap 1.1.1</title>
+      <link>https://pypi.org/project/colourmap/1.1.1/</link>
+      <description>Python package colourmap generates an N unique colors from the specified input colormap.</description>
+      <author>erdogant@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:47:01 GMT</pubDate>
+    </item>
+    <item>
+      <title>rath 0.1.30</title>
+      <link>https://pypi.org/project/rath/0.1.30/</link>
+      <description>aiohttp powered apollo like graphql client</description>
+      <author>jhnnsrs@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:46:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>pythondata-cpu-ibex 0.0.post2315</title>
+      <link>https://pypi.org/project/pythondata-cpu-ibex/0.0.post2315/</link>
+      <description>Python module containing system_verilog files for Ibex cpu.</description>
+      <author>litex@googlegroups.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:46:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>opsramp-analytics-utils 2.6.4</title>
+      <link>https://pypi.org/project/opsramp-analytics-utils/2.6.4/</link>
+      <description>OpsRamp Analytics SDK</description>
+      <author>opsramp@support.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:46:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>autovideo 1.2.1</title>
+      <link>https://pypi.org/project/autovideo/1.2.1/</link>
+      <description>An Automated Video Action Recognition System</description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:45:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>pybiolib 0.2.1613</title>
+      <link>https://pypi.org/project/pybiolib/0.2.1613/</link>
+      <description>BioLib Python Client</description>
+      <author>hello@biolib.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:45:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>koil 0.1.106</title>
+      <link>https://pypi.org/project/koil/0.1.106/</link>
+      <description>Async for a sync world</description>
+      <author>jhnnsrs@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:45:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>cs18-api-client 0.0.2.2698</title>
+      <link>https://pypi.org/project/cs18-api-client/0.0.2.2698/</link>
+      <description></description>
+      <author>support@qualisystems.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:44:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>actions-test 1.3.3</title>
+      <link>https://pypi.org/project/actions-test/1.3.3/</link>
+      <description></description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:44:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>bodyguard 0.0.63</title>
+      <link>https://pypi.org/project/bodyguard/0.0.63/</link>
+      <description>Heavy machinery for Python (tools, utilities, etc)</description>
+      <author>n.muhlbach@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:43:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>pulumi-aws-native 0.13.1a1647965952</title>
+      <link>https://pypi.org/project/pulumi-aws-native/0.13.1a1647965952/</link>
+      <description>A native Pulumi package for creating and managing Amazon Web Services (AWS) resources.</description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:43:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>koil 0.1.105</title>
+      <link>https://pypi.org/project/koil/0.1.105/</link>
+      <description>Async for a sync world</description>
+      <author>jhnnsrs@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:43:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>finbourne-access-sdk 0.0.1818</title>
+      <link>https://pypi.org/project/finbourne-access-sdk/0.0.1818/</link>
+      <description>Python SDK for FINBOURNE Access API</description>
+      <author>engineering@finbourne.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:43:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>pyrustmpi 0.0.3</title>
+      <link>https://pypi.org/project/pyrustmpi/0.0.3/</link>
+      <description></description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:43:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>medaimodels 0.0.5</title>
+      <link>https://pypi.org/project/medaimodels/0.0.5/</link>
+      <description>A libarary for creating med-ai models</description>
+      <author>travisjonathanclarke@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:42:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>ucm 0.1.0</title>
+      <link>https://pypi.org/project/ucm/0.1.0/</link>
+      <description>Urwid rendered Connection Manager</description>
+      <author>rszabo50@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:41:56 GMT</pubDate>
+    </item>
+    <item>
+      <title>rymovnik 0.9.5</title>
+      <link>https://pypi.org/project/rymovnik/0.9.5/</link>
+      <description>A simple script to search for words in the dictionary based on criteria.</description>
+      <author>lruzicka@redhat.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:41:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>varianteval 0.0.9</title>
+      <link>https://pypi.org/project/varianteval/0.0.9/</link>
+      <description>Library to help compare VCF files</description>
+      <author>kiran@broadinstitute.org</author>
+      <pubDate>Tue, 22 Mar 2022 16:41:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>GeoMeshPy 0.0.10</title>
+      <link>https://pypi.org/project/geomeshpy/0.0.10/</link>
+      <description>A Python package to convert the geology to in mesh generator (GMSH).</description>
+      <author>Ali.dashti@kit.edu</author>
+      <pubDate>Tue, 22 Mar 2022 16:41:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>rath 0.1.29</title>
+      <link>https://pypi.org/project/rath/0.1.29/</link>
+      <description>aiohttp powered apollo like graphql client</description>
+      <author>jhnnsrs@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:40:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>bodyguard 0.0.62</title>
+      <link>https://pypi.org/project/bodyguard/0.0.62/</link>
+      <description>Heavy machinery for Python (tools, utilities, etc)</description>
+      <author>n.muhlbach@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:40:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>simpel-qrcodes 0.1</title>
+      <link>https://pypi.org/project/simpel-qrcodes/0.1/</link>
+      <description>Simpel QRCode Integration for Django</description>
+      <author>sasri.works@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:40:01 GMT</pubDate>
+    </item>
+    <item>
+      <title>agiocli 0.3.0</title>
+      <link>https://pypi.org/project/agiocli/0.3.0/</link>
+      <description>A command line interface to autograder.io</description>
+      <author>awdeorio@umich.edu</author>
+      <pubDate>Tue, 22 Mar 2022 16:39:56 GMT</pubDate>
+    </item>
+    <item>
+      <title>odoo14-addon-l10n-br-fiscal 14.0.4.9.1</title>
+      <link>https://pypi.org/project/odoo14-addon-l10n-br-fiscal/14.0.4.9.1/</link>
+      <description>Brazilian fiscal core module.</description>
+      <author>support@odoo-community.org</author>
+      <pubDate>Tue, 22 Mar 2022 16:39:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>connect-openapi-client 24.6</title>
+      <link>https://pypi.org/project/connect-openapi-client/24.6/</link>
+      <description>Connect Python OpenAPI Client</description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:39:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>shadowserver-api 0.2.1</title>
+      <link>https://pypi.org/project/shadowserver-api/0.2.1/</link>
+      <description>Shadowserver API implementation library</description>
+      <author>georges.toth@govcert.etat.lu</author>
+      <pubDate>Tue, 22 Mar 2022 16:39:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>spike-py 0.99.30</title>
+      <link>https://pypi.org/project/spike-py/0.99.30/</link>
+      <description>The SPIKE program. A collaborative development for a FT-spectroscopy processing program</description>
+      <author>madelsuc@unistra.fr</author>
+      <pubDate>Tue, 22 Mar 2022 16:39:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>homeinfotools 1.4.1</title>
+      <link>https://pypi.org/project/homeinfotools/1.4.1/</link>
+      <description>Tools to manage HOMEINFO digital signge systems.</description>
+      <author>info@homeinfo.de</author>
+      <pubDate>Tue, 22 Mar 2022 16:38:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>nextcord 2.0.0a10</title>
+      <link>https://pypi.org/project/nextcord/2.0.0a10/</link>
+      <description>A Python wrapper for the Discord API forked from discord.py</description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:37:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>sinabs 0.3.0</title>
+      <link>https://pypi.org/project/sinabs/0.3.0/</link>
+      <description>SynSense Spiking Neural Network simulator for deep neural networks (DNNs).</description>
+      <author>sinabs@synsense.ai</author>
+      <pubDate>Tue, 22 Mar 2022 16:37:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>rymovnik 0.9.4</title>
+      <link>https://pypi.org/project/rymovnik/0.9.4/</link>
+      <description>A simple script to search for words in the dictionary based on criteria.</description>
+      <author>lruzicka@redhat.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:37:49 GMT</pubDate>
+    </item>
+    <item>
+      <title>NeuNorm 1.5.2</title>
+      <link>https://pypi.org/project/neunorm/1.5.2/</link>
+      <description>neutron normalization data</description>
+      <author>bilheuxjm@ornl.gov</author>
+      <pubDate>Tue, 22 Mar 2022 16:37:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>koil 0.1.104</title>
+      <link>https://pypi.org/project/koil/0.1.104/</link>
+      <description>Async for a sync world</description>
+      <author>jhnnsrs@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:37:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>nextcord-unaliased 2.0.0a10</title>
+      <link>https://pypi.org/project/nextcord-unaliased/2.0.0a10/</link>
+      <description>A Python wrapper for the Discord API forked from discord.py (without the discord alias)</description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:37:39 GMT</pubDate>
+    </item>
+    <item>
+      <title>faker-security 0.2.0</title>
+      <link>https://pypi.org/project/faker-security/0.2.0/</link>
+      <description>Faker provider for security related data</description>
+      <author>security-engineering@snyk.io</author>
+      <pubDate>Tue, 22 Mar 2022 16:37:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>pyPublicDecompWT 2.8.1</title>
+      <link>https://pypi.org/project/pypublicdecompwt/2.8.1/</link>
+      <description>Python bindings for EUMETSAT&#39;s PublicDecompWT.</description>
+      <author>foss@sbrodehl.de</author>
+      <pubDate>Tue, 22 Mar 2022 16:37:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>pyg-base 0.0.13</title>
+      <link>https://pypi.org/project/pyg-base/0.0.13/</link>
+      <description>Utilities for data manipulation including creation of DAGs and tables</description>
+      <author>yoav.git@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:36:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>cdktf 0.10.0.dev44</title>
+      <link>https://pypi.org/project/cdktf/0.10.0.dev44/</link>
+      <description>Cloud Development Kit for Terraform</description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:36:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>honeybee-vtk 0.34.0</title>
+      <link>https://pypi.org/project/honeybee-vtk/0.34.0/</link>
+      <description>Honeybee extension for translating HBJSON to VTK</description>
+      <author>info@ladybug.tools</author>
+      <pubDate>Tue, 22 Mar 2022 16:35:39 GMT</pubDate>
+    </item>
+    <item>
+      <title>sws-webstuff 0.0.3</title>
+      <link>https://pypi.org/project/sws-webstuff/0.0.3/</link>
+      <description>Some small things for Web Related stuff</description>
+      <author>cerberus885@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:34:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>homeinfotools 1.4.0</title>
+      <link>https://pypi.org/project/homeinfotools/1.4.0/</link>
+      <description>Tools to manage HOMEINFO digital signge systems.</description>
+      <author>info@homeinfo.de</author>
+      <pubDate>Tue, 22 Mar 2022 16:34:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>model-tracker-framework 1.1.0</title>
+      <link>https://pypi.org/project/model-tracker-framework/1.1.0/</link>
+      <description>An object-orientated framework for tracking machine learning projects.</description>
+      <author>josh.spear9@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:34:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>gempy 2.2.11</title>
+      <link>https://pypi.org/project/gempy/2.2.11/</link>
+      <description>An Open-source, Python-based 3-D structural geological modeling software.</description>
+      <author>varga@aices.rwth-aachen.de</author>
+      <pubDate>Tue, 22 Mar 2022 16:33:55 GMT</pubDate>
+    </item>
+    <item>
+      <title>django-grpc-swagger 0.1.1</title>
+      <link>https://pypi.org/project/django-grpc-swagger/0.1.1/</link>
+      <description>Django with gRPC、Swagger</description>
+      <author>907391489@qq.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:33:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>zxkane.cdk-construct-simple-nat 0.2.97</title>
+      <link>https://pypi.org/project/zxkane-cdk-construct-simple-nat/0.2.97/</link>
+      <description>A CDK construct to build Simple NAT instance on AWS.</description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:33:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>naaf 0.2.1</title>
+      <link>https://pypi.org/project/naaf/0.2.1/</link>
+      <description>IO hub for Cryo-EM, Cryo-ET and subtomogram averaging data.</description>
+      <author>blik-team@googlegroups.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:32:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>pyrustmpi 0.0.2</title>
+      <link>https://pypi.org/project/pyrustmpi/0.0.2/</link>
+      <description></description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:32:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>dppylibrary 0.0.4</title>
+      <link>https://pypi.org/project/dppylibrary/0.0.4/</link>
+      <description>DP Python Reusable Shared Library</description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:31:49 GMT</pubDate>
+    </item>
+    <item>
+      <title>continuous-delivery-scripts 2.8.5</title>
+      <link>https://pypi.org/project/continuous-delivery-scripts/2.8.5/</link>
+      <description>Continuous Delivery scripts to increase automation</description>
+      <author>adrien.cabarbaye@arm.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:31:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>darts 0.18.0</title>
+      <link>https://pypi.org/project/darts/0.18.0/</link>
+      <description>A python library for easy manipulation and forecasting of time series.</description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:30:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>faker-security 0.1.0</title>
+      <link>https://pypi.org/project/faker-security/0.1.0/</link>
+      <description>Faker provider for security related data</description>
+      <author>security-engineering@snyk.io</author>
+      <pubDate>Tue, 22 Mar 2022 16:30:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>askdata 1.3.41</title>
+      <link>https://pypi.org/project/askdata/1.3.41/</link>
+      <description>The official Askdata Python SDK</description>
+      <author>datascience@askdata.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:30:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>u8darts 0.18.0</title>
+      <link>https://pypi.org/project/u8darts/0.18.0/</link>
+      <description>A python library for easy manipulation and forecasting of time series.</description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:30:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>jina 3.2.8.dev6</title>
+      <link>https://pypi.org/project/jina/3.2.8.dev6/</link>
+      <description>Jina is the cloud-native neural search framework for any kind of data</description>
+      <author>hello@jina.ai</author>
+      <pubDate>Tue, 22 Mar 2022 16:30:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>anylearn 0.12.1</title>
+      <link>https://pypi.org/project/anylearn/0.12.1/</link>
+      <description>Anylearn Python SDK</description>
+      <author>anylearn@nelbds.org.cn</author>
+      <pubDate>Tue, 22 Mar 2022 16:29:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>scikit-explain 0.0.2</title>
+      <link>https://pypi.org/project/scikit-explain/0.0.2/</link>
+      <description>A user-friendly python package for computing and plotting machine learning explainability output.</description>
+      <author>monte.flora@noaa.gov</author>
+      <pubDate>Tue, 22 Mar 2022 16:29:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>mkdocs-embed-file-plugins 1.2.1</title>
+      <link>https://pypi.org/project/mkdocs-embed-file-plugins/1.2.1/</link>
+      <description>A plugin to quote file from docs</description>
+      <author>mara-li@icloud.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:29:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>aws-sesh 0.0.1</title>
+      <link>https://pypi.org/project/aws-sesh/0.0.1/</link>
+      <description>AWS MFA session manager</description>
+      <author>fg@panch.io</author>
+      <pubDate>Tue, 22 Mar 2022 16:29:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>tcs-shellwhat 1.5.0</title>
+      <link>https://pypi.org/project/tcs-shellwhat/1.5.0/</link>
+      <description>Submission correctness tests for shell languages</description>
+      <author>michael@datacamp.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:29:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>odoo12-addon-beesdoo-worker-status 12.0.1.0.0.99.dev26</title>
+      <link>https://pypi.org/project/odoo12-addon-beesdoo-worker-status/12.0.1.0.0.99.dev26/</link>
+      <description>Worker status management specific to beescoop.</description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:28:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>argbind 0.3.3</title>
+      <link>https://pypi.org/project/argbind/0.3.3/</link>
+      <description>Simple way to bind function arguments to the command line.</description>
+      <author>prem@descript.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:28:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>peanuts 1.2.5</title>
+      <link>https://pypi.org/project/peanuts/1.2.5/</link>
+      <description>A small package of peanuts</description>
+      <author>Michael.Schmidt@VUMC.org</author>
+      <pubDate>Tue, 22 Mar 2022 16:28:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>sparrow-tool 0.4.24</title>
+      <link>https://pypi.org/project/sparrow-tool/0.4.24/</link>
+      <description>Python Common Function Tool Set.</description>
+      <author>beidongjiedeguang@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:27:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>kf-d3m-primitives 0.6.1</title>
+      <link>https://pypi.org/project/kf-d3m-primitives/0.6.1/</link>
+      <description>All Kung Fu D3M primitives as a single library</description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:27:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>tcs-sqlwhat 3.8.1</title>
+      <link>https://pypi.org/project/tcs-sqlwhat/3.8.1/</link>
+      <description>Submission correctness tests for SQL</description>
+      <author>michael@datacamp.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:27:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>odoo12-addon-beesdoo-website-shift 12.0.1.0.1.99.dev9</title>
+      <link>https://pypi.org/project/odoo12-addon-beesdoo-website-shift/12.0.1.0.1.99.dev9/</link>
+      <description>Show available shifts for regular and irregular workers on the website and let workers manage their shifts with an easy web interface.</description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:27:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>fief-server 0.5.1</title>
+      <link>https://pypi.org/project/fief-server/0.5.1/</link>
+      <description>Users and authentication management SaaS</description>
+      <author>contact@fief.dev</author>
+      <pubDate>Tue, 22 Mar 2022 16:26:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>ucam-identitylib 1.0.3</title>
+      <link>https://pypi.org/project/ucam-identitylib/1.0.3/</link>
+      <description>A module containing helpers and shared code related to identity systems within UIS, University of Cambridge.</description>
+      <author>devops+ucam-identitylib@uis.cam.ac.uk</author>
+      <pubDate>Tue, 22 Mar 2022 16:26:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>leximpact-prepare-data 0.0.8</title>
+      <link>https://pypi.org/project/leximpact-prepare-data/0.0.8/</link>
+      <description>Prepare data for LexImpact</description>
+      <author>leximpact@an.fr</author>
+      <pubDate>Tue, 22 Mar 2022 16:26:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>sickrage 10.0.57.dev2</title>
+      <link>https://pypi.org/project/sickrage/10.0.57.dev2/</link>
+      <description>Automatic Video Library Manager for TV Shows</description>
+      <author>echel0n@sickrage.ca</author>
+      <pubDate>Tue, 22 Mar 2022 16:26:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>despace 0.3.0</title>
+      <link>https://pypi.org/project/despace/0.3.0/</link>
+      <description>A spatial decomposition tool for sorting or indexing N-D data.</description>
+      <author>ruibinliuphd@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:25:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>JSFetch 0.0.2</title>
+      <link>https://pypi.org/project/jsfetch/0.0.2/</link>
+      <description>Lets you make fetch requests in python as you would in JavaScript</description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:25:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>decOM 0.0.10</title>
+      <link>https://pypi.org/project/decom/0.0.10/</link>
+      <description>decOM: K-mer method for aOral metagenome decontamination</description>
+      <author>cduitama@pasteur.fr</author>
+      <pubDate>Tue, 22 Mar 2022 16:25:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>knowledge-clustering 0.2.1</title>
+      <link>https://pypi.org/project/knowledge-clustering/0.2.1/</link>
+      <description>Automated notion clustering for the knowledge LaTeX package</description>
+      <author>remi@morvan.xyz</author>
+      <pubDate>Tue, 22 Mar 2022 16:25:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>codepack 0.0.4</title>
+      <link>https://pypi.org/project/codepack/0.0.4/</link>
+      <description>Codepack is the package for making workflows with Python</description>
+      <author>ihnokim58@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:25:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>sym-sdk 0.5.3</title>
+      <link>https://pypi.org/project/sym-sdk/0.5.3/</link>
+      <description>Sym&#39;s Python SDK</description>
+      <author>pypi@symops.io</author>
+      <pubDate>Tue, 22 Mar 2022 16:24:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>muvinai 0.0.36</title>
+      <link>https://pypi.org/project/muvinai/0.0.36/</link>
+      <description>Utilities for muvinai developers</description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:24:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>multiviewdata 0.2.0</title>
+      <link>https://pypi.org/project/multiviewdata/0.2.0/</link>
+      <description>Packaged data modules for multiview learning benchmarks</description>
+      <author>james.chapman.19@ucl.ac.uk</author>
+      <pubDate>Tue, 22 Mar 2022 16:24:06 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

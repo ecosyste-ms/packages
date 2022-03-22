@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>PyPI newest packages</title>
+    <link>https://pypi.org/</link>
+    <description>Newest packages registered at the Python Package Index</description>
+    <language>en</language>
+    <item>
+      <title>waitprint added to PyPI</title>
+      <link>https://pypi.org/project/waitprint/</link>
+      <guid>https://pypi.org/project/waitprint/</guid>
+      <description></description>
+      <author>you@example.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:52:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>simpel-settings added to PyPI</title>
+      <link>https://pypi.org/project/simpel-settings/</link>
+      <guid>https://pypi.org/project/simpel-settings/</guid>
+      <description>Django DB Settings Framework</description>
+      <author>sasri.works@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:49:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>simpel-qrcodes added to PyPI</title>
+      <link>https://pypi.org/project/simpel-qrcodes/</link>
+      <guid>https://pypi.org/project/simpel-qrcodes/</guid>
+      <description>Simpel QRCode Integration for Django</description>
+      <author>sasri.works@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:40:01 GMT</pubDate>
+    </item>
+    <item>
+      <title>pyPublicDecompWT added to PyPI</title>
+      <link>https://pypi.org/project/pypublicdecompwt/</link>
+      <guid>https://pypi.org/project/pypublicdecompwt/</guid>
+      <description>Python bindings for EUMETSAT&#39;s PublicDecompWT.</description>
+      <author>foss@sbrodehl.de</author>
+      <pubDate>Tue, 22 Mar 2022 16:37:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>django-grpc-swagger added to PyPI</title>
+      <link>https://pypi.org/project/django-grpc-swagger/</link>
+      <guid>https://pypi.org/project/django-grpc-swagger/</guid>
+      <description>Django with gRPC、Swagger</description>
+      <author>907391489@qq.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:33:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>faker-security added to PyPI</title>
+      <link>https://pypi.org/project/faker-security/</link>
+      <guid>https://pypi.org/project/faker-security/</guid>
+      <description>Faker provider for security related data</description>
+      <author>security-engineering@snyk.io</author>
+      <pubDate>Tue, 22 Mar 2022 16:30:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>aws-sesh added to PyPI</title>
+      <link>https://pypi.org/project/aws-sesh/</link>
+      <guid>https://pypi.org/project/aws-sesh/</guid>
+      <description>AWS MFA session manager</description>
+      <author>fg@panch.io</author>
+      <pubDate>Tue, 22 Mar 2022 16:29:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>tcs-shellwhat added to PyPI</title>
+      <link>https://pypi.org/project/tcs-shellwhat/</link>
+      <guid>https://pypi.org/project/tcs-shellwhat/</guid>
+      <description>Submission correctness tests for shell languages</description>
+      <author>michael@datacamp.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:29:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>tcs-sqlwhat added to PyPI</title>
+      <link>https://pypi.org/project/tcs-sqlwhat/</link>
+      <guid>https://pypi.org/project/tcs-sqlwhat/</guid>
+      <description>Submission correctness tests for SQL</description>
+      <author>michael@datacamp.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:27:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>replanaii added to PyPI</title>
+      <link>https://pypi.org/project/replanaii/</link>
+      <guid>https://pypi.org/project/replanaii/</guid>
+      <description></description>
+      
+      <pubDate>Tue, 22 Mar 2022 16:23:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>dubborequests added to PyPI</title>
+      <link>https://pypi.org/project/dubborequests/</link>
+      <guid>https://pypi.org/project/dubborequests/</guid>
+      <description>Telnet command test dubbo</description>
+      <author>664616581@qq.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:20:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>sbn added to PyPI</title>
+      <link>https://pypi.org/project/sbn/</link>
+      <guid>https://pypi.org/project/sbn/</guid>
+      <description>Skull, Bones and Number.</description>
+      <author>bthate67@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:08:57 GMT</pubDate>
+    </item>
+    <item>
+      <title>sionna added to PyPI</title>
+      <link>https://pypi.org/project/sionna/</link>
+      <guid>https://pypi.org/project/sionna/</guid>
+      <description>Sionna -- A TensorFlow-based open-source library for simulating the physical layer of wireless communication systems</description>
+      <author>sionna@nvidia.com</author>
+      <pubDate>Tue, 22 Mar 2022 16:04:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>pyrustmpi added to PyPI</title>
+      <link>https://pypi.org/project/pyrustmpi/</link>
+      <guid>https://pypi.org/project/pyrustmpi/</guid>
+      <description></description>
+      
+      <pubDate>Tue, 22 Mar 2022 15:56:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>drona added to PyPI</title>
+      <link>https://pypi.org/project/drona/</link>
+      <guid>https://pypi.org/project/drona/</guid>
+      <description>This is a data science related question asnwering model for the beginners</description>
+      <author>prabirdeb@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 15:50:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>moniplot added to PyPI</title>
+      <link>https://pypi.org/project/moniplot/</link>
+      <guid>https://pypi.org/project/moniplot/</guid>
+      <description>moniplot is a Python data visualization library for (satellite) instrument monitoring.</description>
+      <author>r.m.van.hees@sron.nl</author>
+      <pubDate>Tue, 22 Mar 2022 15:45:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>CaptureFile added to PyPI</title>
+      <link>https://pypi.org/project/capturefile/</link>
+      <guid>https://pypi.org/project/capturefile/</guid>
+      <description>Transactional record logging library</description>
+      <author>bert.barabas@miosoft.com</author>
+      <pubDate>Tue, 22 Mar 2022 15:36:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>django-admin-model-filters added to PyPI</title>
+      <link>https://pypi.org/project/django-admin-model-filters/</link>
+      <guid>https://pypi.org/project/django-admin-model-filters/</guid>
+      <description>Extension for filtering models by field in the admin interface.</description>
+      
+      <pubDate>Tue, 22 Mar 2022 15:33:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>odoo14-addon-product-category-code-unique added to PyPI</title>
+      <link>https://pypi.org/project/odoo14-addon-product-category-code-unique/</link>
+      <guid>https://pypi.org/project/odoo14-addon-product-category-code-unique/</guid>
+      <description>Allows to set product category code field as unique</description>
+      <author>support@odoo-community.org</author>
+      <pubDate>Tue, 22 Mar 2022 15:22:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>dacon added to PyPI</title>
+      <link>https://pypi.org/project/dacon/</link>
+      <guid>https://pypi.org/project/dacon/</guid>
+      <description>dacon-open-api</description>
+      <author>dacon@dacon.io</author>
+      <pubDate>Tue, 22 Mar 2022 15:18:47 GMT</pubDate>
+    </item>
+    <item>
+      <title>km3irf added to PyPI</title>
+      <link>https://pypi.org/project/km3irf/</link>
+      <guid>https://pypi.org/project/km3irf/</guid>
+      <description>KM3NeT instrument response functions</description>
+      <author>tgal@km3net.de</author>
+      <pubDate>Tue, 22 Mar 2022 15:13:03 GMT</pubDate>
+    </item>
+    <item>
+      <title>vz-recommender added to PyPI</title>
+      <link>https://pypi.org/project/vz-recommender/</link>
+      <guid>https://pypi.org/project/vz-recommender/</guid>
+      <description>vz recommender package</description>
+      <author>luyang.wang@verizon.com</author>
+      <pubDate>Tue, 22 Mar 2022 15:11:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>ovos-cli-client added to PyPI</title>
+      <link>https://pypi.org/project/ovos-cli-client/</link>
+      <guid>https://pypi.org/project/ovos-cli-client/</guid>
+      <description>ovos-core debug cli client</description>
+      <author>jarbasai@mailfence.com</author>
+      <pubDate>Tue, 22 Mar 2022 15:10:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>cbh-666 added to PyPI</title>
+      <link>https://pypi.org/project/cbh-666/</link>
+      <guid>https://pypi.org/project/cbh-666/</guid>
+      <description></description>
+      
+      <pubDate>Tue, 22 Mar 2022 15:06:14 GMT</pubDate>
+    </item>
+    <item>
+      <title>lyp-handsome added to PyPI</title>
+      <link>https://pypi.org/project/lyp-handsome/</link>
+      <guid>https://pypi.org/project/lyp-handsome/</guid>
+      <description></description>
+      
+      <pubDate>Tue, 22 Mar 2022 15:05:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>peanuts added to PyPI</title>
+      <link>https://pypi.org/project/peanuts/</link>
+      <guid>https://pypi.org/project/peanuts/</guid>
+      <description>A small package of peanuts</description>
+      <author>Michael.Schmidt@VUMC.org</author>
+      <pubDate>Tue, 22 Mar 2022 14:57:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>odoo-addon-product-packaging-type added to PyPI</title>
+      <link>https://pypi.org/project/odoo-addon-product-packaging-type/</link>
+      <guid>https://pypi.org/project/odoo-addon-product-packaging-type/</guid>
+      <description>Product Packaging Type</description>
+      <author>support@odoo-community.org</author>
+      <pubDate>Tue, 22 Mar 2022 14:56:49 GMT</pubDate>
+    </item>
+    <item>
+      <title>mojo-perception added to PyPI</title>
+      <link>https://pypi.org/project/mojo-perception/</link>
+      <guid>https://pypi.org/project/mojo-perception/</guid>
+      <description>Mojo Perception Python API</description>
+      <author>contact@hoomano.com</author>
+      <pubDate>Tue, 22 Mar 2022 14:51:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>nodechup added to PyPI</title>
+      <link>https://pypi.org/project/nodechup/</link>
+      <guid>https://pypi.org/project/nodechup/</guid>
+      <description>Program to manage Node.js installations</description>
+      <author>opensource@cyberfusion.nl</author>
+      <pubDate>Tue, 22 Mar 2022 14:36:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>nonebot-plugin-leetcode2 added to PyPI</title>
+      <link>https://pypi.org/project/nonebot-plugin-leetcode2/</link>
+      <guid>https://pypi.org/project/nonebot-plugin-leetcode2/</guid>
+      <description>基于nonebot2的leetcode查询插件。</description>
+      <author>3102002900@qq.com</author>
+      <pubDate>Tue, 22 Mar 2022 14:16:51 GMT</pubDate>
+    </item>
+    <item>
+      <title>GeoMeshPy added to PyPI</title>
+      <link>https://pypi.org/project/geomeshpy/</link>
+      <guid>https://pypi.org/project/geomeshpy/</guid>
+      <description>A Python package to convert the geology to in mesh generator (GMSH).</description>
+      <author>Ali.dashti@kit.edu</author>
+      <pubDate>Tue, 22 Mar 2022 14:09:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>poetry-mkdocs-test added to PyPI</title>
+      <link>https://pypi.org/project/poetry-mkdocs-test/</link>
+      <guid>https://pypi.org/project/poetry-mkdocs-test/</guid>
+      <description>Mkdocs plugin that allow to inject external markdown or markdown section from given url</description>
+      <author>dev@3os.org</author>
+      <pubDate>Tue, 22 Mar 2022 13:53:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>lintersmagic added to PyPI</title>
+      <link>https://pypi.org/project/lintersmagic/</link>
+      <guid>https://pypi.org/project/lintersmagic/</guid>
+      <description>A package to include linters in Databricks notebooks: pycodestyle</description>
+      
+      <pubDate>Tue, 22 Mar 2022 13:48:36 GMT</pubDate>
+    </item>
+    <item>
+      <title>convml-tt added to PyPI</title>
+      <link>https://pypi.org/project/convml-tt/</link>
+      <guid>https://pypi.org/project/convml-tt/</guid>
+      <description>Neural Network based study of convective organisation</description>
+      <author>l.c.denby@leeds.ac.uk</author>
+      <pubDate>Tue, 22 Mar 2022 13:45:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>odoo12-addon-beesdoo-product-info-screen added to PyPI</title>
+      <link>https://pypi.org/project/odoo12-addon-beesdoo-product-info-screen/</link>
+      <guid>https://pypi.org/project/odoo12-addon-beesdoo-product-info-screen/</guid>
+      <description>Adds a read-only screen to display product information</description>
+      
+      <pubDate>Tue, 22 Mar 2022 13:34:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>simpel-admin added to PyPI</title>
+      <link>https://pypi.org/project/simpel-admin/</link>
+      <guid>https://pypi.org/project/simpel-admin/</guid>
+      <description>Enhanched Django Admin</description>
+      <author>sasri.works@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 13:29:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>django-salesman-stripe added to PyPI</title>
+      <link>https://pypi.org/project/django-salesman-stripe/</link>
+      <guid>https://pypi.org/project/django-salesman-stripe/</guid>
+      <description>Stripe payment integration for Salesman.</description>
+      <author>dino.perovic@gmail.com</author>
+      <pubDate>Tue, 22 Mar 2022 13:25:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>cerror added to PyPI</title>
+      <link>https://pypi.org/project/cerror/</link>
+      <guid>https://pypi.org/project/cerror/</guid>
+      <description></description>
+      
+      <pubDate>Tue, 22 Mar 2022 13:22:14 GMT</pubDate>
+    </item>
+    <item>
+      <title>luna added to PyPI</title>
+      <link>https://pypi.org/project/luna/</link>
+      <guid>https://pypi.org/project/luna/</guid>
+      <description>LUNA: drug discovery toolkit</description>
+      <author>afassio@keiserlab.org</author>
+      <pubDate>Tue, 22 Mar 2022 13:22:03 GMT</pubDate>
+    </item>
+    <item>
+      <title>Lgy added to PyPI</title>
+      <link>https://pypi.org/project/lgy/</link>
+      <guid>https://pypi.org/project/lgy/</guid>
+      <description>蔺广域</description>
+      
+      <pubDate>Tue, 22 Mar 2022 13:20:46 GMT</pubDate>
+    </item>
+  </channel>
+</rss>
