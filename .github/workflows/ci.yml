@@ -41,5 +41,6 @@ jobs:
           POSTGRES_DB: packages_test
           POSTGRES_USER: packages
           POSTGRES_PASSWORD: postgres
+          POSTGRES_HOST: localhost
           POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
         run: bundle exec rake db:create db:migrate test
