@@ -9,6 +9,6 @@ class VersionTest < ActiveSupport::TestCase
   context 'validations' do
     should validate_presence_of(:package_id)
     should validate_presence_of(:number)
-    # TODO validates_uniqueness_of :number, scope: :package_id
+    should validate_uniqueness_of(:number).scoped_to(:package_id)
   end
 end

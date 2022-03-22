@@ -10,6 +10,7 @@ class RegistryTest < ActiveSupport::TestCase
     should validate_presence_of(:url)
     should validate_presence_of(:name)
     should validate_presence_of(:ecosystem)
-    # TODO validates_uniqueness_of :name, :url
+    should validate_uniqueness_of(:name)
+    should validate_uniqueness_of(:url)
   end
 end
