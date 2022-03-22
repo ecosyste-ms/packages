@@ -2,7 +2,7 @@
 default: &default
   adapter: postgresql
   encoding: unicode
-  username: <%= ENV.fetch("POSTGRES_USER")] %>
+  username: <%= ENV.fetch("POSTGRES_USER") %>
   password: <%= ENV.fetch("POSTGRES_PASSWORD") { '' } %>
   host:     <%= ENV.fetch("POSTGRES_HOST") { '' } %>
   port:     <%= ENV.fetch("POSTGRES_PORT") { '' } %>
