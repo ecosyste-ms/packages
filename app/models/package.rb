@@ -5,4 +5,11 @@ class Package < ApplicationRecord
   belongs_to :registry
   has_many :versions
   has_many :dependencies, -> { group 'package_name' }, through: :versions
+
+  scope :ecosystem, ->(ecosystem) { where(ecosystem: Ecosystem::Base.format_name(ecosystem)) }
+
+  def reformat_repository_url
+    repository_url = UrlParser.try_all(self.repository_url)
+    update(repository_url: repository_url) if changed?
+  end
 end

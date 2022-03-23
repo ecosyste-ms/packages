@@ -20,10 +20,6 @@ module Ecosystem
       end
     end
 
-    # def default_language
-    #   Languages::Language.all.find { |l| l.color == color }.try(:name)
-    # end
-
     def self.format_name(ecosystem)
       return nil if ecosystem.nil?
 
@@ -70,99 +66,12 @@ module Ecosystem
       find(ecosystem).try(:formatted_name) || ecosystem
     end
 
-    def save(package)
-      return unless package.present?
-
-      mapped_package = mapping(package)
-      mapped_package = mapped_package.delete_if { |_key, value| value.blank? } if mapped_package.present?
-      return false unless mapped_package.present?
-
-      dbpackage = Package.find_or_initialize_by({ name: mapped_package[:name], ecosystem: name.demodulize })
-      if dbpackage.new_record?
-        dbpackage.assign_attributes(mapped_package.except(:name, :releases, :versions, :version, :dependencies, :properties))
-        dbpackage.save! if dbpackage.changed?
-      else
-        dbpackage.reformat_repository_url
-        attrs = mapped_package.except(:name, :releases, :versions, :version, :dependencies, :properties)
-        dbpackage.update(attrs)
-      end
-
-      if self::HAS_VERSIONS
-        versions(package, dbpackage.name).each do |version|
-          dbpackage.versions.create(version) unless dbpackage.versions.find { |v| v.number == version[:number] }
-        end
-      end
-
-      save_dependencies(dbpackage, mapped_package) if self::HAS_DEPENDENCIES
-      dbpackage.reload
-      # dbpackage.download_registry_users
-      dbpackage.last_synced_at = Time.now
-      dbpackage.save
-      dbpackage
-    end
-
-    def update(name)
-      pkg = package(name)
-      save(pkg) if pkg.present?
-    rescue SystemExit, Interrupt
-      exit 0
-    rescue StandardError => e
-      if ENV["RACK_ENV"] == "production"
-        # Bugsnag.notify(e)
-      else
-        raise
-      end
-    end
-
-    def import
-      return if ENV["READ_ONLY"].present?
-
-      package_names.each { |name| update(name) }
-    end
-
-    def import_recent
-      return if ENV["READ_ONLY"].present?
-
-      recently_updated_package_names.each { |name| update(name) }
-    end
-
-    def import_new
-      return if ENV["READ_ONLY"].present?
-
-      new_names.each { |name| update(name) }
-    end
-
-    def new_names
-      names = package_names
-      existing_names = []
-      Package.ecosystem(name.demodulize).select(:id, :name).find_each { |package| existing_names << package.name }
-      names - existing_names
-    end
-
-    def save_dependencies(package, mapped_package)
-      name = mapped_package[:name]
-      package.versions.includes(:dependencies).each do |version|
-        next if version.dependencies.any?
-
-        deps = begin
-                 dependencies(name, version.number, mapped_package)
-               rescue StandardError
-                 []
-               end
-        next unless deps&.any? && version.dependencies.empty?
-
-        deps.each do |dep|
-          named_package_id = Package
-            .find_best(self.name.demodulize, dep[:package_name].strip)
-            &.id
-          version.dependencies.create(dep.merge(package_id: named_package_id.try(:strip)))
-        end
-        version.set_runtime_dependencies_count
-      end
-    end
-
     def dependencies(_name, _version, _package)
       []
+    end
+
+    def package_metadata(name)
+      map_package_metadata(fetch_package_metadata(name))
     end
 
     def map_dependencies(deps, kind, optional = false, ecosystem = name.demodulize)
@@ -187,7 +96,7 @@ module Ecosystem
           package_name: dependency["name"],
           requirements: dependency["requirement"] || "*",
           kind: dependency["type"],
-          ecosystem: self.name.demodulize,
+          ecosystem: self.class.name.demodulize,
         }
       end
     end

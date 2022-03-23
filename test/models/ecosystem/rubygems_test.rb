@@ -65,4 +65,16 @@ class RubygemsTest < ActiveSupport::TestCase
     assert_equal recently_updated_package_names.length, 84
     assert_equal recently_updated_package_names.last, 'reparse'
   end
+
+  test 'package_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'fetch_package_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'map_package_metadata' do
+    skip("To be implemented")
+  end
 end

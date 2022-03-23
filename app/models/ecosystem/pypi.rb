@@ -2,9 +2,6 @@
 
 module Ecosystem
   class Pypi < Base
-    HAS_VERSIONS = true
-    HAS_DEPENDENCIES = true
-
     def package_url(package, version = nil)
       "#{@registry_url}/package/#{package.name}/#{version}"
     end
@@ -34,13 +31,13 @@ module Ecosystem
       (updated.map { |t| t.split(" ").first } + new_packages.map { |t| t.split(" ").first }).uniq
     end
 
-    def package(name)
+    def fetch_package_metadata(name)
       get("#{@registry_url}/pypi/#{name}/json")
     rescue StandardError
       {}
     end
 
-    def mapping(package)
+    def map_package_metadata(package)
       {
         name: package["info"]["name"],
         description: package["info"]["summary"],
@@ -51,21 +48,22 @@ module Ecosystem
           package.dig("info", "package_urls", "Source").presence || package.dig("info", "package_urls", "Source Code"),
           package["info"]["home_page"].presence || package.dig("info", "package_urls", "Homepage")
         ),
+        releases: package['releases']
       }
     end
 
-    def versions(package, name)
-      package["releases"].reject { |_k, v| v == [] }.map do |k, v|
-        release = get("#{@registry_url}/pypi/#{name}/#{k}/json")
+    def versions_metadata(package)
+      package[:releases].reject { |_k, v| v == [] }.map do |k, v|
+        release = get("#{@registry_url}/pypi/#{package[:name]}/#{k}/json")
         {
           number: k,
           published_at: v[0]["upload_time"],
-          original_license: release.dig("info", "license"),
+          licenses: release.dig("info", "license"),
         }
       end
     end
 
-    def dependencies(name, version, _package)
+    def dependencies_metadata(name, version, _package)
       deps = get("http://pip.libraries.io/#{name}/#{version}.json")
       return [] if deps.is_a?(Hash) && deps["error"].present?
 
@@ -75,7 +73,7 @@ module Ecosystem
           requirements: dep["requirements"] || "*",
           kind: "runtime",
           optional: false,
-          platform: self.name.demodulize,
+          ecosystem: self.class.name.demodulize,
         }
       end
     end
