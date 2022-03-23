@@ -1,0 +1,40 @@
+version: '3'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - PIDFILE=/usr/src/app/tmp/pids/server.pid
+      - RAILS_ENV=development
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=development
+      - DATABASE_HOST=database.service.packages.internal
+    networks:
+      - internal
+    depends_on:
+      - database.service.packages.internal
+
+  database.service.packages.internal:
+    image: postgres:14.1-alpine
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    environment:
+      - POSTGRES_PASSWORD=development
+
+  redis.service.packages.internal:
+    image: redis:6.2-alpine
+    networks:
+      - internal
+
+volumes:
+  pg_data:
+
+networks:
+  internal:
+    driver: bridge

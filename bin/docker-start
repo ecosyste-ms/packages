@@ -1,0 +1,15 @@
+
+#!/bin/sh
+set -e
+
+db_host=${DATABASE_HOST:-database.service.packages.internal}
+while ! nc -z $db_host ${DATABASE_PORT:-5432}; do
+  echo "Waiting for database to be available..."
+  sleep 1
+done
+
+bundle exec rake db:create db:migrate
+rm -rf tmp/pids
+
+# exec foreman start -d .
+exec bundle exec rails s -b 0.0.0.0
