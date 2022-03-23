@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:slash="http://purl.org/rss/1.0/modules/slash/">
+  <channel>
+    <title>Newly Submitted Packages</title>
+    <description>Latest packages submitted to Packagist.</description>
+    <pubDate>Wed, 23 Mar 2022 16:06:28 +0000</pubDate>
+    <generator>Packagist</generator>
+    <link>https://packagist.org/explore/</link>
+    <item>
+      <title>yexiaofeng/hashid</title>
+      <description><![CDATA[Laravel ID Encrypt Helper]]></description>
+      <pubDate>Wed, 23 Mar 2022 16:06:28 +0000</pubDate>
+      <link>https://packagist.org/packages/yexiaofeng/hashid</link>
+      <guid isPermaLink="false">yexiaofeng/hashid</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>george-zakharov/fpdf-tables-extended</title>
+      <description><![CDATA[This library provides generation of PDF tables with FPDF.This library is originally forked from https://github.com/smichaelsen/fpdf-tables.]]></description>
+      <pubDate>Wed, 23 Mar 2022 16:01:42 +0000</pubDate>
+      <link>https://packagist.org/packages/george-zakharov/fpdf-tables-extended</link>
+      <guid isPermaLink="false">george-zakharov/fpdf-tables-extended</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>mnowak/module-weather</title>
+      <description><![CDATA[Module downloads weather data from selected cities.]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:58:25 +0000</pubDate>
+      <link>https://packagist.org/packages/mnowak/module-weather</link>
+      <guid isPermaLink="false">mnowak/module-weather</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>tecnodesignc/workshop-module</title>
+      <description><![CDATA[Workshop module for EncoreCMS 2. Handles the activation of modules.]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:54:26 +0000</pubDate>
+      <link>https://packagist.org/packages/tecnodesignc/workshop-module</link>
+      <guid isPermaLink="false">tecnodesignc/workshop-module</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>badarithm/elocryptfive</title>
+      <description><![CDATA[Automatically encrypt and decrypt Eloquent attributes with ease.]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:50:11 +0000</pubDate>
+      <link>https://packagist.org/packages/badarithm/elocryptfive</link>
+      <guid isPermaLink="false">badarithm/elocryptfive</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>cuonggt/binance-connector-php</title>
+      <description><![CDATA[This is a lightweight library that works as a connector to the Binance public API.]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:47:59 +0000</pubDate>
+      <link>https://packagist.org/packages/cuonggt/binance-connector-php</link>
+      <guid isPermaLink="false">cuonggt/binance-connector-php</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>draw/framework-extra-bundle</title>
+      <description><![CDATA[[WIP] Main bundle to configure draw component in symfony framework]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:32:54 +0000</pubDate>
+      <link>https://packagist.org/packages/draw/framework-extra-bundle</link>
+      <guid isPermaLink="false">draw/framework-extra-bundle</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>draw/process</title>
+      <description><![CDATA[Package to add some feature related to symfony/process component]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:32:10 +0000</pubDate>
+      <link>https://packagist.org/packages/draw/process</link>
+      <guid isPermaLink="false">draw/process</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>blockify/theme</title>
+      <description><![CDATA[ ]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:25:53 +0000</pubDate>
+      <link>https://packagist.org/packages/blockify/theme</link>
+      <guid isPermaLink="false">blockify/theme</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>pellesam/laravel-cascade-soft-delete-and-restore</title>
+      <description><![CDATA[Cascading delete and restore for Eloquent models that implement soft delete]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:25:52 +0000</pubDate>
+      <link>https://packagist.org/packages/pellesam/laravel-cascade-soft-delete-and-restore</link>
+      <guid isPermaLink="false">pellesam/laravel-cascade-soft-delete-and-restore</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>joshuaanderton/blazervel</title>
+      <description><![CDATA[Trailblazer method utilized for Laravel.]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:21:30 +0000</pubDate>
+      <link>https://packagist.org/packages/joshuaanderton/blazervel</link>
+      <guid isPermaLink="false">joshuaanderton/blazervel</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>lushidev/foot-api</title>
+      <description><![CDATA[a laraval football api package inspired from gramma football package]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:12:00 +0000</pubDate>
+      <link>https://packagist.org/packages/lushidev/foot-api</link>
+      <guid isPermaLink="false">lushidev/foot-api</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>makinacorpus/specification</title>
+      <description><![CDATA[Simple specification pattern implementation.]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:11:36 +0000</pubDate>
+      <link>https://packagist.org/packages/makinacorpus/specification</link>
+      <guid isPermaLink="false">makinacorpus/specification</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>zoparga/laravel-company-information</title>
+      <description><![CDATA[Add many address to many model with a single trait. E.g.: many shipping address for a customer.]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:02:41 +0000</pubDate>
+      <link>https://packagist.org/packages/zoparga/laravel-company-information</link>
+      <guid isPermaLink="false">zoparga/laravel-company-information</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moves/fillable-on-create</title>
+      <description><![CDATA[ ]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:02:38 +0000</pubDate>
+      <link>https://packagist.org/packages/moves/fillable-on-create</link>
+      <guid isPermaLink="false">moves/fillable-on-create</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>tolisc/wkhtmltopdf-windows</title>
+      <description><![CDATA[ ]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:00:30 +0000</pubDate>
+      <link>https://packagist.org/packages/tolisc/wkhtmltopdf-windows</link>
+      <guid isPermaLink="false">tolisc/wkhtmltopdf-windows</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>joonlabs/package-modernyze</title>
+      <description><![CDATA[Package that supports the connection to a Modernyze update server.]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:54:29 +0000</pubDate>
+      <link>https://packagist.org/packages/joonlabs/package-modernyze</link>
+      <guid isPermaLink="false">joonlabs/package-modernyze</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>hyperself/yii2-gii</title>
+      <description><![CDATA[yii2-gii]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:52:04 +0000</pubDate>
+      <link>https://packagist.org/packages/hyperself/yii2-gii</link>
+      <guid isPermaLink="false">hyperself/yii2-gii</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>hyperself/yii2</title>
+      <description><![CDATA[yii2]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:51:12 +0000</pubDate>
+      <link>https://packagist.org/packages/hyperself/yii2</link>
+      <guid isPermaLink="false">hyperself/yii2</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>avastechnology/laravel-console</title>
+      <description><![CDATA[This package is simply a series of traits to use with laravel console commands. An abstract command with all of the traits is also included.]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:47:37 +0000</pubDate>
+      <link>https://packagist.org/packages/avastechnology/laravel-console</link>
+      <guid isPermaLink="false">avastechnology/laravel-console</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>adly/easyparcel</title>
+      <description><![CDATA[Package for EasyParcel API]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:46:20 +0000</pubDate>
+      <link>https://packagist.org/packages/adly/easyparcel</link>
+      <guid isPermaLink="false">adly/easyparcel</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>ahmedd-ibrahim/nova-permission</title>
+      <description><![CDATA[A Laravel Nova tool for Spatie's Permission library.]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:43:33 +0000</pubDate>
+      <link>https://packagist.org/packages/ahmedd-ibrahim/nova-permission</link>
+      <guid isPermaLink="false">ahmedd-ibrahim/nova-permission</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>helaplus/evoting</title>
+      <description><![CDATA[A laravel package to make it simpler to create electronic voting platforms]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:40:14 +0000</pubDate>
+      <link>https://packagist.org/packages/helaplus/evoting</link>
+      <guid isPermaLink="false">helaplus/evoting</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>tecnodesignc/user-module</title>
+      <description><![CDATA[User module for EncoreCMS 2. Handles the authentication and authorisation as well as the user management.]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:38:30 +0000</pubDate>
+      <link>https://packagist.org/packages/tecnodesignc/user-module</link>
+      <guid isPermaLink="false">tecnodesignc/user-module</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>iboxs/redis</title>
+      <description><![CDATA[Redis convenient operation package]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:37:42 +0000</pubDate>
+      <link>https://packagist.org/packages/iboxs/redis</link>
+      <guid isPermaLink="false">iboxs/redis</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>adjai/backender</title>
+      <description><![CDATA[Simple backend]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:34:06 +0000</pubDate>
+      <link>https://packagist.org/packages/adjai/backender</link>
+      <guid isPermaLink="false">adjai/backender</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>yylh/gosider</title>
+      <description><![CDATA[ ]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:28:46 +0000</pubDate>
+      <link>https://packagist.org/packages/yylh/gosider</link>
+      <guid isPermaLink="false">yylh/gosider</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>drozzi-pro/wp-project</title>
+      <description><![CDATA[WordPress boilerplate with Composer, easier configuration, and an improved folder structure]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:25:46 +0000</pubDate>
+      <link>https://packagist.org/packages/drozzi-pro/wp-project</link>
+      <guid isPermaLink="false">drozzi-pro/wp-project</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>avastechnology/laravel-environment</title>
+      <description><![CDATA[Provides an Environment enumeration class to help specify the current and available environments.]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:20:53 +0000</pubDate>
+      <link>https://packagist.org/packages/avastechnology/laravel-environment</link>
+      <guid isPermaLink="false">avastechnology/laravel-environment</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>smplphp/inspector</title>
+      <description><![CDATA[A simple modern PHP class inspector and mapper library]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:05:01 +0000</pubDate>
+      <link>https://packagist.org/packages/smplphp/inspector</link>
+      <guid isPermaLink="false">smplphp/inspector</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>tecnodesignc/translation-module</title>
+      <description><![CDATA[Module containing all EncoreCms translations]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:04:51 +0000</pubDate>
+      <link>https://packagist.org/packages/tecnodesignc/translation-module</link>
+      <guid isPermaLink="false">tecnodesignc/translation-module</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>lupasearch/lupasearch-php-client</title>
+      <description><![CDATA[LupaSearch API PHP Client]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:00:14 +0000</pubDate>
+      <link>https://packagist.org/packages/lupasearch/lupasearch-php-client</link>
+      <guid isPermaLink="false">lupasearch/lupasearch-php-client</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>hexters/laramodule</title>
+      <description><![CDATA[ ]]></description>
+      <pubDate>Wed, 23 Mar 2022 13:46:27 +0000</pubDate>
+      <link>https://packagist.org/packages/hexters/laramodule</link>
+      <guid isPermaLink="false">hexters/laramodule</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>murrequip/firebase-provider</title>
+      <description><![CDATA[Firebase Service Provider for Lumen/Laravel]]></description>
+      <pubDate>Wed, 23 Mar 2022 13:37:05 +0000</pubDate>
+      <link>https://packagist.org/packages/murrequip/firebase-provider</link>
+      <guid isPermaLink="false">murrequip/firebase-provider</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>sebius77/date-manager</title>
+      <description><![CDATA[library for generating calendar]]></description>
+      <pubDate>Wed, 23 Mar 2022 13:32:45 +0000</pubDate>
+      <link>https://packagist.org/packages/sebius77/date-manager</link>
+      <guid isPermaLink="false">sebius77/date-manager</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>llomgui/wootrade</title>
+      <description><![CDATA[PHP SDK for Wootrade API]]></description>
+      <pubDate>Wed, 23 Mar 2022 13:21:37 +0000</pubDate>
+      <link>https://packagist.org/packages/llomgui/wootrade</link>
+      <guid isPermaLink="false">llomgui/wootrade</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>fluidphp/framework</title>
+      <description><![CDATA[Core files for fluidphp framework]]></description>
+      <pubDate>Wed, 23 Mar 2022 13:14:37 +0000</pubDate>
+      <link>https://packagist.org/packages/fluidphp/framework</link>
+      <guid isPermaLink="false">fluidphp/framework</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>fluidphp/fluidphp</title>
+      <description><![CDATA[A php framework]]></description>
+      <pubDate>Wed, 23 Mar 2022 13:04:59 +0000</pubDate>
+      <link>https://packagist.org/packages/fluidphp/fluidphp</link>
+      <guid isPermaLink="false">fluidphp/fluidphp</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>kibanna/encap-elastic7</title>
+      <description><![CDATA[ ]]></description>
+      <pubDate>Wed, 23 Mar 2022 12:56:28 +0000</pubDate>
+      <link>https://packagist.org/packages/kibanna/encap-elastic7</link>
+      <guid isPermaLink="false">kibanna/encap-elastic7</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>pringuin/pimcore-lucene-search</title>
+      <description><![CDATA[Pimcore 10.x Website Indexer (powered by Zend Search Lucene)]]></description>
+      <pubDate>Wed, 23 Mar 2022 12:45:20 +0000</pubDate>
+      <link>https://packagist.org/packages/pringuin/pimcore-lucene-search</link>
+      <guid isPermaLink="false">pringuin/pimcore-lucene-search</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+  </channel>
+</rss>

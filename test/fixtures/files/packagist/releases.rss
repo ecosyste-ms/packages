@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:slash="http://purl.org/rss/1.0/modules/slash/">
+  <channel>
+    <title>New Releases</title>
+    <description>Latest releases of all packages.</description>
+    <pubDate>Wed, 23 Mar 2022 15:22:26 +0000</pubDate>
+    <generator>Packagist</generator>
+    <link>https://packagist.org/explore/</link>
+    <item>
+      <title>medalink/laravel-reflects-constants (v2.2.0)</title>
+      <description><![CDATA[A small helper package that aids in the retrieval of class constants of models in laravel.]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:22:26 +0000</pubDate>
+      <link>https://packagist.org/packages/medalink/laravel-reflects-constants</link>
+      <guid isPermaLink="false">medalink/laravel-reflects-constants v2.2.0</guid>
+      <author>Eric Percifield</author>
+      <dc:creator>Eric Percifield</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>woody-wordpress/woody-sso (1.7.0)</title>
+      <description><![CDATA[This plugin replaces the native wordpress connection system with the SSO (single sign on) button of Raccourci Agency: THE STUDIO]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:18:33 +0000</pubDate>
+      <link>https://packagist.org/packages/woody-wordpress/woody-sso</link>
+      <guid isPermaLink="false">woody-wordpress/woody-sso 1.7.0</guid>
+      <author>Léo POIROUX</author>
+      <author>Jeremy LEGENDRE</author>
+      <dc:creator>Léo POIROUX</dc:creator>
+      <dc:creator>Jeremy LEGENDRE</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>rocketslab/wa-laravel (0.1.2)</title>
+      <description><![CDATA[Wrapper for Laravel to use WhatsApp Baileys Api]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:15:02 +0000</pubDate>
+      <link>https://packagist.org/packages/rocketslab/wa-laravel</link>
+      <guid isPermaLink="false">rocketslab/wa-laravel 0.1.2</guid>
+      <author>RocketsLab</author>
+      <dc:creator>RocketsLab</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>konekt/pdf-invoice (1.10.4)</title>
+      <description><![CDATA[Library to generate PDF invoices]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:14:53 +0000</pubDate>
+      <link>https://packagist.org/packages/konekt/pdf-invoice</link>
+      <guid isPermaLink="false">konekt/pdf-invoice 1.10.4</guid>
+      <author>Attila Fulop</author>
+      <dc:creator>Attila Fulop</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>ray-nl/laravel-facebook-catalog (v1.0.2)</title>
+      <description><![CDATA[Laravel Facebook Catalog package]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:09:51 +0000</pubDate>
+      <link>https://packagist.org/packages/ray-nl/laravel-facebook-catalog</link>
+      <guid isPermaLink="false">ray-nl/laravel-facebook-catalog v1.0.2</guid>
+      <author>Sjoerd Rutten</author>
+      <author>Deniz Tezcan</author>
+      <dc:creator>Sjoerd Rutten</dc:creator>
+      <dc:creator>Deniz Tezcan</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>tombroucke/otomaties-woocommerce-pdf-gift-card (1.5.0)</title>
+      <description><![CDATA[Sell PDF gift cards through WooCommerce with a custom design.]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:09:25 +0000</pubDate>
+      <link>https://packagist.org/packages/tombroucke/otomaties-woocommerce-pdf-gift-card</link>
+      <guid isPermaLink="false">tombroucke/otomaties-woocommerce-pdf-gift-card 1.5.0</guid>
+      <author>Tom Broucke</author>
+      <dc:creator>Tom Broucke</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>aropixel/blog-bundle (v1.1.1)</title>
+      <description><![CDATA[Gestion de blog pour admin Aropixel]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:09:00 +0000</pubDate>
+      <link>https://packagist.org/packages/aropixel/blog-bundle</link>
+      <guid isPermaLink="false">aropixel/blog-bundle v1.1.1</guid>
+      <author>Joël Gomez Caballe</author>
+      <dc:creator>Joël Gomez Caballe</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>makinacorpus/specification (0.1.0)</title>
+      <description><![CDATA[Simple specification pattern implementation.]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:08:51 +0000</pubDate>
+      <link>https://packagist.org/packages/makinacorpus/specification</link>
+      <guid isPermaLink="false">makinacorpus/specification 0.1.0</guid>
+      <author>Pierre Rineau</author>
+      <author>Makina Corpus</author>
+      <dc:creator>Pierre Rineau</dc:creator>
+      <dc:creator>Makina Corpus</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>webkotlas/iiko-api (1.0.2)</title>
+      <description><![CDATA[ ]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:07:47 +0000</pubDate>
+      <link>https://packagist.org/packages/webkotlas/iiko-api</link>
+      <guid isPermaLink="false">webkotlas/iiko-api 1.0.2</guid>
+      <author>WEB Kotlas</author>
+      <dc:creator>WEB Kotlas</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>pantheon-se/pantheon_autopilot_demo (v1.0.611)</title>
+      <description><![CDATA[Simple demo to showcase Pantheon Autopilot VRT detection]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:07:36 +0000</pubDate>
+      <link>https://packagist.org/packages/pantheon-se/pantheon_autopilot_demo</link>
+      <guid isPermaLink="false">pantheon-se/pantheon_autopilot_demo v1.0.611</guid>
+      <author>Kyle Taylor (kyletaylored)</author>
+      <dc:creator>Kyle Taylor (kyletaylored)</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>mvf-tech/servicer (0.13.4)</title>
+      <description><![CDATA[Defines common php consumers]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:06:54 +0000</pubDate>
+      <link>https://packagist.org/packages/mvf-tech/servicer</link>
+      <guid isPermaLink="false">mvf-tech/servicer 0.13.4</guid>
+      <author>Dovydas Rupsys</author>
+      <dc:creator>Dovydas Rupsys</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>mvf-tech/servicer (0.13.3)</title>
+      <description><![CDATA[Defines common php consumers]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:06:54 +0000</pubDate>
+      <link>https://packagist.org/packages/mvf-tech/servicer</link>
+      <guid isPermaLink="false">mvf-tech/servicer 0.13.3</guid>
+      <author>Dovydas Rupsys</author>
+      <dc:creator>Dovydas Rupsys</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>lihoy/amoassistent (0.0.3)</title>
+      <description><![CDATA[Tools]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:02:33 +0000</pubDate>
+      <link>https://packagist.org/packages/lihoy/amoassistent</link>
+      <guid isPermaLink="false">lihoy/amoassistent 0.0.3</guid>
+      <author>Pavel Likhosherst</author>
+      <dc:creator>Pavel Likhosherst</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>fratily/router (v2.0.0)</title>
+      <description><![CDATA[ ]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:02:01 +0000</pubDate>
+      <link>https://packagist.org/packages/fratily/router</link>
+      <guid isPermaLink="false">fratily/router v2.0.0</guid>
+      <author>Kento Oka</author>
+      <dc:creator>Kento Oka</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moderntribe/square1-acf (3.4.11)</title>
+      <description><![CDATA[Provides ACF object meta wrappers for square one]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:01:47 +0000</pubDate>
+      <link>https://packagist.org/packages/moderntribe/square1-acf</link>
+      <guid isPermaLink="false">moderntribe/square1-acf 3.4.11</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moderntribe/square1-p2p (3.4.11)</title>
+      <description><![CDATA[P2P utilities for square one]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:01:47 +0000</pubDate>
+      <link>https://packagist.org/packages/moderntribe/square1-p2p</link>
+      <guid isPermaLink="false">moderntribe/square1-p2p 3.4.11</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moderntribe/square1-oembed (3.4.11)</title>
+      <description><![CDATA[Oembed utilities for square one]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:01:47 +0000</pubDate>
+      <link>https://packagist.org/packages/moderntribe/square1-oembed</link>
+      <guid isPermaLink="false">moderntribe/square1-oembed 3.4.11</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moderntribe/square1-taxonomy (3.4.11)</title>
+      <description><![CDATA[Taxonomy utilities for square one]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:01:47 +0000</pubDate>
+      <link>https://packagist.org/packages/moderntribe/square1-taxonomy</link>
+      <guid isPermaLink="false">moderntribe/square1-taxonomy 3.4.11</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moderntribe/square1-cache (3.4.11)</title>
+      <description><![CDATA[Object cache wrapper for square one]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:01:47 +0000</pubDate>
+      <link>https://packagist.org/packages/moderntribe/square1-cache</link>
+      <guid isPermaLink="false">moderntribe/square1-cache 3.4.11</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moderntribe/square1-post-meta (3.4.11)</title>
+      <description><![CDATA[Post meta wrappers for square one]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:01:47 +0000</pubDate>
+      <link>https://packagist.org/packages/moderntribe/square1-post-meta</link>
+      <guid isPermaLink="false">moderntribe/square1-post-meta 3.4.11</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moderntribe/square1-post-type (3.4.11)</title>
+      <description><![CDATA[Post type utilities for square one]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:01:47 +0000</pubDate>
+      <link>https://packagist.org/packages/moderntribe/square1-post-type</link>
+      <guid isPermaLink="false">moderntribe/square1-post-type 3.4.11</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moderntribe/square1-assets (3.4.11)</title>
+      <description><![CDATA[Asset loading for square one]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:01:47 +0000</pubDate>
+      <link>https://packagist.org/packages/moderntribe/square1-assets</link>
+      <guid isPermaLink="false">moderntribe/square1-assets 3.4.11</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moderntribe/square1-user (3.4.11)</title>
+      <description><![CDATA[User utilities for square one]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:01:47 +0000</pubDate>
+      <link>https://packagist.org/packages/moderntribe/square1-user</link>
+      <guid isPermaLink="false">moderntribe/square1-user 3.4.11</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moderntribe/square1-object-meta (3.4.11)</title>
+      <description><![CDATA[Provides object meta wrappers for square one]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:01:47 +0000</pubDate>
+      <link>https://packagist.org/packages/moderntribe/square1-object-meta</link>
+      <guid isPermaLink="false">moderntribe/square1-object-meta 3.4.11</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moderntribe/square1-generators (3.4.11)</title>
+      <description><![CDATA[Code generators for Square One]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:01:47 +0000</pubDate>
+      <link>https://packagist.org/packages/moderntribe/square1-generators</link>
+      <guid isPermaLink="false">moderntribe/square1-generators 3.4.11</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moderntribe/square1-cli (3.4.11)</title>
+      <description><![CDATA[A framework for registering wp-cli commands in square one]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:01:47 +0000</pubDate>
+      <link>https://packagist.org/packages/moderntribe/square1-cli</link>
+      <guid isPermaLink="false">moderntribe/square1-cli 3.4.11</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moderntribe/square1-queues (3.4.11)</title>
+      <description><![CDATA[A queues provider for square one]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:01:47 +0000</pubDate>
+      <link>https://packagist.org/packages/moderntribe/square1-queues</link>
+      <guid isPermaLink="false">moderntribe/square1-queues 3.4.11</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moderntribe/square1-blog-copier (3.4.11)</title>
+      <description><![CDATA[Blog copier for square one]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:01:47 +0000</pubDate>
+      <link>https://packagist.org/packages/moderntribe/square1-blog-copier</link>
+      <guid isPermaLink="false">moderntribe/square1-blog-copier 3.4.11</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moderntribe/square1-queues-mysql (3.4.11)</title>
+      <description><![CDATA[A MySQL backend for square one queues]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:01:47 +0000</pubDate>
+      <link>https://packagist.org/packages/moderntribe/square1-queues-mysql</link>
+      <guid isPermaLink="false">moderntribe/square1-queues-mysql 3.4.11</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moderntribe/square1-whoops (3.4.11)</title>
+      <description><![CDATA[Integrates the Whoops error handler for display errors during development]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:01:47 +0000</pubDate>
+      <link>https://packagist.org/packages/moderntribe/square1-whoops</link>
+      <guid isPermaLink="false">moderntribe/square1-whoops 3.4.11</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moderntribe/square1-media (3.4.11)</title>
+      <description><![CDATA[Media utilities for use with SquareOne projects]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:01:47 +0000</pubDate>
+      <link>https://packagist.org/packages/moderntribe/square1-media</link>
+      <guid isPermaLink="false">moderntribe/square1-media 3.4.11</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>moderntribe/tribe-libs (3.4.11)</title>
+      <description><![CDATA[A library for use on Modern Tribe service projects.]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:01:47 +0000</pubDate>
+      <link>https://packagist.org/packages/moderntribe/tribe-libs</link>
+      <guid isPermaLink="false">moderntribe/tribe-libs 3.4.11</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>ouun/repack-for-woocommerce (v1.4.1)</title>
+      <description><![CDATA[Get permission from your customers to reuse already used shipping packaging. As a shop owner it is an easy way to save resources, money and above all to protect the environment.]]></description>
+      <pubDate>Wed, 23 Mar 2022 15:00:52 +0000</pubDate>
+      <link>https://packagist.org/packages/ouun/repack-for-woocommerce</link>
+      <guid isPermaLink="false">ouun/repack-for-woocommerce v1.4.1</guid>
+      <author>WeRePack Initiative</author>
+      <author>Philipp Wellmer</author>
+      <dc:creator>WeRePack Initiative</dc:creator>
+      <dc:creator>Philipp Wellmer</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>smorken/service (v9.0.1)</title>
+      <description><![CDATA[Services for PHP/Laravel 9]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:56:11 +0000</pubDate>
+      <link>https://packagist.org/packages/smorken/service</link>
+      <guid isPermaLink="false">smorken/service v9.0.1</guid>
+      <author>Scott Morken</author>
+      <dc:creator>Scott Morken</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>bobdenotter/conimex (2.1.1)</title>
+      <description><![CDATA[🍛 Extension to Import and Export content as Yaml files]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:54:42 +0000</pubDate>
+      <link>https://packagist.org/packages/bobdenotter/conimex</link>
+      <guid isPermaLink="false">bobdenotter/conimex 2.1.1</guid>
+      <author>Bob den Otter</author>
+      <dc:creator>Bob den Otter</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>irontec/ivoz-dev-tools (5.8.4)</title>
+      <description><![CDATA[DevTools for ivozprovider]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:54:35 +0000</pubDate>
+      <link>https://packagist.org/packages/irontec/ivoz-dev-tools</link>
+      <guid isPermaLink="false">irontec/ivoz-dev-tools 5.8.4</guid>
+      <author>Carlos Cruz</author>
+      <author>Ivan Alonso</author>
+      <author>Mikel Madariaga</author>
+      <dc:creator>Carlos Cruz</dc:creator>
+      <dc:creator>Ivan Alonso</dc:creator>
+      <dc:creator>Mikel Madariaga</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>joonlabs/package-modernyze (v1.0.0)</title>
+      <description><![CDATA[Package that supports the connection to a Modernyze update server.]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:53:19 +0000</pubDate>
+      <link>https://packagist.org/packages/joonlabs/package-modernyze</link>
+      <guid isPermaLink="false">joonlabs/package-modernyze v1.0.0</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>avastechnology/laravel-console (9.0.0)</title>
+      <description><![CDATA[This package is simply a series of traits to use with laravel console commands. An abstract command with all of the traits is also included.]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:48:47 +0000</pubDate>
+      <link>https://packagist.org/packages/avastechnology/laravel-console</link>
+      <guid isPermaLink="false">avastechnology/laravel-console 9.0.0</guid>
+      <author>Anthony Green</author>
+      <dc:creator>Anthony Green</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>ahmedd-ibrahim/nova-permission (v3.0.2)</title>
+      <description><![CDATA[A Laravel Nova tool for Spatie's Permission library.]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:44:53 +0000</pubDate>
+      <link>https://packagist.org/packages/ahmedd-ibrahim/nova-permission</link>
+      <guid isPermaLink="false">ahmedd-ibrahim/nova-permission v3.0.2</guid>
+      <slash:comments>0</slash:comments>
+    </item>
+    <item>
+      <title>escolalms/stationary-events (0.0.8)</title>
+      <description><![CDATA[Escola Headless LMS Stationary Events]]></description>
+      <pubDate>Wed, 23 Mar 2022 14:44:17 +0000</pubDate>
+      <link>https://packagist.org/packages/escolalms/stationary-events</link>
+      <guid isPermaLink="false">escolalms/stationary-events 0.0.8</guid>
+      <author>Maciej Rymarz</author>
+      <dc:creator>Maciej Rymarz</dc:creator>
+      <slash:comments>0</slash:comments>
+    </item>
+  </channel>
+</rss>
