@@ -20,6 +20,9 @@ gem "nokogiri"
 gem "oj"
 gem "ox"
 gem "simple-rss"
+gem "sidekiq"
+gem "sidekiq-unique-jobs"
+gem "sidekiq-scheduler"
 
 group :development, :test do
   gem "debug", platforms: %i[ mri mingw x64_mingw ]

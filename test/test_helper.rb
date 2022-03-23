@@ -5,6 +5,10 @@ require "rails/test_help"
 require 'webmock/minitest'
 require 'mocha/minitest'
 
+require 'sidekiq_unique_jobs/testing'
+require 'sidekiq/testing'
+Sidekiq::Testing.fake!
+
 class ActiveSupport::TestCase
   # Run tests in parallel with specified workers
   parallelize(workers: :number_of_processors)
