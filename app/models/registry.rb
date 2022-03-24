@@ -76,15 +76,6 @@ class Registry < ApplicationRecord
       package.versions.create(version) unless package.versions.find { |v| v.number == version[:number] }
     end
 
-    save_dependencies(package, package_metadata)
-    package.reload
-    package.last_synced_at = Time.now
-    package.save
-    return package
-  end
-
-  def save_dependencies(package, package_metadata)
-    name = package_metadata[:name]
     package.versions.includes(:dependencies).each do |version|
       next if version.dependencies.any?
 
@@ -101,6 +92,11 @@ class Registry < ApplicationRecord
         version.dependencies.create(dep.merge(package_id: named_package_id.try(:strip)))
       end
     end
+    
+    package.reload
+    package.last_synced_at = Time.now
+    package.save
+    return package
   end
 
   def sync_package_async(name)

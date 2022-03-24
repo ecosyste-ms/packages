@@ -1,0 +1,40 @@
+[
+  {
+    "authors": "Ilya Scharrenbroich, Bryan Donovan - http://www.bryandonovan.com, Phillip Baker",
+    "built_at": "2017-12-02T00:00:00.000Z",
+    "created_at": "2017-12-02T17:23:59.896Z",
+    "description": "Ruby Stats is a port of the statistics libraries from PHPMath. Probability distributions include binomial, beta, and normal distributions with PDF, CDF and inverse CDF as well as Fisher's Exact Test.",
+    "downloads_count": 2547014,
+    "metadata": {},
+    "number": "0.3.0",
+    "summary": "",
+    "platform": "ruby",
+    "rubygems_version": "\u003e= 0",
+    "ruby_version": "\u003e= 1.9.3",
+    "prerelease": false,
+    "licenses": [
+      "MIT"
+    ],
+    "requirements": [],
+    "sha": "d328ec2cd0c2139ff0cb2787e1f92c799bd7557b0c58cc22f4e4728f0d510587"
+  },
+  {
+    "authors": "Ilya Scharrenbroich, Bryan Donovan - http://www.bryandonovan.com, Phillip Baker",
+    "built_at": "2017-07-24T00:00:00.000Z",
+    "created_at": "2017-07-24T11:40:49.445Z",
+    "description": "Ruby Stats is a port of the statistics libraries from PHPMath. Probability distributions include binomial, beta, and normal distributions with PDF, CDF and inverse CDF as well as Fisher's Exact Test.",
+    "downloads_count": 30814,
+    "metadata": {},
+    "number": "0.2.6",
+    "summary": "",
+    "platform": "ruby",
+    "rubygems_version": "\u003e= 0",
+    "ruby_version": "\u003e= 1.9.3",
+    "prerelease": false,
+    "licenses": [
+      "MIT"
+    ],
+    "requirements": [],
+    "sha": "56eeac510738d45af725d12cc441e14beed661428b56ce9bcc8f7ba5204a7042"
+  }
+]
