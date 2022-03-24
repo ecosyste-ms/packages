@@ -22,10 +22,6 @@ class UrlParser
     new(url).parse_to_full_url
   end
 
-  def self.parse_to_full_user_url(url)
-    new(url).parse_to_full_user_url
-  end
-
   def self.try_all(url)
     GithubUrlParser.parse_to_full_url(url) ||
     GitlabUrlParser.parse_to_full_url(url) ||
@@ -35,13 +31,6 @@ class UrlParser
   def parse_to_full_url
     path = parse
     return nil unless path.present?
-    [full_domain, path].join('/')
-  end
-
-  def parse_to_full_user_url
-    return nil unless parseable?
-    path = clean_url
-    return nil unless path.length == 1
     [full_domain, path].join('/')
   end
 
