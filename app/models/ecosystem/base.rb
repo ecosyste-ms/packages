@@ -66,7 +66,7 @@ module Ecosystem
       map_package_metadata(fetch_package_metadata(name))
     end
 
-    def map_dependencies(deps, kind, optional = false, ecosystem = name.demodulize)
+    def map_dependencies(deps, kind, optional = false, ecosystem = self.class.name.demodulize)
       deps.map do |k, v|
         {
           package_name: k,

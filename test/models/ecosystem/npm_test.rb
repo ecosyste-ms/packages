@@ -64,19 +64,53 @@ class NpmTest < ActiveSupport::TestCase
     assert_equal recently_updated_package_names.last, '@trafilea/afrodita-components'
   end
 
-  test 'fetch_package_metadata' do
-    skip("To be implemented")
-  end
+  test 'package_metadata' do
+    stub_request(:get, "https://registry.npmjs.org/base62")
+      .to_return({ status: 200, body: file_fixture('npm/base62') })
+    package_metadata = @ecosystem.package_metadata('base62')
 
-  test 'map_package_metadata' do
-    skip("To be implemented")
+    assert_equal package_metadata[:name], "base62"
+    assert_equal package_metadata[:description], "JavaScript Base62 encode/decoder"
+    assert_equal package_metadata[:homepage], "https://github.com/base62/base62.js"
+    assert_equal package_metadata[:licenses], "MIT"
+    assert_equal package_metadata[:repository_url], "https://github.com/base62/base62.js"
+    assert_equal package_metadata[:keywords_array], ["base-62", "encoder", "decoder"]
   end
 
   test 'versions_metadata' do
-    skip("To be implemented")
+    stub_request(:get, "https://registry.npmjs.org/base62")
+      .to_return({ status: 200, body: file_fixture('npm/base62') })
+    package_metadata = @ecosystem.package_metadata('base62')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+
+    assert_equal versions_metadata, [
+      {:number=>"0.1.0", :published_at=>nil, :licenses=>""},
+      {:number=>"0.1.1", :published_at=>nil, :licenses=>""},
+      {:number=>"0.1.2", :published_at=>nil, :licenses=>""},
+      {:number=>"1.0.0", :published_at=>nil, :licenses=>"MIT"},
+      {:number=>"1.1.0", :published_at=>nil, :licenses=>"MIT"},
+      {:number=>"1.1.1", :published_at=>nil, :licenses=>"MIT"},
+      {:number=>"1.1.2", :published_at=>nil, :licenses=>"MIT"},
+      {:number=>"1.2.0", :published_at=>nil, :licenses=>"MIT"},
+      {:number=>"1.2.1", :published_at=>nil, :licenses=>"MIT"},
+      {:number=>"1.2.4", :published_at=>nil, :licenses=>"MIT"},
+      {:number=>"1.2.5", :published_at=>nil, :licenses=>"MIT"},
+      {:number=>"1.2.6", :published_at=>nil, :licenses=>"MIT"},
+      {:number=>"1.2.7", :published_at=>nil, :licenses=>"MIT"},
+      {:number=>"1.2.8", :published_at=>nil, :licenses=>"MIT"},
+      {:number=>"2.0.0", :published_at=>nil, :licenses=>"MIT"},
+      {:number=>"2.0.1", :published_at=>nil, :licenses=>"MIT"}
+    ]
   end
 
   test 'dependencies_metadata' do
-    skip("To be implemented")
+    stub_request(:get, "https://registry.npmjs.org/base62")
+      .to_return({ status: 200, body: file_fixture('npm/base62') })
+    package_metadata = @ecosystem.package_metadata('base62')
+    dependencies_metadata = @ecosystem.dependencies_metadata('base62', '2.0.0', package_metadata)
+
+    assert_equal dependencies_metadata, [
+      {:package_name=>"mocha", :requirements=>"~5.1.0", :kind=>"Development", :optional=>false, :ecosystem=>"Npm"}
+    ]
   end
 end

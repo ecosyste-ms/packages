@@ -65,21 +65,39 @@ class RubygemsTest < ActiveSupport::TestCase
     assert_equal recently_updated_package_names.length, 84
     assert_equal recently_updated_package_names.last, 'reparse'
   end
-
   
-  test 'fetch_package_metadata' do
-    skip("To be implemented")
-  end
+  test 'package_metadata' do
+    stub_request(:get, "https://rubygems.org/api/v1/gems/rubystats.json")
+      .to_return({ status: 200, body: file_fixture('rubygems/rubystats.json') })
+    package_metadata = @ecosystem.package_metadata('rubystats')
 
-  test 'map_package_metadata' do
-    skip("To be implemented")
+    assert_equal package_metadata, {:name=>"rubystats",
+      :description=>"Ruby Stats is a port of the statistics libraries from PHPMath. Probability distributions include binomial, beta, and normal distributions with PDF, CDF and inverse CDF as well as Fisher's Exact Test.", 
+      :homepage=>"https://github.com/phillbaker/rubystats", 
+      :licenses=>"MIT", 
+      :repository_url=>"https://github.com/phillbaker/rubystats"
+    }
   end
 
   test 'versions_metadata' do
-    skip("To be implemented")
+    stub_request(:get, "https://rubygems.org/api/v1/versions/rubystats.json")
+      .to_return({ status: 200, body: file_fixture('rubygems/rubystats-versions.json') })
+    versions_metadata = @ecosystem.versions_metadata({name: 'rubystats'})
+
+    assert_equal versions_metadata, [
+      {:number=>"0.3.0", :published_at=>"2017-12-02T17:23:59.896Z", :licenses=>["MIT"]},
+      {:number=>"0.2.6", :published_at=>"2017-07-24T11:40:49.445Z", :licenses=>["MIT"]}
+    ]
   end
 
   test 'dependencies_metadata' do
-    skip("To be implemented")
+    stub_request(:get, "https://rubygems.org/api/v2/rubygems/rubystats/versions/0.3.0.json")
+      .to_return({ status: 200, body: file_fixture('rubygems/0.3.0.json') })
+    dependencies_metadata = @ecosystem.dependencies_metadata('rubystats', '0.3.0', nil)
+    
+    assert_equal dependencies_metadata, [
+      {:package_name=>"hoe", :requirements=>">= 1.7.0", :kind=>"Development", :ecosystem=>"Rubygems"},
+      {:package_name=>"minitest", :requirements=>"< 5.0, >= 4.2", :kind=>"Development", :ecosystem=>"Rubygems"}
+    ]
   end
 end
