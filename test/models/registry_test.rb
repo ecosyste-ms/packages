@@ -94,6 +94,8 @@ class RegistryTest < ActiveSupport::TestCase
 
   test 'sync_package' do
     @registry.save
+
+    # TODO stub ecosystem_instance calls instead
     stub_request(:get, "https://rubygems.org/api/v1/gems/rubystats.json")
       .to_return({ status: 200, body: file_fixture('rubygems/rubystats.json') })
     stub_request(:get, "https://rubygems.org/api/v1/versions/rubystats.json")
@@ -102,6 +104,7 @@ class RegistryTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('rubygems/0.3.0.json') })
     stub_request(:get, "https://rubygems.org/api/v2/rubygems/rubystats/versions/0.2.6.json")
       .to_return({ status: 200, body: file_fixture('rubygems/0.2.6.json') })
+
     package = @registry.sync_package('rubystats')
     assert package.id
     assert package.name, 'rubystats'
