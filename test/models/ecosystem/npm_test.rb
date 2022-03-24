@@ -34,13 +34,13 @@ class NpmTest < ActiveSupport::TestCase
   end
 
   test 'install_command' do
-    package_url = @ecosystem.install_command(@package)
-    assert_equal package_url, 'npm install base62'
+    install_command = @ecosystem.install_command(@package)
+    assert_equal install_command, 'npm install base62'
   end
 
   test 'install_command with version' do
-    package_url = @ecosystem.install_command(@package, @version.number)
-    assert_equal package_url, 'npm install base62@2.0.1'
+    install_command = @ecosystem.install_command(@package, @version.number)
+    assert_equal install_command, 'npm install base62@2.0.1'
   end
 
   test 'check_status_url' do
@@ -62,5 +62,21 @@ class NpmTest < ActiveSupport::TestCase
     recently_updated_package_names = @ecosystem.recently_updated_package_names
     assert_equal recently_updated_package_names.length, 45
     assert_equal recently_updated_package_names.last, '@trafilea/afrodita-components'
+  end
+
+  test 'fetch_package_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'map_package_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'versions_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'dependencies_metadata' do
+    skip("To be implemented")
   end
 end

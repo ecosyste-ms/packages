@@ -19,33 +19,33 @@ class PypiTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    package_url = @ecosystem.download_url(@package.name, @version.number)
-    assert_nil package_url
+    download_url = @ecosystem.download_url(@package.name, @version.number)
+    assert_nil download_url
   end
 
   test 'documentation_url' do
-    package_url = @ecosystem.documentation_url(@package.name)
-    assert_equal package_url, 'https://urllib3.readthedocs.io/'
+    documentation_url = @ecosystem.documentation_url(@package.name)
+    assert_equal documentation_url, 'https://urllib3.readthedocs.io/'
   end
 
   test 'documentation_url with version' do
-    package_url = @ecosystem.documentation_url(@package.name, @version.number)
-    assert_equal package_url, 'https://urllib3.readthedocs.io/en/1.26.8'
+    documentation_url = @ecosystem.documentation_url(@package.name, @version.number)
+    assert_equal documentation_url, 'https://urllib3.readthedocs.io/en/1.26.8'
   end
 
   test 'install_command' do
-    package_url = @ecosystem.install_command(@package)
-    assert_equal package_url, 'pip install urllib3 --index-url https://pypi.org/simple'
+    install_command = @ecosystem.install_command(@package)
+    assert_equal install_command, 'pip install urllib3 --index-url https://pypi.org/simple'
   end
 
   test 'install_command with version' do
-    package_url = @ecosystem.install_command(@package, @version.number)
-    assert_equal package_url, 'pip install urllib3==1.26.8 --index-url https://pypi.org/simple'
+    install_command = @ecosystem.install_command(@package, @version.number)
+    assert_equal install_command, 'pip install urllib3==1.26.8 --index-url https://pypi.org/simple'
   end
 
   test 'check_status_url' do
-    package_url = @ecosystem.check_status_url(@package)
-    assert_equal package_url, "https://pypi.org/package/urllib3/"
+    check_status_url = @ecosystem.check_status_url(@package)
+    assert_equal check_status_url, "https://pypi.org/package/urllib3/"
   end
 
   test 'all_package_names' do
@@ -64,5 +64,21 @@ class PypiTest < ActiveSupport::TestCase
     recently_updated_package_names = @ecosystem.recently_updated_package_names
     assert_equal recently_updated_package_names.length, 114
     assert_equal recently_updated_package_names.last, 'Lgy'
+  end
+
+  test 'fetch_package_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'map_package_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'versions_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'dependencies_metadata' do
+    skip("To be implemented")
   end
 end

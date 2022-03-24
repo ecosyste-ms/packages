@@ -19,33 +19,33 @@ class NuGetTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    package_url = @ecosystem.download_url(@package.name, @version.number)
-    assert_equal package_url, 'https://www.nuget.org/api/v2/package/urllib3/1.26.8'
+    download_url = @ecosystem.download_url(@package.name, @version.number)
+    assert_equal download_url, 'https://www.nuget.org/api/v2/package/urllib3/1.26.8'
   end
 
   test 'documentation_url' do
-    package_url = @ecosystem.documentation_url(@package.name)
-    assert_nil package_url
+    documentation_url = @ecosystem.documentation_url(@package.name)
+    assert_nil documentation_url
   end
 
   test 'documentation_url with version' do
-    package_url = @ecosystem.documentation_url(@package.name, @version.number)
-    assert_nil package_url
+    documentation_url = @ecosystem.documentation_url(@package.name, @version.number)
+    assert_nil documentation_url
   end
 
   test 'install_command' do
-    package_url = @ecosystem.install_command(@package)
-    assert_equal package_url, 'Install-Package urllib3'
+    install_command = @ecosystem.install_command(@package)
+    assert_equal install_command, 'Install-Package urllib3'
   end
 
   test 'install_command with version' do
-    package_url = @ecosystem.install_command(@package, @version.number)
-    assert_equal package_url, 'Install-Package urllib3 -Version 1.26.8'
+    install_command = @ecosystem.install_command(@package, @version.number)
+    assert_equal install_command, 'Install-Package urllib3 -Version 1.26.8'
   end
 
   test 'check_status_url' do
-    package_url = @ecosystem.check_status_url(@package)
-    assert_equal package_url, "https://www.nuget.org/packages/urllib3/"
+    check_status_url = @ecosystem.check_status_url(@package)
+    assert_equal check_status_url, "https://www.nuget.org/packages/urllib3/"
   end
 
   test 'all_package_names' do
@@ -66,5 +66,21 @@ class NuGetTest < ActiveSupport::TestCase
     recently_updated_package_names = @ecosystem.recently_updated_package_names
     assert_equal recently_updated_package_names.length, 203
     assert_equal recently_updated_package_names.last, 'TS.Services.Messaging'
+  end
+
+  test 'fetch_package_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'map_package_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'versions_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'dependencies_metadata' do
+    skip("To be implemented")
   end
 end

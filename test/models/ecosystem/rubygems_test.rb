@@ -19,33 +19,33 @@ class RubygemsTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    package_url = @ecosystem.download_url(@package.name, @version.number)
-    assert_equal package_url, 'https://rubygems.org/downloads/rails-7.0.0.gem'
+    download_url = @ecosystem.download_url(@package.name, @version.number)
+    assert_equal download_url, 'https://rubygems.org/downloads/rails-7.0.0.gem'
   end
 
   test 'documentation_url' do
-    package_url = @ecosystem.documentation_url(@package.name)
-    assert_equal package_url, 'http://www.rubydoc.info/gems/rails/'
+    documentation_url = @ecosystem.documentation_url(@package.name)
+    assert_equal documentation_url, 'http://www.rubydoc.info/gems/rails/'
   end
 
   test 'documentation_url with version' do
-    package_url = @ecosystem.documentation_url(@package.name, @version.number)
-    assert_equal package_url, 'http://www.rubydoc.info/gems/rails/7.0.0'
+    documentation_url = @ecosystem.documentation_url(@package.name, @version.number)
+    assert_equal documentation_url, 'http://www.rubydoc.info/gems/rails/7.0.0'
   end
 
   test 'install_command' do
-    package_url = @ecosystem.install_command(@package)
-    assert_equal package_url, 'gem install rails -s https://rubygems.org'
+    install_command = @ecosystem.install_command(@package)
+    assert_equal install_command, 'gem install rails -s https://rubygems.org'
   end
 
   test 'install_command with version' do
-    package_url = @ecosystem.install_command(@package, @version.number)
-    assert_equal package_url, 'gem install rails -s https://rubygems.org -v 7.0.0'
+    install_command = @ecosystem.install_command(@package, @version.number)
+    assert_equal install_command, 'gem install rails -s https://rubygems.org -v 7.0.0'
   end
 
   test 'check_status_url' do
-    package_url = @ecosystem.check_status_url(@package)
-    assert_equal package_url, "https://rubygems.org/api/v1/versions/rails.json"
+    check_status_url = @ecosystem.check_status_url(@package)
+    assert_equal check_status_url, "https://rubygems.org/api/v1/versions/rails.json"
   end
 
   test 'all_package_names' do
@@ -66,15 +66,20 @@ class RubygemsTest < ActiveSupport::TestCase
     assert_equal recently_updated_package_names.last, 'reparse'
   end
 
-  test 'package_metadata' do
-    skip("To be implemented")
-  end
-
+  
   test 'fetch_package_metadata' do
     skip("To be implemented")
   end
 
   test 'map_package_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'versions_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'dependencies_metadata' do
     skip("To be implemented")
   end
 end

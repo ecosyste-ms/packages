@@ -34,18 +34,18 @@ class CargoTest < ActiveSupport::TestCase
   end
 
   test 'install_command' do
-    package_url = @ecosystem.install_command(@package)
-    assert_equal package_url, 'cargo install rand'
+    install_command = @ecosystem.install_command(@package)
+    assert_equal install_command, 'cargo install rand'
   end
 
   test 'install_command with version' do
-    package_url = @ecosystem.install_command(@package, @version.number)
-    assert_equal package_url, 'cargo install rand --version 0.8.5'
+    install_command = @ecosystem.install_command(@package, @version.number)
+    assert_equal install_command, 'cargo install rand --version 0.8.5'
   end
 
   test 'check_status_url' do
-    package_url = @ecosystem.check_status_url(@package)
-    assert_equal package_url, "https://crates.io/api/v1/crates/rand"
+    check_status_url = @ecosystem.check_status_url(@package)
+    assert_equal check_status_url, "https://crates.io/api/v1/crates/rand"
   end
 
   test 'all_package_names' do
@@ -64,5 +64,21 @@ class CargoTest < ActiveSupport::TestCase
     recently_updated_package_names = @ecosystem.recently_updated_package_names
     assert_equal recently_updated_package_names.length, 20
     assert_equal recently_updated_package_names.last, 'findsrouce'
+  end
+
+  test 'fetch_package_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'map_package_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'versions_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'dependencies_metadata' do
+    skip("To be implemented")
   end
 end

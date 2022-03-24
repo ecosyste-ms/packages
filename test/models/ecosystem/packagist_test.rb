@@ -34,18 +34,18 @@ class PackagistTest < ActiveSupport::TestCase
   end
 
   test 'install_command' do
-    package_url = @ecosystem.install_command(@package)
-    assert_equal package_url, 'composer require psr/log'
+    install_command = @ecosystem.install_command(@package)
+    assert_equal install_command, 'composer require psr/log'
   end
 
   test 'install_command with version' do
-    package_url = @ecosystem.install_command(@package, @version.number)
-    assert_equal package_url, 'composer require psr/log:3.0.0'
+    install_command = @ecosystem.install_command(@package, @version.number)
+    assert_equal install_command, 'composer require psr/log:3.0.0'
   end
 
   test 'check_status_url' do
-    package_url = @ecosystem.check_status_url(@package)
-    assert_equal package_url, "https://packagist.org/packages/psr/log#"
+    check_status_url = @ecosystem.check_status_url(@package)
+    assert_equal check_status_url, "https://packagist.org/packages/psr/log#"
   end
 
   test 'all_package_names' do
@@ -64,5 +64,21 @@ class PackagistTest < ActiveSupport::TestCase
     recently_updated_package_names = @ecosystem.recently_updated_package_names
     assert_equal recently_updated_package_names.length, 75
     assert_equal recently_updated_package_names.last, 'pringuin/pimcore-lucene-search'
+  end
+
+  test 'fetch_package_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'map_package_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'versions_metadata' do
+    skip("To be implemented")
+  end
+
+  test 'dependencies_metadata' do
+    skip("To be implemented")
   end
 end
