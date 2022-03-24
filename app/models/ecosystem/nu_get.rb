@@ -3,11 +3,11 @@
 module Ecosystem
   class NuGet < Base
     def package_url(package, version = nil)
-      "https://www.nuget.org/packages/#{package.name}/#{version}"
+      "#{@registry_url}/packages/#{package.name}/#{version}"
     end
 
     def download_url(name, version = nil)
-      "https://www.nuget.org/api/v2/package/#{name}/#{version}"
+      "#{@registry_url}/api/v2/package/#{name}/#{version}"
     end
 
     def install_command(package, version = nil)
