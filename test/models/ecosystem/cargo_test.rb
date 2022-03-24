@@ -66,19 +66,37 @@ class CargoTest < ActiveSupport::TestCase
     assert_equal recently_updated_package_names.last, 'findsrouce'
   end
 
-  test 'fetch_package_metadata' do
-    skip("To be implemented")
-  end
-
-  test 'map_package_metadata' do
-    skip("To be implemented")
+  test 'package_metadata' do
+    stub_request(:get, "https://crates.io/api/v1/crates/parameters_lib")
+      .to_return({ status: 200, body: file_fixture('cargo/parameters_lib') })
+    package_metadata = @ecosystem.package_metadata('parameters_lib')
+    
+    assert_equal package_metadata[:name], "parameters_lib"
+    assert_equal package_metadata[:description], "Library"
+    assert_equal package_metadata[:homepage], "https://github.com/TheFox/parameters-rust"
+    assert_equal package_metadata[:licenses], "MIT"
+    assert_equal package_metadata[:repository_url], "https://github.com/TheFox/parameters-rust"
+    assert_equal package_metadata[:keywords_array], ["env", "variables"]
   end
 
   test 'versions_metadata' do
-    skip("To be implemented")
+    stub_request(:get, "https://crates.io/api/v1/crates/parameters_lib")
+      .to_return({ status: 200, body: file_fixture('cargo/parameters_lib') })
+    package_metadata = @ecosystem.package_metadata('parameters_lib')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+
+    assert_equal versions_metadata, [
+      {:number=>"0.1.0", :published_at=>"2022-03-24T16:19:57.595451+00:00"},
+      {:number=>"0.1.0-dev.2", :published_at=>"2022-03-24T16:08:54.337646+00:00"},
+      {:number=>"0.1.0-dev.1", :published_at=>"2022-03-24T15:58:36.858899+00:00"}
+    ]
   end
 
   test 'dependencies_metadata' do
-    skip("To be implemented")
+    stub_request(:get, "https://crates.io/api/v1/crates/parameters_lib/0.1.0/dependencies")
+      .to_return({ status: 200, body: file_fixture('cargo/dependencies') })
+    dependencies_metadata = @ecosystem.dependencies_metadata('parameters_lib', '0.1.0', nil)
+    
+    assert_equal dependencies_metadata, [{:package_name=>"regex", :requirements=>"^1.5.0", :kind=>"normal", :optional=>false, :ecosystem=>"Cargo"}]
   end
 end
