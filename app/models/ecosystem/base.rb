@@ -50,14 +50,6 @@ module Ecosystem
       nil
     end
 
-    def download_registry_users(_name)
-      nil
-    end
-
-    def registry_user_url(_login)
-      nil
-    end
-
     def check_status_url(package)
       package_url(package)
     end
@@ -121,10 +113,6 @@ module Ecosystem
 
     def deprecation_info(_name)
       { is_deprecated: false, message: nil }
-    end
-
-    def dependents(name)
-      []
     end
 
     private

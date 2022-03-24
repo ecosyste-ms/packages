@@ -28,7 +28,7 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
-      get("#{@registry_url}/#{name.gsub('/', '%2F')}")
+      get_json("#{@registry_url}/#{name.gsub('/', '%2F')}")
     end
 
     def deprecation_info(name)
@@ -80,15 +80,15 @@ module Ecosystem
       end
     end
 
-    def versions_metadata(package, _name)
+    def versions_metadata(package)
       # npm license fields are supposed to be SPDX expressions now https://docs.npmjs.com/files/package.json#license
-      package["versions"].map do |k, v|
+      package[:versions].map do |k, v|
         license = v.fetch("license", nil)
         license = licenses(v) unless license.is_a?(String)
         {
           number: k,
           published_at: package.fetch("time", {}).fetch(k, nil),
-          original_license: license,
+          licenses: license,
         }
       end
     end
@@ -100,26 +100,6 @@ module Ecosystem
       map_dependencies(vers.fetch("dependencies", {}), "runtime") +
         map_dependencies(vers.fetch("devDependencies", {}), "Development") +
         map_dependencies(vers.fetch("optionalDependencies", {}), "Optional", true)
-    end
-
-    def dependents(name)
-      dependents = []
-      offset = 0
-      per_page = 36
-      url = "https://www.npmjs.com/browse/depended/#{name}"
-      while offset < 5000 do
-        page = get_html(url+"?offset=#{offset}")
-
-        names = page.css('.mb4.bt.b--black-10 section h3').map(&:text)
-
-        break if names.blank?
-
-        dependents += names
-
-        offset += per_page
-      end
-
-      return dependents
     end
   end
 end

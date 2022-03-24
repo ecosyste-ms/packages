@@ -60,7 +60,7 @@ module Ecosystem
       }
     end
 
-    def versions_metadata(package, _name)
+    def versions_metadata(package)
       package[:versions].map do |version|
         {
           number: version["num"],
@@ -82,37 +82,6 @@ module Ecosystem
           ecosystem: self.class.name.demodulize,
         }
       end
-    end
-
-    def download_registry_users(name)
-      json = get_json("#{@registry_url}/api/v1/crates/#{name}/owner_user")
-      json["users"].map do |user|
-        {
-          uuid: user["id"],
-          name: user["name"],
-          login: user["login"],
-          url: user["url"],
-        }
-      end
-    rescue StandardError
-      []
-    end
-
-    def registry_user_url(login)
-      "#{@registry_url}/users/#{login}"
-    end
-
-    def dependents(name)
-      page = 1
-      packages = []
-      loop do
-        r = get("#{@registry_url}/api/v1/crates/#{name}/reverse_dependencies?page=#{page}&per_page=100")["versions"]
-        break if r == [] || r.nil?
-
-        packages += r
-        page += 1
-      end
-      packages.map { |package| package["crate"] }
     end
   end
 end

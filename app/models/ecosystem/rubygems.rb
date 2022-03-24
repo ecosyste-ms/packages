@@ -81,22 +81,5 @@ module Ecosystem
         }
       end
     end
-
-    def download_registry_users(name)
-      json = get_json("#{@registry_url}/api/v1/gems/#{name}/owners.json")
-      json.map do |user|
-        {
-          uuid: user["id"],
-          email: user["email"],
-          login: user["handle"],
-        }
-      end
-    rescue StandardError
-      []
-    end
-
-    def registry_user_url(login)
-      "#{@registry_url}/profiles/#{login}"
-    end
   end
 end

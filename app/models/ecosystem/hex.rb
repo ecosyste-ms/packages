@@ -55,7 +55,7 @@ module Ecosystem
       }
     end
 
-    def versions_metadata(package, _name)
+    def versions_metadata(package)
       package[:releases].map do |version|
         {
           number: version["version"],
@@ -77,23 +77,6 @@ module Ecosystem
           ecosystem: self.class.name.demodulize,
         }
       end
-    end
-
-    def download_registry_users(name)
-      json = get_json("#{@registry_url}/api/packages/#{name}")
-      json["owners"].map do |user|
-        {
-          uuid: "hex-" + user["username"],
-          email: user["email"],
-          login: user["username"],
-        }
-      end
-    rescue StandardError
-      []
-    end
-
-    def registry_user_url(login)
-      "#{@registry_url}/users/#{login}"
     end
   end
 end

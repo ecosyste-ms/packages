@@ -23,7 +23,7 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
-      get("#{@registry_url}/packages/#{name}.json")["package"]
+      get_json("#{@registry_url}/packages/#{name}.json")["package"]
     end
 
     def deprecation_info(name)
