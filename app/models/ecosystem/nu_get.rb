@@ -38,12 +38,12 @@ module Ecosystem
       return names
     end
 
-    def package(name)
+    def fetch_package_metadata(name)
       h = {
         name: name,
       }
       h[:releases] = get_releases(name)
-      h[:versions] = versions(h, name)
+      h[:versions] = versions_metadata(h)
       return {} unless h[:versions].any?
 
       h
@@ -70,7 +70,7 @@ module Ecosystem
       []
     end
 
-    def mapping(package)
+    def map_package_metadata(package)
       item = package[:releases].last["catalogEntry"]
 
       {
@@ -88,7 +88,7 @@ module Ecosystem
       item["description"].blank? ? item["summary"] : item["description"]
     end
 
-    def versions(package, _name)
+    def versions_metadata(package)
       package[:releases].map do |item|
         {
           number: item["catalogEntry"]["version"],
@@ -97,7 +97,7 @@ module Ecosystem
       end
     end
 
-    def dependencies(_name, version, mapped_package)
+    def dependencies_metadata(_name, version, mapped_package)
       current_version = mapped_package[:releases].find { |v| v["catalogEntry"]["version"] == version }
       dep_groups = current_version.fetch("catalogEntry", {})["dependencyGroups"] || []
 
@@ -118,7 +118,7 @@ module Ecosystem
           requirements: dep[:requirements],
           kind: "runtime",
           optional: false,
-          ecosystem: name.demodulize,
+          ecosystem: self.class.name.demodulize,
         }
       end
     end

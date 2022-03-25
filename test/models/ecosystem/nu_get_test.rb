@@ -68,19 +68,41 @@ class NuGetTest < ActiveSupport::TestCase
     assert_equal recently_updated_package_names.last, 'TS.Services.Messaging'
   end
 
-  test 'fetch_package_metadata' do
-    skip("To be implemented")
-  end
-
-  test 'map_package_metadata' do
-    skip("To be implemented")
+  test 'package_metadata' do
+    stub_request(:get, "https://api.nuget.org/v3/registration5-semver1/ogcapi.net.sqlserver/index.json")
+      .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
+    package_metadata = @ecosystem.package_metadata('OgcApi.Net.SqlServer')
+    
+    assert_equal package_metadata[:name], "OgcApi.Net.SqlServer"
+    assert_equal package_metadata[:description], "SQL Server provider for the OGC API Features Standard implementation"
+    assert_nil package_metadata[:homepage]
+    assert_equal package_metadata[:licenses], "MIT"
+    assert_equal package_metadata[:repository_url], ""
+    assert_equal package_metadata[:keywords_array], [""]
   end
 
   test 'versions_metadata' do
-    skip("To be implemented")
+    stub_request(:get, "https://api.nuget.org/v3/registration5-semver1/ogcapi.net.sqlserver/index.json")
+      .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
+    package_metadata = @ecosystem.package_metadata('OgcApi.Net.SqlServer')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+
+    assert_equal versions_metadata, [
+      {:number=>"0.3.0", :published_at=>"2022-03-25T05:11:36.793+00:00"},
+      {:number=>"0.3.1", :published_at=>"2022-03-25T10:25:47.79+00:00"}
+    ]
   end
 
   test 'dependencies_metadata' do
-    skip("To be implemented")
+    stub_request(:get, "https://api.nuget.org/v3/registration5-semver1/ogcapi.net.sqlserver/index.json")
+      .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
+    package_metadata = @ecosystem.package_metadata('OgcApi.Net.SqlServer')
+    dependencies_metadata = @ecosystem.dependencies_metadata('OgcApi.Net.SqlServer', '0.3.0', package_metadata)
+
+    assert_equal dependencies_metadata, [
+      {:package_name=>"OgcApi.Net", :requirements=>">= 0.3.0", :kind=>"runtime", :optional=>false, :ecosystem=>"NuGet"},
+      {:package_name=>"Microsoft.Data.SqlClient", :requirements=>">= 3.0.1", :kind=>"runtime", :optional=>false, :ecosystem=>"NuGet"},
+      {:package_name=>"NetTopologySuite.IO.SqlServerBytes", :requirements=>">= 2.0.0", :kind=>"runtime", :optional=>false, :ecosystem=>"NuGet"}
+    ]
   end
 end
