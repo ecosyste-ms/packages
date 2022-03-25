@@ -1,0 +1,1147 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-layout="responsive">
+  <head>
+    
+    <script>
+      window.addEventListener('error', window.__err=function f(e){f.p=f.p||[];f.p.push(e)});
+    </script>
+    <script>
+      (function() {
+        const theme = document.cookie.match(/prefers-color-scheme=(light|dark|auto)/)?.[1]
+        if (theme) {
+          document.querySelector('html').setAttribute('data-theme', theme);
+        }
+      }())
+    </script>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="Description" content="Package rand provides utilities for creating and working with random value generators.">
+    
+    <meta class="js-gtmID" data-gtmid="GTM-W8MVQXG">
+    <link rel="shortcut icon" href="/static/shared/icon/favicon.ico">
+    
+  <link rel="canonical" href="https://pkg.go.dev/github.com/aws/smithy-go/rand">
+
+    <link href="/static/frontend/frontend.min.css?version=prod-frontend-00030-vef" rel="stylesheet">
+    
+  <title>rand package - github.com/aws/smithy-go/rand - pkg.go.dev</title>
+
+    
+  <link href="/static/frontend/unit/unit.min.css?version=prod-frontend-00030-vef" rel="stylesheet">
+  
+  <link href="/static/frontend/unit/main/main.min.css?version=prod-frontend-00030-vef" rel="stylesheet">
+
+
+  </head>
+  <body>
+    
+    <script>
+      function loadScript(src, mod = true) {
+        let s = document.createElement('script');
+        s.src = src;
+        if (mod) {
+          s.type = 'module';
+          s.async = true;
+          s.defer = true
+        }
+        document.head.appendChild(s);
+      }
+      loadScript("/third_party/dialog-polyfill/dialog-polyfill.js", false)
+      loadScript("/static/frontend/frontend.js");
+    </script>
+    
+  <header class="go-Header go-Header--full js-siteHeader">
+    <div class="go-Header-inner go-Header-inner--dark">
+      <nav class="go-Header-nav">
+        <a href="https://go.dev/" class="js-headerLogo" data-gtmc="nav link"
+            data-test-id="go-header-logo-link">
+          <img class="go-Header-logo" src="/static/shared/logo/go-white.svg" alt="Go">
+        </a>
+        <div class="go-Header-rightContent">
+          
+<div class="go-SearchForm js-searchForm">
+  <form
+    class="go-InputGroup go-ShortcutKey go-SearchForm-form"
+    action="/search"
+    data-shortcut="/"
+    data-shortcut-alt="search"
+    data-gtmc="search form"
+    aria-label="Search for a package"
+    role="search"
+  >
+    <input name="q" class="go-Input js-searchFocus" aria-label="Search for a package" type="search"
+        autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false"
+        placeholder="Search packages or symbols"
+        value="" />
+    <input name="m" value="" hidden>
+    <button class="go-Button go-Button--inverted" aria-label="Submit search">
+      <img
+        class="go-Icon"
+        height="24"
+        width="24"
+        src="/static/shared/icon/search_gm_grey_24dp.svg"
+        alt=""
+      />
+    </button>
+  </form>
+  <button class="go-SearchForm-expandSearch js-expandSearch" data-gtmc="nav button"
+      aria-label="Open search" data-test-id="expand-search">
+    <img class="go-Icon go-Icon--inverted" height="24" width="24"
+        src="/static/shared/icon/search_gm_grey_24dp.svg" alt="">
+  </button>
+</div>
+
+          <ul class="go-Header-menu">
+            <li class="go-Header-menuItem">
+              <a href="https://go.dev/solutions/" data-gtmc="nav link">Why Go</a>
+            </li>
+            <li class="go-Header-menuItem">
+              <a href="https://go.dev/learn/" data-gtmc="nav link">Get Started</a>
+            </li>
+            <li class="go-Header-menuItem">
+              <a href="https://golang.org/doc/" data-gtmc="nav link">Docs</a>
+            </li>
+            <li class="go-Header-menuItem go-Header-menuItem--active">
+              <a href="/" data-gtmc="nav link">Packages</a>
+            </li>
+            <li class="go-Header-menuItem">
+              <a href="https://play.golang.org/" data-gtmc="nav link">Play</a>
+            </li>
+            <li class="go-Header-menuItem">
+              <a href="https://go.dev/blog/" data-gtmc="nav link">Blog</a>
+            </li>
+          </ul>
+          <button class="go-Header-navOpen js-headerMenuButton go-Header-navOpen--white" data-gtmc="nav button" aria-label="Open navigation">
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+  <aside class="go-NavigationDrawer js-header">
+    <nav>
+      <div class="go-NavigationDrawer-header">
+        <a href="https://go.dev/" tabindex="-1">
+          <img class="go-NavigationDrawer-logo" src="/static/shared/logo/go-blue.svg" alt="Go.">
+        </a>
+      </div>
+      <ul class="go-NavigationDrawer-list">
+          <li class="go-NavigationDrawer-listItem">
+            <a href="https://go.dev/solutions/" tabindex="-1">Why Go</a>
+          </li>
+          <li class="go-NavigationDrawer-listItem">
+            <a href="https://go.dev/learn/" tabindex="-1">Get Started</a>
+          </li>
+          <li class="go-NavigationDrawer-listItem">
+            <a href="https://golang.org/doc/" tabindex="-1">Docs</a>
+          </li>
+          <li class="go-NavigationDrawer-listItem go-NavigationDrawer-listItem--active">
+            <a href="/" tabindex="-1">Packages</a>
+          </li>
+          <li class="go-NavigationDrawer-listItem">
+            <a href="https://play.golang.org/" tabindex="-1">Play</a>
+          </li>
+          <li class="go-NavigationDrawer-listItem">
+            <a href="https://go.dev/blog" tabindex="-1">Blog</a>
+          </li>
+      </ul>
+    </nav>
+  </aside>
+  <div class="go-NavigationDrawer-scrim js-scrim" role="presentation"></div>
+
+    
+  <main class="go-Main">
+    <div class="go-Main-banner" role="alert"></div>
+    <header class="go-Main-header js-mainHeader">
+  
+  
+  <nav class="go-Main-headerBreadcrumb go-Breadcrumb" aria-label="Breadcrumb" data-test-id="UnitHeader-breadcrumb">
+    <ol>
+      
+        
+          <li data-test-id="UnitHeader-breadcrumbItem">
+            <a href="/" data-gtmc="breadcrumb link">Discover Packages</a>
+          </li>
+        
+          <li data-test-id="UnitHeader-breadcrumbItem">
+            <a href="/github.com/aws/smithy-go" data-gtmc="breadcrumb link">github.com/aws/smithy-go</a>
+          </li>
+        
+        <li>
+          <a href="/github.com/aws/smithy-go@v1.11.2/rand" data-gtmc="breadcrumb link" aria-current="location"
+              data-test-id="UnitHeader-breadcrumbCurrent">
+            rand
+          </a>
+          
+            <button
+              class="go-Button go-Button--inline go-Clipboard js-clipboard"
+              title="Copy path to clipboard.&#10;&#10;github.com/aws/smithy-go/rand"
+              aria-label="Copy Path to Clipboard"
+              data-to-copy="github.com/aws/smithy-go/rand"
+              data-gtmc="breadcrumbs button"
+            >
+              <img
+                class="go-Icon go-Icon--accented"
+                height="24"
+                width="24"
+                src="/static/shared/icon/content_copy_gm_grey_24dp.svg"
+                alt=""
+              >
+            </button>
+          
+        
+      </li>
+    </ol>
+  </nav>
+
+  <div class="go-Main-headerContent">
+    
+  <div class="go-Main-headerTitle js-stickyHeader">
+    <a class="go-Main-headerLogo" href="https://go.dev/" aria-hidden="true" tabindex="-1" data-gtmc="header link" aria-label="Link to Go Homepage">
+      <img height="78" width="207" src="/static/shared/logo/go-blue.svg" alt="Go">
+    </a>
+    <h1 class="UnitHeader-titleHeading" data-test-id="UnitHeader-title">rand</h1>
+    
+      <span class="go-Chip go-Chip--inverted">package</span>
+    
+    
+      
+        <button
+          class="go-Button go-Button--inline go-Clipboard js-clipboard"
+          title="Copy path to clipboard.&#10;&#10;github.com/aws/smithy-go/rand"
+          aria-label="Copy Path to Clipboard"
+          data-to-copy="github.com/aws/smithy-go/rand"
+          data-gtmc="title button"
+          tabindex="-1"
+        >
+          <img
+            class="go-Icon go-Icon--accented"
+            height="24"
+            width="24"
+            src="/static/shared/icon/content_copy_gm_grey_24dp.svg"
+            alt=""
+          />
+        </button>
+      
+    
+  </div>
+
+    
+  <div class="go-Main-headerDetails">
+    
+      
+  <span class="go-Main-headerDetailItem" data-test-id="UnitHeader-version">
+    <a href="?tab=versions" aria-label="Go to Versions" data-gtmc="header link"><span class="go-textSubtle">Version: </span>v1.11.2</a>
+    
+    <span class="DetailsHeader-badge--latest" data-test-id="UnitHeader-minorVersionBanner">
+      <span class="go-Chip DetailsHeader-span--latest">Latest</span>
+      <span class="go-Chip DetailsHeader-span--notAtLatest">
+        Latest
+        
+  <details class="go-Tooltip js-tooltip" data-gtmc="tooltip">
+    <summary>
+      <img class="go-Icon go-Icon--inverted" height="24" width="24" src="/static/shared/icon/alert_gm_grey_24dp.svg" alt="Warning">
+    </summary>
+    <p>This package is not in the latest version of its module.</p>
+  </details>
+
+      </span>
+      <a href="/github.com/aws/smithy-go/rand" aria-label="Go to Latest Version" data-gtmc="header link">
+        <span class="go-Chip go-Chip--alert DetailsHeader-span--goToLatest">Go to latest</span>
+      </a>
+    </span>
+  </span>
+
+      
+  <span class="go-Main-headerDetailItem" data-test-id="UnitHeader-commitTime">
+    Published: Mar 24, 2022
+  </span>
+
+      
+  <span class="go-Main-headerDetailItem" data-test-id="UnitHeader-licenses">
+    License: <a href="/github.com/aws/smithy-go/rand?tab=licenses" data-test-id="UnitHeader-license"
+            aria-label="Go to Licenses" data-gtmc="header link">Apache-2.0</a>
+      
+    
+  </span>
+
+      
+        
+  <span class="go-Main-headerDetailItem" data-test-id="UnitHeader-imports">
+    <a href="/github.com/aws/smithy-go/rand?tab=imports" aria-label="Go to Imports"
+        data-gtmc="header link">
+      <span class="go-textSubtle">Imports: </span>5
+    </a>
+  </span>
+
+        
+  <span class="go-Main-headerDetailItem" data-test-id="UnitHeader-importedby">
+    <a href="/github.com/aws/smithy-go/rand?tab=importedby" aria-label="Go to Imported By"
+        data-gtmc="header link">
+       <span class="go-textSubtle">Imported by: </span>84
+    </a>
+  </span>
+
+      
+    
+  </div>
+  
+  <div class="UnitHeader-overflowContainer">
+    <svg class="UnitHeader-overflowImage" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+      <path d="M0 0h24v24H0z" fill="none"/>
+      <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+    </svg>
+    <select class="UnitHeader-overflowSelect js-selectNav" tabindex="-1">
+      <option value="/">Main</option>
+      <option value="/github.com/aws/smithy-go/rand?tab=versions">
+        Versions
+      </option>
+      <option value="/github.com/aws/smithy-go/rand?tab=licenses">
+        Licenses
+      </option>
+      
+        <option value="/github.com/aws/smithy-go/rand?tab=imports">
+          Imports
+        </option>
+        <option value="/github.com/aws/smithy-go/rand?tab=importedby">
+          Imported By
+        </option>
+      
+    </select>
+  </div>
+
+
+  </div>
+
+</header>
+    <aside class="go-Main-aside  js-mainAside">
+  
+  <div class="UnitMeta">
+    <h2 class="go-textLabel">Details</h2>
+    
+  <ul class="UnitMeta-details">
+    <li>
+      <details class="go-Tooltip js-tooltip" data-gtmc="tooltip">
+        <summary class="go-textSubtle">
+          
+  <img class="go-Icon go-Icon--accented"src="/static/shared/icon/check_circle_gm_grey_24dp.svg" alt="checked"height="24" width="24">
+
+          Valid <a href="https://github.com/aws/smithy-go/tree/v1.11.2/go.mod" target="_blank" rel="noopener">go.mod</a> file
+          <img class="go-Icon" src="/static/shared/icon/help_gm_grey_24dp.svg" alt="" height="24" width="24">
+        </summary>
+        <p>
+          The Go module system was introduced in Go 1.11 and is the official dependency management
+          solution for Go.
+        </p>
+      </details>
+    </li>
+    <li>
+      <details class="go-Tooltip js-tooltip" data-gtmc="tooltip">
+        <summary class="go-textSubtle">
+          
+  <img class="go-Icon go-Icon--accented"src="/static/shared/icon/check_circle_gm_grey_24dp.svg" alt="checked"height="24" width="24">
+
+          Redistributable license
+          <img class="go-Icon" src="/static/shared/icon/help_gm_grey_24dp.svg" alt="" height="24" width="24">
+        </summary>
+        <p>
+          Redistributable licenses place minimal restrictions on how software can be used,
+          modified, and redistributed.
+        </p>
+      </details>
+    </li>
+    <li>
+      <details class="go-Tooltip js-tooltip" data-gtmc="tooltip">
+        <summary class="go-textSubtle">
+          
+  <img class="go-Icon go-Icon--accented"src="/static/shared/icon/check_circle_gm_grey_24dp.svg" alt="checked"height="24" width="24">
+
+          Tagged version
+          <img class="go-Icon" src="/static/shared/icon/help_gm_grey_24dp.svg" alt="" height="24" width="24">
+        </summary>
+        <p>Modules with tagged versions give importers more predictable builds.</p>
+      </details>
+    </li>
+    <li>
+      <details class="go-Tooltip js-tooltip" data-gtmc="tooltip">
+        <summary class="go-textSubtle">
+          
+  <img class="go-Icon go-Icon--accented"src="/static/shared/icon/check_circle_gm_grey_24dp.svg" alt="checked"height="24" width="24">
+
+          Stable version
+          <img class="go-Icon" src="/static/shared/icon/help_gm_grey_24dp.svg" alt="" height="24" width="24">
+        </summary>
+        <p>When a project reaches major version v1 it is considered stable.</p>
+      </details>
+    </li>
+    <li class="UnitMeta-detailsLearn">
+      <a href="/about#best-practices-h2" data-gtmc="meta link">Learn more</a>
+    </li>
+  </ul>
+
+    <h2 class="go-textLabel">Repository</h2>
+    <div class="UnitMeta-repo">
+      
+        <a href="https://github.com/aws/smithy-go" title="https://github.com/aws/smithy-go" target="_blank" rel="noopener">
+          github.com/aws/smithy-go
+        </a>
+      
+    </div>
+    
+      <h2 class="go-textLabel">Links</h2>
+      <ul class="UnitMeta-links">
+        
+          <li>
+            <a href="https://deps.dev/go/github.com%2Faws%2Fsmithy-go/v1.11.2" title="View this module on Open Source Insights"
+              target="_blank" rel="noopener" data-test-id="meta-link-depsdev">
+              <img class="depsdev-Icon" src="/static/shared/icon/depsdev-logo.svg" 
+                alt="Open Source Insights Logo" />
+              Open Source Insights
+            </a>
+          </li>
+        
+        
+  
+
+        
+  
+
+        
+  
+
+      </ul>
+    
+  </div>
+
+</aside>
+    <nav class="go-Main-nav go-Main-nav--sticky js-mainNav" aria-label="Outline">
+  <div class="go-Main-navDesktop">
+    
+  <div class="UnitOutline-jumpTo">
+    <button class="UnitOutline-jumpToInput go-ShortcutKey js-jumpToInput"
+        aria-controls="jump-to-modal"
+        aria-label="Open Jump to Identifier"
+        data-shortcut="f"
+        data-shortcut-alt="find"
+        data-test-id="jump-to-button" data-gtmc="outline button">
+      Jump to ...
+    </button>
+  </div>
+  <ul class="go-Tree js-tree" role="tree" aria-label="Outline">
+    
+    
+      <li>
+        <a href="#section-documentation" data-gtmc="outline link">
+          Documentation
+        </a>
+        
+<ul role="group" id="doc-outline">
+  
+    <li role="none">
+      <a href="#pkg-overview" role="treeitem" aria-level="2" tabindex="-1"
+          data-gtmc="doc outline link">Overview</a>
+    </li>
+  <li class="DocNav-overview" role="none">
+      <a href="#pkg-index" role="treeitem" aria-level="2" tabindex="-1" aria-owns="nav-group-index"
+          
+          data-gtmc="doc outline link">
+        Index
+      </a>
+      
+    </li>
+    <li class="DocNav-constants" role="none">
+      <a href="#pkg-constants" role="treeitem" aria-level="2" tabindex="-1"
+          data-gtmc="doc outline link">
+        Constants
+      </a>
+    </li>
+    <li class="DocNav-variables" role="none">
+      <a href="#pkg-variables" role="treeitem" aria-level="2" tabindex="-1"
+          data-gtmc="doc outline link">
+        Variables
+      </a>
+    </li>
+    <li class="DocNav-functions" role="none">
+      <a href="#pkg-functions" role="treeitem" aria-level="2" tabindex="-1" aria-owns="nav-group-functions"
+           aria-expanded="false" data-gtmc="doc outline link">
+        Functions
+      </a>
+      <ul role="group" id="nav-group-functions">
+        
+            <li role="none">
+              <a href="#CryptoRandInt63n" role="treeitem" aria-level="3" tabindex="-1"
+                   title="CryptoRandInt63n(max)" data-gtmc="doc outline link">
+                CryptoRandInt63n(max)
+              </a>
+            </li>
+        
+            <li role="none">
+              <a href="#Int63n" role="treeitem" aria-level="3" tabindex="-1"
+                   title="Int63n(reader, max)" data-gtmc="doc outline link">
+                Int63n(reader, max)
+              </a>
+            </li>
+        
+      </ul>
+    </li>
+    <li class="DocNav-types" role="none">
+      <a href="#pkg-types" role="treeitem" aria-level="2" tabindex="-1" aria-owns="nav-group-types"
+           aria-expanded="false" data-gtmc="doc outline link">
+        Types
+      </a>
+      <ul role="group" id="nav-group-types">
+        
+          
+          <li role="none">
+            
+              
+              
+              <a href="#UUID" role="treeitem" aria-expanded="false" aria-level="3" tabindex="-1"
+                   data-aria-owns="nav.group.UUID" title="type UUID"
+                   data-gtmc="doc outline link">
+                type UUID
+              </a>
+              <ul role="group" id="nav.group.UUID">
+                
+                  <li role="none">
+                    <a href="#NewUUID" role="treeitem" aria-level="4" tabindex="-1"
+                        title="NewUUID(r)" data-gtmc="doc outline link">
+                      NewUUID(r)
+                    </a>
+                  </li>
+                
+                
+                  <li role="none">
+                    <a href="#UUID.GetBytes" role="treeitem" aria-level="4" tabindex="-1"
+                        title="(r) GetBytes()" data-gtmc="doc outline link">
+                      (r) GetBytes()
+                    </a>
+                  </li>
+                
+                  <li role="none">
+                    <a href="#UUID.GetUUID" role="treeitem" aria-level="4" tabindex="-1"
+                        title="(r) GetUUID()" data-gtmc="doc outline link">
+                      (r) GetUUID()
+                    </a>
+                  </li>
+                
+              </ul>
+             
+          </li>
+        
+          
+          <li role="none">
+            
+              
+              
+              <a href="#UUIDIdempotencyToken" role="treeitem" aria-expanded="false" aria-level="3" tabindex="-1"
+                   data-aria-owns="nav.group.UUIDIdempotencyToken" title="type UUIDIdempotencyToken"
+                   data-gtmc="doc outline link">
+                type UUIDIdempotencyToken
+              </a>
+              <ul role="group" id="nav.group.UUIDIdempotencyToken">
+                
+                  <li role="none">
+                    <a href="#NewUUIDIdempotencyToken" role="treeitem" aria-level="4" tabindex="-1"
+                        title="NewUUIDIdempotencyToken(r)" data-gtmc="doc outline link">
+                      NewUUIDIdempotencyToken(r)
+                    </a>
+                  </li>
+                
+                
+                  <li role="none">
+                    <a href="#UUIDIdempotencyToken.GetIdempotencyToken" role="treeitem" aria-level="4" tabindex="-1"
+                        title="(u) GetIdempotencyToken()" data-gtmc="doc outline link">
+                      (u) GetIdempotencyToken()
+                    </a>
+                  </li>
+                
+              </ul>
+             
+          </li>
+         
+      </ul>
+    </li>
+  
+  
+</ul>
+
+      </li>
+    
+    
+      <li>
+        <a href="#section-sourcefiles" data-gtmc="outline link">
+          Source Files
+        </a>
+      </li>
+    
+    
+  </ul>
+
+  </div>
+  <div class="go-Main-navMobile js-mainNavMobile">
+    <label class="go-Label">
+      <select class="go-Select">
+        
+          <option selected disabled>Documentation</option>
+        
+      </select>
+    </label>
+  </div>
+</nav>
+    <article class="go-Main-article js-mainContent">
+  <div class="UnitDetails" data-test-id="UnitDetails" style="display: block;">
+    <div class="UnitDetails-content js-unitDetailsContent" data-test-id="UnitDetails-content">
+      
+      
+        
+          
+  <div class="UnitDoc">
+    <h2 class="UnitDoc-title" id="section-documentation">
+      <img class="go-Icon" height="24" width="24" src="/static/shared/icon/code_gm_grey_24dp.svg" alt="">
+      Documentation
+      <a class="UnitDoc-idLink" href="#section-documentation">¶</a>
+    </h2>
+    
+  
+    
+  
+
+    <div class="Documentation js-documentation">
+      
+        
+<div class="Documentation-content js-docContent"> <section class="Documentation-overview">
+    <h3 tabindex="-1" id="pkg-overview" class="Documentation-overviewHeader">Overview <a href="#pkg-overview">¶</a></h3>
+
+<p>Package rand provides utilities for creating and working with random value
+generators.
+</p>
+</section><section class="Documentation-index">
+    <h3 id="pkg-index" class="Documentation-indexHeader">Index <a href="#pkg-index">¶</a></h3>
+
+<ul class="Documentation-indexList">
+<li class="Documentation-indexVariables"><a href="#pkg-variables">Variables</a></li>
+<li class="Documentation-indexFunction">
+        <a href="#CryptoRandInt63n">func CryptoRandInt63n(max int64) (int64, error)</a></li>
+<li class="Documentation-indexFunction">
+        <a href="#Int63n">func Int63n(reader io.Reader, max int64) (int64, error)</a></li>
+<li class="Documentation-indexType">
+          <a href="#UUID">type UUID</a></li>
+<li><ul class="Documentation-indexTypeFunctions">
+<li>
+            <a href="#NewUUID">func NewUUID(r io.Reader) *UUID</a></li>
+</ul></li>
+<li><ul class="Documentation-indexTypeMethods">
+<li>
+            <a href="#UUID.GetBytes">func (r *UUID) GetBytes() (u []byte, err error)</a></li>
+<li>
+            <a href="#UUID.GetUUID">func (r *UUID) GetUUID() (string, error)</a></li>
+</ul></li>
+<li class="Documentation-indexType">
+          <a href="#UUIDIdempotencyToken">type UUIDIdempotencyToken</a></li>
+<li><ul class="Documentation-indexTypeFunctions">
+<li>
+            <a href="#NewUUIDIdempotencyToken">func NewUUIDIdempotencyToken(r io.Reader) *UUIDIdempotencyToken</a></li>
+</ul></li>
+<li><ul class="Documentation-indexTypeMethods">
+<li>
+            <a href="#UUIDIdempotencyToken.GetIdempotencyToken">func (u UUIDIdempotencyToken) GetIdempotencyToken() (string, error)</a></li>
+</ul></li>
+</ul>
+</section><h3 tabindex="-1" id="pkg-constants" class="Documentation-constantsHeader">Constants <a href="#pkg-constants">¶</a></h3>
+
+  <section class="Documentation-constants"><p class="Documentation-empty">This section is empty.</p></section>
+
+  <h3 tabindex="-1" id="pkg-variables" class="Documentation-variablesHeader">Variables <a href="#pkg-variables">¶</a></h3>
+
+  <section class="Documentation-variables">
+    <div class="Documentation-declaration">
+      <span class="Documentation-declarationLink"><a class="Documentation-source" href="https://github.com/aws/smithy-go/blob/v1.11.2/rand/rand.go#L15">View Source</a></span>
+      <pre><span id="Reader" data-kind="variable">var Reader <a href="/io">io</a>.<a href="/io#Reader">Reader</a></span></pre>
+    </div>
+  <p>Reader provides a random reader that can reset during testing.
+</p>
+</section>
+
+  <h3 tabindex="-1" id="pkg-functions" class="Documentation-functionsHeader">Functions <a href="#pkg-functions">¶</a></h3>
+
+  <section class="Documentation-functions"><div class="Documentation-function">
+	  
+  
+  
+    <h4 tabindex="-1" id="CryptoRandInt63n" data-kind="function" class="Documentation-functionHeader">
+      <span>func <a class="Documentation-source" href="https://github.com/aws/smithy-go/blob/v1.11.2/rand/rand.go#L29">CryptoRandInt63n</a> <a class="Documentation-idLink" href="#CryptoRandInt63n">¶</a></span>
+  <span class="Documentation-sinceVersion">
+    
+  </span>
+</h4>
+
+    
+    <div class="Documentation-declaration">
+      <pre>func CryptoRandInt63n(max <a href="/builtin#int64">int64</a>) (<a href="/builtin#int64">int64</a>, <a href="/builtin#error">error</a>)</pre>
+    </div>
+  <p>CryptoRandInt63n returns a random int64 between zero and value of max
+obtained from the crypto rand source.
+</p>
+
+  
+
+        </div><div class="Documentation-function">
+	  
+  
+  
+    <h4 tabindex="-1" id="Int63n" data-kind="function" class="Documentation-functionHeader">
+      <span>func <a class="Documentation-source" href="https://github.com/aws/smithy-go/blob/v1.11.2/rand/rand.go#L18">Int63n</a> <a class="Documentation-idLink" href="#Int63n">¶</a></span>
+  <span class="Documentation-sinceVersion">
+    
+  </span>
+</h4>
+
+    
+    <div class="Documentation-declaration">
+      <pre>func Int63n(reader <a href="/io">io</a>.<a href="/io#Reader">Reader</a>, max <a href="/builtin#int64">int64</a>) (<a href="/builtin#int64">int64</a>, <a href="/builtin#error">error</a>)</pre>
+    </div>
+  <p>Int63n returns a int64 between zero and value of max, read from an io.Reader source.
+</p>
+
+  
+
+        </div></section>
+
+  <h3 tabindex="-1" id="pkg-types" class="Documentation-typesHeader">Types <a href="#pkg-types">¶</a></h3>
+
+  <section class="Documentation-types"><div class="Documentation-type">
+      
+  
+  
+    <h4 tabindex="-1" id="UUID" data-kind="type" class="Documentation-typeHeader">
+      <span>type <a class="Documentation-source" href="https://github.com/aws/smithy-go/blob/v1.11.2/rand/uuid.go#L29">UUID</a> <a class="Documentation-idLink" href="#UUID">¶</a></span>
+  <span class="Documentation-sinceVersion">
+    
+  </span>
+</h4>
+
+    
+    <div class="Documentation-declaration">
+      <pre>type UUID struct {
+	<span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+    </div>
+  <p>UUID provides computing random UUID version 4 values from a random source
+reader.
+</p>
+<div class="Documentation-typeFunc">
+    
+  
+  
+    <h4 tabindex="-1" id="NewUUID" data-kind="function" class="Documentation-typeFuncHeader">
+      <span>func <a class="Documentation-source" href="https://github.com/aws/smithy-go/blob/v1.11.2/rand/uuid.go#L35">NewUUID</a> <a class="Documentation-idLink" href="#NewUUID">¶</a></span>
+  <span class="Documentation-sinceVersion">
+    
+  </span>
+</h4>
+
+    
+    <div class="Documentation-declaration">
+      <pre>func NewUUID(r <a href="/io">io</a>.<a href="/io#Reader">Reader</a>) *<a href="#UUID">UUID</a></pre>
+    </div>
+  <p>NewUUID returns an initialized UUID value that can be used to retrieve
+random UUID version 4 values.
+</p>
+
+  
+
+  </div><div class="Documentation-typeMethod">
+    
+  
+  
+    <h4 tabindex="-1" id="UUID.GetBytes" data-kind="method" class="Documentation-typeMethodHeader">
+      <span>func (*UUID) <a class="Documentation-source" href="https://github.com/aws/smithy-go/blob/v1.11.2/rand/uuid.go#L52">GetBytes</a> <a class="Documentation-idLink" href="#UUID.GetBytes">¶</a></span>
+  <span class="Documentation-sinceVersion">
+    
+      <span class="Documentation-sinceVersionLabel">added in</span>
+      <span class="Documentation-sinceVersionVersion">v1.9.0</span>
+    
+  </span>
+</h4>
+
+    
+    <div class="Documentation-declaration">
+      <pre>func (r *<a href="#UUID">UUID</a>) GetBytes() (u []<a href="/builtin#byte">byte</a>, err <a href="/builtin#error">error</a>)</pre>
+    </div>
+  <p>GetBytes returns a byte slice containing a random UUID version 4 sourced from the random reader the
+UUID was created with. Returns an error if unable to compute the UUID.
+</p>
+
+  
+
+  </div><div class="Documentation-typeMethod">
+    
+  
+  
+    <h4 tabindex="-1" id="UUID.GetUUID" data-kind="method" class="Documentation-typeMethodHeader">
+      <span>func (*UUID) <a class="Documentation-source" href="https://github.com/aws/smithy-go/blob/v1.11.2/rand/uuid.go#L41">GetUUID</a> <a class="Documentation-idLink" href="#UUID.GetUUID">¶</a></span>
+  <span class="Documentation-sinceVersion">
+    
+  </span>
+</h4>
+
+    
+    <div class="Documentation-declaration">
+      <pre>func (r *<a href="#UUID">UUID</a>) GetUUID() (<a href="/builtin#string">string</a>, <a href="/builtin#error">error</a>)</pre>
+    </div>
+  <p>GetUUID returns a random UUID version 4 string representation sourced from the random reader the
+UUID was created with. Returns an error if unable to compute the UUID.
+</p>
+
+  
+
+  </div>
+  
+
+    </div><div class="Documentation-type">
+      
+  
+  
+    <h4 tabindex="-1" id="UUIDIdempotencyToken" data-kind="type" class="Documentation-typeHeader">
+      <span>type <a class="Documentation-source" href="https://github.com/aws/smithy-go/blob/v1.11.2/rand/uuid.go#L12">UUIDIdempotencyToken</a> <a class="Documentation-idLink" href="#UUIDIdempotencyToken">¶</a></span>
+  <span class="Documentation-sinceVersion">
+    
+  </span>
+</h4>
+
+    
+    <div class="Documentation-declaration">
+      <pre>type UUIDIdempotencyToken struct {
+	<span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+    </div>
+  <p>UUIDIdempotencyToken provides a utility to get idempotency tokens in the
+UUID format.
+</p>
+<div class="Documentation-typeFunc">
+    
+  
+  
+    <h4 tabindex="-1" id="NewUUIDIdempotencyToken" data-kind="function" class="Documentation-typeFuncHeader">
+      <span>func <a class="Documentation-source" href="https://github.com/aws/smithy-go/blob/v1.11.2/rand/uuid.go#L18">NewUUIDIdempotencyToken</a> <a class="Documentation-idLink" href="#NewUUIDIdempotencyToken">¶</a></span>
+  <span class="Documentation-sinceVersion">
+    
+  </span>
+</h4>
+
+    
+    <div class="Documentation-declaration">
+      <pre>func NewUUIDIdempotencyToken(r <a href="/io">io</a>.<a href="/io#Reader">Reader</a>) *<a href="#UUIDIdempotencyToken">UUIDIdempotencyToken</a></pre>
+    </div>
+  <p>NewUUIDIdempotencyToken returns a idempotency token provider returning
+tokens in the UUID random format using the reader provided.
+</p>
+
+  
+
+  </div><div class="Documentation-typeMethod">
+    
+  
+  
+    <h4 tabindex="-1" id="UUIDIdempotencyToken.GetIdempotencyToken" data-kind="method" class="Documentation-typeMethodHeader">
+      <span>func (UUIDIdempotencyToken) <a class="Documentation-source" href="https://github.com/aws/smithy-go/blob/v1.11.2/rand/uuid.go#L23">GetIdempotencyToken</a> <a class="Documentation-idLink" href="#UUIDIdempotencyToken.GetIdempotencyToken">¶</a></span>
+  <span class="Documentation-sinceVersion">
+    
+  </span>
+</h4>
+
+    
+    <div class="Documentation-declaration">
+      <pre>func (u <a href="#UUIDIdempotencyToken">UUIDIdempotencyToken</a>) GetIdempotencyToken() (<a href="/builtin#string">string</a>, <a href="/builtin#error">error</a>)</pre>
+    </div>
+  <p>GetIdempotencyToken returns a random UUID value for Idempotency token.
+</p>
+
+  
+
+  </div>
+  
+
+    </div></section></div> 
+
+
+
+
+      
+    </div>
+  </div>
+
+        
+      
+      
+        
+  <div class="UnitFiles js-unitFiles">
+    <h2 class="UnitFiles-title" id="section-sourcefiles">
+      <img class="go-Icon" height="24" width="24" src="/static/shared/icon/insert_drive_file_gm_grey_24dp.svg" alt="">
+      Source Files
+      <a class="UnitFiles-idLink" href="#section-sourcefiles">¶</a>
+    </h2>
+    <div class="UnitFiles-titleLink">
+      <a href="https://github.com/aws/smithy-go/tree/v1.11.2/rand" target="_blank" rel="noopener">View all</a>
+    </div>
+    <div>
+      <ul class="UnitFiles-fileList"><li>
+            <a href="https://github.com/aws/smithy-go/blob/v1.11.2/rand/doc.go" target="_blank" rel="noopener" title="doc.go">doc.go</a>
+          </li><li>
+            <a href="https://github.com/aws/smithy-go/blob/v1.11.2/rand/rand.go" target="_blank" rel="noopener" title="rand.go">rand.go</a>
+          </li><li>
+            <a href="https://github.com/aws/smithy-go/blob/v1.11.2/rand/uuid.go" target="_blank" rel="noopener" title="uuid.go">uuid.go</a>
+          </li></ul>
+    </div>
+  </div>
+
+      
+      
+    </div>
+  </div>
+</article>
+    <footer class="go-Main-footer"></footer>
+  </main>
+
+    
+  <footer class="go-Footer">
+    
+    <div class="go-Footer-links">
+      <div class="go-Footer-linkColumn">
+        <a href="https://go.dev/solutions" class="go-Footer-link go-Footer-link--primary"
+            data-gtmc="footer link">
+          Why Go
+        </a>
+        <a href="https://go.dev/solutions#use-cases" class="go-Footer-link"
+            data-gtmc="footer link">
+          Use Cases
+        </a>
+        <a href="https://go.dev/solutions#case-studies" class="go-Footer-link"
+            data-gtmc="footer link">
+          Case Studies
+        </a>
+      </div>
+      <div class="go-Footer-linkColumn">
+        <a href="https://learn.go.dev/" class="go-Footer-link go-Footer-link--primary"
+            data-gtmc="footer link">
+          Get Started
+        </a>
+        <a href="https://play.golang.org" class="go-Footer-link" data-gtmc="footer link">
+          Playground
+        </a>
+        <a href="https://tour.golang.org" class="go-Footer-link" data-gtmc="footer link">
+          Tour
+        </a>
+        <a href="https://stackoverflow.com/questions/tagged/go?tab=Newest" class="go-Footer-link"
+            data-gtmc="footer link">
+          Stack Overflow
+        </a>
+        <a href="https://go.dev/help" class="go-Footer-link"
+            data-gtmc="footer link">
+          Help
+        </a>
+      </div>
+      <div class="go-Footer-linkColumn">
+        <a href="https://pkg.go.dev" class="go-Footer-link go-Footer-link--primary"
+            data-gtmc="footer link">
+          Packages
+        </a>
+        <a href="/std" class="go-Footer-link" data-gtmc="footer link">
+          Standard Library
+        </a>
+      </div>
+      <div class="go-Footer-linkColumn">
+        <a href="https://go.dev/project" class="go-Footer-link go-Footer-link--primary"
+            data-gtmc="footer link">
+          About
+        </a>
+        <a href="https://go.dev/dl/" class="go-Footer-link" data-gtmc="footer link">Download</a>
+        <a href="https://go.dev/blog" class="go-Footer-link" data-gtmc="footer link">Blog</a>
+        <a href="https://github.com/golang/go/issues" class="go-Footer-link" data-gtmc="footer link">
+          Issue Tracker
+        </a>
+        <a href="https://go.dev/doc/devel/release.html" class="go-Footer-link"
+            data-gtmc="footer link">
+          Release Notes
+        </a>
+        <a href="https://blog.golang.org/go-brand" class="go-Footer-link" data-gtmc="footer link">
+          Brand Guidelines
+        </a>
+        <a href="https://go.dev/conduct" class="go-Footer-link" data-gtmc="footer link">
+          Code of Conduct
+        </a>
+      </div>
+      <div class="go-Footer-linkColumn">
+        <a href="https://www.twitter.com/golang" class="go-Footer-link go-Footer-link--primary"
+            data-gtmc="footer link">
+          Connect
+        </a>
+        <a href="https://www.twitter.com/golang" class="go-Footer-link" data-gtmc="footer link">
+          Twitter
+        </a>
+        <a href="https://github.com/golang" class="go-Footer-link" data-gtmc="footer link">GitHub</a>
+        <a href="https://invite.slack.golangbridge.org/" class="go-Footer-link"
+            data-gtmc="footer link">
+          Slack
+        </a>
+        <a href="https://reddit.com/r/golang" class="go-Footer-link" data-gtmc="footer link">
+          r/golang
+        </a>
+        <a href="https://www.meetup.com/pro/go" class="go-Footer-link" data-gtmc="footer link">
+          Meetup
+        </a>
+        <a href="https://golangweekly.com/" class="go-Footer-link" data-gtmc="footer link">
+          Golang Weekly
+        </a>
+      </div>
+    </div>
+    <div class="go-Footer-bottom">
+      <img class="go-Footer-gopher"  width="1431" height="901"
+          src="/static/shared/gopher/pilot-bust-1431x901.svg" alt="Gopher in flight goggles">
+      <ul class="go-Footer-listRow">
+        <li class="go-Footer-listItem">
+          <a href="https://go.dev/copyright" data-gtmc="footer link">Copyright</a>
+        </li>
+        <li class="go-Footer-listItem">
+          <a href="https://go.dev/tos" data-gtmc="footer link">Terms of Service</a>
+        </li>
+        <li class="go-Footer-listItem">
+          <a href="http://www.google.com/intl/en/policies/privacy/" data-gtmc="footer link"
+              target="_blank" rel="noopener">
+            Privacy Policy
+          </a>
+        </li>
+        <li class="go-Footer-listItem">
+          <a href="https://go.dev/s/pkgsite-feedback" target="_blank" rel="noopener"
+              data-gtmc="footer link">
+            Report an Issue
+          </a>
+        </li>
+        <li class="go-Footer-listItem">
+          <button class="go-Button go-Button--text go-Footer-toggleTheme js-toggleTheme" aria-label="Toggle theme">
+            <img data-value="auto" class="go-Icon go-Icon--inverted" height="24" width="24" src="/static/shared/icon/brightness_6_gm_grey_24dp.svg" alt="System theme">
+            <img data-value="dark" class="go-Icon go-Icon--inverted" height="24" width="24" src="/static/shared/icon/brightness_2_gm_grey_24dp.svg" alt="Dark theme">
+            <img data-value="light" class="go-Icon go-Icon--inverted" height="24" width="24" src="/static/shared/icon/light_mode_gm_grey_24dp.svg" alt="Light theme">
+          </button>
+          <button class="go-Button go-Button--text go-Footer-keyboard js-openShortcuts" aria-label="Open shorcuts modal">
+            <img class="go-Icon go-Icon--inverted" height="24" width="24" src="/static/shared/icon/keyboard_grey_24dp.svg" alt="">
+          </button>
+        </li>
+      </ul>
+      <a class="go-Footer-googleLogo" href="https://google.com" target="_blank"rel="noopener"
+          data-gtmc="footer link">
+        <img class="go-Footer-googleLogoImg" height="24" width="72"
+            src="/static/shared/logo/google-white.svg" alt="Google logo">
+      </a>
+    </div>
+  </footer>
+
+    
+  <dialog id="jump-to-modal" class="JumpDialog go-Modal go-Modal--md js-modal">
+    <form method="dialog" data-gmtc="jump to form" aria-label="Jump to Identifier">
+      <div class="Dialog-title go-Modal-header">
+        <h2>Jump to</h2>
+        <button
+          class="go-Button go-Button--inline"
+          type="button"
+          data-modal-close
+          data-gtmc="modal button"
+          aria-label="Close"
+        >
+          <img
+            class="go-Icon"
+            height="24"
+            width="24"
+            src="/static/shared/icon/close_gm_grey_24dp.svg"
+            alt=""
+          />
+        </button>
+      </div>
+      <div class="JumpDialog-filter">
+        <input class="JumpDialog-input go-Input" autocomplete="off" type="text">
+      </div>
+      <div class="JumpDialog-body go-Modal-body">
+        <div class="JumpDialog-list"></div>
+      </div>
+      <div class="go-Modal-actions">
+        <button class="go-Button" data-test-id="close-dialog">Close</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="ShortcutsDialog go-Modal go-Modal--sm js-modal">
+    <form method="dialog">
+      <div class="go-Modal-header">
+        <h2>Keyboard shortcuts</h2>
+        <button
+          class="go-Button go-Button--inline"
+          type="button"
+          data-modal-close
+          data-gtmc="modal button"
+          aria-label="Close"
+        >
+          <img
+            class="go-Icon"
+            height="24"
+            width="24"
+            src="/static/shared/icon/close_gm_grey_24dp.svg"
+            alt=""
+          />
+        </button>
+      </div>
+      <div class="go-Modal-body">
+        <table>
+          <tbody>
+            <tr><td class="ShortcutsDialog-key">
+              <strong>?</strong></td><td> : This menu</td>
+            </tr>
+            <tr><td class="ShortcutsDialog-key">
+              <strong>/</strong></td><td> : Search site</td>
+            </tr>
+            <tr><td class="ShortcutsDialog-key">
+              <strong>f</strong> or <strong>F</strong></td><td> : Jump to</td>
+            </tr>
+            <tr>
+              <td class="ShortcutsDialog-key"><strong>y</strong> or <strong>Y</strong></td>
+              <td> : Canonical URL</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="go-Modal-actions">
+        <button class="go-Button" data-test-id="close-dialog">Close</button>
+      </div>
+    </form>
+  </dialog>
+
+    
+      <script>
+        // this will throw if the querySelector can’t find the element
+        const gtmId = document.querySelector('.js-gtmID').dataset.gtmid;
+        if (!gtmId) {
+          throw new Error('Google Tag Manager ID not found');
+        }
+        loadScript(`https://www.googletagmanager.com/gtm.js?id=${gtmId}`);
+      </script>
+      <noscript>
+        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W8MVQXG"
+                height="0" width="0" style="display:none;visibility:hidden">
+        </iframe>
+      </noscript>
+    
+    
+  
+  <div class="js-canonicalURLPath" data-canonical-url-path="/github.com/aws/smithy-go@v1.11.2/rand" hidden></div>
+  <script>
+    loadScript('/static/frontend/unit/main/main.js')
+  </script>
+
+  <script>
+    loadScript('/static/frontend/unit/unit.js')
+  </script>
+
+  </body>
+</html>

@@ -23,6 +23,7 @@ gem "simple-rss"
 gem "sidekiq"
 gem "sidekiq-unique-jobs"
 gem "sidekiq-scheduler"
+gem "bibliothecary"
 
 group :development, :test do
   gem "debug", platforms: %i[ mri mingw x64_mingw ]
