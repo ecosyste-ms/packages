@@ -63,19 +63,8 @@ module Ecosystem
       end
     end
 
-    def dependencies_metadata(name, version, _package)
-      deps = get("http://pip.libraries.io/#{name}/#{version}.json")
-      return [] if deps.is_a?(Hash) && deps["error"].present?
-
-      deps.map do |dep|
-        {
-          package_name: dep["name"],
-          requirements: dep["requirements"] || "*",
-          kind: "runtime",
-          optional: false,
-          ecosystem: self.class.name.demodulize,
-        }
-      end
+    def dependencies_metadata(_name, _version, _package)
+      []
     end
 
     def licenses(package)

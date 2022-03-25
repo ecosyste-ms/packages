@@ -1,0 +1,118 @@
+{
+  "info": {
+    "author": "DukeBode",
+    "author_email": "Duke123@aliyun.com",
+    "bugtrack_url": null,
+    "classifiers": [
+      "Development Status :: 1 - Planning",
+      "Intended Audience :: Developers",
+      "Intended Audience :: Education",
+      "License :: OSI Approved :: BSD License",
+      "Natural Language :: Chinese (Simplified)",
+      "Operating System :: Microsoft :: Windows :: Windows 10",
+      "Programming Language :: Python :: 3.8",
+      "Programming Language :: Python :: Implementation :: PyPy"
+    ],
+    "description": "<!--\n * @Author: your name\n * @Date: 2020-04-25 09:19:10\n * @LastEditTime: 2020-04-25 10:24:28\n * @LastEditors: Please set LastEditors\n * @Description: In User Settings Edit\n * @FilePath: \\Yiban\\README.md\n -->\n### \u8bf4\u660e\n\n1. \u672c\u7a0b\u5e8f\u4ec5\u4f9b\u6613\u73ed\u5404\u9ad8\u6821\u7edf\u8ba1\u5fae\u793e\u533a\u7edf\u8ba1\u4fe1\u606f\u4f7f\u7528\uff0c\u6240\u83b7\u6570\u636e\u5e94\u5f53\u907f\u514d\u5916\u6cc4\uff0c\u53ca\u65f6\u5220\u9664\u3002\n1. \u672c\u7a0b\u5e8f\u5728 Window 10 & Python 3.8 \u73af\u5883\u5f00\u53d1\uff0c\u672a\u5bf9\u5176\u5b83\u73af\u5883\u6d4b\u8bd5\u3002\n1. \u5982\u9047\u5f02\u5e38\uff0c\u8bf7\u786e\u8ba4\u975e\u7f51\u7edc\u95ee\u9898\u540e\uff0c\u622a\u56fe\u7559\u8a00\u3002\n\n![run first](./run_first.gif)\n\n### \u529f\u80fd\u4f7f\u7528\u8bf4\u660e\n\n- \u5b89\u88c5\u4f9d\u8d56\n\n```sh\npip install yiban\n```\n\n- \u66f4\u65b0\u81f3\u6700\u65b0\u7248\n\n```\npip install -i https://pypi.org/simple -U yiban\n```\n\n- \u67e5\u770b\u5e2e\u52a9\n\n```sh\npython -m yiban -h\n```\n\n- \u4f7f\u7528 Forum-Data\n\n```sh\npython -m yiban forum\n```\n\n\n",
+    "description_content_type": "text/markdown",
+    "docs_url": null,
+    "download_url": "",
+    "downloads": {
+      "last_day": -1,
+      "last_month": -1,
+      "last_week": -1
+    },
+    "home_page": "https://github.com/DukeBode/Yiban",
+    "keywords": "Yiban",
+    "license": "BSD 3-Clause",
+    "maintainer": "",
+    "maintainer_email": "",
+    "name": "yiban",
+    "package_url": "https://pypi.org/project/yiban/",
+    "platform": "",
+    "project_url": "https://pypi.org/project/yiban/",
+    "project_urls": {
+      "Bug Reports": "https://github.com/DukeBode/Yiban/issues",
+      "Documentation": "https://dukebode.github.io/Yiban",
+      "Homepage": "https://github.com/DukeBode/Yiban",
+      "Source": "https://github.com/DukeBode/Yiban"
+    },
+    "release_url": "https://pypi.org/project/yiban/0.7.0.1/",
+    "requires_dist": [
+      "openpyxl"
+    ],
+    "requires_python": ">=3.8",
+    "summary": "Yiban Api",
+    "version": "0.7.0.1",
+    "yanked": false,
+    "yanked_reason": null
+  },
+  "last_serial": 7097456,
+  "releases": {
+    "0.1.2.32": [
+      {
+        "comment_text": "",
+        "digests": {
+          "md5": "d72af0741fa75091f788b924cd17e403",
+          "sha256": "29ffb8f9b1d6114757a53a1a713a4e07ce4e1c4c50d31332644593db208f30e7"
+        },
+        "downloads": -1,
+        "filename": "yiban-0.1.2.32-py3-none-any.whl",
+        "has_sig": false,
+        "md5_digest": "d72af0741fa75091f788b924cd17e403",
+        "packagetype": "bdist_wheel",
+        "python_version": "py3",
+        "requires_python": ">=3.8",
+        "size": 8856,
+        "upload_time": "2019-11-05T15:06:04",
+        "upload_time_iso_8601": "2019-11-05T15:06:04.826122Z",
+        "url": "https://files.pythonhosted.org/packages/8b/e1/40122572f57349365391b8955178d52cd42d2c1f767030cbd196883adee7/yiban-0.1.2.32-py3-none-any.whl",
+        "yanked": false,
+        "yanked_reason": null
+      }
+    ]
+  },
+  "urls": [
+    {
+      "comment_text": "",
+      "digests": {
+        "md5": "a736b5fcef514f23be21548710a77ddd",
+        "sha256": "1fd9de0465b8170dc02ab981125b7cafdf6e7c10261e83dca246c36dcdf4e8c4"
+      },
+      "downloads": -1,
+      "filename": "yiban-0.7.0.1-py3-none-any.whl",
+      "has_sig": false,
+      "md5_digest": "a736b5fcef514f23be21548710a77ddd",
+      "packagetype": "bdist_wheel",
+      "python_version": "py3",
+      "requires_python": ">=3.8",
+      "size": 12528,
+      "upload_time": "2020-04-25T02:34:14",
+      "upload_time_iso_8601": "2020-04-25T02:34:14.436512Z",
+      "url": "https://files.pythonhosted.org/packages/77/97/4818d85ba8ea1d09edafb7da9e7b4f1e854eef2bbec9f19a00ad01f4ba17/yiban-0.7.0.1-py3-none-any.whl",
+      "yanked": false,
+      "yanked_reason": null
+    },
+    {
+      "comment_text": "",
+      "digests": {
+        "md5": "2a866d24cfc29f3512d5eae26dfec3b1",
+        "sha256": "b785771fd90d69f2612298a07c4779acaba94d3cf935fdac66c8b4cb69816249"
+      },
+      "downloads": -1,
+      "filename": "yiban-0.7.0.1.tar.gz",
+      "has_sig": false,
+      "md5_digest": "2a866d24cfc29f3512d5eae26dfec3b1",
+      "packagetype": "sdist",
+      "python_version": "source",
+      "requires_python": ">=3.8",
+      "size": 10942,
+      "upload_time": "2020-04-25T02:34:15",
+      "upload_time_iso_8601": "2020-04-25T02:34:15.331937Z",
+      "url": "https://files.pythonhosted.org/packages/ef/2d/811a241602693cf32dfd0a3ad6c6e1bde8d98cbd7316fc4e5016d29b14bc/yiban-0.7.0.1.tar.gz",
+      "yanked": false,
+      "yanked_reason": null
+    }
+  ],
+  "vulnerabilities": []
+}

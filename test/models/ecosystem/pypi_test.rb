@@ -66,19 +66,36 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal recently_updated_package_names.last, 'Lgy'
   end
 
-  test 'fetch_package_metadata' do
-    skip("To be implemented")
-  end
-
-  test 'map_package_metadata' do
-    skip("To be implemented")
+  test 'package_metadata' do
+    stub_request(:get, "https://pypi.org/pypi/yiban/json")
+      .to_return({ status: 200, body: file_fixture('pypi/yiban') })
+    package_metadata = @ecosystem.package_metadata('yiban')
+    
+    assert_equal package_metadata[:name], "yiban"
+    assert_equal package_metadata[:description], "Yiban Api"
+    assert_equal package_metadata[:homepage], "https://github.com/DukeBode/Yiban"
+    assert_equal package_metadata[:licenses], "BSD 3-Clause"
+    assert_equal package_metadata[:repository_url], "https://github.com/DukeBode/Yiban"
+    assert_equal package_metadata[:keywords_array], ["Yiban"]
   end
 
   test 'versions_metadata' do
-    skip("To be implemented")
+    stub_request(:get, "https://pypi.org/pypi/yiban/json")
+      .to_return({ status: 200, body: file_fixture('pypi/yiban') })
+    package_metadata = @ecosystem.package_metadata('yiban')
+
+    stub_request(:get, "https://pypi.org/pypi/yiban/0.1.2.32/json")
+      .to_return({ status: 200, body: file_fixture('pypi/0.1.2.32') })
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+
+    assert_equal versions_metadata, [
+      {:number=>"0.1.2.32", :published_at=>"2019-11-05T15:06:04", :licenses=>""}
+    ]
   end
 
   test 'dependencies_metadata' do
-    skip("To be implemented")
+    dependencies_metadata = @ecosystem.dependencies_metadata('yiban', '0.1.2.32', nil)
+
+    assert_equal dependencies_metadata, []
   end
 end
