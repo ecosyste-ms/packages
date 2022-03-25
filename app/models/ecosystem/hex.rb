@@ -37,7 +37,6 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
-      sleep 30
       get("#{@registry_url}/api/packages/#{name}")
     end
 

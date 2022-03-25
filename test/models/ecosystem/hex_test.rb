@@ -69,19 +69,40 @@ class HexTest < ActiveSupport::TestCase
     assert_equal recently_updated_package_names.last, 'stellar_base'
   end
 
-  test 'fetch_package_metadata' do
-    skip("To be implemented")
-  end
-
-  test 'map_package_metadata' do
-    skip("To be implemented")
+  test 'package_metadata' do
+    stub_request(:get, "https://hex.pm/api/packages/phoenix_copy")
+      .to_return({ status: 200, body: file_fixture('hex/phoenix_copy') })
+    package_metadata = @ecosystem.package_metadata('phoenix_copy')
+    
+    assert_equal package_metadata[:name], "phoenix_copy"
+    assert_equal package_metadata[:description], "Copy static assets for your Phoenix app during development and deployment."
+    assert_nil package_metadata[:homepage]
+    assert_equal package_metadata[:licenses], "MIT"
+    assert_equal package_metadata[:repository_url], "https://github.com/aj-foster/phx_copy"
+    assert_nil package_metadata[:keywords_array]
   end
 
   test 'versions_metadata' do
-    skip("To be implemented")
+    stub_request(:get, "https://hex.pm/api/packages/phoenix_copy")
+      .to_return({ status: 200, body: file_fixture('hex/phoenix_copy') })
+    package_metadata = @ecosystem.package_metadata('phoenix_copy')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+
+    assert_equal versions_metadata, [
+      {:number=>"0.1.0", :published_at=>"2022-03-25T02:22:52.658502Z"},
+      {:number=>"0.1.0-rc.2", :published_at=>"2022-03-25T02:02:53.226729Z"},
+      {:number=>"0.1.0-rc.1", :published_at=>"2022-03-23T01:30:45.366912Z"},
+      {:number=>"0.1.0-rc.0", :published_at=>"2022-03-23T01:13:50.946007Z"}
+    ]
   end
 
   test 'dependencies_metadata' do
-    skip("To be implemented")
+    stub_request(:get, "https://hex.pm/api/packages/phoenix_copy/releases/0.1.0")
+      .to_return({ status: 200, body: file_fixture('hex/0.1.0') })
+    dependencies_metadata = @ecosystem.dependencies_metadata('phoenix_copy', '0.1.0', nil)
+
+    assert_equal dependencies_metadata, [
+      {:package_name=>"file_system", :requirements=>"~> 0.2", :kind=>"runtime", :optional=>false, :ecosystem=>"Hex"}
+    ]
   end
 end
