@@ -17,7 +17,19 @@ module Ecosystem
     end
 
     def all_package_names
-      get_raw("https://index.golang.org/index").split("\n").map{|row| JSON.parse(row)['Path']} # TODO page through using ?since=2019-04-10T19:08:52.997264Z
+      names = []
+      pkgs = get_raw("https://index.golang.org/index").split("\n").map{|row| JSON.parse(row)}
+      names += pkgs.map{|j| j['Path' ]}
+      since = pkgs.last['Timestamp']
+
+      while 
+        pkgs = get_raw("https://index.golang.org/index?since=#{since}").split("\n").map{|row| JSON.parse(row)}
+        break if pkgs.last['Timestamp'] == since
+        since = pkgs.last['Timestamp']
+        names += pkgs.map{|j| j['Path' ]}
+      end
+
+      names.uniq
     end
 
     def recently_updated_package_names
