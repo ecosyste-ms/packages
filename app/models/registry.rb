@@ -67,7 +67,6 @@ class Registry < ApplicationRecord
       package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties))
       package.save! if package.changed?
     else
-      package.reformat_repository_url
       attrs = package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties)
       package.update(attrs)
     end
