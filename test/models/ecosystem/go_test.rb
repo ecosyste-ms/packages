@@ -51,11 +51,14 @@ class GoTest < ActiveSupport::TestCase
   test 'all_package_names' do
     stub_request(:get, "https://index.golang.org/index")
       .to_return({ status: 200, body: file_fixture('go/index') })
-      
+    
+    stub_request(:get, "https://index.golang.org/index?since=2019-04-18T02:07:41.336899Z")
+      .to_return({ status: 200, body: file_fixture('go/index?since=2019-04-18T02:07:41.336899Z') })
+
     all_package_names = @ecosystem.all_package_names
   
-    assert_equal all_package_names.length, 2000
-    assert_equal all_package_names.last, 'github.com/pkg/errors'
+    assert_equal all_package_names.length, 864
+    assert_equal all_package_names.last, 'github.com/xenolf/lego'
   end
 
   test 'recently_updated_package_names' do
