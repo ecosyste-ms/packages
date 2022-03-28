@@ -1,0 +1,1 @@
+json.extract! dependency, :package_name, :requirements, :optional, :kind

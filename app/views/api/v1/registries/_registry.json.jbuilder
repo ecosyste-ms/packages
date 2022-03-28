@@ -1,0 +1,1 @@
+json.extract! registry, :name, :url, :ecosystem, :default, :created_at, :updated_at
