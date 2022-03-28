@@ -63,10 +63,6 @@ module Ecosystem
       end
     end
 
-    def dependencies_metadata(_name, _version, _package)
-      []
-    end
-
     def licenses(package)
       return package["info"]["license"] if package["info"]["license"].present?
 

@@ -58,7 +58,7 @@ module Ecosystem
       find(ecosystem).try(:formatted_name) || ecosystem
     end
 
-    def dependencies(_name, _version, _package)
+    def dependencies_metadata(_name, _version, _package)
       []
     end
 
