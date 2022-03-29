@@ -1,0 +1,1215 @@
+{
+   "hits" : {
+      "max_score" : null,
+      "hits" : [
+         {
+            "fields" : {
+               "distribution" : "Dpkg"
+            },
+            "_id" : "_JGOponoQJtEoM0lWJn8tlX_oT4",
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648516030000
+            ],
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_score" : null,
+            "sort" : [
+               1648513286000
+            ],
+            "_type" : "release",
+            "_index" : "cpan_v1_01",
+            "_id" : "OKn7fco4TYcjQWykFUO_C5e1HIw",
+            "fields" : {
+               "distribution" : "JavaScript-QuickJS"
+            }
+         },
+         {
+            "_id" : "x6bbZ2wef4zu7MXLpgEgqKpWmMs",
+            "fields" : {
+               "distribution" : "Dist-Zilla-Plugin-Acme-CPANModules"
+            },
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "sort" : [
+               1648512355000
+            ],
+            "_type" : "release"
+         },
+         {
+            "_id" : "N9juIlYY3gg9iMaAqjF9efodnPs",
+            "fields" : {
+               "distribution" : "Crypt-OpenSSL-PKCS10"
+            },
+            "_index" : "cpan_v1_01",
+            "_type" : "release",
+            "sort" : [
+               1648510824000
+            ],
+            "_score" : null
+         },
+         {
+            "_type" : "release",
+            "sort" : [
+               1648509973000
+            ],
+            "_score" : null,
+            "_index" : "cpan_v1_01",
+            "_id" : "loMVEfImcAa_YY0LAsJD_BaNUDM",
+            "fields" : {
+               "distribution" : "exact"
+            }
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "sort" : [
+               1648502843000
+            ],
+            "_type" : "release",
+            "fields" : {
+               "distribution" : "File-Process"
+            },
+            "_id" : "Q5AqL0RQcju8PKOsTNUD6T3vPBc"
+         },
+         {
+            "_id" : "VAajlP7XNgX0FKZEhIRKWdPu38s",
+            "fields" : {
+               "distribution" : "App-Rakubrew"
+            },
+            "_index" : "cpan_v1_01",
+            "sort" : [
+               1648501324000
+            ],
+            "_type" : "release",
+            "_score" : null
+         },
+         {
+            "fields" : {
+               "distribution" : "Google-ProtocolBuffers-Dynamic"
+            },
+            "_id" : "fN6jPqMcIf7CTr_BogMlnu7Knho",
+            "_index" : "cpan_v1_01",
+            "sort" : [
+               1648496832000
+            ],
+            "_type" : "release",
+            "_score" : null
+         },
+         {
+            "_id" : "PzyroypKZxL_g4luK5K8H68VM5w",
+            "fields" : {
+               "distribution" : "HTML-Parser"
+            },
+            "_score" : null,
+            "sort" : [
+               1648481003000
+            ],
+            "_type" : "release",
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_id" : "QAz55D3fqiW_ijgasvVCZnvGYP0",
+            "fields" : {
+               "distribution" : "Crypt-OpenSSL-Hash2Curve"
+            },
+            "_score" : null,
+            "sort" : [
+               1648474839000
+            ],
+            "_type" : "release",
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "sort" : [
+               1648458285000
+            ],
+            "_type" : "release",
+            "_score" : null,
+            "_id" : "gFAfrTmLTIGgLnsInP2PgWeTWFE",
+            "fields" : {
+               "distribution" : "Net-DNS-Resolver-Unbound"
+            }
+         },
+         {
+            "_id" : "D7eHGwPGuY0DDsRAGZv6GZRp3Pw",
+            "fields" : {
+               "distribution" : "MsOffice-Word-Template"
+            },
+            "_index" : "cpan_v1_01",
+            "_type" : "release",
+            "sort" : [
+               1648454332000
+            ],
+            "_score" : null
+         },
+         {
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648442204000
+            ],
+            "_index" : "cpan_v1_01",
+            "fields" : {
+               "distribution" : "Mojo-Server-DaemonControl"
+            },
+            "_id" : "CrlMr34qN8zyUJW9fhpb1Av1TgI"
+         },
+         {
+            "fields" : {
+               "distribution" : "Acme-CPANModules-BrowserUtilities"
+            },
+            "_id" : "97GpBMo4AVqMyWzV12hnKuVBel8",
+            "sort" : [
+               1648425902000
+            ],
+            "_type" : "release",
+            "_score" : null,
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_id" : "GrvbyJ0FozlX4rsJLucFhYlm6zI",
+            "fields" : {
+               "distribution" : "Quiq"
+            },
+            "_type" : "release",
+            "sort" : [
+               1648415917000
+            ],
+            "_score" : null,
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "sort" : [
+               1648413688000
+            ],
+            "_type" : "release",
+            "_score" : null,
+            "_index" : "cpan_v1_01",
+            "fields" : {
+               "distribution" : "NIST-NVD"
+            },
+            "_id" : "khI_zj3igYFTDVZnbi2YABfm9tQ"
+         },
+         {
+            "fields" : {
+               "distribution" : "BankAccount-Validator-UK"
+            },
+            "_id" : "0CmVfzM_Efe_tD6lqrVWbDnOjiI",
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648411301000
+            ]
+         },
+         {
+            "fields" : {
+               "distribution" : "CPAN"
+            },
+            "_id" : "JFIbKcSHHjWC8l9263ky9yAV0bw",
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648403627000
+            ]
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648398421000
+            ],
+            "fields" : {
+               "distribution" : "App-SimpleBackuper"
+            },
+            "_id" : "hcP2LuVxZo1DPcG_kiBxf3uDYDo"
+         },
+         {
+            "_type" : "release",
+            "sort" : [
+               1648381477000
+            ],
+            "_score" : null,
+            "_index" : "cpan_v1_01",
+            "fields" : {
+               "distribution" : "Module-Generic"
+            },
+            "_id" : "t_5OKFIeITS5vi3bx54CzORk2gA"
+         },
+         {
+            "fields" : {
+               "distribution" : "Alien-proj"
+            },
+            "_id" : "FE4fgpaYRR75JVxQJ3d_Ev_7zpA",
+            "_score" : null,
+            "sort" : [
+               1648379645000
+            ],
+            "_type" : "release",
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648377961000
+            ],
+            "_id" : "JyCiuDdIHPuOx0ck2O_Sf_b_9X8",
+            "fields" : {
+               "distribution" : "Nice-Try"
+            }
+         },
+         {
+            "_score" : null,
+            "sort" : [
+               1648374038000
+            ],
+            "_type" : "release",
+            "_index" : "cpan_v1_01",
+            "_id" : "kdHXPL_D08arSnFLP4AMSTBrj34",
+            "fields" : {
+               "distribution" : "Sidef"
+            }
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648370830000
+            ],
+            "fields" : {
+               "distribution" : "Math-Pari"
+            },
+            "_id" : "z_jK9yx3Q4vDih7kG_vPOtiEdh8"
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "sort" : [
+               1648363722000
+            ],
+            "_type" : "release",
+            "_id" : "S9ubf_qrt_DV8tWWtuUh5go_aiw",
+            "fields" : {
+               "distribution" : "NIST-NVD-Store-SQLite3"
+            }
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648358090000
+            ],
+            "_id" : "VksIviSsLwwXYzE3jL3NX6q3oCI",
+            "fields" : {
+               "distribution" : "App-Deps-Verify"
+            }
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "_type" : "release",
+            "sort" : [
+               1648350110000
+            ],
+            "_score" : null,
+            "fields" : {
+               "distribution" : "Text-Table-More"
+            },
+            "_id" : "y88O02X35zPufXGknGdhK8hUbWw"
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "_type" : "release",
+            "sort" : [
+               1648349617000
+            ],
+            "_score" : null,
+            "fields" : {
+               "distribution" : "App-lcpan-CmdBundle-rt"
+            },
+            "_id" : "XKiqTOQ6URKchJWaziWXW0SRNaU"
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "sort" : [
+               1648349530000
+            ],
+            "_type" : "release",
+            "_score" : null,
+            "_id" : "5cvSY39d68WhUAmTCzn_FGOfpCw",
+            "fields" : {
+               "distribution" : "ArrayData-Number-Prime-First1000"
+            }
+         },
+         {
+            "fields" : {
+               "distribution" : "ArrayData-Lingua-Word-ID-KBBI"
+            },
+            "_id" : "zguFBhTZG_zfK2sMYpP7eXBY5oY",
+            "_index" : "cpan_v1_01",
+            "_type" : "release",
+            "sort" : [
+               1648349519000
+            ],
+            "_score" : null
+         },
+         {
+            "fields" : {
+               "distribution" : "ArrayData-Lingua-Word-ID-Wordle"
+            },
+            "_id" : "GDTmvN3t6LhzGrrHTuwxEPNfK_I",
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648348725000
+            ],
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "sort" : [
+               1648348627000
+            ],
+            "_type" : "release",
+            "_score" : null,
+            "_index" : "cpan_v1_01",
+            "fields" : {
+               "distribution" : "App-CSVUtils"
+            },
+            "_id" : "LyQes3Lh5B93dFlPZG3qspWc6i8"
+         },
+         {
+            "fields" : {
+               "distribution" : "App-Greple-frame"
+            },
+            "_id" : "EuO6vZrR6ZL8fl_TG_l30z3bA6w",
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648347852000
+            ]
+         },
+         {
+            "_id" : "WoWdjVyxJ0NdFNx_x9OpeOb_b_s",
+            "fields" : {
+               "distribution" : "ArrayData-Lingua-Word-EN-Wordle"
+            },
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "sort" : [
+               1648346391000
+            ],
+            "_type" : "release"
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "sort" : [
+               1648346379000
+            ],
+            "_type" : "release",
+            "_id" : "ItRA4TdJHgqAe3y_dOAe2XkNuI4",
+            "fields" : {
+               "distribution" : "ArrayData-Lingua-Word-EN-Enable"
+            }
+         },
+         {
+            "_type" : "release",
+            "sort" : [
+               1648345888000
+            ],
+            "_score" : null,
+            "_index" : "cpan_v1_01",
+            "_id" : "BaWJDTXWcmR9NXXKb4dK6mWIEzw",
+            "fields" : {
+               "distribution" : "Bencher-Scenarios-StringFunctions"
+            }
+         },
+         {
+            "_id" : "AqQxebQMd01kydDJ6VlNdomNqzE",
+            "fields" : {
+               "distribution" : "App-Greple"
+            },
+            "_type" : "release",
+            "sort" : [
+               1648344832000
+            ],
+            "_score" : null,
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_score" : null,
+            "sort" : [
+               1648342997000
+            ],
+            "_type" : "release",
+            "_index" : "cpan_v1_01",
+            "fields" : {
+               "distribution" : "XML-Enc"
+            },
+            "_id" : "Rw73pNdi5UX5Y3T36LKdCbVV7tU"
+         },
+         {
+            "sort" : [
+               1648339567000
+            ],
+            "_type" : "release",
+            "_score" : null,
+            "_index" : "cpan_v1_01",
+            "_id" : "DjhfYaPLqgJJ8OfXwrl__vaQWls",
+            "fields" : {
+               "distribution" : "Acme-CPANModules-SQLite"
+            }
+         },
+         {
+            "fields" : {
+               "distribution" : "App-SpamcupNG"
+            },
+            "_id" : "DIyFxM9waXHePbwsYaXfOTTwUNU",
+            "sort" : [
+               1648332542000
+            ],
+            "_type" : "release",
+            "_score" : null,
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_id" : "fuRK4OB3BjS5aTnYpeuiCCJs5yg",
+            "fields" : {
+               "distribution" : "Term-Choose"
+            },
+            "_score" : null,
+            "sort" : [
+               1648313036000
+            ],
+            "_type" : "release",
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_id" : "FSzaNIUP0Ht_dFy7GW_WHF4jVfM",
+            "fields" : {
+               "distribution" : "Plack-Middleware-DirIndex"
+            },
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "sort" : [
+               1648312715000
+            ],
+            "_type" : "release"
+         },
+         {
+            "_id" : "CQGKBQPLDi0_RCYWfA1wYr_H6eY",
+            "fields" : {
+               "distribution" : "App-DBBrowser"
+            },
+            "_index" : "cpan_v1_01",
+            "sort" : [
+               1648308056000
+            ],
+            "_type" : "release",
+            "_score" : null
+         },
+         {
+            "_id" : "7_VTRH_B__S4W_EbF0u4IgCUOZ0",
+            "fields" : {
+               "distribution" : "Logic-Expr"
+            },
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648305218000
+            ],
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "fields" : {
+               "distribution" : "Config-Model-Systemd"
+            },
+            "_id" : "s_Hr5Kmlkz0VOTMfy2AI2xm7sFI",
+            "_index" : "cpan_v1_01",
+            "_type" : "release",
+            "sort" : [
+               1648293374000
+            ],
+            "_score" : null
+         },
+         {
+            "fields" : {
+               "distribution" : "Alien-geos-af"
+            },
+            "_id" : "RDOTiJStS6pyg51OMtLxOEOtWgU",
+            "_index" : "cpan_v1_01",
+            "sort" : [
+               1648283445000
+            ],
+            "_type" : "release",
+            "_score" : null
+         },
+         {
+            "_id" : "09ve6CkTBwO4jjTYwvGMBCW27uY",
+            "fields" : {
+               "distribution" : "Task-PerlCriticAllPolicies"
+            },
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648280776000
+            ],
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_score" : null,
+            "sort" : [
+               1648253116000
+            ],
+            "_type" : "release",
+            "_index" : "cpan_v1_01",
+            "fields" : {
+               "distribution" : "Acme-CPANModules-ShellCompleters"
+            },
+            "_id" : "jOFQCp9nT2KLXux1_ZNK2MjpLxc"
+         },
+         {
+            "fields" : {
+               "distribution" : "Mojolicious-Plugin-OpenAPI-Modern"
+            },
+            "_id" : "bLp1AGYr4H8rqxWEbtB180kkr2I",
+            "_index" : "cpan_v1_01",
+            "_type" : "release",
+            "sort" : [
+               1648252113000
+            ],
+            "_score" : null
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648251784000
+            ],
+            "fields" : {
+               "distribution" : "OpenAPI-Modern"
+            },
+            "_id" : "WOwlEsv0F_2tOTQ9EkDzjY05gx4"
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648243326000
+            ],
+            "fields" : {
+               "distribution" : "Data-Dumper-Interp"
+            },
+            "_id" : "dwFFjNhp1vNVswK5i195Zkhp5c8"
+         },
+         {
+            "_type" : "release",
+            "sort" : [
+               1648236650000
+            ],
+            "_score" : null,
+            "_index" : "cpan_v1_01",
+            "fields" : {
+               "distribution" : "Crypt-CPace"
+            },
+            "_id" : "XSCPbBFVECpa1QrI_fHtS4LA2bM"
+         },
+         {
+            "fields" : {
+               "distribution" : "Mojolicious-Plugin-Geolocation-MMDB"
+            },
+            "_id" : "4DEG9YF48WD2iPVay2C7jRKObGg",
+            "_index" : "cpan_v1_01",
+            "sort" : [
+               1648230125000
+            ],
+            "_type" : "release",
+            "_score" : null
+         },
+         {
+            "_id" : "mNcN4mWYl8P2L81vP5W4t_6ZpJ8",
+            "fields" : {
+               "distribution" : "Mojolicious"
+            },
+            "_type" : "release",
+            "sort" : [
+               1648208260000
+            ],
+            "_score" : null,
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "sort" : [
+               1648202641000
+            ],
+            "_type" : "release",
+            "_id" : "2oz9AY8_nf9dg6CGkcn_4WIrNKo",
+            "fields" : {
+               "distribution" : "Promise-Me"
+            }
+         },
+         {
+            "fields" : {
+               "distribution" : "AWS-Lambda"
+            },
+            "_id" : "hMz3Ql_Q9qQ7plWM_nQJvY3Ap6I",
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648194974000
+            ]
+         },
+         {
+            "_id" : "cffoe4X83G8fphvTPyJSnGwSRwQ",
+            "fields" : {
+               "distribution" : "Mojolicious-Plugin-OpenAPI"
+            },
+            "_index" : "cpan_v1_01",
+            "sort" : [
+               1648170114000
+            ],
+            "_type" : "release",
+            "_score" : null
+         },
+         {
+            "_type" : "release",
+            "sort" : [
+               1648170027000
+            ],
+            "_score" : null,
+            "_index" : "cpan_v1_01",
+            "_id" : "468gcEoYmKKgaXrsKaw4OYcBQyQ",
+            "fields" : {
+               "distribution" : "JSON-Validator"
+            }
+         },
+         {
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648166751000
+            ],
+            "_index" : "cpan_v1_01",
+            "fields" : {
+               "distribution" : "Acme-CPANModules-BloomFilters"
+            },
+            "_id" : "sVkceXoo2ouPtogP44mcbABLMCA"
+         },
+         {
+            "fields" : {
+               "distribution" : "GraphQL"
+            },
+            "_id" : "1_J_f7JdFsk65bJ8j1gYOB3jWVw",
+            "_type" : "release",
+            "sort" : [
+               1648150208000
+            ],
+            "_score" : null,
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "sort" : [
+               1648139681000
+            ],
+            "_type" : "release",
+            "_id" : "zuoCt1ekQYsZMGbwuxSCb2342Jg",
+            "fields" : {
+               "distribution" : "Test2-Harness"
+            }
+         },
+         {
+            "fields" : {
+               "distribution" : "Image-DecodeQR-WeChat"
+            },
+            "_id" : "6OlOjLn_NwGMT53nFpQSVWGOovY",
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648133988000
+            ],
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648131927000
+            ],
+            "_index" : "cpan_v1_01",
+            "fields" : {
+               "distribution" : "JSONP"
+            },
+            "_id" : "ebB0JHDgWri77tvyLePDvkN_XZ8"
+         },
+         {
+            "fields" : {
+               "distribution" : "Cucumber-Messages"
+            },
+            "_id" : "vVvuz18WrhT8KVFQc4C97W_d4t0",
+            "_score" : null,
+            "sort" : [
+               1648126523000
+            ],
+            "_type" : "release",
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "_type" : "release",
+            "sort" : [
+               1648110863000
+            ],
+            "_score" : null,
+            "fields" : {
+               "distribution" : "Catmandu-PICA"
+            },
+            "_id" : "sesQVqTG7UzxPR3WBrl_dLCAfJQ"
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "sort" : [
+               1648109704000
+            ],
+            "_type" : "release",
+            "_score" : null,
+            "_id" : "jDBtpq_bejlXPoKOQwFiBkVOM_g",
+            "fields" : {
+               "distribution" : "PICA-Data"
+            }
+         },
+         {
+            "sort" : [
+               1648091276000
+            ],
+            "_type" : "release",
+            "_score" : null,
+            "_index" : "cpan_v1_01",
+            "_id" : "ouxu31WEAnntbyHVtGC6be17Xd8",
+            "fields" : {
+               "distribution" : "App-Greple-subst"
+            }
+         },
+         {
+            "_id" : "ow__N8ePq7mCmAYHUo2VTnob0gY",
+            "fields" : {
+               "distribution" : "App-corruptor"
+            },
+            "_index" : "cpan_v1_01",
+            "_type" : "release",
+            "sort" : [
+               1648080361000
+            ],
+            "_score" : null
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "_type" : "release",
+            "sort" : [
+               1648060218000
+            ],
+            "_score" : null,
+            "_id" : "NtShaACtkox7WkdBcr6uukyUz1w",
+            "fields" : {
+               "distribution" : "Alien-Build-MB"
+            }
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "sort" : [
+               1648054881000
+            ],
+            "_type" : "release",
+            "_score" : null,
+            "fields" : {
+               "distribution" : "Text-SlackEmoji"
+            },
+            "_id" : "cIeuU2xS034bFszzDNk87MYTqL0"
+         },
+         {
+            "_score" : null,
+            "sort" : [
+               1648049779000
+            ],
+            "_type" : "release",
+            "_index" : "cpan_v1_01",
+            "_id" : "UNmbN2q2pqq98BclTTga_ROUg6A",
+            "fields" : {
+               "distribution" : "WebService-Hexonet-Connector"
+            }
+         },
+         {
+            "fields" : {
+               "distribution" : "Webservice-OVH"
+            },
+            "_id" : "Kru81WjHj8zQ2rfCOJ0VP4OLqlg",
+            "_index" : "cpan_v1_01",
+            "sort" : [
+               1648045662000
+            ],
+            "_type" : "release",
+            "_score" : null
+         },
+         {
+            "_id" : "L7Ce6TfIcpq__QjdphpC1KMWK7w",
+            "fields" : {
+               "distribution" : "Tesla-Vehicle"
+            },
+            "_score" : null,
+            "sort" : [
+               1648043135000
+            ],
+            "_type" : "release",
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_id" : "nw4_W2YHDdEVo9Q0A7oQ8RIzFMA",
+            "fields" : {
+               "distribution" : "POE"
+            },
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "sort" : [
+               1648039629000
+            ],
+            "_type" : "release"
+         },
+         {
+            "_id" : "U5moKCDNAkPa0QEPOdGVmNONXkA",
+            "fields" : {
+               "distribution" : "AWS-CLIWrapper"
+            },
+            "_score" : null,
+            "sort" : [
+               1648034617000
+            ],
+            "_type" : "release",
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648025900000
+            ],
+            "_index" : "cpan_v1_01",
+            "_id" : "SPpIbAShlqt_JXJQitpn8vmkcaM",
+            "fields" : {
+               "distribution" : "Term-Form"
+            }
+         },
+         {
+            "fields" : {
+               "distribution" : "Geo-LatLon2Place"
+            },
+            "_id" : "hDS_Zjy_cxVXUiBz4mDuWKyhd4c",
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648019497000
+            ]
+         },
+         {
+            "fields" : {
+               "distribution" : "XML-Grammar-Fiction"
+            },
+            "_id" : "XiL5qhGJF_y7F2t12X0CYqIqbVI",
+            "_index" : "cpan_v1_01",
+            "sort" : [
+               1648012611000
+            ],
+            "_type" : "release",
+            "_score" : null
+         },
+         {
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648005885000
+            ],
+            "_index" : "cpan_v1_01",
+            "_id" : "kCrxDjp089duRleF9zkJ2QVIEuA",
+            "fields" : {
+               "distribution" : "SPVM"
+            }
+         },
+         {
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "sort" : [
+               1648003368000
+            ],
+            "_type" : "release",
+            "fields" : {
+               "distribution" : "IP-Geolocation-MMDB"
+            },
+            "_id" : "UP7hESmsGRDvQBfE0mrOI5nEJE4"
+         },
+         {
+            "fields" : {
+               "distribution" : "Gibbs"
+            },
+            "_id" : "ObJk0HbKgijpwHcm7TjWFmIdjLQ",
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1648001309000
+            ],
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "fields" : {
+               "distribution" : "App-ElasticSearch-Utilities"
+            },
+            "_id" : "aFiQjXKGRjjo_eCaM1FT9RAaqEg",
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1647994712000
+            ],
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "fields" : {
+               "distribution" : "Mojo-SQLite"
+            },
+            "_id" : "EM8Gy2oTwMXU_avLvO2Pd0_BQIA",
+            "_type" : "release",
+            "sort" : [
+               1647994625000
+            ],
+            "_score" : null,
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "fields" : {
+               "distribution" : "Acme-CPANModules-Assert"
+            },
+            "_id" : "n240lLEUqK6IjA1Urt16ytmsRHM",
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1647993920000
+            ],
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_score" : null,
+            "sort" : [
+               1647986114000
+            ],
+            "_type" : "release",
+            "_index" : "cpan_v1_01",
+            "fields" : {
+               "distribution" : "Tesla-API"
+            },
+            "_id" : "uoLbB8NDI6STTnTHzvxwzGfHlzM"
+         },
+         {
+            "_id" : "bRGvitzEE_W_g2hBoN7krb_HL2g",
+            "fields" : {
+               "distribution" : "Sentry-SDK"
+            },
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1647985239000
+            ],
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_id" : "RcRWEDV_OsF5Kn59IwbLqjlUTjo",
+            "fields" : {
+               "distribution" : "Test-Deep-URI"
+            },
+            "sort" : [
+               1647981968000
+            ],
+            "_type" : "release",
+            "_score" : null,
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "fields" : {
+               "distribution" : "App-pwhich"
+            },
+            "_id" : "HWsqDcM6o_RmfHbCaGouDi65zfE",
+            "_type" : "release",
+            "sort" : [
+               1647978923000
+            ],
+            "_score" : null,
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_id" : "db22yfxxJITfSeKIIQpJg_zue64",
+            "fields" : {
+               "distribution" : "Webservice-Judobase"
+            },
+            "_index" : "cpan_v1_01",
+            "sort" : [
+               1647975785000
+            ],
+            "_type" : "release",
+            "_score" : null
+         },
+         {
+            "_id" : "L3_nUKmMUjWe8hE1AcQeukxbzhQ",
+            "fields" : {
+               "distribution" : "Crypt-OpenSSL-EVP-MD"
+            },
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1647962978000
+            ],
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_type" : "release",
+            "sort" : [
+               1647927108000
+            ],
+            "_score" : null,
+            "_index" : "cpan_v1_01",
+            "fields" : {
+               "distribution" : "Log-Log4perl-Tiny"
+            },
+            "_id" : "3lZdryeaoq2FAFFJzRaz2EknK9A"
+         },
+         {
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1647921520000
+            ],
+            "_index" : "cpan_v1_01",
+            "fields" : {
+               "distribution" : "JSON-Schema-Modern"
+            },
+            "_id" : "inJtVKUPlsJwl3QFxTaS15af0qE"
+         },
+         {
+            "_id" : "uGi_bZowgx_0HhDFrcZf4vdXUB0",
+            "fields" : {
+               "distribution" : "Image-Randim"
+            },
+            "sort" : [
+               1647911274000
+            ],
+            "_type" : "release",
+            "_score" : null,
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_type" : "release",
+            "sort" : [
+               1647908827000
+            ],
+            "_score" : null,
+            "_index" : "cpan_v1_01",
+            "fields" : {
+               "distribution" : "MooX-TaggedAttributes"
+            },
+            "_id" : "jkXtXeaCmqvm1phH0IgEtmCE8tE"
+         },
+         {
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1647907752000
+            ],
+            "_index" : "cpan_v1_01",
+            "fields" : {
+               "distribution" : "Alien-7zip"
+            },
+            "_id" : "3DhPoL85QoHJmw7Sydr01YMg0sg"
+         },
+         {
+            "fields" : {
+               "distribution" : "Acme-CPANModules-AliasingModuleName"
+            },
+            "_id" : "031PF9GhTtDbBT5i9HJV6d0JC7g",
+            "_index" : "cpan_v1_01",
+            "_score" : null,
+            "sort" : [
+               1647907578000
+            ],
+            "_type" : "release"
+         },
+         {
+            "_score" : null,
+            "_type" : "release",
+            "sort" : [
+               1647898309000
+            ],
+            "_index" : "cpan_v1_01",
+            "fields" : {
+               "distribution" : "Mojolicious-Plugin-Route"
+            },
+            "_id" : "JARPx_oVW3Micu8IGj7dKKm__sI"
+         },
+         {
+            "_id" : "hwTgRu_S02MzBcKOzrIrdYPjhRQ",
+            "fields" : {
+               "distribution" : "Bible-Reference"
+            },
+            "sort" : [
+               1647887094000
+            ],
+            "_type" : "release",
+            "_score" : null,
+            "_index" : "cpan_v1_01"
+         },
+         {
+            "_score" : null,
+            "sort" : [
+               1647876214000
+            ],
+            "_type" : "release",
+            "_index" : "cpan_v1_01",
+            "_id" : "zTVefQXNm5kIK74eIuTrZsD1CFQ",
+            "fields" : {
+               "distribution" : "Catmandu"
+            }
+         },
+         {
+            "_id" : "sttEqol38eg6yR6ETJ9Rwe8SalY",
+            "fields" : {
+               "distribution" : "Command-Runner"
+            },
+            "_index" : "cpan_v1_01",
+            "_type" : "release",
+            "sort" : [
+               1647874972000
+            ],
+            "_score" : null
+         }
+      ],
+      "total" : 38489
+   },
+   "_shards" : {
+      "failed" : 0,
+      "successful" : 3,
+      "total" : 3
+   },
+   "timed_out" : false,
+   "took" : 24
+}
