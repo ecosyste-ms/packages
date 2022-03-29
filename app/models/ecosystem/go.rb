@@ -38,13 +38,13 @@ module Ecosystem
 
     def fetch_package_metadata(name)
       # get_html will send back an empty string if response is not a 200
-      # a blank response means that the project was not found on pkg.go.dev site
-      # if it is not found on that site it should be considered an invalid project name
-      # although the go proxy may respond with data for this project name
+      # a blank response means that the package was not found on pkg.go.dev site
+      # if it is not found on that site it should be considered an invalid package name
+      # although the go proxy may respond with data for this package name
       doc_html = get_html("https://pkg.go.dev/#{name}")
 
       # send back nil if the response is blank
-      # base package manager handles if the project is not present
+      # base package manager handles if the package is not present
       { name: name, html: doc_html, overview_html: doc_html } unless doc_html.text.blank?
     end
 
@@ -78,7 +78,7 @@ module Ecosystem
       []
     end
 
-    def dependencies_metadata(name, version, _mapped_project)
+    def dependencies_metadata(name, version, _mapped_package)
       # Go proxy spec: https://golang.org/cmd/go/#hdr-Module_proxy_protocol
       # TODO: this can take up to 2sec if it's a cache miss on the proxy. Might be able
       # to scrape the webpage or wait for an API for a faster fetch here.
@@ -88,7 +88,7 @@ module Ecosystem
         Bibliothecary::Parsers::Go.parse_go_mod(go_mod_file)
           .map do |dep|
             {
-              project_name: dep[:name],
+              package_name: dep[:name],
               requirements: dep[:requirement],
               kind: dep[:type],
               platform: "Go",
@@ -109,7 +109,7 @@ module Ecosystem
     end
 
     # https://golang.org/cmd/go/#hdr-Import_path_syntax
-    def project_find_names(name)
+    def package_find_names(name)
       return [name] if name.start_with?(*KNOWN_HOSTS)
       return [name] if KNOWN_VCS.any?(&name.method(:include?))
 
