@@ -58,16 +58,18 @@ class CocoapodsTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
-    stub_request(:get, "http://cocoapods.libraries.io/feed.rss")
-      .to_return({ status: 200, body: file_fixture('cocoapods/feed.rss') })
+    stub_request(:get, "https://github.com/CocoaPods/Specs/commits/master.atom")
+      .to_return({ status: 200, body: file_fixture('cocoapods/master.atom') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 16
-    assert_equal recently_updated_package_names.last, 'Drivit'
+    assert_equal recently_updated_package_names.length, 19
+    assert_equal recently_updated_package_names.last, 'VerifaiNFC'
   end
 
   test 'package_metadata' do
-    stub_request(:get, "http://cocoapods.libraries.io/pods/Foo.json")
-      .to_return({ status: 200, body: file_fixture('cocoapods/Foo.json') })
+    stub_request(:get, "https://cdn.cocoapods.org/all_pods_versions_1_3_5.txt")
+      .to_return({ status: 200, body: file_fixture('cocoapods/all_pods_versions_1_3_5.txt') })
+    stub_request(:get, "https://cdn.cocoapods.org/Specs/1/3/5/Foo/1.1.3/Foo.podspec.json")
+      .to_return({ status: 200, body: file_fixture('cocoapods/Foo.podspec.json') })
     package_metadata = @ecosystem.package_metadata('Foo')
     
     assert_equal package_metadata[:name], "Foo"
@@ -79,17 +81,27 @@ class CocoapodsTest < ActiveSupport::TestCase
   end
 
   test 'versions_metadata' do
-    stub_request(:get, "http://cocoapods.libraries.io/pods/Foo.json")
-      .to_return({ status: 200, body: file_fixture('cocoapods/Foo.json') })
+    stub_request(:get, "https://cdn.cocoapods.org/all_pods_versions_1_3_5.txt")
+      .to_return({ status: 200, body: file_fixture('cocoapods/all_pods_versions_1_3_5.txt') })
+    stub_request(:get, "https://cdn.cocoapods.org/Specs/1/3/5/Foo/1.1.3/Foo.podspec.json")
+      .to_return({ status: 200, body: file_fixture('cocoapods/Foo.podspec.json') })
     package_metadata = @ecosystem.package_metadata('Foo')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
-    assert_equal versions_metadata, [{:number=>"1.0.9"}, {:number=>"1.1.0"}, {:number=>"1.1.3"}, {:number=>"1.1.2"}, {:number=>"1.1.1"}, {:number=>"1.0.7"}]
+    assert_equal versions_metadata, [{:number=>"1.0.7"}, {:number=>"1.0.9"}, {:number=>"1.1.0"}, {:number=>"1.1.1"}, {:number=>"1.1.2"}, {:number=>"1.1.3"}]
   end
 
   test 'dependencies_metadata' do
-    dependencies_metadata = @ecosystem.dependencies_metadata('Foo', '0.1.0', nil)
+    stub_request(:get, "https://cdn.cocoapods.org/Specs/2/2/2/AppNetworkManager/1.0.0/AppNetworkManager.podspec.json")
+      .to_return({ status: 200, body: file_fixture('cocoapods/AppNetworkManager.podspec.json') })
     
-    assert_equal dependencies_metadata, []
+    dependencies_metadata = @ecosystem.dependencies_metadata('AppNetworkManager', '1.0.0', {})
+    
+    assert_equal dependencies_metadata, [
+      {:package_name=>"HandyJSON", :requirements=>"~> 5.0.0", :kind=>"runtime", :ecosystem=>"Cocoapods"},
+      {:package_name=>"Moya/RxSwift", :requirements=>"~> 13.0.1", :kind=>"runtime", :ecosystem=>"Cocoapods"},
+      {:package_name=>"RxSwift", :requirements=>"~>4.5.0", :kind=>"runtime", :ecosystem=>"Cocoapods"},
+      {:package_name=>"RxCocoa", :requirements=>"~>4.5.0", :kind=>"runtime", :ecosystem=>"Cocoapods"}
+    ]
   end
 end

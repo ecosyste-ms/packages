@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xml:lang="en-US">
+  <id>tag:github.com,2008:/CocoaPods/Specs/commits/master</id>
+  <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commits/master"/>
+  <link type="application/atom+xml" rel="self" href="https://github.com/CocoaPods/Specs/commits/master.atom"/>
+  <title>Recent Commits to Specs:master</title>
+  <updated>2022-03-29T10:08:14Z</updated>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/ec86e7c72aef79ce5df207ff7163ab54acb2dfea</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/ec86e7c72aef79ce5df207ff7163ab54acb2dfea"/>
+    <title>
+        [Add] InAppSDK 1.2.4
+    </title>
+    <updated>2022-03-29T10:08:14Z</updated>
+    <media:thumbnail height="30" width="30" url="https://2.gravatar.com/avatar/39fc2e844e8d5c82e42581762f009b50?d=https%3A%2F%2Fgithub.githubassets.com%2Fimages%2Fgravatars%2Fgravatar-user-420.png&amp;r=g&amp;s=30"/>
+    <author>
+      <name></name>
+      <email>maxim.myalicin@nextmillennium.io</email>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] InAppSDK 1.2.4&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/9b65db2959d127dc1d3587f17ec7a544f2d91e89</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/9b65db2959d127dc1d3587f17ec7a544f2d91e89"/>
+    <title>
+        [Add] AliStandardClassroomBundle 1.7.0-rc6
+    </title>
+    <updated>2022-03-29T10:07:19Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/11586216?s=30&amp;v=4"/>
+    <author>
+      <name>FernandoWei</name>
+      <uri>https://github.com/FernandoWei</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] AliStandardClassroomBundle 1.7.0-rc6&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/189b0c6b10a421b5e469e3f595793542363610ef</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/189b0c6b10a421b5e469e3f595793542363610ef"/>
+    <title>
+        [Add] KrNrImagePicker 0.0.21
+    </title>
+    <updated>2022-03-29T09:59:22Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/5079934?s=30&amp;u=422d23c635293c679020e468622bcbea32812638&amp;v=4"/>
+    <author>
+      <name>kobe721013</name>
+      <uri>https://github.com/kobe721013</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] KrNrImagePicker 0.0.21&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/84211ffa898495b469d6c85a271edf444a76b7c8</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/84211ffa898495b469d6c85a271edf444a76b7c8"/>
+    <title>
+        [Add] AliStandardLiveRoomBundle 1.7.0-rc6
+    </title>
+    <updated>2022-03-29T09:55:00Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/11586216?s=30&amp;v=4"/>
+    <author>
+      <name>FernandoWei</name>
+      <uri>https://github.com/FernandoWei</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] AliStandardLiveRoomBundle 1.7.0-rc6&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/ae3559e280c2f2809b4ac29b5283f62c78acf854</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/ae3559e280c2f2809b4ac29b5283f62c78acf854"/>
+    <title>
+        [Add] FPhiSelphIDWidgetiOSSim 1.13.0
+    </title>
+    <updated>2022-03-29T09:53:42Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/10828929?s=30&amp;v=4"/>
+    <author>
+      <name>FacePhi-Admin</name>
+      <uri>https://github.com/FacePhi-Admin</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] FPhiSelphIDWidgetiOSSim 1.13.0&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/59ad8df7b92f5b8e0488e6891fb493e03e2f2e96</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/59ad8df7b92f5b8e0488e6891fb493e03e2f2e96"/>
+    <title>
+        [Add] AliInteractiveFaceBeautyCore 1.7.0-rc6
+    </title>
+    <updated>2022-03-29T09:52:53Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/11586216?s=30&amp;v=4"/>
+    <author>
+      <name>FernandoWei</name>
+      <uri>https://github.com/FernandoWei</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] AliInteractiveFaceBeautyCore 1.7.0-rc6&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/2c18a249b56f5da71b915d3f29a859a9c3d9cbdc</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/2c18a249b56f5da71b915d3f29a859a9c3d9cbdc"/>
+    <title>
+        [Add] QMUIComponent 0.2
+    </title>
+    <updated>2022-03-29T09:51:28Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/93968026?s=30&amp;v=4"/>
+    <author>
+      <name>RockALins</name>
+      <uri>https://github.com/RockALins</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] QMUIComponent 0.2&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/3034c90ddce066e1499e914bf8e4de89d27a8510</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/3034c90ddce066e1499e914bf8e4de89d27a8510"/>
+    <title>
+        [Add] AliInteractiveWhiteBoardCore 1.7.0-rc6
+    </title>
+    <updated>2022-03-29T09:50:16Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/11586216?s=30&amp;v=4"/>
+    <author>
+      <name>FernandoWei</name>
+      <uri>https://github.com/FernandoWei</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] AliInteractiveWhiteBoardCore 1.7.0-rc6&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/812f9b07ebb981740c8378d0da512b27fb0c59a8</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/812f9b07ebb981740c8378d0da512b27fb0c59a8"/>
+    <title>
+        [Add] AliInteractiveVideoPlayerCore 1.7.0-rc6
+    </title>
+    <updated>2022-03-29T09:48:45Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/11586216?s=30&amp;v=4"/>
+    <author>
+      <name>FernandoWei</name>
+      <uri>https://github.com/FernandoWei</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] AliInteractiveVideoPlayerCore 1.7.0-rc6&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/3f39e570b22f8e36aaa8a4129a1443acb43c99e0</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/3f39e570b22f8e36aaa8a4129a1443acb43c99e0"/>
+    <title>
+        [Add] AliInteractiveRTCCore 1.7.0-rc6
+    </title>
+    <updated>2022-03-29T09:47:24Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/11586216?s=30&amp;v=4"/>
+    <author>
+      <name>FernandoWei</name>
+      <uri>https://github.com/FernandoWei</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] AliInteractiveRTCCore 1.7.0-rc6&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/9f8aded7d1dfdd73dccd1af747e080a37187279f</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/9f8aded7d1dfdd73dccd1af747e080a37187279f"/>
+    <title>
+        [Add] LumenMeshSDK 22.03.1
+    </title>
+    <updated>2022-03-29T09:47:02Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/83351115?s=30&amp;u=9b1f7cf95f5e635a719f6a2a62a4e7d5ba1da628&amp;v=4"/>
+    <author>
+      <name>bot-userci-native</name>
+      <uri>https://github.com/bot-userci-native</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] LumenMeshSDK 22.03.1&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/5d76cdb2b47e29e203a5cdc8ea928c5a026da89d</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/5d76cdb2b47e29e203a5cdc8ea928c5a026da89d"/>
+    <title>
+        [Add] AliInteractiveLiveCore 1.7.0-rc6
+    </title>
+    <updated>2022-03-29T09:46:04Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/11586216?s=30&amp;v=4"/>
+    <author>
+      <name>FernandoWei</name>
+      <uri>https://github.com/FernandoWei</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] AliInteractiveLiveCore 1.7.0-rc6&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/4f1c6ec748c8f317fa63e9e26c947a4aa2a0f14c</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/4f1c6ec748c8f317fa63e9e26c947a4aa2a0f14c"/>
+    <title>
+        [Add] keyri-pod 0.1.23
+    </title>
+    <updated>2022-03-29T09:45:22Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/4967797?s=30&amp;u=95ae293c77c1e50e6585106b0aab5df729ee3037&amp;v=4"/>
+    <author>
+      <name>dekameron22</name>
+      <uri>https://github.com/dekameron22</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] keyri-pod 0.1.23&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/9f6aeb388ec59b252bd53e03de08ba8f616dbafe</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/9f6aeb388ec59b252bd53e03de08ba8f616dbafe"/>
+    <title>
+        [Add] AgoraRtcEngine_Special_iOS 3.6.219
+    </title>
+    <updated>2022-03-29T09:45:21Z</updated>
+    <media:thumbnail height="30" width="30" url="https://0.gravatar.com/avatar/1ff1112a8751fc0e6995c85e58650822?d=https%3A%2F%2Fgithub.githubassets.com%2Fimages%2Fgravatars%2Fgravatar-user-420.png&amp;r=g&amp;s=30"/>
+    <author>
+      <name></name>
+      <email>jiangyingyin@agora.io</email>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] AgoraRtcEngine_Special_iOS 3.6.219&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/22d297ca955c0210fd8f13fa331b195738235104</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/22d297ca955c0210fd8f13fa331b195738235104"/>
+    <title>
+        [Add] AliInteractiveDocumentCore 1.7.0-rc6
+    </title>
+    <updated>2022-03-29T09:44:25Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/11586216?s=30&amp;v=4"/>
+    <author>
+      <name>FernandoWei</name>
+      <uri>https://github.com/FernandoWei</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] AliInteractiveDocumentCore 1.7.0-rc6&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/95015aa27f55ffe7e37524edc9821df44de4d2aa</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/95015aa27f55ffe7e37524edc9821df44de4d2aa"/>
+    <title>
+        [Delete] FPhiSelphIDWidgetiOSSim 1.13.0
+    </title>
+    <updated>2022-03-29T09:43:50Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/10828929?s=30&amp;v=4"/>
+    <author>
+      <name>FacePhi-Admin</name>
+      <uri>https://github.com/FacePhi-Admin</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Delete] FPhiSelphIDWidgetiOSSim 1.13.0&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/555f6b71e372bdb53ad8d497dfb8c021251937f7</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/555f6b71e372bdb53ad8d497dfb8c021251937f7"/>
+    <title>
+        [Add] AliInteractiveRoomBundle 1.7.0-rc6
+    </title>
+    <updated>2022-03-29T09:42:52Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/11586216?s=30&amp;v=4"/>
+    <author>
+      <name>FernandoWei</name>
+      <uri>https://github.com/FernandoWei</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] AliInteractiveRoomBundle 1.7.0-rc6&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/1f8cb40656f4ac4d6a13ed7cd426efa0da147a92</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/1f8cb40656f4ac4d6a13ed7cd426efa0da147a92"/>
+    <title>
+        [Add] QMChatUICore 0.2
+    </title>
+    <updated>2022-03-29T09:34:53Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/93968026?s=30&amp;v=4"/>
+    <author>
+      <name>RockALins</name>
+      <uri>https://github.com/RockALins</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] QMChatUICore 0.2&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/b32e74ec6acf61abf10e8bd16500b3427bb1ab34</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/b32e74ec6acf61abf10e8bd16500b3427bb1ab34"/>
+    <title>
+        [Add] VerifaiLiveness 5.2.2
+    </title>
+    <updated>2022-03-29T09:34:20Z</updated>
+    <media:thumbnail height="30" width="30" url="https://2.gravatar.com/avatar/1eb3c62b80cb02380468cae9ec3813e8?d=https%3A%2F%2Fgithub.githubassets.com%2Fimages%2Fgravatars%2Fgravatar-user-420.png&amp;r=g&amp;s=30"/>
+    <author>
+      <name></name>
+      <email>richard.chirino@verifai.com</email>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] VerifaiLiveness 5.2.2&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/3a1ace07b427444d719cbd60c2e5df3121b1e6a7</id>
+    <link type="text/html" rel="alternate" href="https://github.com/CocoaPods/Specs/commit/3a1ace07b427444d719cbd60c2e5df3121b1e6a7"/>
+    <title>
+        [Add] VerifaiNFC 5.2.2
+    </title>
+    <updated>2022-03-29T09:34:03Z</updated>
+    <media:thumbnail height="30" width="30" url="https://2.gravatar.com/avatar/1eb3c62b80cb02380468cae9ec3813e8?d=https%3A%2F%2Fgithub.githubassets.com%2Fimages%2Fgravatars%2Fgravatar-user-420.png&amp;r=g&amp;s=30"/>
+    <author>
+      <name></name>
+      <email>richard.chirino@verifai.com</email>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[Add] VerifaiNFC 5.2.2&lt;/pre&gt;
+    </content>
+  </entry>
+</feed>

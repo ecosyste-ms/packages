@@ -1,0 +1,15 @@
+CalendarMenu/0.1.0/0.1.1/0.1.2/0.1.3
+DXCountryCode/1.0.0/1.1.0
+FakefyData/0.0.3/0.0.4/0.0.5
+Foo/1.0.7/1.0.9/1.1.0/1.1.1/1.1.2/1.1.3
+HKKitConfig/1.0.0/1.0.1/1.0.2/1.0.3/1.0.4/1.0.5/1.0.6/1.1.0
+LLAdapter/2.0.0
+MGSafeArrayWithDictionary/0.0.1/0.0.2
+NR5BLEReceiver/1.0.2
+PullUpController/0.1.0/0.2.0/0.3.0/0.4.0/0.4.1/0.5.0/0.5.1/0.6.0/0.7.0/0.8.0
+RSSwizzle/0.0.1/0.1.0
+RidlrQRBLE/0.0.1/0.0.2
+SwiftBloc/1.0.0/1.0.1/1.0.2/1.0.3
+YappaSDK/0.0.1/0.0.1.1/0.0.1.4/0.0.1.5/0.0.2.0/0.0.2.2/0.0.2.3/0.0.2.4/0.0.2.5/1.0.0/1.0.1/1.0.2
+ZAAlivcPlayVideo/0.1.0/0.1.2/0.1.3.1
+testCocoapodLib/0.0.1
