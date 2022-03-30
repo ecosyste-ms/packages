@@ -71,11 +71,21 @@ class Registry < ApplicationRecord
       package.update(attrs)
     end
 
+    new_versions = []
+    existing_version_numbers = package.versions.pluck('number')
+
     versions_metadata.each do |version|
-      package.versions.create(version) unless package.versions.find { |v| v.number == version[:number] }
+      new_versions << version.merge(package_id: package.id, created_at: Time.now, updated_at: Time.now) unless existing_version_numbers.find { |v| v == version[:number] }
     end
 
-    package.versions.includes(:dependencies).each do |version|
+    Version.insert_all(new_versions)
+    
+    all_deps = []
+    all_possible_names = []
+    all_possible_packages = []
+
+    all_versions = package.versions.includes(:dependencies)
+    all_versions.each do |version|
       next if version.dependencies.any?
 
       deps = begin
@@ -85,16 +95,23 @@ class Registry < ApplicationRecord
              end
       next unless deps&.any? && version.dependencies.empty?
 
-      deps.each do |dep|
-        possible_names = ecosystem_instance.package_find_names(name).map(&:downcase)
-        named_package_id = packages.ecosystem(ecosystem).where("lower(packages.name) in (?)", possible_names).first.try(:id)
-        version.dependencies.create(dep.merge(package_id: named_package_id.try(:strip)))
+      possible_names = deps.map{|dep| ecosystem_instance.package_find_names(dep[:package_name]).map(&:downcase) }.flatten
+      
+      unless (possible_names - all_possible_names).empty?
+        all_possible_names += possible_names
+        all_possible_names.uniq!
+        all_possible_packages = packages.ecosystem(ecosystem).where("lower(packages.name) in (?)", all_possible_names).select('name, id')
+      end
+
+      all_deps << deps.map do |dep|
+        named_package_id = all_possible_packages.find{|pkg| pkg.name.downcase == dep[:package_name] }.try(:id)
+        dep.merge(version_id: version.id, package_id: named_package_id.try(:strip))
       end
     end
     
-    package.reload
-    package.last_synced_at = Time.now
-    package.save
+    Dependency.insert_all(all_deps.flatten) if all_deps.flatten.any?
+
+    package.update_columns(last_synced_at: Time.zone.now, versions_count: all_versions.length)
     return package
   end
 
