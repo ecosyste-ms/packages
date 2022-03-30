@@ -8,8 +8,6 @@ class CreateDependencies < ActiveRecord::Migration[7.0]
       t.string :kind
       t.boolean :optional, default: false
       t.string :requirements
-
-      t.timestamps
     end
   end
 end

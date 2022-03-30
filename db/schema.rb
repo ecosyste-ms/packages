@@ -22,8 +22,6 @@ ActiveRecord::Schema[7.0].define(version: 2022_03_22_112901) do
     t.string "kind"
     t.boolean "optional", default: false
     t.string "requirements"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
   end
 
   create_table "packages", force: :cascade do |t|
