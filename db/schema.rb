@@ -52,6 +52,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_03_22_112901) do
     t.string "url"
     t.string "ecosystem"
     t.boolean "default", default: false
+    t.integer "packages_count", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

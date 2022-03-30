@@ -3,6 +3,7 @@ class Package < ApplicationRecord
   validates_uniqueness_of :name, scope: :ecosystem, case_sensitive: true
 
   belongs_to :registry
+  counter_culture :registry
   has_many :versions
   has_many :dependencies, -> { group 'package_name' }, through: :versions
 
