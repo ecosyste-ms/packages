@@ -85,8 +85,8 @@ class RubygemsTest < ActiveSupport::TestCase
     versions_metadata = @ecosystem.versions_metadata({name: 'rubystats'})
 
     assert_equal versions_metadata, [
-      {:number=>"0.3.0", :published_at=>"2017-12-02T17:23:59.896Z", :licenses=>["MIT"]},
-      {:number=>"0.2.6", :published_at=>"2017-07-24T11:40:49.445Z", :licenses=>["MIT"]}
+      {:number=>"0.3.0", :published_at=>"2017-12-02T17:23:59.896Z", :licenses=>"MIT"},
+      {:number=>"0.2.6", :published_at=>"2017-07-24T11:40:49.445Z", :licenses=>"MIT"}
     ]
   end
 
