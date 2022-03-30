@@ -55,7 +55,7 @@ module Ecosystem
         {
           number: v["number"],
           published_at: v["created_at"],
-          licenses: v.fetch("licenses"),
+          licenses: v.fetch("licenses", []).try(:join, ","),
         }
       end
     rescue StandardError
