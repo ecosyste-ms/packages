@@ -6,6 +6,10 @@ class Registry < ApplicationRecord
   has_many :packages
   has_many :versions, through: :packages
 
+  def versions_count
+    packages.sum(:versions_count)
+  end
+
   def all_package_names
     ecosystem_instance.all_package_names
   end
