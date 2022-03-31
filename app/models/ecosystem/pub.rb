@@ -2,8 +2,8 @@
 
 module Ecosystem
   class Pub < Base
-    def package_url(db_package, version = nil)
-      "#{@registry_url}/packages/#{db_package.name}" + (version ? "/versions/#{version}" : "")
+    def package_url(package, version = nil)
+      "#{@registry_url}/packages/#{package.name}" + (version ? "/versions/#{version}" : "")
     end
 
     def download_url(name, version = nil)
@@ -59,8 +59,8 @@ module Ecosystem
       end
     end
 
-    def dependencies_metadata(_name, version, mapped_package)
-      vers = mapped_package[:versions].find { |v| v["version"] == version }
+    def dependencies_metadata(_name, version, package)
+      vers = package[:versions].find { |v| v["version"] == version }
       return [] if vers.nil?
 
       map_dependencies(vers["pubspec"].fetch("dependencies", {}), "runtime") +

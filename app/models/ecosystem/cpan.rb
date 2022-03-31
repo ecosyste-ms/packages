@@ -36,18 +36,18 @@ module Ecosystem
       get("https://fastapi.metacpan.org/v1/release/#{name}")
     end
 
-    def map_package_metadata(raw_package)
+    def map_package_metadata(package)
       {
-        name: raw_package["distribution"],
-        homepage: raw_package.fetch("resources", {})["homepage"],
-        description: raw_package["abstract"],
-        licenses: raw_package.fetch("license", []).join(","),
-        repository_url: repo_fallback(raw_package.fetch("resources", {}).fetch("repository", {})["web"], raw_package.fetch("resources", {})["homepage"]),
+        name: package["distribution"],
+        homepage: package.fetch("resources", {})["homepage"],
+        description: package["abstract"],
+        licenses: package.fetch("license", []).join(","),
+        repository_url: repo_fallback(package.fetch("resources", {}).fetch("repository", {})["web"], package.fetch("resources", {})["homepage"]),
       }
     end
 
-    def versions_metadata(raw_package)
-      versions = get("https://fastapi.metacpan.org/v1/release/_search?q=distribution:#{raw_package[:name]}&size=5000&fields=version,date")["hits"]["hits"]
+    def versions_metadata(package)
+      versions = get("https://fastapi.metacpan.org/v1/release/_search?q=distribution:#{package[:name]}&size=5000&fields=version,date")["hits"]["hits"]
       versions.map do |version|
         {
           number: version["fields"]["version"],
@@ -56,7 +56,7 @@ module Ecosystem
       end
     end
 
-    def dependencies_metadata(name, version, _mapped_package)
+    def dependencies_metadata(name, version, _package)
       versions = get("https://fastapi.metacpan.org/v1/release/_search?q=distribution:#{name}&size=5000")["hits"]["hits"]
       # p versions
       version_data = versions.find { |v| v["_source"]["version"] == version }

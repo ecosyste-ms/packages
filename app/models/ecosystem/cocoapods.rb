@@ -40,19 +40,19 @@ module Ecosystem
       return json
     end
 
-    def map_package_metadata(raw_package)
+    def map_package_metadata(package)
       {
-        name: raw_package["name"],
-        description: raw_package["summary"],
-        homepage: raw_package["homepage"],
-        licenses: parse_license(raw_package["license"]),
-        repository_url: repo_fallback(raw_package.dig("source", "git"), ""),
-        versions: raw_package["version_numbers"]
+        name: package["name"],
+        description: package["summary"],
+        homepage: package["homepage"],
+        licenses: parse_license(package["license"]),
+        repository_url: repo_fallback(package.dig("source", "git"), ""),
+        versions: package["version_numbers"]
       }
     end
 
-    def versions_metadata(raw_package)
-      raw_package.fetch(:versions, []).map do |v|
+    def versions_metadata(package)
+      package.fetch(:versions, []).map do |v|
         {
           number: v,
         }

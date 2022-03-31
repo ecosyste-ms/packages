@@ -48,37 +48,37 @@ module Ecosystem
       { name: name, html: doc_html, overview_html: doc_html } unless doc_html.text.blank?
     end
 
-    def map_package_metadata(raw_package)
-      if raw_package[:html]
-        url = raw_package[:overview_html]&.css(".UnitMeta-repo a")&.first&.attribute("href")&.value
+    def map_package_metadata(package)
+      if package[:html]
+        url = package[:overview_html]&.css(".UnitMeta-repo a")&.first&.attribute("href")&.value
 
         {
-          name: raw_package[:name],
-          description: raw_package[:html].css(".Documentation-overview p").map(&:text).join("\n").strip,
-          licenses: raw_package[:html].css('*[data-test-id="UnitHeader-license"]').map(&:text).join(","),
+          name: package[:name],
+          description: package[:html].css(".Documentation-overview p").map(&:text).join("\n").strip,
+          licenses: package[:html].css('*[data-test-id="UnitHeader-license"]').map(&:text).join(","),
           repository_url: url,
           homepage: url,
         }
       else
-        { name: raw_package[:name] }
+        { name: package[:name] }
       end
     end
 
-    def versions_metadata(raw_package)
-      txt = get_raw("#{@registry_url}/#{raw_package[:name]}/@v/list")
+    def versions_metadata(package)
+      txt = get_raw("#{@registry_url}/#{package[:name]}/@v/list")
       versions = txt.split("\n")
 
       versions.map do |v|
         {
           number: v,
-          published_at: get_version(raw_package[:name], v).fetch('Time')
+          published_at: get_version(package[:name], v).fetch('Time')
         }
       end
     rescue StandardError
       []
     end
 
-    def dependencies_metadata(name, version, _mapped_package)
+    def dependencies_metadata(name, version, _package)
       # Go proxy spec: https://golang.org/cmd/go/#hdr-Module_proxy_protocol
       # TODO: this can take up to 2sec if it's a cache miss on the proxy. Might be able
       # to scrape the webpage or wait for an API for a faster fetch here.
@@ -136,8 +136,8 @@ module Ecosystem
       str.gsub(/[A-Z]/) { |s| "!#{s.downcase}" }
     end
 
-    def one_version(raw_package, version_string)
-      info = get("#{@registry_url}/#{encode_for_proxy(raw_package[:name])}/@v/#{version_string}.info")
+    def one_version(package, version_string)
+      info = get("#{@registry_url}/#{encode_for_proxy(package[:name])}/@v/#{version_string}.info")
 
       # Store nil published_at for known Go Modules issue where case-insensitive name collisions break go get
       # e.g. #{@registry_url}/github.com/ysweid/aws-sdk-go/@v/v1.12.68.info
@@ -149,7 +149,7 @@ module Ecosystem
       }
 
       # Supplement with license info from pkg.go.dev
-      doc_html = get_html("https://pkg.go.dev/#{raw_package[:name]}")
+      doc_html = get_html("https://pkg.go.dev/#{package[:name]}")
       data[:original_license] = doc_html.css('*[data-test-id="UnitHeader-license"]').map(&:text).join(",")
 
       data

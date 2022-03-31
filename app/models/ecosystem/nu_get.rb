@@ -97,8 +97,8 @@ module Ecosystem
       end
     end
 
-    def dependencies_metadata(_name, version, mapped_package)
-      current_version = mapped_package[:releases].find { |v| v["catalogEntry"]["version"] == version }
+    def dependencies_metadata(_name, version, package)
+      current_version = package[:releases].find { |v| v["catalogEntry"]["version"] == version }
       dep_groups = current_version.fetch("catalogEntry", {})["dependencyGroups"] || []
 
       deps = dep_groups.map do |dep_group|
