@@ -22,9 +22,7 @@ module Ecosystem
       page = 1
       packages = []
       loop do
-        p page
         r = get("#{@registry_url}/api/packages?page=#{page}")
-        p r["packages"].class
         break if r["packages"] == [] || r["packages"].nil?
 
         packages += r["packages"]
