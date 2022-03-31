@@ -1,0 +1,45 @@
+{
+    "name": "3proxy",
+    "aliases": [],
+    "versions": [
+        {
+            "name": "0.8.13",
+            "sha256": "a6d3cf9dd264315fa6ec848f6fe6c9057db005ce4ca8ed1deb00f6e1c3900f88"
+        },
+        {
+            "name": "0.8.12",
+            "sha256": "c2ad3798b4f0df06cfcc7b49f658304e451d60e4834e2705ef83ddb85a03f849"
+        },
+        {
+            "name": "0.8.11",
+            "sha256": "fc4295e1a462baa61977fcc21747db7861c4e3d0dcca86cbaa3e06017e5c66c9"
+        }
+    ],
+    "build_system": "MakefilePackage",
+    "conflicts": [],
+    "variants": [],
+    "homepage": "https://3proxy.org",
+    "maintainers": [],
+    "patches": [],
+    "resources": [],
+    "description": "3proxy - tiny free proxy server\n",
+    "dependencies": [
+        {
+            "name": "autoconf",
+            "description": "Autoconf -- system configuration part of autotools"
+        },
+        {
+            "name": "automake",
+            "description": "Automake -- make file builder part of autotools"
+        },
+        {
+            "name": "libtool",
+            "description": "libtool -- library building part of autotools."
+        },
+        {
+            "name": "m4",
+            "description": "GNU M4 is an implementation of the traditional Unix macro processor."
+        }
+    ],
+    "dependent_to": []
+}
