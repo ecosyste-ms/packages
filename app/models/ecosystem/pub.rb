@@ -1,0 +1,72 @@
+# frozen_string_literal: true
+
+module Ecosystem
+  class Pub < Base
+    def package_url(db_package, version = nil)
+      "#{@registry_url}/packages/#{db_package.name}" + (version ? "/versions/#{version}" : "")
+    end
+
+    def download_url(name, version = nil)
+      "#{@registry_url}/packages/#{name}/versions/#{version}.tar.gz"
+    end
+
+    def documentation_url(name, version = nil)
+      "#{@registry_url}/documentation/#{name}/#{version}"
+    end
+
+    def install_command(package, version = nil)
+      "dart pub add #{package.name}" + (version ? ":#{version}" : "")
+    end
+
+    def all_package_names
+      page = 1
+      packages = []
+      loop do
+        p page
+        r = get("#{@registry_url}/api/packages?page=#{page}")
+        p r["packages"].class
+        break if r["packages"] == [] || r["packages"].nil?
+
+        packages += r["packages"]
+        page += 1
+      end
+      packages.map { |package| package["name"] }.sort
+    end
+
+    def recently_updated_package_names
+      get("#{@registry_url}/api/packages?page=1")["packages"].map { |package| package["name"] }
+    end
+
+    def fetch_package_metadata(name)
+      get("#{@registry_url}/api/packages/#{name}")
+    end
+
+    def map_package_metadata(package)
+      latest_version = package["latest"]
+      {
+        name: package["name"],
+        homepage: latest_version["pubspec"]["homepage"],
+        description: latest_version["pubspec"]["description"],
+        repository_url: repo_fallback("", latest_version["pubspec"]["homepage"]),
+        versions: package["versions"]
+      }
+    end
+
+    def versions_metadata(package)
+      package[:versions].map do |v|
+        {
+          number: v["version"],
+          published_at: v['published']
+        }
+      end
+    end
+
+    def dependencies_metadata(_name, version, mapped_package)
+      vers = mapped_package[:versions].find { |v| v["version"] == version }
+      return [] if vers.nil?
+
+      map_dependencies(vers["pubspec"].fetch("dependencies", {}), "runtime") +
+        map_dependencies(vers["pubspec"].fetch("dev_dependencies", {}), "Development")
+    end
+  end
+end
