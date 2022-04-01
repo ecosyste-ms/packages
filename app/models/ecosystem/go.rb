@@ -120,7 +120,7 @@ module Ecosystem
           &.last
           &.sub(/https?:\/\//, "")
 
-        [go_import]
+        go_import.present? ? [go_import] : [name]
       rescue StandardError
         [name]
       end
