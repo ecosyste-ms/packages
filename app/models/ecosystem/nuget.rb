@@ -71,6 +71,7 @@ module Ecosystem
     end
 
     def map_package_metadata(package)
+      return false if package[:releases].nil?
       item = package[:releases].last["catalogEntry"]
 
       {
