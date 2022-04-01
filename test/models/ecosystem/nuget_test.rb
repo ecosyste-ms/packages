@@ -1,9 +1,9 @@
 require "test_helper"
 
-class NuGetTest < ActiveSupport::TestCase
+class NugetTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'NuGet.org', url: 'https://www.nuget.org', ecosystem: 'nuget')
-    @ecosystem = Ecosystem::NuGet.new(@registry.url)
+    @ecosystem = Ecosystem::Nuget.new(@registry.url)
     @package = Package.new(ecosystem: 'nuget', name: 'urllib3')
     @version = @package.versions.build(number: '1.26.8')
   end
@@ -100,9 +100,9 @@ class NuGetTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('OgcApi.Net.SqlServer', '0.3.0', package_metadata)
 
     assert_equal dependencies_metadata, [
-      {:package_name=>"OgcApi.Net", :requirements=>">= 0.3.0", :kind=>"runtime", :optional=>false, :ecosystem=>"NuGet"},
-      {:package_name=>"Microsoft.Data.SqlClient", :requirements=>">= 3.0.1", :kind=>"runtime", :optional=>false, :ecosystem=>"NuGet"},
-      {:package_name=>"NetTopologySuite.IO.SqlServerBytes", :requirements=>">= 2.0.0", :kind=>"runtime", :optional=>false, :ecosystem=>"NuGet"}
+      {:package_name=>"OgcApi.Net", :requirements=>">= 0.3.0", :kind=>"runtime", :optional=>false, :ecosystem=>"Nuget"},
+      {:package_name=>"Microsoft.Data.SqlClient", :requirements=>">= 3.0.1", :kind=>"runtime", :optional=>false, :ecosystem=>"Nuget"},
+      {:package_name=>"NetTopologySuite.IO.SqlServerBytes", :requirements=>">= 2.0.0", :kind=>"runtime", :optional=>false, :ecosystem=>"Nuget"}
     ]
   end
 end

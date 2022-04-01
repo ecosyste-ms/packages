@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Ecosystem
-  class NuGet < Base
+  class Nuget < Base
     def package_url(package, version = nil)
       "#{@registry_url}/packages/#{package.name}/#{version}"
     end
