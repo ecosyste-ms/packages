@@ -54,11 +54,11 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata)
       pkg_metadata[:releases].reject { |_k, v| v == [] }.map do |k, v|
-        release = get("#{@registry_url}/pypi/#{pkg_metadata[:name]}/#{k}/json")
+        # release = get("#{@registry_url}/pypi/#{pkg_metadata[:name]}/#{k}/json")
         {
           number: k,
           published_at: v[0]["upload_time"],
-          licenses: release.dig("info", "license"),
+          # licenses: release.dig("info", "license"),
         }
       end
     end

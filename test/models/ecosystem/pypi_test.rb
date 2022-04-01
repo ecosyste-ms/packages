@@ -83,13 +83,10 @@ class PypiTest < ActiveSupport::TestCase
     stub_request(:get, "https://pypi.org/pypi/yiban/json")
       .to_return({ status: 200, body: file_fixture('pypi/yiban') })
     package_metadata = @ecosystem.package_metadata('yiban')
-
-    stub_request(:get, "https://pypi.org/pypi/yiban/0.1.2.32/json")
-      .to_return({ status: 200, body: file_fixture('pypi/0.1.2.32') })
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
-      {:number=>"0.1.2.32", :published_at=>"2019-11-05T15:06:04", :licenses=>""}
+      {:number=>"0.1.2.32", :published_at=>"2019-11-05T15:06:04"}
     ]
   end
 
