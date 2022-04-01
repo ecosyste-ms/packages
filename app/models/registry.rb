@@ -64,6 +64,7 @@ class Registry < ApplicationRecord
 
   def sync_package(name)
     package_metadata = ecosystem_instance.package_metadata(name)
+    return false unless package_metadata
     versions_metadata = ecosystem_instance.versions_metadata(package_metadata)
 
     package = packages.find_or_initialize_by({ name: package_metadata[:name], ecosystem: ecosystem })
@@ -83,38 +84,38 @@ class Registry < ApplicationRecord
     end
 
     if new_versions.any?
-    Version.insert_all(new_versions)
-    
-    all_deps = []
-    all_possible_names = []
-    all_possible_packages = []
-
-    all_versions = package.versions.includes(:dependencies)
-    all_versions.each do |version|
-      next if version.dependencies.any?
-
-      deps = begin
-              ecosystem_instance.dependencies_metadata(name, version.number, package_metadata)
-             rescue StandardError
-               []
-             end
-      next unless deps&.any? && version.dependencies.empty?
-
-      possible_names = deps.map{|dep| ecosystem_instance.package_find_names(dep[:package_name]).map(&:downcase) }.flatten
+      Version.insert_all(new_versions)
       
-      unless (possible_names - all_possible_names).empty?
-        all_possible_names += possible_names
-        all_possible_names.uniq!
-        all_possible_packages = packages.ecosystem(ecosystem).where("lower(packages.name) in (?)", all_possible_names).select('name, id')
-      end
+      all_deps = []
+      all_possible_names = []
+      all_possible_packages = []
 
-      all_deps << deps.map do |dep|
-        named_package_id = all_possible_packages.find{|pkg| pkg.name.downcase == dep[:package_name] }.try(:id)
-        dep.merge(version_id: version.id, package_id: named_package_id.try(:strip))
+      all_versions = package.versions.includes(:dependencies)
+      all_versions.each do |version|
+        next if version.dependencies.any?
+
+        deps = begin
+                ecosystem_instance.dependencies_metadata(name, version.number, package_metadata)
+              rescue StandardError
+                []
+              end
+        next unless deps&.any? && version.dependencies.empty?
+
+        possible_names = deps.map{|dep| ecosystem_instance.package_find_names(dep[:package_name]).map(&:downcase) }.flatten
+        
+        unless (possible_names - all_possible_names).empty?
+          all_possible_names += possible_names
+          all_possible_names.uniq!
+          all_possible_packages = packages.ecosystem(ecosystem).where("lower(packages.name) in (?)", all_possible_names).select('name, id')
+        end
+
+        all_deps << deps.map do |dep|
+          named_package_id = all_possible_packages.find{|pkg| pkg.name.downcase == dep[:package_name] }.try(:id)
+          dep.merge(version_id: version.id, package_id: named_package_id.try(:strip))
+        end
       end
-    end
-    
-    Dependency.insert_all(all_deps.flatten) if all_deps.flatten.any?
+      
+      Dependency.insert_all(all_deps.flatten) if all_deps.flatten.any?
     end
 
     updates = {last_synced_at: Time.zone.now}
