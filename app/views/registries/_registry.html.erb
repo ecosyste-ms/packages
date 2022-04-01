@@ -1,0 +1,22 @@
+<div class="card mb-3 registry d-flex" id="registry_<%= registry.id %>">
+  <div class="card-body pb-1">
+    <div class="d-flex">
+      
+      <div class="flex-grow-1 ms-3 text-break">
+        <h5 class='card-title'>
+          <%= link_to registry.name, registry.url, target: :_blank %>
+
+        </h5>
+      
+        <h6 class="card-subtitle mb-2 text-muted">
+          <%= number_with_delimiter registry.packages_count %> packages
+        </h6>
+      </div>
+      <div class="flex-shrink-0">
+        <%= link_to "https://github.com/#{registry.github}", target: :_blank, class: '' do %>
+          <img src="https://github.com/<%= registry.github %>.png" class="rounded" height='40' width='40' onerror="this.style.display='none'">
+        <% end %>
+      </div>  
+    </div>
+  </div>
+</div>

@@ -2,7 +2,7 @@ require "test_helper"
 
 class SpackTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'Pypi.org', url: 'https://spack.github.io', ecosystem: 'spack')
+    @registry = Registry.new(name: 'Spack.io', url: 'https://spack.github.io', ecosystem: 'spack')
     @ecosystem = Ecosystem::Spack.new(@registry.url)
     @package = Package.new(ecosystem: 'spack', name: '3proxy')
     @version = @package.versions.build(number: '0.8.13')

@@ -1,15 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>Packages</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+      Ecosyste.ms Packages
+    </title>
+    <meta name="description" content="TODO">
     <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-
-    <%= stylesheet_link_tag "application" %>
+    <%= stylesheet_link_tag "application", :media => "all" %>
+    <%= javascript_include_tag "application" %>
   </head>
-
   <body>
-    <%= yield %>
+    <div class="main">
+      <div class="px-4 container-sm pt-2 mt-5 text-center">
+        <h1 class="display-5 fw-bold">
+          <a href="/" class="text-decoration-hover link-dark">Ecosyste.ms Packages</a>
+        </h1>
+        <div class="col-lg-6 mx-auto">
+          <p class="lead mb-4">TODO add description here</p>
+        </div>
+      </div>
+
+      <%= yield %>
+    </div>
+
+    <footer class="py-5 container-sm text-muted text-center">
+      Copyright © <%= Date.today.year%>, <%= link_to 'Andrew Nesbitt', "https://nesbitt.io", class: 'link-dark', target: :_blank %>
+    </footer>
   </body>
 </html>
