@@ -33,7 +33,7 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      get_raw("https://index.golang.org/index?since=#{Time.now.beginning_of_day.to_fs(:iso8601)}").split("\n").map{|row| JSON.parse(row)['Path']}
+      get_raw("https://index.golang.org/index?since=#{Time.now.utc.beginning_of_day.to_fs(:iso8601)}").split("\n").map{|row| JSON.parse(row)['Path']}
     end
 
     def fetch_package_metadata(name)
@@ -91,7 +91,7 @@ module Ecosystem
               package_name: dep[:name],
               requirements: dep[:requirement],
               kind: dep[:type],
-              platform: "Go",
+              ecosystem: "Go",
             }
           end
       else

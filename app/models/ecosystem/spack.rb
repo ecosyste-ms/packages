@@ -56,7 +56,7 @@ module Ecosystem
           package_name: dep["name"],
           requirements: '*',
           kind: 'runtime',
-          platform: self.class.name.demodulize
+          ecosystem: self.class.name.demodulize
         }
       end
     rescue StandardError

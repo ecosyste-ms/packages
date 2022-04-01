@@ -88,10 +88,10 @@ class SpackTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('3proxy', '0.8.13', package_metadata)
 
     assert_equal dependencies_metadata, [
-      {:package_name=>"autoconf", :requirements=>"*", :kind=>"runtime", :platform=>"Spack"},
-      {:package_name=>"automake", :requirements=>"*", :kind=>"runtime", :platform=>"Spack"},
-      {:package_name=>"libtool", :requirements=>"*", :kind=>"runtime", :platform=>"Spack"},
-      {:package_name=>"m4", :requirements=>"*", :kind=>"runtime", :platform=>"Spack"}
+      {:package_name=>"autoconf", :requirements=>"*", :kind=>"runtime", :ecosystem=>"Spack"},
+      {:package_name=>"automake", :requirements=>"*", :kind=>"runtime", :ecosystem=>"Spack"},
+      {:package_name=>"libtool", :requirements=>"*", :kind=>"runtime", :ecosystem=>"Spack"},
+      {:package_name=>"m4", :requirements=>"*", :kind=>"runtime", :ecosystem=>"Spack"}
     ]
   end
 end

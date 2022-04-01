@@ -62,7 +62,7 @@ class GoTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
-    stub_request(:get, "https://index.golang.org/index?since=#{Time.now.beginning_of_day.to_fs(:iso8601)}")
+    stub_request(:get, "https://index.golang.org/index?since=#{Time.now.utc.beginning_of_day.to_fs(:iso8601)}")
       .to_return({ status: 200, body: file_fixture('go/index') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
     assert_equal recently_updated_package_names.length, 2000
@@ -102,6 +102,6 @@ generators."
       .to_return({ status: 200, body: file_fixture('go/v1.9.0.mod') })
     dependencies_metadata = @ecosystem.dependencies_metadata('github.com/aws/smithy-go', 'v1.9.0', nil)
     
-    assert_equal dependencies_metadata, [{:package_name=>"github.com/google/go-cmp", :requirements=>"v0.5.4", :kind=>"runtime", :platform=>"Go"}]
+    assert_equal dependencies_metadata, [{:package_name=>"github.com/google/go-cmp", :requirements=>"v0.5.4", :kind=>"runtime", :ecosystem=>"Go"}]
   end
 end

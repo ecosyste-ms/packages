@@ -65,7 +65,7 @@ module Ecosystem
           package_name: dep["module"].gsub("::", "-"),
           requirements: dep["version"],
           kind: dep["phase"],
-          platform: self.class.name.demodulize,
+          ecosystem: self.class.name.demodulize,
         }
       end
     end
