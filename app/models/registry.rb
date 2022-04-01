@@ -82,6 +82,7 @@ class Registry < ApplicationRecord
       new_versions << version.merge(package_id: package.id, created_at: Time.now, updated_at: Time.now) unless existing_version_numbers.find { |v| v == version[:number] }
     end
 
+    if new_versions.any?
     Version.insert_all(new_versions)
     
     all_deps = []
@@ -114,8 +115,12 @@ class Registry < ApplicationRecord
     end
     
     Dependency.insert_all(all_deps.flatten) if all_deps.flatten.any?
+    end
 
-    package.update_columns(last_synced_at: Time.zone.now, versions_count: all_versions.length)
+    updates = {last_synced_at: Time.zone.now}
+    updates[:versions_count] = all_versions.length if all_versions
+
+    package.update_columns(updates)
     return package
   end
 
