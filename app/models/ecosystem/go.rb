@@ -108,24 +108,6 @@ module Ecosystem
       get_json("#{@registry_url}/#{package_name}/@v/#{version}.info")
     end
 
-    # https://golang.org/cmd/go/#hdr-Import_path_syntax
-    def package_find_names(name)
-      begin
-        go_import = get_html("https://#{name}?go-get=1")
-          .xpath('//meta[@name="go-import"]')
-          .first
-          &.attribute("content")
-          &.value
-          &.split(" ")
-          &.last
-          &.sub(/https?:\/\//, "")
-
-        go_import.present? ? [go_import] : [name]
-      rescue StandardError
-        [name]
-      end
-    end
-
     # will convert a string with capital letters and replace with a "!" prepended to the lowercase letter
     # this is needed to follow the goproxy protocol and find versions correctly for modules with capital letters in them
     # https://go.dev/ref/mod#goproxy-protocol
