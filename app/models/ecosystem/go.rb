@@ -110,9 +110,6 @@ module Ecosystem
 
     # https://golang.org/cmd/go/#hdr-Import_path_syntax
     def package_find_names(name)
-      return [name] if name.start_with?(*KNOWN_HOSTS)
-      return [name] if KNOWN_VCS.any?(&name.method(:include?))
-
       begin
         go_import = get_html("https://#{name}?go-get=1")
           .xpath('//meta[@name="go-import"]')
@@ -123,7 +120,7 @@ module Ecosystem
           &.last
           &.sub(/https?:\/\//, "")
 
-        go_import&.start_with?(*KNOWN_HOSTS) ? [go_import] : [name]
+        [go_import]
       rescue StandardError
         [name]
       end
@@ -134,25 +131,6 @@ module Ecosystem
     # https://go.dev/ref/mod#goproxy-protocol
     def encode_for_proxy(str)
       str.gsub(/[A-Z]/) { |s| "!#{s.downcase}" }
-    end
-
-    def one_version(package, version_string)
-      info = get("#{@registry_url}/#{encode_for_proxy(package[:name])}/@v/#{version_string}.info")
-
-      # Store nil published_at for known Go Modules issue where case-insensitive name collisions break go get
-      # e.g. #{@registry_url}/github.com/ysweid/aws-sdk-go/@v/v1.12.68.info
-      version_string = info.nil? ? version_string : info["Version"]
-      published_at = info && info["Time"].presence && Time.parse(info["Time"])
-      data = {
-        number: version_string,
-        published_at: published_at,
-      }
-
-      # Supplement with license info from pkg.go.dev
-      doc_html = get_html("https://pkg.go.dev/#{package[:name]}")
-      data[:original_license] = doc_html.css('*[data-test-id="UnitHeader-license"]').map(&:text).join(",")
-
-      data
     end
   end
 end
