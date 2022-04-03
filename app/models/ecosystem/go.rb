@@ -13,7 +13,7 @@ module Ecosystem
     end
 
     def download_url(name, version)
-      "#{@registry_url}/#{name}/@v/#{version}.zip"
+      "#{@registry_url}/#{encode_for_proxy(name)}/@v/#{version}.zip"
     end
 
     def all_package_names
@@ -65,7 +65,7 @@ module Ecosystem
     end
 
     def versions_metadata(package)
-      txt = get_raw("#{@registry_url}/#{package[:name]}/@v/list")
+      txt = get_raw("#{@registry_url}/#{encode_for_proxy(package[:name])}/@v/list")
       versions = txt.split("\n")
 
       versions.map do |v|
@@ -99,13 +99,8 @@ module Ecosystem
       end
     end
 
-    def get_repository_url(package_name)
-      res = request("https://#{package_name}")
-      res.env.url.to_s if res.success?
-    end
-
     def get_version(package_name, version)
-      get_json("#{@registry_url}/#{package_name}/@v/#{version}.info")
+      get_json("#{@registry_url}/#{encode_for_proxy(package_name)}/@v/#{version}.info")
     end
 
     # will convert a string with capital letters and replace with a "!" prepended to the lowercase letter
