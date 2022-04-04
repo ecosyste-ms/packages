@@ -53,7 +53,7 @@ class Registry < ApplicationRecord
   def sync_packages(package_names)
     package_names.each do |name|
       begin
-      sync_package(name)
+        sync_package(name)
       rescue ActiveRecord::StatementInvalid
         puts "invalid sql/char in #{name} (#{ecosystem})"
       end
@@ -105,17 +105,17 @@ class Registry < ApplicationRecord
               end
         next unless deps&.any? && version.dependencies.empty?
 
-        possible_names = deps.map{|dep| ecosystem_instance.package_find_names(dep[:package_name]).map(&:downcase) }.flatten
+        # possible_names = deps.map{|dep| ecosystem_instance.package_find_names(dep[:package_name]).map(&:downcase) }.flatten
         
-        unless (possible_names - all_possible_names).empty?
-          all_possible_names += possible_names
-          all_possible_names.uniq!
-          all_possible_packages = packages.ecosystem(ecosystem).where("lower(packages.name) in (?)", all_possible_names).select('name, id')
-        end
+        # unless (possible_names - all_possible_names).empty?
+        #   all_possible_names += possible_names
+        #   all_possible_names.uniq!
+        #   all_possible_packages = packages.ecosystem(ecosystem).where("lower(packages.name) in (?)", all_possible_names).select('name, id')
+        # end
 
         all_deps << deps.map do |dep|
-          named_package_id = all_possible_packages.find{|pkg| pkg.name.downcase == dep[:package_name] }.try(:id)
-          dep.merge(version_id: version.id, package_id: named_package_id.try(:strip))
+          # named_package_id = all_possible_packages.find{|pkg| pkg.name.downcase == dep[:package_name] }.try(:id)
+          dep.merge(version_id: version.id)#, package_id: named_package_id.try(:strip))
         end
       end
       
