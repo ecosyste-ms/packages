@@ -16,6 +16,7 @@ default_registries = [
 
 default_registries.each do |registry|
   data = registry.merge(default: true)
-  r = Registry.find_or_create_by(url: data[:url])
-  r.update_columns(data)
+  r = Registry.find_or_initialize_by(url: data[:url])
+  r.assign_attributes(data)
+  r.save
 end
