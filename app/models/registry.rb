@@ -15,7 +15,7 @@ class Registry < ApplicationRecord
   end
 
   def recently_updated_package_names
-    ecosystem_instance.recently_updated_package_names
+    ecosystem_instance.recently_updated_package_names.first(100)
   end
 
   def existing_package_names
