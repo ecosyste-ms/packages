@@ -52,7 +52,11 @@ class Registry < ApplicationRecord
 
   def sync_packages(package_names)
     package_names.each do |name|
+      begin
       sync_package(name)
+      rescue ActiveRecord::StatementInvalid
+        puts "invalid sql/char in #{name} (#{ecosystem})"
+      end
     end
   end
 
