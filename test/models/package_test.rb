@@ -11,6 +11,6 @@ class PackageTest < ActiveSupport::TestCase
     should validate_presence_of(:registry_id)
     should validate_presence_of(:name)
     should validate_presence_of(:ecosystem)
-    should validate_uniqueness_of(:name).scoped_to(:ecosystem)
+    should validate_uniqueness_of(:name).scoped_to(:registry_id)
   end
 end

@@ -1,6 +1,6 @@
 class Package < ApplicationRecord
   validates_presence_of :registry_id, :name, :ecosystem
-  validates_uniqueness_of :name, scope: :ecosystem, case_sensitive: true
+  validates_uniqueness_of :name, scope: :registry_id
 
   belongs_to :registry
   counter_culture :registry
