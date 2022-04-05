@@ -68,7 +68,7 @@ class Registry < ApplicationRecord
   end
 
   def sync_package(name)
-    puts "Syncing #{name}"
+    logger.info "Syncing #{name}"
     package_metadata = ecosystem_instance.package_metadata(name)
     return false unless package_metadata
     versions_metadata = ecosystem_instance.versions_metadata(package_metadata)
