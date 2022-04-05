@@ -12,6 +12,7 @@ default_registries = [
   {name: 'Pypi.org', url: 'https://pypi.org', ecosystem: 'pypi', github: 'pypi'},
   {name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems', github: 'rubygems'},
   {name: 'Spack.io', url: 'https://spack.github.io', ecosystem: 'spack', github: 'spack'},
+  {name: 'Hackage.haskell.org', url: 'https://hackage.haskell.org', ecosystem: 'hackage', github: 'haskell'}
 ]
 
 default_registries.each do |registry|

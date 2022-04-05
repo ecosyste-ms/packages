@@ -77,10 +77,10 @@ class Registry < ApplicationRecord
 
     package = packages.find_or_initialize_by({ name: package_metadata[:name], ecosystem: ecosystem })
     if package.new_record?
-      package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties))
+      package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page))
       package.save! if package.changed?
     else
-      attrs = package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties)
+      attrs = package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page)
       package.update(attrs)
     end
 

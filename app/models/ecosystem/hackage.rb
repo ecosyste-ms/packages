@@ -1,0 +1,78 @@
+# frozen_string_literal: true
+
+module Ecosystem
+  class Hackage < Base
+    def package_url(db_package, version = nil)
+      "#{@registry_url}/package/#{db_package.name}" + (version ? "-#{version}" : "")
+    end
+
+    def download_url(name, version = nil)
+      "#{@registry_url}/package/#{name}-#{version}/#{name}-#{version}.tar.gz"
+    end
+
+    def install_command(db_package, version = nil)
+      "cabal install #{db_package.name}" + (version ? "-#{version}" : "")
+    end
+
+    def all_package_names
+      get_html("#{@registry_url}/packages/names").css('.packages a:first').map(&:text)
+    end
+
+    def recently_updated_package_names
+      u = "#{@registry_url}/packages/recent.rss"
+      titles = SimpleRSS.parse(get_raw(u)).items.map(&:title)
+      titles.map { |t| t.split(" ").first }.uniq
+    end
+
+    def fetch_package_metadata(name)
+      {
+        name: name,
+        page: get_html("#{@registry_url}/package/#{name}", headers: { "Accept" => "text/html" })
+      }
+    end
+
+    def map_package_metadata(package)
+      {
+        name: package[:name],
+        keywords_array: Array(package[:page].css('#content div').first.css('a')[0..-2].map(&:text)),
+        description: description(package[:page]),
+        licenses: find_attribute(package[:page], "License"),
+        homepage: find_attribute(package[:page], "Home page"),
+        repository_url: repo_fallback(repository_url(find_attribute(package[:page], "Source repository")), find_attribute(package[:page], "Home page")),
+        page: package[:page]
+      }
+    end
+
+    def versions_metadata(package)
+      versions = find_attribute(package[:page], "Versions")
+      versions = find_attribute(package[:page], "Version") if versions.nil?
+      versions.delete("(info)").split(",").map(&:strip).map do |v|
+        {
+          number: v,
+        }
+      end
+    end
+
+    def find_attribute(page, name)
+      tr = page.css("#content tr").select { |t| t.css("th").text.to_s.start_with?(name) }.first
+      tr&.css("td")&.text&.strip 
+    end
+
+    def description(page)
+      contents = page.css("#content p, #content hr").map(&:text)
+      index = contents.index ""
+      return "" unless index
+
+      contents[0..(index - 1)].join("\n\n")
+    end
+
+    def repository_url(text)
+      return nil unless text.present?
+
+      match = text.match(/github.com\/(.+?)\.git/)
+      return nil unless match
+
+      "https://github.com/#{match[1]}"
+    end
+  end
+end
