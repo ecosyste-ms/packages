@@ -58,7 +58,6 @@ module Ecosystem
 
     def dependencies_metadata(name, version, _package)
       versions = get("https://fastapi.metacpan.org/v1/release/_search?q=distribution:#{name}&size=5000")["hits"]["hits"]
-      # p versions
       version_data = versions.find { |v| v["_source"]["version"] == version }
       version_data["_source"]["dependency"].select { |dep| dep["relationship"] == "requires" }.map do |dep|
         {
