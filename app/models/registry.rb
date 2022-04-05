@@ -66,9 +66,7 @@ class Registry < ApplicationRecord
   end
 
   def sync_packages_async(package_names)
-    package_names.each do |name|
-      sync_package_async(name)
-    end
+    SyncPackageWorker.perform_bulk(package_names.map{|name| [id, name]})
   end
 
   def sync_package(name)
