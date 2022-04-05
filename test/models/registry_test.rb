@@ -15,7 +15,7 @@ class RegistryTest < ActiveSupport::TestCase
   end
 
   setup do
-    @registry = Registry.new(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
+    @registry = Registry.create(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
   end
 
   test 'all_package_names' do
@@ -93,8 +93,6 @@ class RegistryTest < ActiveSupport::TestCase
   end
 
   test 'sync_package' do
-    @registry.save
-
     # TODO stub ecosystem_instance calls instead
     stub_request(:get, "https://rubygems.org/api/v1/gems/rubystats.json")
       .to_return({ status: 200, body: file_fixture('rubygems/rubystats.json') })
@@ -115,8 +113,13 @@ class RegistryTest < ActiveSupport::TestCase
   end
 
   test 'sync_package_async' do
-    @registry.save
     SyncPackageWorker.expects(:perform_async).with(@registry.id, 'split')
     @registry.sync_package_async('split')
+  end
+
+  test 'sync_all_recently_updated_packages_async' do
+    @registry.expects(:sync_recently_updated_packages_async).returns(true)
+    Registry.stubs(:all).returns([@registry])
+    Registry.sync_all_recently_updated_packages_async
   end
 end
