@@ -54,8 +54,9 @@ class Registry < ApplicationRecord
     package_names.each do |name|
       begin
         sync_package(name)
-      rescue ActiveRecord::StatementInvalid
-        puts "invalid sql/char in #{name} (#{ecosystem})"
+      rescue => e
+        puts "error syncing #{name} (#{ecosystem})"
+        puts e.message
       end
     end
   end
