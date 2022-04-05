@@ -97,10 +97,8 @@ class Registry < ApplicationRecord
       Version.insert_all(new_versions)
       
       all_deps = []
-      all_possible_names = []
-      all_possible_packages = []
-
       all_versions = package.versions.includes(:dependencies)
+
       all_versions.each do |version|
         next if version.dependencies.any?
 
@@ -111,17 +109,8 @@ class Registry < ApplicationRecord
               end
         next unless deps&.any? && version.dependencies.empty?
 
-        # possible_names = deps.map{|dep| ecosystem_instance.package_find_names(dep[:package_name]).map(&:downcase) }.flatten
-        
-        # unless (possible_names - all_possible_names).empty?
-        #   all_possible_names += possible_names
-        #   all_possible_names.uniq!
-        #   all_possible_packages = packages.ecosystem(ecosystem).where("lower(packages.name) in (?)", all_possible_names).select('name, id')
-        # end
-
         all_deps << deps.map do |dep|
-          # named_package_id = all_possible_packages.find{|pkg| pkg.name.downcase == dep[:package_name] }.try(:id)
-          dep.merge(version_id: version.id)#, package_id: named_package_id.try(:strip))
+          dep.merge(version_id: version.id)
         end
       end
       
