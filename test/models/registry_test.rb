@@ -87,8 +87,7 @@ class RegistryTest < ActiveSupport::TestCase
   end
 
   test 'sync_packages_async' do
-    @registry.expects(:sync_package_async).with('foo')
-    @registry.expects(:sync_package_async).with('bar')
+    SyncPackageWorker.expects(:perform_bulk).with([[@registry.id, "foo"], [@registry.id, "bar"]])
     @registry.sync_packages_async(['foo', 'bar'])
   end
 
