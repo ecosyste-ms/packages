@@ -32,6 +32,7 @@ module Ecosystem
       pkg = lines.find do |line|
         line.split('/').first == name
       end
+      return false if pkg.nil?
       versions = pkg.split('/')[1..-1]
       latest_version = versions.last
 
