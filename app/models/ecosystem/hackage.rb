@@ -2,16 +2,16 @@
 
 module Ecosystem
   class Hackage < Base
-    def package_url(db_package, version = nil)
-      "#{@registry_url}/package/#{db_package.name}" + (version ? "-#{version}" : "")
+    def package_url(package, version = nil)
+      "#{@registry_url}/package/#{package.name}" + (version ? "-#{version}" : "")
     end
 
     def download_url(name, version = nil)
       "#{@registry_url}/package/#{name}-#{version}/#{name}-#{version}.tar.gz"
     end
 
-    def install_command(db_package, version = nil)
-      "cabal install #{db_package.name}" + (version ? "-#{version}" : "")
+    def install_command(package, version = nil)
+      "cabal install #{package.name}" + (version ? "-#{version}" : "")
     end
 
     def all_package_names
