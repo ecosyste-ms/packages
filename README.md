@@ -1,24 +1,44 @@
-# README
+# [Ecosyste.ms Packages](https://packages.ecosyste.ms)
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+An open API service providing package, version and dependency metadata many open source ecosystems and communities.
 
-Things you may want to cover:
+This project is part of [Ecosyste.ms](https://ecosyste.ms): Tools and open datasets to support, sustain, and secure critical digital infrastructure.
 
-* Ruby version
+## API
 
-* System dependencies
+TODO
 
-* Configuration
+## Development
 
-* Database creation
+TODO
 
-* Database initialization
+## Contribute
 
-* How to run the test suite
+Please do! The source code is hosted at [GitHub](https://github.com/ecosyste-ms/packages). If you want something, [open an issue](https://github.com/ecosyste-ms/packages/issues/new) or a pull request.
 
-* Services (job queues, cache servers, search engines, etc.)
+If you need want to contribute but don't know where to start, take a look at the issues tagged as ["Help Wanted"](https://github.com/ecosyste-ms/packages/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
 
-* Deployment instructions
+You can also help triage issues. This can include reproducing bug reports, or asking for vital information such as version numbers or reproduction instructions. 
 
-* ...
+Finally, this is an open source project. If you would like to become a maintainer, we will consider adding you if you contribute frequently to the project. Feel free to ask.
+
+For other updates, follow the project on Twitter: [@ecosyste_ms](https://twitter.com/ecosyste_ms).
+
+### Note on Patches/Pull Requests
+
+ * Fork the project.
+ * Make your feature addition or bug fix.
+ * Add tests for it. This is important so we don't break it in a future version unintentionally.
+ * Send a pull request. Bonus points for topic branches.
+
+### Vulnerability disclosure
+
+We support and encourage security research on Ecosyste.ms under the terms of our [vulnerability disclosure policy](docs/VULNERABILITY_DISCLOSURE_POLICY.md).
+
+### Code of Conduct
+
+Please note that this project is released with a [Contributor Code of Conduct](docs/CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
+
+## Copyright
+
+[GNU Affero License](LICENSE.txt) © 2022 [Andrew Nesbitt](https://github.com/andrew).
