@@ -81,7 +81,6 @@ module Ecosystem
     def find_dependencies(name, version)
       begin
         url = "https://cran.rstudio.com/src/contrib/#{name}_#{version}.tar.gz"
-        p url
         head_response = Typhoeus.head(url)
         raise if head_response.code != 200
       rescue StandardError
