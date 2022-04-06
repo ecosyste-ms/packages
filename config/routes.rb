@@ -11,8 +11,8 @@ Rails.application.routes.draw do
 
   namespace :api, :defaults => {:format => :json} do
     namespace :v1 do
-      resources :registries, only: [:index] do
-        resources :packages, only: [:index, :show] do 
+      resources :registries, constraints: { id: /.*/ }, only: [:index, :show] do
+        resources :packages, constraints: { id: /.*/ }, only: [:index, :show] do 
           resources :versions, only: [:index]
         end
       end

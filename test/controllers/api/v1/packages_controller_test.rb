@@ -2,12 +2,12 @@ require 'test_helper'
 
 class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
   setup do
-    @registry = Registry.create(name: 'Crates.io', url: 'https://crates.io', ecosystem: 'Cargo')
-    @package = @registry.packages.create(ecosystem: 'Cargo', name: 'rand')
+    @registry = Registry.create(name: 'crates.io', url: 'https://crates.io', ecosystem: 'cargo')
+    @package = @registry.packages.create(ecosystem: 'cargo', name: 'rand')
   end
 
-  test 'creates new saved searches' do
-    get api_v1_registry_packages_path(registry_id: @registry.id)
+  test 'list packages for a registry' do
+    get api_v1_registry_packages_path(registry_id: @registry.name)
     assert_response :success
     assert_template 'packages/index', file: 'packages/index.json.jbuilder'
     
