@@ -93,7 +93,7 @@ paths:
   /registries/{registryName}/packages/{packageName}/versions:
     get:
       summary: get a list of versions for a package
-      operationId: getRegistryPackage
+      operationId: getRegistryPackageVersions
       parameters:
         - in: path
           name: registryName
@@ -191,7 +191,7 @@ components:
             type: string
           dependencies:
             type: array
-            additionalProperties:
+            items:
               $ref: '#/components/schemas/Dependency'
     Dependency:
       type: object
