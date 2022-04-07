@@ -238,6 +238,11 @@ GEM
     reline (0.3.1)
       io-console (~> 0.5)
     rexml (3.2.5)
+    rswag-api (2.5.1)
+      railties (>= 3.1, < 7.1)
+    rswag-ui (2.5.1)
+      actionpack (>= 3.1, < 7.1)
+      railties (>= 3.1, < 7.1)
     ruby2_keywords (0.0.5)
     rufus-scheduler (3.8.1)
       fugit (~> 1.1, >= 1.1.6)
@@ -344,6 +349,8 @@ DEPENDENCIES
   rack-cors
   rails (~> 7.0.2, >= 7.0.2.3)
   rails-controller-testing
+  rswag-api
+  rswag-ui
   sassc-rails
   shoulda
   sidekiq

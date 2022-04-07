@@ -1,0 +1,206 @@
+openapi: 3.0.1
+info:
+  title: Ecosyste.ms Packages
+  description: An open API service providing package, version and dependency metadata many open source ecosystems and registries.
+  contact:
+    name: Ecosyste.ms
+    email: support@ecosyste.ms
+    url: https://ecosyste.ms 
+  version: 1.0.0
+externalDocs:
+  description: GitHub Repository
+  url: https://github.com/ecosyste-ms/packages
+servers:
+- url: https://packages.ecosyste.ms/api/v1
+paths:
+  /registries:
+    get:
+      summary: list registies
+      operationId: getRegistries
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Registry'
+  /registries/{registryName}:
+    get:
+      summary: get a registry by name
+      operationId: getRegistry
+      parameters:
+        - in: path
+          name: registryName
+          schema:
+            type: string
+          required: true
+          description: name of registry
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Registry'
+  /registries/{registryName}/packages:
+    get:
+      summary: get a list of packages from a registry
+      operationId: getRegistryPackages
+      parameters:
+        - in: path
+          name: registryName
+          schema:
+            type: string
+          required: true
+          description: name of registry
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Package'
+  /registries/{registryName}/packages/{packageName}:
+    get:
+      summary: get a package by name
+      operationId: getRegistryPackage
+      parameters:
+        - in: path
+          name: registryName
+          schema:
+            type: string
+          required: true
+          description: name of registry
+        - in: path
+          name: packageName
+          schema:
+            type: string
+          required: true
+          description: name of package
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Package'
+  /registries/{registryName}/packages/{packageName}/versions:
+    get:
+      summary: get a list of versions for a package
+      operationId: getRegistryPackage
+      parameters:
+        - in: path
+          name: registryName
+          schema:
+            type: string
+          required: true
+          description: name of registry
+        - in: path
+          name: packageName
+          schema:
+            type: string
+          required: true
+          description: name of package
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Version'
+components:
+  schemas:
+    Registry:
+      type: object
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+        ecosystem:
+          type: string
+        default:
+          type: boolean
+        packages_count:
+          type: integer
+          format: int64
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        packages_url:
+          type: string
+    Package:
+      type: object
+      properties:
+        name:
+          type: string
+        ecosystem:
+          type: string
+        description:
+          type: string
+        homepage:
+          type: string
+        licenses:
+          type: string
+        repository_url:
+          type: string
+        keywords_array:
+          type: array
+          items: {}
+        versions_count:
+          type: integer
+        latest_release_published_at:
+          type: string
+          format: date-time
+        latest_release_number:
+          type: string
+        last_synced_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        versions_url:
+          type: string
+    Version:
+      type: object
+      properties:
+          number:
+            type: string
+          published_at:
+            type: string
+          licenses:
+            type: string
+          integrity:
+            type: string
+          status:
+            type: string
+          dependencies:
+            type: array
+            additionalProperties:
+              $ref: '#/components/schemas/Dependency'
+    Dependency:
+      type: object
+      properties:
+        package_name:
+          type: string
+        requirements:
+          type: string
+        kind:
+          type: string
+        optional:
+          type: boolean
