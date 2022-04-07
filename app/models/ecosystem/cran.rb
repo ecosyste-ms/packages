@@ -98,7 +98,7 @@ module Ecosystem
       request.on_complete { downloaded_file.close }
       request.run
 
-      `mkdir /tmp/#{folder_name} && tar xvzf /tmp/#{tarball_name} -C /tmp/#{folder_name}  --strip-components 1`
+      cmd = `mkdir /tmp/#{folder_name} && tar xzf /tmp/#{tarball_name} -C /tmp/#{folder_name}  --strip-components 1`
 
       contents = `cat /tmp/#{folder_name}/DESCRIPTION`
 
