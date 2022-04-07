@@ -44,7 +44,7 @@ module Ecosystem
       versions = pkg_metadata["versions"].values.reject { |v| v["version"].include? "dev" }
       versions = pkg_metadata["versions"].values if versions.empty?
       # then we'll use the most recently published as our most recent version
-      latest_version = versions.max_by { |v| v["time"] }
+      latest_version = versions.reject{|v| v['time'].blank? }.max_by { |v| v["time"] }
       {
         name: latest_version["name"],
         description: latest_version["description"].try(:delete, "\u0000"),
