@@ -6,8 +6,8 @@ Sidekiq::Web.use Rack::Auth::Basic do |username, password|
 end if Rails.env.production?
 
 Rails.application.routes.draw do
-  mount Sidekiq::Web => "/sidekiq" # TODO password protect
-  mount PgHero::Engine, at: "pghero" # TODO password protect
+  mount Sidekiq::Web => "/sidekiq"
+  mount PgHero::Engine, at: "pghero"
 
   namespace :api, :defaults => {:format => :json} do
     namespace :v1 do
