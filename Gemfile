@@ -30,6 +30,7 @@ gem "pg_query"
 gem 'bootstrap'
 gem "rack-attack"
 gem "rack-attack-rate-limit", require: "rack/attack/rate-limit"
+gem 'rack-cors'
 
 group :development, :test do
   gem "debug", platforms: %i[ mri mingw x64_mingw ]

@@ -199,6 +199,8 @@ GEM
       rack (>= 1.0, < 3)
     rack-attack-rate-limit (1.1.0)
       rack
+    rack-cors (1.1.1)
+      rack (>= 2.0.0)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
     rails (7.0.2.3)
@@ -339,6 +341,7 @@ DEPENDENCIES
   puma (~> 5.0)
   rack-attack
   rack-attack-rate-limit
+  rack-cors
   rails (~> 7.0.2, >= 7.0.2.3)
   rails-controller-testing
   sassc-rails
