@@ -27,7 +27,7 @@ module Ecosystem
     def fetch_package_metadata(name)
       digest = Digest::MD5.hexdigest(name)
       chars = digest[0..2].split('')
-      versions_lists = get_raw("https://cdn.cocoapods.org/all_pods_versions_#{chars.join('_')}.txt")
+      versions_lists = get_raw("https://cdn.cocoapods.org/all_pods_versions_#{chars.join('_')}.txt").force_encoding('UTF-8')
       lines = versions_lists.split("\n")
       pkg = lines.find do |line|
         line.split('/').first == name
@@ -36,7 +36,7 @@ module Ecosystem
       versions = pkg.split('/')[1..-1]
       latest_version = versions.last
 
-      json = get_json("https://cdn.cocoapods.org/Specs/#{chars.join('/')}/#{name}/#{latest_version}/#{name}.podspec.json")
+      json = get_json("https://cdn.cocoapods.org/Specs/#{chars.join('/')}/#{CGI.escape(name)}/#{latest_version}/#{CGI.escape(name)}.podspec.json")
       json["version_numbers"] = versions
       return json
     end
@@ -63,7 +63,7 @@ module Ecosystem
     def dependencies_metadata(name, version, _package)
       digest = Digest::MD5.hexdigest(name)
       chars = digest[0..2].split('')
-      json = get_json("https://cdn.cocoapods.org/Specs/#{chars.join('/')}/#{name}/#{version}/#{name}.podspec.json")
+      json = get_json("https://cdn.cocoapods.org/Specs/#{chars.join('/')}/#{CGI.escape(name)}/#{version}/#{CGI.escape(name)}.podspec.json")
       map_dependencies(json['dependencies'], 'runtime')
     rescue StandardError
       []
