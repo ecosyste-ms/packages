@@ -29,6 +29,7 @@ module Ecosystem
       chars = digest[0..2].split('')
       versions_lists = get_raw("https://cdn.cocoapods.org/all_pods_versions_#{chars.join('_')}.txt").force_encoding('UTF-8')
       lines = versions_lists.split("\n")
+
       pkg = lines.find do |line|
         line.split('/').first == name
       end
@@ -36,12 +37,16 @@ module Ecosystem
       versions = pkg.split('/')[1..-1]
       latest_version = versions.last
 
-      json = get_json("https://cdn.cocoapods.org/Specs/#{chars.join('/')}/#{CGI.escape(name)}/#{latest_version}/#{CGI.escape(name)}.podspec.json")
+      json = get_json("https://cdn.cocoapods.org/Specs/#{chars.join('/')}/#{CGI.escape(name)}/#{latest_version}/#{CGI.escape(name)}.podspec.json")      
+
       json["version_numbers"] = versions
       return json
+    rescue Oj::ParseError
+      false
     end
 
     def map_package_metadata(package)
+      return false unless package
       {
         name: package["name"],
         description: package["summary"],
