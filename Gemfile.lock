@@ -195,6 +195,10 @@ GEM
     raabro (1.4.0)
     racc (1.6.0)
     rack (2.2.3)
+    rack-attack (6.6.0)
+      rack (>= 1.0, < 3)
+    rack-attack-rate-limit (1.1.0)
+      rack
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
     rails (7.0.2.3)
@@ -333,6 +337,8 @@ DEPENDENCIES
   pg_query
   pghero
   puma (~> 5.0)
+  rack-attack
+  rack-attack-rate-limit
   rails (~> 7.0.2, >= 7.0.2.3)
   rails-controller-testing
   sassc-rails
