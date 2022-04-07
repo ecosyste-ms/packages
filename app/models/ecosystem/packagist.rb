@@ -47,7 +47,7 @@ module Ecosystem
       latest_version = versions.max_by { |v| v["time"] }
       {
         name: latest_version["name"],
-        description: latest_version["description"],
+        description: latest_version["description"].try(:delete, "\u0000"),
         homepage: latest_version["home_page"],
         keywords_array: Array.wrap(latest_version["keywords"]),
         licenses: latest_version["license"].join(","),
