@@ -51,7 +51,7 @@ module Ecosystem
 
       {
         name: package["name"],
-        description: latest_version["description"],
+        description: latest_version["description"].try(:delete, "\u0000"),
         homepage: package["homepage"],
         keywords_array: Array.wrap(latest_version.fetch("keywords", [])),
         licenses: licenses(latest_version),
