@@ -93,7 +93,9 @@ class Registry < ApplicationRecord
     end
 
     if new_versions.any?
-      Version.insert_all(new_versions)
+      new_versions.each_slice(100) do |s|
+        Version.insert_all(s) 
+      end
       
       all_deps = []
       all_versions = package.versions.includes(:dependencies)
@@ -113,7 +115,9 @@ class Registry < ApplicationRecord
         end
       end
       
-      Dependency.insert_all(all_deps.flatten) if all_deps.flatten.any?
+      all_deps.flatten.each_slice(100) do |s|
+        Dependency.insert_all(s) 
+      end
     end
 
     updates = {last_synced_at: Time.zone.now}
