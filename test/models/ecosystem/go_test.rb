@@ -65,8 +65,8 @@ class GoTest < ActiveSupport::TestCase
     stub_request(:get, "https://index.golang.org/index?since=#{Time.now.utc.beginning_of_day.to_fs(:iso8601)}")
       .to_return({ status: 200, body: file_fixture('go/index') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 2000
-    assert_equal recently_updated_package_names.last, 'github.com/pkg/errors'
+    assert_equal recently_updated_package_names.length, 864
+    assert_equal recently_updated_package_names.last, 'github.com/xenolf/lego'
   end
 
   test 'package_metadata' do

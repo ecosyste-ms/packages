@@ -33,7 +33,7 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      get_raw("https://index.golang.org/index?since=#{Time.now.utc.beginning_of_day.to_fs(:iso8601)}").split("\n").map{|row| JSON.parse(row)['Path']}
+      get_raw("https://index.golang.org/index?since=#{Time.now.utc.beginning_of_day.to_fs(:iso8601)}").split("\n").map{|row| JSON.parse(row)['Path']}.uniq
     end
 
     def fetch_package_metadata(name)
