@@ -45,12 +45,13 @@ module Ecosystem
       versions = pkg_metadata["versions"].values if versions.empty?
       # then we'll use the most recently published as our most recent version
       latest_version = versions.reject{|v| v['time'].blank? }.max_by { |v| v["time"] }
+      return false if latest_version.nil?
       {
         name: latest_version["name"],
         description: latest_version["description"].try(:delete, "\u0000"),
         homepage: latest_version["home_page"],
         keywords_array: Array.wrap(latest_version["keywords"]),
-        licenses: latest_version["license"].join(","),
+        licenses: Array.wrap(latest_version["license"]).join(","),
         repository_url: repo_fallback(pkg_metadata["repository"], latest_version["home_page"]),
         versions: pkg_metadata["versions"],
       }
