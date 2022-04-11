@@ -6,11 +6,13 @@ This project is part of [Ecosyste.ms](https://ecosyste.ms): Tools and open datas
 
 ## API
 
-TODO
+Documentation for the REST API is available here: [https://packages.ecosyste.ms/docs](https://packages.ecosyste.ms/docs)
+
+The default rate limit for the API is 5000/req per hour based on your IP address, get in contact if you need to to increase your rate limit.
 
 ## Development
 
-TODO
+For development and deployment documentation, check out [DEVELOPMENT.md](DEVELOPMENT.md)
 
 ## Contribute
 
@@ -41,4 +43,4 @@ Please note that this project is released with a [Contributor Code of Conduct](d
 
 ## Copyright
 
-[GNU Affero License](LICENSE.txt) © 2022 [Andrew Nesbitt](https://github.com/andrew).
+[GNU Affero License](LICENSE) © 2022 [Andrew Nesbitt](https://github.com/andrew).
