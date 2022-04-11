@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: Ecosyste.ms: Packages
-  description: An open API service providing package, version and dependency metadata many open source ecosystems and registries.
+  description: An open API service providing package, version and dependency metadata many open source software ecosystems and registries.
   contact:
     name: Ecosyste.ms
     email: support@ecosyste.ms

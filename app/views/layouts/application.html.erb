@@ -7,7 +7,7 @@
     <title>
       Ecosyste.ms: Packages
     </title>
-    <meta name="description" content="Explore metadata for <%= number_with_delimiter Registry.sum(:packages_count) %> packages from <%= number_with_delimiter Registry.count %> registries.">
+    <meta name="description" content="An open API service providing package, version and dependency metadata many open source software ecosystems and registries.">
     <%= csrf_meta_tags %>
     <%= stylesheet_link_tag "application", :media => "all" %>
     <%= javascript_include_tag "application" %>
@@ -19,7 +19,9 @@
           <a href="/" class="text-decoration-hover link-dark">Ecosyste.ms: Packages</a>
         </h1>
         <div class="col-lg-6 mx-auto">
-          <p class="lead mb-4">Explore metadata for <%= number_with_delimiter Registry.sum(:packages_count) %> packages from <%= number_with_delimiter Registry.count %> registries.</p>
+          <p class="lead mb-4">
+            An open API service providing package, version and dependency metadata many open source software ecosystems and registries.
+          </p>
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 # [Ecosyste.ms: Packages](https://packages.ecosyste.ms)
 
-An open API service providing package, version and dependency metadata many open source ecosystems and communities.
+An open API service providing package, version and dependency metadata many open source software ecosystems and registries.
 
 This project is part of [Ecosyste.ms](https://ecosyste.ms): Tools and open datasets to support, sustain, and secure critical digital infrastructure.
 
