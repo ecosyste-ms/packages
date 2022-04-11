@@ -103,12 +103,13 @@ class RegistryTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('rubygems/0.2.6.json') })
 
     package = @registry.sync_package('rubystats')
+    package.reload
     assert package.id
-    assert package.name, 'rubystats'
-    assert package.registry, @registry
-    assert package.versions.length, 2
-    assert package.versions.first.dependencies.length, 2
-    assert package.versions.last.dependencies.length, 1
+    assert_equal package.name, 'rubystats'
+    assert_equal package.registry, @registry
+    assert_equal package.versions.length, 2
+    assert_equal package.versions.first.dependencies.length, 2
+    assert_equal package.versions.last.dependencies.length, 1
   end
 
   test 'sync_package_async' do

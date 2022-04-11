@@ -82,7 +82,7 @@ class Registry < ApplicationRecord
       package.save! if package.changed?
     else
       attrs = package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page, :time)
-      package.update(attrs)
+      package.update!(attrs)
     end
 
     new_versions = []
