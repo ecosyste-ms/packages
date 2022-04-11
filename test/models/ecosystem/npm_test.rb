@@ -84,22 +84,22 @@ class NpmTest < ActiveSupport::TestCase
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
-      {:number=>"0.1.0", :published_at=>nil, :licenses=>""},
-      {:number=>"0.1.1", :published_at=>nil, :licenses=>""},
-      {:number=>"0.1.2", :published_at=>nil, :licenses=>""},
-      {:number=>"1.0.0", :published_at=>nil, :licenses=>"MIT"},
-      {:number=>"1.1.0", :published_at=>nil, :licenses=>"MIT"},
-      {:number=>"1.1.1", :published_at=>nil, :licenses=>"MIT"},
-      {:number=>"1.1.2", :published_at=>nil, :licenses=>"MIT"},
-      {:number=>"1.2.0", :published_at=>nil, :licenses=>"MIT"},
-      {:number=>"1.2.1", :published_at=>nil, :licenses=>"MIT"},
-      {:number=>"1.2.4", :published_at=>nil, :licenses=>"MIT"},
-      {:number=>"1.2.5", :published_at=>nil, :licenses=>"MIT"},
-      {:number=>"1.2.6", :published_at=>nil, :licenses=>"MIT"},
-      {:number=>"1.2.7", :published_at=>nil, :licenses=>"MIT"},
-      {:number=>"1.2.8", :published_at=>nil, :licenses=>"MIT"},
-      {:number=>"2.0.0", :published_at=>nil, :licenses=>"MIT"},
-      {:number=>"2.0.1", :published_at=>nil, :licenses=>"MIT"}
+      {:number=>"0.1.0", :published_at=>"2012-02-24T18:04:06.916Z", :licenses=>""},
+      {:number=>"0.1.1", :published_at=>"2012-12-09T05:11:27.662Z", :licenses=>""},
+      {:number=>"0.1.2", :published_at=>"2014-07-15T21:24:45.597Z", :licenses=>""},
+      {:number=>"1.0.0", :published_at=>"2014-10-11T07:22:23.512Z", :licenses=>"MIT"},
+      {:number=>"1.1.0", :published_at=>"2015-02-23T09:52:54.646Z", :licenses=>"MIT"},
+      {:number=>"1.1.1", :published_at=>"2016-04-14T21:55:22.812Z", :licenses=>"MIT"},
+      {:number=>"1.1.2", :published_at=>"2016-11-14T00:43:51.131Z", :licenses=>"MIT"},
+      {:number=>"1.2.0", :published_at=>"2017-05-15T11:26:01.056Z", :licenses=>"MIT"},
+      {:number=>"1.2.1", :published_at=>"2017-11-14T08:38:56.587Z", :licenses=>"MIT"},
+      {:number=>"1.2.4", :published_at=>"2018-02-10T21:54:23.964Z", :licenses=>"MIT"},
+      {:number=>"1.2.5", :published_at=>"2018-02-10T23:16:39.461Z", :licenses=>"MIT"},
+      {:number=>"1.2.6", :published_at=>"2018-02-14T12:24:12.680Z", :licenses=>"MIT"},
+      {:number=>"1.2.7", :published_at=>"2018-02-14T12:46:17.280Z", :licenses=>"MIT"},
+      {:number=>"1.2.8", :published_at=>"2018-03-30T17:15:14.729Z", :licenses=>"MIT"},
+      {:number=>"2.0.0", :published_at=>"2018-04-13T09:18:23.449Z", :licenses=>"MIT"},
+      {:number=>"2.0.1", :published_at=>"2019-03-06T15:06:40.387Z", :licenses=>"MIT"}
     ]
   end
 

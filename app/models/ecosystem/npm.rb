@@ -57,6 +57,7 @@ module Ecosystem
         licenses: licenses(latest_version),
         repository_url: repo_fallback(repo_url, package["homepage"]),
         versions: package["versions"],
+        time: package["time"]
       }
     end
 
@@ -87,7 +88,7 @@ module Ecosystem
         license = licenses(v) unless license.is_a?(String)
         {
           number: k,
-          published_at: package.fetch("time", {}).fetch(k, nil),
+          published_at: package.fetch(:time, {}).fetch(k, nil),
           licenses: license,
         }
       end
