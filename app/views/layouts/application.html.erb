@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
-      Ecosyste.ms Packages
+      Ecosyste.ms: Packages
     </title>
     <meta name="description" content="Explore metadata for <%= number_with_delimiter Registry.sum(:packages_count) %> packages from <%= number_with_delimiter Registry.count %> registries.">
     <%= csrf_meta_tags %>
@@ -16,7 +16,7 @@
     <div class="main">
       <div class="px-4 container-sm pt-2 mt-5 text-center">
         <h1 class="display-5 fw-bold">
-          <a href="/" class="text-decoration-hover link-dark">Ecosyste.ms Packages</a>
+          <a href="/" class="text-decoration-hover link-dark">Ecosyste.ms: Packages</a>
         </h1>
         <div class="col-lg-6 mx-auto">
           <p class="lead mb-4">Explore metadata for <%= number_with_delimiter Registry.sum(:packages_count) %> packages from <%= number_with_delimiter Registry.count %> registries.</p>
@@ -27,6 +27,9 @@
     </div>
 
     <footer class="py-5 container-sm text-muted text-center">
+      <%= link_to 'API', rswag_ui_path, class: 'link-dark', target: :_blank  %> — 
+      <%= link_to 'GitHub', "https://github.com/ecosyste-ms/packages", class: 'link-dark', target: :_blank  %> — 
+      <%= link_to 'Twitter', "https://twitter.com/ecosyste_ms", class: 'link-dark', target: :_blank  %> — 
       Copyright © <%= Date.today.year%>, <%= link_to 'Andrew Nesbitt', "https://nesbitt.io", class: 'link-dark', target: :_blank %>
     </footer>
   </body>

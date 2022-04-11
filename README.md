@@ -1,4 +1,4 @@
-# [Ecosyste.ms Packages](https://packages.ecosyste.ms)
+# [Ecosyste.ms: Packages](https://packages.ecosyste.ms)
 
 An open API service providing package, version and dependency metadata many open source ecosystems and communities.
 
