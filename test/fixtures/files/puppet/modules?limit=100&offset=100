@@ -1,0 +1,13 @@
+{
+  "pagination": {
+    "limit": 100,
+    "offset": 100,
+    "first": "/v3/modules?limit=100&offset=0",
+    "previous": "/v3/modules?limit=100&offset=0",
+    "current": "/v3/modules?limit=100&offset=100",
+    "next": "/v3/modules?limit=100&offset=200",
+    "total": 7235
+  },
+  "results": [
+  ]
+}

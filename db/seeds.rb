@@ -14,7 +14,8 @@ default_registries = [
   {name: 'spack.io', url: 'https://spack.github.io', ecosystem: 'spack', github: 'spack'},
   {name: 'hackage.haskell.org', url: 'https://hackage.haskell.org', ecosystem: 'hackage', github: 'haskell'},
   {name: 'cran.r-project.org', url: 'https://cran.r-project.org', ecosystem: 'cran', github: 'r-project-org'},
-  {name: 'formulae.brew.sh', url: 'http://formulae.brew.sh', ecosystem: 'homebrew', github: 'homebrew'}
+  {name: 'formulae.brew.sh', url: 'http://formulae.brew.sh', ecosystem: 'homebrew', github: 'homebrew'},
+  {name: 'forge.puppet.com', url: 'https://forge.puppet.com', ecosystem: 'puppet', github: 'puppet'},
 ]
 
 default_registries.each do |registry|
