@@ -123,7 +123,8 @@ class Registry < ApplicationRecord
     updates = {last_synced_at: Time.zone.now}
     updates[:versions_count] = all_versions.length if all_versions
 
-    package.update_columns(updates)
+    package.assign_attributes(updates)
+    package.save
     return package
   end
 
