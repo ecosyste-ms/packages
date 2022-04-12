@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xml:lang="en-US">
+  <id>tag:github.com,2008:/Homebrew/homebrew-core/commits/master</id>
+  <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commits/master"/>
+  <link type="application/atom+xml" rel="self" href="https://github.com/Homebrew/homebrew-core/commits/master.atom"/>
+  <title>Recent Commits to homebrew-core:master</title>
+  <updated>2022-04-12T08:15:28Z</updated>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/c199393579c6b73dcfb3b783c6b7ae1fde1e49e5</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/c199393579c6b73dcfb3b783c6b7ae1fde1e49e5"/>
+    <title>
+        exploitdb: update 2022-04-12 bottle.
+    </title>
+    <updated>2022-04-12T08:15:28Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1589480?s=30&amp;u=d55ba445072da72e816348cc5b87be1148ba60a9&amp;v=4"/>
+    <author>
+      <name>BrewTestBot</name>
+      <uri>https://github.com/BrewTestBot</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;exploitdb: update 2022-04-12 bottle.&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/f5852151822ff95fc54b456aa8c3dd881c25a7d1</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/f5852151822ff95fc54b456aa8c3dd881c25a7d1"/>
+    <title>
+        exploitdb 2022-04-12
+    </title>
+    <updated>2022-04-12T08:15:28Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1589480?s=30&amp;u=d55ba445072da72e816348cc5b87be1148ba60a9&amp;v=4"/>
+    <author>
+      <name>BrewTestBot</name>
+      <uri>https://github.com/BrewTestBot</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;exploitdb 2022-04-12
+
+Closes #99093.
+
+Signed-off-by: Sean Molenaar &amp;lt;1484494+SMillerDev@users.noreply.github.com&amp;gt;
+Signed-off-by: BrewTestBot &amp;lt;1589480+BrewTestBot@users.noreply.github.com&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/c70d519c4a48dae3bb342ccc2fdaca4b4d84d5ef</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/c70d519c4a48dae3bb342ccc2fdaca4b4d84d5ef"/>
+    <title>
+        openexr: update 3.1.5 bottle.
+    </title>
+    <updated>2022-04-12T08:14:12Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1589480?s=30&amp;u=d55ba445072da72e816348cc5b87be1148ba60a9&amp;v=4"/>
+    <author>
+      <name>BrewTestBot</name>
+      <uri>https://github.com/BrewTestBot</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;openexr: update 3.1.5 bottle.&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/a9d2c231b0f3dce3245bac98b3cdb012500939cf</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/a9d2c231b0f3dce3245bac98b3cdb012500939cf"/>
+    <title>
+        openexr 3.1.5
+    </title>
+    <updated>2022-04-12T08:14:12Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/4283702?s=30&amp;v=4"/>
+    <author>
+      <name>owine</name>
+      <uri>https://github.com/owine</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;openexr 3.1.5
+
+Closes #99067.
+
+Signed-off-by: Sean Molenaar &amp;lt;1484494+SMillerDev@users.noreply.github.com&amp;gt;
+Signed-off-by: BrewTestBot &amp;lt;1589480+BrewTestBot@users.noreply.github.com&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/a59b57cb7f1936062b5c4092b93f846fdee24318</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/a59b57cb7f1936062b5c4092b93f846fdee24318"/>
+    <title>
+        datree: update 1.2.2 bottle.
+    </title>
+    <updated>2022-04-12T08:13:05Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1589480?s=30&amp;u=d55ba445072da72e816348cc5b87be1148ba60a9&amp;v=4"/>
+    <author>
+      <name>BrewTestBot</name>
+      <uri>https://github.com/BrewTestBot</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;datree: update 1.2.2 bottle.&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/2dd54b7d3753cf3544f8fe7ecc9230b34be339d2</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/2dd54b7d3753cf3544f8fe7ecc9230b34be339d2"/>
+    <title>
+        datree 1.2.2
+    </title>
+    <updated>2022-04-12T08:13:05Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1589480?s=30&amp;u=d55ba445072da72e816348cc5b87be1148ba60a9&amp;v=4"/>
+    <author>
+      <name>BrewTestBot</name>
+      <uri>https://github.com/BrewTestBot</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;datree 1.2.2
+
+Closes #99092.
+
+Signed-off-by: Sean Molenaar &amp;lt;1484494+SMillerDev@users.noreply.github.com&amp;gt;
+Signed-off-by: BrewTestBot &amp;lt;1589480+BrewTestBot@users.noreply.github.com&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/458ac793e302c838ea7b89a0e52d8dd81a5f4e3c</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/458ac793e302c838ea7b89a0e52d8dd81a5f4e3c"/>
+    <title>
+        wasmtime: update 0.35.3 bottle.
+    </title>
+    <updated>2022-04-12T08:12:12Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1589480?s=30&amp;u=d55ba445072da72e816348cc5b87be1148ba60a9&amp;v=4"/>
+    <author>
+      <name>BrewTestBot</name>
+      <uri>https://github.com/BrewTestBot</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;wasmtime: update 0.35.3 bottle.&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/9c5b53e225d051dfcbd0b25754d06dfbf2b9a178</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/9c5b53e225d051dfcbd0b25754d06dfbf2b9a178"/>
+    <title>
+        wasmtime 0.35.3
+    </title>
+    <updated>2022-04-12T08:12:12Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1589480?s=30&amp;u=d55ba445072da72e816348cc5b87be1148ba60a9&amp;v=4"/>
+    <author>
+      <name>BrewTestBot</name>
+      <uri>https://github.com/BrewTestBot</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;wasmtime 0.35.3
+
+Closes #99100.
+
+Signed-off-by: Sean Molenaar &amp;lt;1484494+SMillerDev@users.noreply.github.com&amp;gt;
+Signed-off-by: BrewTestBot &amp;lt;1589480+BrewTestBot@users.noreply.github.com&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/8d8d0937f3eb33024ff2ae469f04bd37704bc147</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/8d8d0937f3eb33024ff2ae469f04bd37704bc147"/>
+    <title>
+        mill: update 0.10.3 bottle.
+    </title>
+    <updated>2022-04-12T08:12:02Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1589480?s=30&amp;u=d55ba445072da72e816348cc5b87be1148ba60a9&amp;v=4"/>
+    <author>
+      <name>BrewTestBot</name>
+      <uri>https://github.com/BrewTestBot</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;mill: update 0.10.3 bottle.&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/5059ec529735ebce540535ec0a2c15a3a83b5b04</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/5059ec529735ebce540535ec0a2c15a3a83b5b04"/>
+    <title>
+        mill 0.10.3
+    </title>
+    <updated>2022-04-12T08:12:01Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1589480?s=30&amp;u=d55ba445072da72e816348cc5b87be1148ba60a9&amp;v=4"/>
+    <author>
+      <name>BrewTestBot</name>
+      <uri>https://github.com/BrewTestBot</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;mill 0.10.3
+
+Closes #99096.
+
+Signed-off-by: Sean Molenaar &amp;lt;1484494+SMillerDev@users.noreply.github.com&amp;gt;
+Signed-off-by: BrewTestBot &amp;lt;1589480+BrewTestBot@users.noreply.github.com&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/0e2d1f8cb49e18eef0d8f57b54e2fd00331395d2</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/0e2d1f8cb49e18eef0d8f57b54e2fd00331395d2"/>
+    <title>
+        cubejs-cli: update 0.29.46 bottle.
+    </title>
+    <updated>2022-04-12T08:11:33Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1589480?s=30&amp;u=d55ba445072da72e816348cc5b87be1148ba60a9&amp;v=4"/>
+    <author>
+      <name>BrewTestBot</name>
+      <uri>https://github.com/BrewTestBot</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;cubejs-cli: update 0.29.46 bottle.&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/07a6bfc543b2158a62c17a07bab893f30db7bc82</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/07a6bfc543b2158a62c17a07bab893f30db7bc82"/>
+    <title>
+        cubejs-cli 0.29.46
+    </title>
+    <updated>2022-04-12T08:11:32Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1589480?s=30&amp;u=d55ba445072da72e816348cc5b87be1148ba60a9&amp;v=4"/>
+    <author>
+      <name>BrewTestBot</name>
+      <uri>https://github.com/BrewTestBot</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;cubejs-cli 0.29.46
+
+Closes #99091.
+
+Signed-off-by: Sean Molenaar &amp;lt;1484494+SMillerDev@users.noreply.github.com&amp;gt;
+Signed-off-by: BrewTestBot &amp;lt;1589480+BrewTestBot@users.noreply.github.com&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/850f7963099b356da44fb74eba9b3ddd2ecc194f</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/850f7963099b356da44fb74eba9b3ddd2ecc194f"/>
+    <title>
+        glooctl: update 1.11.3 bottle.
+    </title>
+    <updated>2022-04-12T08:11:12Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1589480?s=30&amp;u=d55ba445072da72e816348cc5b87be1148ba60a9&amp;v=4"/>
+    <author>
+      <name>BrewTestBot</name>
+      <uri>https://github.com/BrewTestBot</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;glooctl: update 1.11.3 bottle.&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/3197e1a452233f882b24f542630b9a3ab2edf3e7</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/3197e1a452233f882b24f542630b9a3ab2edf3e7"/>
+    <title>
+        glooctl 1.11.3
+    </title>
+    <updated>2022-04-12T08:11:12Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1589480?s=30&amp;u=d55ba445072da72e816348cc5b87be1148ba60a9&amp;v=4"/>
+    <author>
+      <name>BrewTestBot</name>
+      <uri>https://github.com/BrewTestBot</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;glooctl 1.11.3
+
+Closes #99094.
+
+Signed-off-by: Sean Molenaar &amp;lt;1484494+SMillerDev@users.noreply.github.com&amp;gt;
+Signed-off-by: BrewTestBot &amp;lt;1589480+BrewTestBot@users.noreply.github.com&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/4c6848f609ee609302e56d007f7ca07a54128590</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/4c6848f609ee609302e56d007f7ca07a54128590"/>
+    <title>
+        geckodriver: update 0.31.0 bottle.
+    </title>
+    <updated>2022-04-12T08:11:03Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1589480?s=30&amp;u=d55ba445072da72e816348cc5b87be1148ba60a9&amp;v=4"/>
+    <author>
+      <name>BrewTestBot</name>
+      <uri>https://github.com/BrewTestBot</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;geckodriver: update 0.31.0 bottle.&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/3f5a9fd2b73e830e49d879ec70e8166c0bd14f12</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/3f5a9fd2b73e830e49d879ec70e8166c0bd14f12"/>
+    <title>
+        geckodriver 0.31.0
+    </title>
+    <updated>2022-04-12T08:11:03Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1580956?s=30&amp;u=20958539fe51538f375a7ce29aa6cca78ec5fc6d&amp;v=4"/>
+    <author>
+      <name>chenrui333</name>
+      <uri>https://github.com/chenrui333</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;geckodriver 0.31.0
+
+Closes #99077.
+
+Signed-off-by: Rui Chen &amp;lt;rui@chenrui.dev&amp;gt;
+Signed-off-by: Sean Molenaar &amp;lt;1484494+SMillerDev@users.noreply.github.com&amp;gt;
+Signed-off-by: BrewTestBot &amp;lt;1589480+BrewTestBot@users.noreply.github.com&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/58ac19e26f2fac866fbe066f08e4a6effd709f94</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/58ac19e26f2fac866fbe066f08e4a6effd709f94"/>
+    <title>
+        xmrig: update 6.17.0 bottle.
+    </title>
+    <updated>2022-04-12T08:10:57Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1589480?s=30&amp;u=d55ba445072da72e816348cc5b87be1148ba60a9&amp;v=4"/>
+    <author>
+      <name>BrewTestBot</name>
+      <uri>https://github.com/BrewTestBot</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;xmrig: update 6.17.0 bottle.&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/d73012f3d84d998ca34e5e1654c04ed58a8dd8df</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/d73012f3d84d998ca34e5e1654c04ed58a8dd8df"/>
+    <title>
+        xmrig 6.17.0
+    </title>
+    <updated>2022-04-12T08:10:57Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/50755746?s=30&amp;v=4"/>
+    <author>
+      <name>JacksonChen666</name>
+      <uri>https://github.com/JacksonChen666</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;xmrig 6.17.0
+
+Closes #99102.
+
+Signed-off-by: Sean Molenaar &amp;lt;1484494+SMillerDev@users.noreply.github.com&amp;gt;
+Signed-off-by: BrewTestBot &amp;lt;1589480+BrewTestBot@users.noreply.github.com&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/d61aab9bcab4524cf63cbb41b5756ab230cc21b6</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/d61aab9bcab4524cf63cbb41b5756ab230cc21b6"/>
+    <title>
+        jql: update 4.0.0 bottle.
+    </title>
+    <updated>2022-04-12T08:10:52Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1589480?s=30&amp;u=d55ba445072da72e816348cc5b87be1148ba60a9&amp;v=4"/>
+    <author>
+      <name>BrewTestBot</name>
+      <uri>https://github.com/BrewTestBot</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;jql: update 4.0.0 bottle.&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/0325eaddbed10521478c270985ea0e30afaa3ba1</id>
+    <link type="text/html" rel="alternate" href="https://github.com/Homebrew/homebrew-core/commit/0325eaddbed10521478c270985ea0e30afaa3ba1"/>
+    <title>
+        jql 4.0.0
+    </title>
+    <updated>2022-04-12T08:10:52Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1589480?s=30&amp;u=d55ba445072da72e816348cc5b87be1148ba60a9&amp;v=4"/>
+    <author>
+      <name>BrewTestBot</name>
+      <uri>https://github.com/BrewTestBot</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;jql 4.0.0
+
+Closes #99095.
+
+Signed-off-by: Sean Molenaar &amp;lt;1484494+SMillerDev@users.noreply.github.com&amp;gt;
+Signed-off-by: BrewTestBot &amp;lt;1589480+BrewTestBot@users.noreply.github.com&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+</feed>

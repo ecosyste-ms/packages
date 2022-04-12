@@ -13,7 +13,8 @@ default_registries = [
   {name: 'rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems', github: 'rubygems'},
   {name: 'spack.io', url: 'https://spack.github.io', ecosystem: 'spack', github: 'spack'},
   {name: 'hackage.haskell.org', url: 'https://hackage.haskell.org', ecosystem: 'hackage', github: 'haskell'},
-  {name: 'cran.r-project.org', url: 'https://cran.r-project.org', ecosystem: 'cran', github: 'r-project-org'}
+  {name: 'cran.r-project.org', url: 'https://cran.r-project.org', ecosystem: 'cran', github: 'r-project-org'},
+  {name: 'formulae.brew.sh', url: 'http://formulae.brew.sh', ecosystem: 'homebrew', github: 'homebrew'}
 ]
 
 default_registries.each do |registry|
