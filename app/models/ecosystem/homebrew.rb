@@ -21,10 +21,15 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
-      get("https://formulae.brew.sh/api/formula/#{name}.json")
+      begin
+        get("https://formulae.brew.sh/api/formula/#{name}.json")
+      rescue
+        {}
+      end
     end
 
     def map_package_metadata(package)
+      return false unless package.present?
       {
         name: package["name"],
         description: package["desc"],
