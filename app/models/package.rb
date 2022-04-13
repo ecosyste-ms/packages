@@ -21,16 +21,12 @@ class Package < ApplicationRecord
     versions.sort.first
   end
 
-  def latest_release
-    latest_version
-  end
-
   def set_latest_release_published_at
-    self.latest_release_published_at = (latest_release.try(:published_at).presence || updated_at)
+    self.latest_release_published_at = (latest_version.try(:published_at).presence || updated_at)
   end
 
   def set_latest_release_number
-    self.latest_release_number = latest_release.try(:number)
+    self.latest_release_number = latest_version.try(:number)
   end
 
   def normalize_licenses
