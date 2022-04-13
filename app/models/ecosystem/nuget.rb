@@ -119,7 +119,7 @@ module Ecosystem
           requirements: dep[:requirements],
           kind: "runtime",
           optional: false,
-          ecosystem: self.class.name.demodulize,
+          ecosystem: self.class.name.demodulize.downcase,
         }
       end
     end

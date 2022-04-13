@@ -80,7 +80,7 @@ module Ecosystem
           package_name: k,
           requirements: v.join(' ').presence || '*',
           kind: kind,
-          ecosystem: self.class.name.demodulize,
+          ecosystem: self.class.name.demodulize.downcase,
         }
       end
     end

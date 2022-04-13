@@ -121,10 +121,10 @@ class CpanTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('Dpkg', 'v1.21.5', nil)
     
     assert_equal dependencies_metadata, [
-      {:package_name=>"Test-More", :requirements=>"0", :kind=>"test", :ecosystem=>"Cpan"},
-      {:package_name=>"TAP-Harness", :requirements=>"0", :kind=>"test", :ecosystem=>"Cpan"},
-      {:package_name=>"Module-Build", :requirements=>"0.4004", :kind=>"configure", :ecosystem=>"Cpan"},
-      {:package_name=>"perl", :requirements=>"v5.28.1", :kind=>"runtime", :ecosystem=>"Cpan"}
+      {:package_name=>"Test-More", :requirements=>"0", :kind=>"test", :ecosystem=>"cpan"},
+      {:package_name=>"TAP-Harness", :requirements=>"0", :kind=>"test", :ecosystem=>"cpan"},
+      {:package_name=>"Module-Build", :requirements=>"0.4004", :kind=>"configure", :ecosystem=>"cpan"},
+      {:package_name=>"perl", :requirements=>"v5.28.1", :kind=>"runtime", :ecosystem=>"cpan"}
     ]
   end
 end

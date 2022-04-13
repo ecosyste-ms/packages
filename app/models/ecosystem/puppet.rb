@@ -50,7 +50,7 @@ module Ecosystem
           package_name: dependency["name"].sub("/", "-"),
           requirements: dependency["version_requirement"],
           kind: "runtime",
-          ecosystem: self.class.name.demodulize,
+          ecosystem: self.class.name.demodulize.downcase,
         }
       end
     end

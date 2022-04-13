@@ -73,7 +73,7 @@ module Ecosystem
           requirements: v["requirement"],
           kind: "runtime",
           optional: v["optional"],
-          ecosystem: self.class.name.demodulize,
+          ecosystem: self.class.name.demodulize.downcase,
         }
       end
     end

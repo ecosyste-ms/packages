@@ -111,8 +111,8 @@ class PuppetTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('puppet-fail2ban', '4.1.0', package_metadata)
 
     assert_equal dependencies_metadata, [
-      {:package_name=>"puppet-extlib", :requirements=>">= 3.0.0 < 7.0.0", :kind=>"runtime", :ecosystem=>"Puppet"},
-      {:package_name=>"puppetlabs-stdlib", :requirements=>">= 4.25.0 < 9.0.0", :kind=>"runtime", :ecosystem=>"Puppet"}
+      {:package_name=>"puppet-extlib", :requirements=>">= 3.0.0 < 7.0.0", :kind=>"runtime", :ecosystem=>"puppet"},
+      {:package_name=>"puppetlabs-stdlib", :requirements=>">= 4.25.0 < 9.0.0", :kind=>"runtime", :ecosystem=>"puppet"}
     ]
   end
 end

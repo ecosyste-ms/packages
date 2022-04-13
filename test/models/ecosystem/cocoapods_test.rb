@@ -2,9 +2,9 @@ require "test_helper"
 
 class CocoapodsTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'Cocoapod.org', url: 'https://cocoapods.org', ecosystem: 'Cocoapods')
+    @registry = Registry.new(name: 'Cocoapod.org', url: 'https://cocoapods.org', ecosystem: 'cocoapods')
     @ecosystem = Ecosystem::Cocoapods.new(@registry.url)
-    @package = Package.new(ecosystem: 'Cocoapods', name: 'Foo')
+    @package = Package.new(ecosystem: 'cocoapods', name: 'Foo')
     @version = @package.versions.build(number: '0.8.5')
   end
 
@@ -98,10 +98,10 @@ class CocoapodsTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('AppNetworkManager', '1.0.0', {})
     
     assert_equal dependencies_metadata, [
-      {:package_name=>"HandyJSON", :requirements=>"~> 5.0.0", :kind=>"runtime", :ecosystem=>"Cocoapods"},
-      {:package_name=>"Moya/RxSwift", :requirements=>"~> 13.0.1", :kind=>"runtime", :ecosystem=>"Cocoapods"},
-      {:package_name=>"RxSwift", :requirements=>"~>4.5.0", :kind=>"runtime", :ecosystem=>"Cocoapods"},
-      {:package_name=>"RxCocoa", :requirements=>"~>4.5.0", :kind=>"runtime", :ecosystem=>"Cocoapods"}
+      {:package_name=>"HandyJSON", :requirements=>"~> 5.0.0", :kind=>"runtime", :ecosystem=>"cocoapods"},
+      {:package_name=>"Moya/RxSwift", :requirements=>"~> 13.0.1", :kind=>"runtime", :ecosystem=>"cocoapods"},
+      {:package_name=>"RxSwift", :requirements=>"~>4.5.0", :kind=>"runtime", :ecosystem=>"cocoapods"},
+      {:package_name=>"RxCocoa", :requirements=>"~>4.5.0", :kind=>"runtime", :ecosystem=>"cocoapods"}
     ]
   end
 end

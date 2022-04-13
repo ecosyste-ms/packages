@@ -100,9 +100,9 @@ class NugetTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('OgcApi.Net.SqlServer', '0.3.0', package_metadata)
 
     assert_equal dependencies_metadata, [
-      {:package_name=>"OgcApi.Net", :requirements=>">= 0.3.0", :kind=>"runtime", :optional=>false, :ecosystem=>"Nuget"},
-      {:package_name=>"Microsoft.Data.SqlClient", :requirements=>">= 3.0.1", :kind=>"runtime", :optional=>false, :ecosystem=>"Nuget"},
-      {:package_name=>"NetTopologySuite.IO.SqlServerBytes", :requirements=>">= 2.0.0", :kind=>"runtime", :optional=>false, :ecosystem=>"Nuget"}
+      {:package_name=>"OgcApi.Net", :requirements=>">= 0.3.0", :kind=>"runtime", :optional=>false, :ecosystem=>"nuget"},
+      {:package_name=>"Microsoft.Data.SqlClient", :requirements=>">= 3.0.1", :kind=>"runtime", :optional=>false, :ecosystem=>"nuget"},
+      {:package_name=>"NetTopologySuite.IO.SqlServerBytes", :requirements=>">= 2.0.0", :kind=>"runtime", :optional=>false, :ecosystem=>"nuget"}
     ]
   end
 end

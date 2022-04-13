@@ -93,8 +93,8 @@ class HomebrewTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('abook', '0.6.1', package_metadata)
 
     assert_equal dependencies_metadata, [
-      {:package_name=>"gettext", :requirements=>"*", :kind=>"runtime", :ecosystem=>"Homebrew"},
-      {:package_name=>"readline", :requirements=>"*", :kind=>"runtime", :ecosystem=>"Homebrew"}
+      {:package_name=>"gettext", :requirements=>"*", :kind=>"runtime", :ecosystem=>"homebrew"},
+      {:package_name=>"readline", :requirements=>"*", :kind=>"runtime", :ecosystem=>"homebrew"}
     ]
   end
 end

@@ -110,7 +110,7 @@ class NpmTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('base62', '2.0.0', package_metadata)
 
     assert_equal dependencies_metadata, [
-      {:package_name=>"mocha", :requirements=>"~5.1.0", :kind=>"Development", :optional=>false, :ecosystem=>"Npm"}
+      {:package_name=>"mocha", :requirements=>"~5.1.0", :kind=>"Development", :optional=>false, :ecosystem=>"npm"}
     ]
   end
 end

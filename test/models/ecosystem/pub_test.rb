@@ -96,10 +96,10 @@ class PubTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('bloc', '8.0.3', package_metadata)
     
     assert_equal dependencies_metadata, [
-      {:package_name=>"meta", :requirements=>"^1.3.0", :kind=>"runtime", :optional=>false, :ecosystem=>"Pub"},
-      {:package_name=>"mocktail", :requirements=>"^0.2.0", :kind=>"Development", :optional=>false, :ecosystem=>"Pub"},
-      {:package_name=>"stream_transform", :requirements=>"^2.0.0", :kind=>"Development", :optional=>false, :ecosystem=>"Pub"},
-      {:package_name=>"test", :requirements=>"^1.18.2", :kind=>"Development", :optional=>false, :ecosystem=>"Pub"}
+      {:package_name=>"meta", :requirements=>"^1.3.0", :kind=>"runtime", :optional=>false, :ecosystem=>"pub"},
+      {:package_name=>"mocktail", :requirements=>"^0.2.0", :kind=>"Development", :optional=>false, :ecosystem=>"pub"},
+      {:package_name=>"stream_transform", :requirements=>"^2.0.0", :kind=>"Development", :optional=>false, :ecosystem=>"pub"},
+      {:package_name=>"test", :requirements=>"^1.18.2", :kind=>"Development", :optional=>false, :ecosystem=>"pub"}
     ]
   end
 end

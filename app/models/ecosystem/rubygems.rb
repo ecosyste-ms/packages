@@ -78,7 +78,7 @@ module Ecosystem
           package_name: dep["name"],
           requirements: dep["requirements"],
           kind: kind,
-          ecosystem: self.class.name.demodulize,
+          ecosystem: self.class.name.demodulize.downcase,
         }
       end
     end

@@ -56,7 +56,7 @@ module Ecosystem
           package_name: dependency,
           requirements: "*",
           kind: "runtime",
-          ecosystem: self.class.name.demodulize,
+          ecosystem: self.class.name.demodulize.downcase,
         }
       end
     end

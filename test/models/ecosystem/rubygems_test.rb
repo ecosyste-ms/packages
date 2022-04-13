@@ -96,8 +96,8 @@ class RubygemsTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('rubystats', '0.3.0', nil)
     
     assert_equal dependencies_metadata, [
-      {:package_name=>"hoe", :requirements=>">= 1.7.0", :kind=>"Development", :ecosystem=>"Rubygems"},
-      {:package_name=>"minitest", :requirements=>"< 5.0, >= 4.2", :kind=>"Development", :ecosystem=>"Rubygems"}
+      {:package_name=>"hoe", :requirements=>">= 1.7.0", :kind=>"Development", :ecosystem=>"rubygems"},
+      {:package_name=>"minitest", :requirements=>"< 5.0, >= 4.2", :kind=>"Development", :ecosystem=>"rubygems"}
     ]
   end
 end

@@ -100,14 +100,14 @@ class CranTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('AssetAllocation', '0.1.0', nil)
 
     assert_equal dependencies_metadata, [
-      {:package_name=>"R", :requirements=>">= 2.10", :kind=>"depends", :ecosystem=>"Cran"},
-      {:package_name=>"PerformanceAnalytics", :requirements=>"*", :kind=>"imports", :ecosystem=>"Cran"},
-      {:package_name=>"quantmod", :requirements=>"*", :kind=>"imports", :ecosystem=>"Cran"},
-      {:package_name=>"xts", :requirements=>"*", :kind=>"imports", :ecosystem=>"Cran"},
-      {:package_name=>"zoo", :requirements=>"*", :kind=>"imports", :ecosystem=>"Cran"},
-      {:package_name=>"knitr", :requirements=>"*", :kind=>"suggests", :ecosystem=>"Cran"},
-      {:package_name=>"rmarkdown", :requirements=>"*", :kind=>"suggests", :ecosystem=>"Cran"},
-      {:package_name=>"testthat", :requirements=>">= 3.0.0", :kind=>"suggests", :ecosystem=>"Cran"}
+      {:package_name=>"R", :requirements=>">= 2.10", :kind=>"depends", :ecosystem=>"cran"},
+      {:package_name=>"PerformanceAnalytics", :requirements=>"*", :kind=>"imports", :ecosystem=>"cran"},
+      {:package_name=>"quantmod", :requirements=>"*", :kind=>"imports", :ecosystem=>"cran"},
+      {:package_name=>"xts", :requirements=>"*", :kind=>"imports", :ecosystem=>"cran"},
+      {:package_name=>"zoo", :requirements=>"*", :kind=>"imports", :ecosystem=>"cran"},
+      {:package_name=>"knitr", :requirements=>"*", :kind=>"suggests", :ecosystem=>"cran"},
+      {:package_name=>"rmarkdown", :requirements=>"*", :kind=>"suggests", :ecosystem=>"cran"},
+      {:package_name=>"testthat", :requirements=>">= 3.0.0", :kind=>"suggests", :ecosystem=>"cran"}
     ]
   end
 
@@ -119,8 +119,8 @@ class CranTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('ggroups', '2.1.0', nil)
 
     assert_equal dependencies_metadata, [
-      {:package_name=>"doParallel", :requirements=>">= 1.0.14", :kind=>"suggests", :ecosystem=>"Cran"},
-      {:package_name=>"foreach", :requirements=>">= 1.4.4", :kind=>"suggests", :ecosystem=>"Cran"}
+      {:package_name=>"doParallel", :requirements=>">= 1.0.14", :kind=>"suggests", :ecosystem=>"cran"},
+      {:package_name=>"foreach", :requirements=>">= 1.4.4", :kind=>"suggests", :ecosystem=>"cran"}
     ]
   end
 end

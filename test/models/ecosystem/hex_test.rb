@@ -102,7 +102,7 @@ class HexTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('phoenix_copy', '0.1.0', nil)
 
     assert_equal dependencies_metadata, [
-      {:package_name=>"file_system", :requirements=>"~> 0.2", :kind=>"runtime", :optional=>false, :ecosystem=>"Hex"}
+      {:package_name=>"file_system", :requirements=>"~> 0.2", :kind=>"runtime", :optional=>false, :ecosystem=>"hex"}
     ]
   end
 end

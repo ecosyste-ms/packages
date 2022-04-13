@@ -73,7 +73,7 @@ class Registry < ApplicationRecord
     logger.info "Syncing #{name}"
     package_metadata = ecosystem_instance.package_metadata(name)
     return false unless package_metadata
-    package_metadata[:ecosystem] = ecosystem
+    package_metadata[:ecosystem] = ecosystem.downcase
     versions_metadata = ecosystem_instance.versions_metadata(package_metadata)
 
     package = packages.find_or_initialize_by(name: package_metadata[:name])

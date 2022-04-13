@@ -97,6 +97,6 @@ class CargoTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('cargo/dependencies') })
     dependencies_metadata = @ecosystem.dependencies_metadata('parameters_lib', '0.1.0', nil)
     
-    assert_equal dependencies_metadata, [{:package_name=>"regex", :requirements=>"^1.5.0", :kind=>"normal", :optional=>false, :ecosystem=>"Cargo"}]
+    assert_equal dependencies_metadata, [{:package_name=>"regex", :requirements=>"^1.5.0", :kind=>"normal", :optional=>false, :ecosystem=>"cargo"}]
   end
 end
