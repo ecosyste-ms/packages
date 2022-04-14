@@ -8,14 +8,14 @@ class PypiTest < ActiveSupport::TestCase
     @version = @package.versions.build(number: '1.26.8')
   end
 
-  test 'package_url' do
-    package_url = @ecosystem.package_url(@package)
-    assert_equal package_url, 'https://pypi.org/package/urllib3/'
+  test 'registry_url' do
+    registry_url = @ecosystem.registry_url(@package)
+    assert_equal registry_url, 'https://pypi.org/package/urllib3/'
   end
 
-  test 'package_url with version' do
-    package_url = @ecosystem.package_url(@package, @version.number)
-    assert_equal package_url, 'https://pypi.org/package/urllib3/1.26.8'
+  test 'registry_url with version' do
+    registry_url = @ecosystem.registry_url(@package, @version.number)
+    assert_equal registry_url, 'https://pypi.org/package/urllib3/1.26.8'
   end
 
   test 'download_url' do

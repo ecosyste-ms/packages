@@ -174,6 +174,12 @@ components:
         updated_at:
           type: string
           format: date-time
+        registry_url:
+          type: string
+        documentation_url:
+          type: string
+        install_command:
+          type: string
         versions_url:
           type: string
     Version:
@@ -188,6 +194,14 @@ components:
           integrity:
             type: string
           status:
+            type: string
+          download_url:
+            type: string
+          registry_url:
+            type: string
+          documentation_url:
+            type: string
+          install_command:
             type: string
           dependencies:
             type: array

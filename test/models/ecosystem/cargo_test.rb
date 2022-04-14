@@ -8,14 +8,14 @@ class CargoTest < ActiveSupport::TestCase
     @version = @package.versions.build(number: '0.8.5')
   end
 
-  test 'package_url' do
-    package_url = @ecosystem.package_url(@package)
-    assert_equal package_url, 'https://crates.io/crates/rand/'
+  test 'registry_url' do
+    registry_url = @ecosystem.registry_url(@package)
+    assert_equal registry_url, 'https://crates.io/crates/rand/'
   end
 
-  test 'package_url with version' do
-    package_url = @ecosystem.package_url(@package, @version.number)
-    assert_equal package_url, 'https://crates.io/crates/rand/0.8.5'
+  test 'registry_url with version' do
+    registry_url = @ecosystem.registry_url(@package, @version.number)
+    assert_equal registry_url, 'https://crates.io/crates/rand/0.8.5'
   end
 
   test 'download_url' do

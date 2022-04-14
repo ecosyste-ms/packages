@@ -8,14 +8,14 @@ class PackagistTest < ActiveSupport::TestCase
     @version = @package.versions.build(number: '3.0.0')
   end
 
-  test 'package_url' do
-    package_url = @ecosystem.package_url(@package)
-    assert_equal package_url, 'https://packagist.org/packages/psr/log#'
+  test 'registry_url' do
+    registry_url = @ecosystem.registry_url(@package)
+    assert_equal registry_url, 'https://packagist.org/packages/psr/log#'
   end
 
-  test 'package_url with version' do
-    package_url = @ecosystem.package_url(@package, @version.number)
-    assert_equal package_url, 'https://packagist.org/packages/psr/log#3.0.0'
+  test 'registry_url with version' do
+    registry_url = @ecosystem.registry_url(@package, @version.number)
+    assert_equal registry_url, 'https://packagist.org/packages/psr/log#3.0.0'
   end
 
   test 'download_url' do

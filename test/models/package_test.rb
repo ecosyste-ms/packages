@@ -15,7 +15,7 @@ class PackageTest < ActiveSupport::TestCase
   end
 
   setup do
-    @registry = Registry.create(name: 'foo.com', url: 'https://foo.com', ecosystem: 'npm')
+    @registry = Registry.create(name: 'rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
     @package = @registry.packages.create(name: 'foo', ecosystem: @registry.ecosystem, licenses: 'mit')
     @version = @package.versions.create(number: '1.0.0', published_at: 1.month.ago)
     @version2 = @package.versions.create(number: '2.0.0', published_at: 1.week.ago)
@@ -46,5 +46,17 @@ class PackageTest < ActiveSupport::TestCase
   test 'set_latest_release_number' do
     @package.set_latest_release_number
     assert_equal @package.latest_release_number, '2.0.0'
+  end
+
+  test 'install_command' do
+    assert_equal @package.install_command, 'gem install foo -s https://rubygems.org'
+  end
+
+  test 'registry_url' do
+    assert_equal @package.registry_url, 'https://rubygems.org/gems/foo'
+  end
+
+  test 'documentation_url' do
+    assert_equal @package.documentation_url, "http://www.rubydoc.info/gems/foo/"
   end
 end

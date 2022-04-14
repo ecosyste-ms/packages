@@ -2,7 +2,7 @@
 
 module Ecosystem
   class Pub < Base
-    def package_url(package, version = nil)
+    def registry_url(package, version = nil)
       "#{@registry_url}/packages/#{package.name}" + (version ? "/versions/#{version}" : "")
     end
 

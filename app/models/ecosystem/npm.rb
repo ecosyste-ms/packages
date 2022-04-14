@@ -2,7 +2,7 @@
 
 module Ecosystem
   class Npm < Base
-    def package_url(package, version = nil)
+    def registry_url(package, version = nil)
       "https://www.npmjs.com/package/#{package.name}" + (version ? "/v/#{version}" : "")
     end
 

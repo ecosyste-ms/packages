@@ -63,7 +63,7 @@ module Ecosystem
       "puppet module install #{db_package.name}" + (version ? " --version #{version}" : "")
     end
 
-    def package_url(db_package, version = nil)
+    def registry_url(db_package, version = nil)
       "https://forge.puppet.com/#{db_package.name.sub('-', '/')}" + (version ? "/#{version}" : "")
     end
 

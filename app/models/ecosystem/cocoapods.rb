@@ -2,8 +2,8 @@
 
 module Ecosystem
   class Cocoapods < Base
-    def package_url(package, _version = nil)
-      "#{registry_url}/pods/#{package.name}"
+    def registry_url(package, _version = nil)
+      "#{@registry_url}/pods/#{package.name}"
     end
 
     def documentation_url(name, version = nil)

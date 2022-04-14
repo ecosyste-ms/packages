@@ -1,6 +1,6 @@
 module Ecosystem
   class Go < Base
-    def package_url(package, version = nil)
+    def registry_url(package, version = nil)
       "https://pkg.go.dev/#{package.name}#{"@#{version}" if version}"
     end
 

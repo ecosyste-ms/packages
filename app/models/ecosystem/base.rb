@@ -34,7 +34,7 @@ module Ecosystem
       to_s.demodulize
     end
 
-    def package_url(_package, _version = nil)
+    def registry_url(_package, _version = nil)
       nil
     end
 
@@ -51,7 +51,7 @@ module Ecosystem
     end
 
     def check_status_url(package)
-      package_url(package)
+      registry_url(package)
     end
 
     def ecosystem_name(ecosystem)

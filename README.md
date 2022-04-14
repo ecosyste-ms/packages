@@ -35,7 +35,7 @@ For other updates, follow the project on Twitter: [@ecosyste_ms](https://twitter
 
 ### Vulnerability disclosure
 
-We support and encourage security research on Ecosyste.ms under the terms of our [vulnerability disclosure policy](docs/VULNERABILITY_DISCLOSURE_POLICY.md).
+We support and encourage security research on Ecosyste.ms under the terms of our [vulnerability disclosure policy](https://github.com/ecosyste-ms/packages/security/policy).
 
 ### Code of Conduct
 

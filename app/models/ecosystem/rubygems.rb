@@ -2,7 +2,7 @@
 
 module Ecosystem
   class Rubygems < Base
-    def package_url(package, version = nil)
+    def registry_url(package, version = nil)
       "#{@registry_url}/gems/#{package.name}" + (version ? "/versions/#{version}" : "")
     end
 

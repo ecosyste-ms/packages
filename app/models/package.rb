@@ -11,6 +11,18 @@ class Package < ApplicationRecord
 
   before_save  :update_details
 
+  def install_command
+    registry.ecosystem_instance.install_command(self)
+  end
+
+  def registry_url
+    registry.ecosystem_instance.registry_url(self)
+  end
+
+  def documentation_url
+    registry.ecosystem_instance.documentation_url(name)
+  end
+
   def update_details
     normalize_licenses
     set_latest_release_published_at
