@@ -2,7 +2,7 @@
 
 module Ecosystem
   class Homebrew < Base
-    def package_url(db_package, _version = nil)
+    def registry_url(db_package, _version = nil)
       "http://formulae.brew.sh/formula/#{db_package.name}"
     end
 

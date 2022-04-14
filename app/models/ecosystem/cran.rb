@@ -2,7 +2,7 @@
 
 module Ecosystem
   class Cran < Base
-    def package_url(package, _version = nil)
+    def registry_url(package, _version = nil)
       "https://cran.r-project.org/package=#{package.name}"
     end
 

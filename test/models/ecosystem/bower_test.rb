@@ -7,14 +7,14 @@ class BowerTest < ActiveSupport::TestCase
     @package = Package.new(ecosystem: 'bower', name: 'bower-angular')
   end
 
-  test 'package_url' do
-    package_url = @ecosystem.package_url(@package)
-    assert_nil package_url
+  test 'registry_url' do
+    registry_url = @ecosystem.registry_url(@package)
+    assert_nil registry_url
   end
 
-  test 'package_url with version' do
-    package_url = @ecosystem.package_url(@package, '1.0.0')
-    assert_nil package_url
+  test 'registry_url with version' do
+    registry_url = @ecosystem.registry_url(@package, '1.0.0')
+    assert_nil registry_url
   end
 
   test 'download_url' do

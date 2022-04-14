@@ -2,7 +2,7 @@
 
 module Ecosystem
   class Spack < Base
-    def package_url(package, version = nil)
+    def registry_url(package, version = nil)
       "#{@registry_url}/packages/package.html?name=#{package.name}"
     end
 

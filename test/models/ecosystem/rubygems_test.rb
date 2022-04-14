@@ -8,14 +8,14 @@ class RubygemsTest < ActiveSupport::TestCase
     @version = @package.versions.build(number: '7.0.0')
   end
 
-  test 'package_url' do
-    package_url = @ecosystem.package_url(@package)
-    assert_equal package_url, 'https://rubygems.org/gems/rails'
+  test 'registry_url' do
+    registry_url = @ecosystem.registry_url(@package)
+    assert_equal registry_url, 'https://rubygems.org/gems/rails'
   end
 
-  test 'package_url with version' do
-    package_url = @ecosystem.package_url(@package, @version.number)
-    assert_equal package_url, 'https://rubygems.org/gems/rails/versions/7.0.0'
+  test 'registry_url with version' do
+    registry_url = @ecosystem.registry_url(@package, @version.number)
+    assert_equal registry_url, 'https://rubygems.org/gems/rails/versions/7.0.0'
   end
 
   test 'download_url' do

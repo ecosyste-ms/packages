@@ -8,14 +8,14 @@ class CpanTest < ActiveSupport::TestCase
     @version = @package.versions.build(number: '1.21.5')
   end
 
-  test 'package_url' do
-    package_url = @ecosystem.package_url(@package)
-    assert_equal package_url, 'https://metacpan.org/dist/Dpkg'
+  test 'registry_url' do
+    registry_url = @ecosystem.registry_url(@package)
+    assert_equal registry_url, 'https://metacpan.org/dist/Dpkg'
   end
 
-  test 'package_url with version' do
-    package_url = @ecosystem.package_url(@package, @version.number)
-    assert_equal package_url, 'https://metacpan.org/dist/Dpkg'
+  test 'registry_url with version' do
+    registry_url = @ecosystem.registry_url(@package, @version.number)
+    assert_equal registry_url, 'https://metacpan.org/dist/Dpkg'
   end
 
   test 'download_url' do

@@ -2,7 +2,7 @@
 
 module Ecosystem
   class Nuget < Base
-    def package_url(package, version = nil)
+    def registry_url(package, version = nil)
       "#{@registry_url}/packages/#{package.name}/#{version}"
     end
 

@@ -2,7 +2,7 @@
 
 module Ecosystem
   class Pypi < Base
-    def package_url(package, version = nil)
+    def registry_url(package, version = nil)
       "#{@registry_url}/package/#{package.name}/#{version}"
     end
 
@@ -46,8 +46,8 @@ module Ecosystem
         keywords_array: Array.wrap(package["info"]["keywords"].try(:split, /[\s.,]+/)),
         licenses: licenses(package),
         repository_url: repo_fallback(
-          package.dig("info", "package_urls", "Source").presence || package.dig("info", "package_urls", "Source Code"),
-          package["info"]["home_page"].presence || package.dig("info", "package_urls", "Homepage")
+          package.dig("info", "registry_urls", "Source").presence || package.dig("info", "registry_urls", "Source Code"),
+          package["info"]["home_page"].presence || package.dig("info", "registry_urls", "Homepage")
         ),
         releases: package['releases']
       }

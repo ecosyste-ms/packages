@@ -2,7 +2,7 @@
 
 module Ecosystem
   class Cpan < Base
-    def package_url(package, _version = nil)
+    def registry_url(package, _version = nil)
       "https://metacpan.org/dist/#{package.name}"
     end
 
