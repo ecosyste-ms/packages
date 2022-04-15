@@ -37,6 +37,16 @@ paths:
             type: string
           required: true
           description: name of registry
+        - name: page
+          in: query
+          description: pagination page number 
+          required: false
+          type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return 
+          required: false
+          type: integer
       responses:
         200:
           description: OK
@@ -55,6 +65,16 @@ paths:
             type: string
           required: true
           description: name of registry
+        - name: page
+          in: query
+          description: pagination page number 
+          required: false
+          type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return 
+          required: false
+          type: integer
       responses:
         200:
           description: OK
@@ -107,6 +127,16 @@ paths:
             type: string
           required: true
           description: name of package
+        - name: page
+          in: query
+          description: pagination page number 
+          required: false
+          type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return 
+          required: false
+          type: integer
       responses:
         200:
           description: OK
