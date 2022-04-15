@@ -17,6 +17,17 @@ paths:
     get:
       summary: list registies
       operationId: getRegistries
+      parameters:
+        - name: page
+          in: query
+          description: pagination page number 
+          required: false
+          type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return 
+          required: false
+          type: integer
       responses:
         200:
           description: OK
