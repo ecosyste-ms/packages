@@ -23,6 +23,11 @@ class NpmTest < ActiveSupport::TestCase
     assert_equal download_url, "https://registry.npmjs.org/base62/-/base62-2.0.1.tgz"
   end
 
+  test 'download_url for namespaced packages' do
+    download_url = @ecosystem.download_url('@digital-boss/n8n-nodes-mollie', '0.2.0')
+    assert_equal download_url, "https://registry.npmjs.org/@digital-boss/n8n-nodes-mollie/-/n8n-nodes-mollie-0.2.0.tgz"
+  end
+
   test 'documentation_url' do
     documentation_url = @ecosystem.documentation_url(@package.name)
     assert_nil documentation_url
