@@ -90,8 +90,14 @@ module Ecosystem
           number: k,
           published_at: package.fetch(:time, {}).fetch(k, nil),
           licenses: license,
+          integrity: integrity(v)
         }
       end
+    end
+
+    def integrity(version)
+      dist = version.fetch("dist", {})
+      dist.fetch("integrity", nil) || "sha1-"+dist.fetch("shasum", nil)
     end
 
     def dependencies_metadata(_name, version, package)

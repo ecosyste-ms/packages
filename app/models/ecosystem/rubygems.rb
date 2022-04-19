@@ -57,6 +57,7 @@ module Ecosystem
           number: v["number"],
           published_at: v["created_at"],
           licenses: v.fetch("licenses", []).try(:join, ","),
+          integrity: "sha256-" + v["sha"]
         }
       end
     rescue StandardError
