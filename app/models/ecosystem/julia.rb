@@ -3,8 +3,23 @@
 module Ecosystem
   class Julia < Base
     def package_url(package, version = nil)
-      # package hash = 'nfu7T'
-      "https://juliahub.com/ui/Packages/#{package.name}/#{}/#{version}"
+      "https://juliahub.com/ui/Packages/#{package.name}/#{package.metadata['slug']}/#{version}"
+    end
+
+    def check_status_url(package)
+      "https://juliahub.com/ui/Packages/#{package.name}/#{package.metadata['slug']}"
+    end
+
+    def documentation_url(package, version = nil)
+      "https://docs.juliahub.com/#{package.name}/#{package.metadata['slug']}/#{version}"
+    end
+
+    def install_command(package, version = nil)
+      if version
+        "Pkg.add(Pkg.PackageSpec(;name=\"#{package.name}\", version=\"#{version}\"))"
+      else
+        "Pkg.add(\"#{package.name}\")"
+      end
     end
 
     def packages
@@ -22,24 +37,26 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
-      versions = `ls METADATA.jl/#{name}/versions`.split("\n").sort
-      repository_url = `cat METADATA.jl/#{name}/url`
+      packages.find{|pkg| pkg['name'] == name}
+    end
+
+    def map_package_metadata(package)
       {
-        name: name,
-        versions: versions,
-        repository_url: repository_url,
+        name: package['name'],
+        description: package['metadata']['description'],
+        repository_url: package['metadata']['repo'],
+        keywords_array: package['metadata']['tags'],
+        versions: package['metadata']['versions'],
+        licenses: package['license'],
+        metadata: {
+          uuid: package['uuid'],
+          slug: package['metadata']['docslink'].split('/')[2]
+        }
       }
     end
 
-    def map_package_metadata(raw_package)
-      {
-        name: raw_package[:name],
-        repository_url: repo_fallback(raw_package[:repository_url], ""),
-      }
-    end
-
-    def versions_metadata(raw_package, _name)
-      raw_package["versions"].map do |v|
+    def versions_metadata(package)
+      package[:versions].map do |v|
         {
           number: v,
         }
