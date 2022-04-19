@@ -56,9 +56,11 @@ module Ecosystem
 
     def versions_metadata(package)
       package[:releases].map do |version|
+        vers = get("#{@registry_url}/api/packages/#{package[:name]}/releases/#{version["version"]}")
         {
           number: version["version"],
           published_at: version["inserted_at"],
+          integrity: "sha256-" + vers['checksum']
         }
       end
     end
