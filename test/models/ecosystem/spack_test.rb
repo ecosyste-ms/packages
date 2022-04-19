@@ -78,7 +78,11 @@ class SpackTest < ActiveSupport::TestCase
     package_metadata = @ecosystem.package_metadata('3proxy')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
-    assert_equal versions_metadata, [{:number=>"0.8.13"}, {:number=>"0.8.12"}, {:number=>"0.8.11"}]
+    assert_equal versions_metadata, [
+      {:number=>"0.8.13", :integrity=>"sha256-a6d3cf9dd264315fa6ec848f6fe6c9057db005ce4ca8ed1deb00f6e1c3900f88"},
+      {:number=>"0.8.12", :integrity=>"sha256-c2ad3798b4f0df06cfcc7b49f658304e451d60e4834e2705ef83ddb85a03f849"},
+      {:number=>"0.8.11", :integrity=>"sha256-fc4295e1a462baa61977fcc21747db7861c4e3d0dcca86cbaa3e06017e5c66c9"}
+    ]
   end
 
   test 'dependencies_metadata' do

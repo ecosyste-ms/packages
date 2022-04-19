@@ -42,6 +42,7 @@ module Ecosystem
       package[:versions].map do |v|
         {
           number: v["name"],
+          integrity: "sha256-" + v['sha256']
         }
       end
     rescue StandardError
