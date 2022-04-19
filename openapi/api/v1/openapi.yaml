@@ -223,6 +223,8 @@ components:
           type: string
         versions_url:
           type: string
+        metadata:
+          type: object
     Version:
       type: object
       properties:
