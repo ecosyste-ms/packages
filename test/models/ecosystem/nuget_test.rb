@@ -4,23 +4,23 @@ class NugetTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'NuGet.org', url: 'https://www.nuget.org', ecosystem: 'nuget')
     @ecosystem = Ecosystem::Nuget.new(@registry.url)
-    @package = Package.new(ecosystem: 'nuget', name: 'urllib3')
-    @version = @package.versions.build(number: '1.26.8')
+    @package = Package.new(ecosystem: 'nuget', name: 'ogcapi.net.sqlserver')
+    @version = @package.versions.build(number: '0.3.1')
   end
 
   test 'registry_url' do
     registry_url = @ecosystem.registry_url(@package)
-    assert_equal registry_url, 'https://www.nuget.org/packages/urllib3/'
+    assert_equal registry_url, 'https://www.nuget.org/packages/ogcapi.net.sqlserver/'
   end
 
   test 'registry_url with version' do
     registry_url = @ecosystem.registry_url(@package, @version.number)
-    assert_equal registry_url, 'https://www.nuget.org/packages/urllib3/1.26.8'
+    assert_equal registry_url, 'https://www.nuget.org/packages/ogcapi.net.sqlserver/0.3.1'
   end
 
   test 'download_url' do
     download_url = @ecosystem.download_url(@package.name, @version.number)
-    assert_equal download_url, 'https://www.nuget.org/api/v2/package/urllib3/1.26.8'
+    assert_equal download_url, 'https://api.nuget.org/v3-flatcontainer/ogcapi.net.sqlserver/0.3.1/ogcapi.net.sqlserver.0.3.1.nupkg'
   end
 
   test 'documentation_url' do
@@ -35,17 +35,17 @@ class NugetTest < ActiveSupport::TestCase
 
   test 'install_command' do
     install_command = @ecosystem.install_command(@package)
-    assert_equal install_command, 'Install-Package urllib3'
+    assert_equal install_command, 'Install-Package ogcapi.net.sqlserver'
   end
 
   test 'install_command with version' do
     install_command = @ecosystem.install_command(@package, @version.number)
-    assert_equal install_command, 'Install-Package urllib3 -Version 1.26.8'
+    assert_equal install_command, 'Install-Package ogcapi.net.sqlserver -Version 0.3.1'
   end
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "https://www.nuget.org/packages/urllib3/"
+    assert_equal check_status_url, "https://www.nuget.org/packages/ogcapi.net.sqlserver/"
   end
 
   test 'all_package_names' do
