@@ -47,11 +47,12 @@ module Ecosystem
     end
 
     def versions_metadata(package)
-      versions = get("https://fastapi.metacpan.org/v1/release/_search?q=distribution:#{package[:name]}&size=5000&fields=version,date")["hits"]["hits"]
+      versions = get("https://fastapi.metacpan.org/v1/release/_search?q=distribution:#{package[:name]}&size=5000")["hits"]["hits"]
       versions.map do |version|
         {
-          number: version["fields"]["version"],
-          published_at: version["fields"]["date"],
+          number: version["_source"]["version"],
+          published_at: version["_source"]["date"],
+          integrity: "sha256-"+version["_source"]['checksum_sha256']
         }
       end
     end
