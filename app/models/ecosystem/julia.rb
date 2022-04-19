@@ -2,7 +2,7 @@
 
 module Ecosystem
   class Julia < Base
-    def package_url(package, version = nil)
+    def registry_url(package, version = nil)
       "https://juliahub.com/ui/Packages/#{package.name}/#{package.metadata['slug']}/#{version}"
     end
 

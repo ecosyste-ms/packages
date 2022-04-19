@@ -8,14 +8,14 @@ class JuliaTest < ActiveSupport::TestCase
     @version = @package.versions.build(number: '0.0.4')
   end
 
-  test 'package_url' do
-    package_url = @ecosystem.package_url(@package)
-    assert_equal package_url, 'https://juliahub.com/ui/Packages/Inequality/xDAp7/'
+  test 'registry_url' do
+    registry_url = @ecosystem.registry_url(@package)
+    assert_equal registry_url, 'https://juliahub.com/ui/Packages/Inequality/xDAp7/'
   end
 
-  test 'package_url with version' do
-    package_url = @ecosystem.package_url(@package, @version.number)
-    assert_equal package_url, 'https://juliahub.com/ui/Packages/Inequality/xDAp7/0.0.4'
+  test 'registry_url with version' do
+    registry_url = @ecosystem.registry_url(@package, @version.number)
+    assert_equal registry_url, 'https://juliahub.com/ui/Packages/Inequality/xDAp7/0.0.4'
   end
 
   test 'download_url' do
