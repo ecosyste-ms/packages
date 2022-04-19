@@ -59,6 +59,7 @@ module Ecosystem
         {
           number: k,
           published_at: v[0]["upload_time"],
+          integrity: 'sha256-' + v[0]['digests']['sha256']
           # licenses: release.dig("info", "license"),
         }
       end

@@ -86,7 +86,7 @@ class PypiTest < ActiveSupport::TestCase
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
-      {:number=>"0.1.2.32", :published_at=>"2019-11-05T15:06:04"}
+      {:number=>"0.1.2.32", :published_at=>"2019-11-05T15:06:04", :integrity=>"sha256-29ffb8f9b1d6114757a53a1a713a4e07ce4e1c4c50d31332644593db208f30e7"}
     ]
   end
 
