@@ -24,12 +24,12 @@ class CranTest < ActiveSupport::TestCase
   end
 
   test 'documentation_url' do
-    documentation_url = @ecosystem.documentation_url(@package.name)
+    documentation_url = @ecosystem.documentation_url(@package)
     assert_equal documentation_url, "http://cran.r-project.org/web/packages/pack/pack.pdf"
   end
 
   test 'documentation_url with version' do
-    documentation_url = @ecosystem.documentation_url(@package.name, @version.number)
+    documentation_url = @ecosystem.documentation_url(@package, @version.number)
     assert_equal documentation_url, "http://cran.r-project.org/web/packages/pack/pack.pdf"
   end
 

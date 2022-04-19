@@ -6,8 +6,8 @@ module Ecosystem
       "#{@registry_url}/pods/#{package.name}"
     end
 
-    def documentation_url(name, version = nil)
-      "https://cocoadocs.org/docsets/#{name}/#{version}"
+    def documentation_url(package, version = nil)
+      "https://cocoadocs.org/docsets/#{package.name}/#{version}"
     end
 
     def install_command(package, _version = nil)

@@ -36,6 +36,8 @@ gem 'spdx', '2.0.12'
 gem "semantic"
 gem "semantic_range"
 
+gem "toml-rb"
+
 group :development, :test do
   gem "debug", platforms: %i[ mri mingw x64_mingw ]
 end

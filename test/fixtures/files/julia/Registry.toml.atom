@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xml:lang="en-US">
+  <id>tag:github.com,2008:/JuliaRegistries/General/commits/master/Registry.toml</id>
+  <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commits/master/Registry.toml"/>
+  <link type="application/atom+xml" rel="self" href="https://github.com/JuliaRegistries/General/commits/master/Registry.toml.atom"/>
+  <title>Recent Commits to General:master</title>
+  <updated>2022-04-12T13:02:03Z</updated>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/dc773b588b1290f46c961636b4aeeae64b8f0cfb</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/dc773b588b1290f46c961636b4aeeae64b8f0cfb"/>
+    <title>
+        New package: Collatz v1.0.0 (#58237)
+    </title>
+    <updated>2022-04-12T13:02:03Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/27334172?s=30&amp;u=c8b5d7dc7e8d421a24098ae89ff131ea8c07856e&amp;v=4"/>
+    <author>
+      <name>JuliaRegistrator</name>
+      <uri>https://github.com/JuliaRegistrator</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: Collatz v1.0.0 (#58237)
+
+UUID: 93a6299e-2ed6-4a7f-9f14-000d52f8d402
+Repo: https://github.com/Skenvy/Collatz.git
+Tree: f2ebb33a345e086823cc57ed206e956eb8f1d4d8
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/29c1c3032cb1745ac6ca77a304248b3381639e1d</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/29c1c3032cb1745ac6ca77a304248b3381639e1d"/>
+    <title>
+        New package: Timestream v0.1.0 (#58230)
+    </title>
+    <updated>2022-04-12T10:45:25Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/27334172?s=30&amp;u=c8b5d7dc7e8d421a24098ae89ff131ea8c07856e&amp;v=4"/>
+    <author>
+      <name>JuliaRegistrator</name>
+      <uri>https://github.com/JuliaRegistrator</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: Timestream v0.1.0 (#58230)
+
+UUID: ce82053c-fa70-4f37-af49-87ab44846bd9
+Repo: https://github.com/klangner/Timestream.jl.git
+Tree: 7b2eadb5bcf0aebcedc7563d7233070d1777e7c4
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/8c4c3352efbe0c99abfac2c521b2b2259b21edba</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/8c4c3352efbe0c99abfac2c521b2b2259b21edba"/>
+    <title>
+        New package: UniformIsingModels v0.1.0 (#58180)
+    </title>
+    <updated>2022-04-11T18:50:41Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/27334172?s=30&amp;u=c8b5d7dc7e8d421a24098ae89ff131ea8c07856e&amp;v=4"/>
+    <author>
+      <name>JuliaRegistrator</name>
+      <uri>https://github.com/JuliaRegistrator</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: UniformIsingModels v0.1.0 (#58180)
+
+UUID: 91393fb9-e38b-4a31-9409-aa579b4163ad
+Repo: https://github.com/stecrotti/UniformIsingModels.jl.git
+Tree: 0fd6165762935bef90b56c7c6143dc5c4014add4
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec
+
+Co-authored-by: JuliaHubRegistrator &amp;lt;juliahub-registrator@juliacomputing.com&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/86d67bd393572b49c24de61389c1059ec17d3c2e</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/86d67bd393572b49c24de61389c1059ec17d3c2e"/>
+    <title>
+        New package: GeneDrive v0.1.0 (#58129)
+    </title>
+    <updated>2022-04-10T23:16:07Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/27334172?s=30&amp;u=c8b5d7dc7e8d421a24098ae89ff131ea8c07856e&amp;v=4"/>
+    <author>
+      <name>JuliaRegistrator</name>
+      <uri>https://github.com/JuliaRegistrator</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: GeneDrive v0.1.0 (#58129)
+
+UUID: d9acca20-95e5-11e9-3d4c-3b57da6f4e87
+Repo: https://github.com/vnvasquez/GeneDrive.jl.git
+Tree: cd20234c40189fdfc7e20f2e9a777073abeec0ae
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/ed14ab2daed5c4193599cfa849de600e2cc3b111</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/ed14ab2daed5c4193599cfa849de600e2cc3b111"/>
+    <title>
+        New package: JunctionTrees v0.1.0 (#58037)
+    </title>
+    <updated>2022-04-10T20:25:58Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/27334172?s=30&amp;u=c8b5d7dc7e8d421a24098ae89ff131ea8c07856e&amp;v=4"/>
+    <author>
+      <name>JuliaRegistrator</name>
+      <uri>https://github.com/JuliaRegistrator</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: JunctionTrees v0.1.0 (#58037)
+
+UUID: b732b382-80b5-46a8-aa9c-7d077ae04823
+Repo: https://github.com/mroavi/JunctionTrees.jl.git
+Tree: 5f79b0bab0c921c81538f5168371d6d0abed857b
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec
+
+Co-authored-by: JuliaHubRegistrator &amp;lt;juliahub-registrator@juliacomputing.com&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/9ecea5df637c97d6458456ad6c093ab3bb4f0680</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/9ecea5df637c97d6458456ad6c093ab3bb4f0680"/>
+    <title>
+        New package: RankRevealing v0.1.0 (#58078)
+    </title>
+    <updated>2022-04-10T01:16:36Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/27334172?s=30&amp;u=c8b5d7dc7e8d421a24098ae89ff131ea8c07856e&amp;v=4"/>
+    <author>
+      <name>JuliaRegistrator</name>
+      <uri>https://github.com/JuliaRegistrator</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: RankRevealing v0.1.0 (#58078)
+
+UUID: 56660b65-79ce-4ef5-9ae7-a20c7f920b12
+Repo: https://github.com/iagoleal/RankRevealing.jl.git
+Tree: ba23bacabc46eda138f4ea94bd80ad7cfec0d6ea
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/c8323d579dfbaff30dcd4d9a4e130339a45d31ab</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/c8323d579dfbaff30dcd4d9a4e130339a45d31ab"/>
+    <title>
+        New package: OneDimensionalNodes v0.1.0 (#58074)
+    </title>
+    <updated>2022-04-09T23:30:34Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/27334172?s=30&amp;u=c8b5d7dc7e8d421a24098ae89ff131ea8c07856e&amp;v=4"/>
+    <author>
+      <name>JuliaRegistrator</name>
+      <uri>https://github.com/JuliaRegistrator</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: OneDimensionalNodes v0.1.0 (#58074)
+
+UUID: c5182250-406c-41f5-b9da-836c94d3c2ab
+Repo: https://github.com/lcw/OneDimensionalNodes.jl.git
+Tree: d10166b0a00b76c46f4e2e5d3e5762b4995bd1a2
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/1d64f0d3b5f0a3a8e0ebae0d878e71539e29c861</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/1d64f0d3b5f0a3a8e0ebae0d878e71539e29c861"/>
+    <title>
+        New package: SymmetricProducts v1.0.0 (#58045)
+    </title>
+    <updated>2022-04-09T16:34:11Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/27334172?s=30&amp;u=c8b5d7dc7e8d421a24098ae89ff131ea8c07856e&amp;v=4"/>
+    <author>
+      <name>JuliaRegistrator</name>
+      <uri>https://github.com/JuliaRegistrator</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: SymmetricProducts v1.0.0 (#58045)
+
+UUID: 075c16e0-7ab9-11e8-024b-f7dece19ca2d
+Repo: https://github.com/tpapp/SymmetricProducts.jl.git
+Tree: 515be21a4ba69019c97109e17fb54816d5720bd8
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/0192e90c5b65255cdf153a1ad0da1a2351c1d34e</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/0192e90c5b65255cdf153a1ad0da1a2351c1d34e"/>
+    <title>
+        New package: PreCICE v0.0.1 (#58019)
+    </title>
+    <updated>2022-04-09T09:46:54Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/27334172?s=30&amp;u=c8b5d7dc7e8d421a24098ae89ff131ea8c07856e&amp;v=4"/>
+    <author>
+      <name>JuliaRegistrator</name>
+      <uri>https://github.com/JuliaRegistrator</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: PreCICE v0.0.1 (#58019)
+
+UUID: 57fbd4af-5cc3-4712-aac0-6930e7658184
+Repo: https://github.com/precice/PreCICE.jl.git
+Tree: 75c16778396db7d198b167e3a374531735974abf
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/8075464376aac7a1f73769019f489e02abdd852a</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/8075464376aac7a1f73769019f489e02abdd852a"/>
+    <title>
+        New package: ThreadLocalCounters v0.1.0 (#58003)
+    </title>
+    <updated>2022-04-09T05:47:58Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/27334172?s=30&amp;u=c8b5d7dc7e8d421a24098ae89ff131ea8c07856e&amp;v=4"/>
+    <author>
+      <name>JuliaRegistrator</name>
+      <uri>https://github.com/JuliaRegistrator</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: ThreadLocalCounters v0.1.0 (#58003)
+
+UUID: a69d1b5e-1cd7-4edd-aa26-bee352d56156
+Repo: https://github.com/JuliaConcurrent/ThreadLocalCounters.jl.git
+Tree: e5e8bf03683b1c0d058f840d4e489ac375437861
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/2c6af41c49399da05b1ce2642e52e2ceadb38afe</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/2c6af41c49399da05b1ce2642e52e2ceadb38afe"/>
+    <title>
+        New package: AndTraits v0.1.0 (#57983)
+    </title>
+    <updated>2022-04-08T20:14:42Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/27334172?s=30&amp;u=c8b5d7dc7e8d421a24098ae89ff131ea8c07856e&amp;v=4"/>
+    <author>
+      <name>JuliaRegistrator</name>
+      <uri>https://github.com/JuliaRegistrator</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: AndTraits v0.1.0 (#57983)
+
+UUID: fb24a613-cb95-4ee3-a029-2b7ba7763d4b
+Repo: https://github.com/zenna/AndTraits.jl.git
+Tree: 27dcc4fc1189d57ba0f8e880b8e7c3848f73f057
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec
+
+Co-authored-by: JuliaHubRegistrator &amp;lt;juliahub-registrator@juliacomputing.com&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/2f50658ef67105b8e4962c2996437c311b98f24a</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/2f50658ef67105b8e4962c2996437c311b98f24a"/>
+    <title>
+        New package: SHTns_jll v3.5.1+0 (#58186)
+    </title>
+    <updated>2022-04-08T20:02:47Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/25712555?s=30&amp;u=bf7504c9ac53e7bc666b3b1aa7321fa2065a223c&amp;v=4"/>
+    <author>
+      <name>jlbuild</name>
+      <uri>https://github.com/jlbuild</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: SHTns_jll v3.5.1+0 (#58186)
+
+UUID: daf09cc5-9ab3-509e-9618-0b89086eb825
+Repo: https://github.com/JuliaBinaryWrappers/SHTns_jll.jl.git
+Tree: 81c2f52ab4fd0066472f2656891173abc322d99d
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/cb0e79a25ea7b7c578af536387d2040988dc1b47</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/cb0e79a25ea7b7c578af536387d2040988dc1b47"/>
+    <title>
+        New package: KadanoffBaym v1.0.0 (#57945)
+    </title>
+    <updated>2022-04-08T07:12:12Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/27334172?s=30&amp;u=c8b5d7dc7e8d421a24098ae89ff131ea8c07856e&amp;v=4"/>
+    <author>
+      <name>JuliaRegistrator</name>
+      <uri>https://github.com/JuliaRegistrator</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: KadanoffBaym v1.0.0 (#57945)
+
+UUID: 82532805-809c-4ef0-842b-4b00c5e9be5f
+Repo: https://github.com/NonequilibriumDynamics/KadanoffBaym.jl.git
+Tree: 61918467c401228f37532541ff6dbb7ee173c96b
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/b8492c88fb87fccd4151224c67ad3be29a278f9f</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/b8492c88fb87fccd4151224c67ad3be29a278f9f"/>
+    <title>
+        New package: MimiSNEASY v1.0.2 (#57938)
+    </title>
+    <updated>2022-04-08T00:40:29Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/27334172?s=30&amp;u=c8b5d7dc7e8d421a24098ae89ff131ea8c07856e&amp;v=4"/>
+    <author>
+      <name>JuliaRegistrator</name>
+      <uri>https://github.com/JuliaRegistrator</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: MimiSNEASY v1.0.2 (#57938)
+
+UUID: 3f1801d0-c5f8-11e9-1568-bf13fd643260
+Repo: https://github.com/anthofflab/MimiSNEASY.jl.git
+Tree: e618e8e94f2bcacc334c9006d54700575159e27e
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/c6ebc171e0f82ad829ef99860ce6004964b112a9</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/c6ebc171e0f82ad829ef99860ce6004964b112a9"/>
+    <title>
+        New package: LorentzVectorHEP v0.1.0 (#57929)
+    </title>
+    <updated>2022-04-07T21:33:08Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/27334172?s=30&amp;u=c8b5d7dc7e8d421a24098ae89ff131ea8c07856e&amp;v=4"/>
+    <author>
+      <name>JuliaRegistrator</name>
+      <uri>https://github.com/JuliaRegistrator</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: LorentzVectorHEP v0.1.0 (#57929)
+
+UUID: f612022c-142a-473f-8cfd-a09cf3793c6c
+Repo: https://github.com/JuliaHEP/LorentzVectorHEP.jl.git
+Tree: a0f955a4fbfbc04bce5d9b453b9880e1baf6210f
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/e05888858a7edeabfc706211fb4c5ae4b45907fe</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/e05888858a7edeabfc706211fb4c5ae4b45907fe"/>
+    <title>
+        New package: Gotree_jll v0.4.2+0 (#58124)
+    </title>
+    <updated>2022-04-07T21:09:56Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/25712555?s=30&amp;u=bf7504c9ac53e7bc666b3b1aa7321fa2065a223c&amp;v=4"/>
+    <author>
+      <name>jlbuild</name>
+      <uri>https://github.com/jlbuild</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: Gotree_jll v0.4.2+0 (#58124)
+
+UUID: 39fdd4d3-b125-5cbe-a3fb-d0967b9158ef
+Repo: https://github.com/JuliaBinaryWrappers/Gotree_jll.jl.git
+Tree: c3081cbf4fcb9cbc3bc2912cc7965d41ed19e2a8
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/2d1fcf7c623311d0d471bc85bc1bc18af174dd72</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/2d1fcf7c623311d0d471bc85bc1bc18af174dd72"/>
+    <title>
+        New package: LaMEM_jll v1.1.0+0 (#58039)
+    </title>
+    <updated>2022-04-06T14:43:44Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/25712555?s=30&amp;u=bf7504c9ac53e7bc666b3b1aa7321fa2065a223c&amp;v=4"/>
+    <author>
+      <name>jlbuild</name>
+      <uri>https://github.com/jlbuild</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: LaMEM_jll v1.1.0+0 (#58039)
+
+UUID: 15d6fa20-f789-5486-b71b-22b4ac8eb1c1
+Repo: https://github.com/JuliaBinaryWrappers/LaMEM_jll.jl.git
+Tree: 9ee3600cef17657a27a0052aa0904303e03464be
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/103d0b7caf796090df8aad56451c14e855e22b45</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/103d0b7caf796090df8aad56451c14e855e22b45"/>
+    <title>
+        New package: mdoodz_jll v0.1.0+0 (#58015)
+    </title>
+    <updated>2022-04-06T09:17:50Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/25712555?s=30&amp;u=bf7504c9ac53e7bc666b3b1aa7321fa2065a223c&amp;v=4"/>
+    <author>
+      <name>jlbuild</name>
+      <uri>https://github.com/jlbuild</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: mdoodz_jll v0.1.0+0 (#58015)
+
+UUID: 0a56ae03-39c2-5dea-b057-4d914594188b
+Repo: https://github.com/JuliaBinaryWrappers/mdoodz_jll.jl.git
+Tree: 32b02f09f250b380030d9f123b8ab657f8ee4c1a
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/b4a5f1c7ca14e1662fbf0f19d8387f4077cdf549</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/b4a5f1c7ca14e1662fbf0f19d8387f4077cdf549"/>
+    <title>
+        New package: CXSparse_jll v5.10.1+0 (#57959)
+    </title>
+    <updated>2022-04-05T14:44:23Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/25712555?s=30&amp;u=bf7504c9ac53e7bc666b3b1aa7321fa2065a223c&amp;v=4"/>
+    <author>
+      <name>jlbuild</name>
+      <uri>https://github.com/jlbuild</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: CXSparse_jll v5.10.1+0 (#57959)
+
+UUID: c77e7b6a-7cf9-58ed-a396-e1da12b05d87
+Repo: https://github.com/JuliaBinaryWrappers/CXSparse_jll.jl.git
+Tree: 13fa938556643635c91db04588e96c094a26ea53
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/5348a084d39b4b841329c37e6311f3ccbe01d108</id>
+    <link type="text/html" rel="alternate" href="https://github.com/JuliaRegistries/General/commit/5348a084d39b4b841329c37e6311f3ccbe01d108"/>
+    <title>
+        New package: Inequality v0.0.4 (#57826)
+    </title>
+    <updated>2022-04-05T14:35:32Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/27334172?s=30&amp;u=c8b5d7dc7e8d421a24098ae89ff131ea8c07856e&amp;v=4"/>
+    <author>
+      <name>JuliaRegistrator</name>
+      <uri>https://github.com/JuliaRegistrator</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;New package: Inequality v0.0.4 (#57826)
+
+UUID: 131cd6a8-f02b-4a66-8ce5-0a80ec47b73f
+Repo: https://github.com/JosepER/Inequality.jl.git
+Tree: f68c38282665eae4dd0fadf785792b94e463ff60
+
+Registrator tree SHA: 8e1a5ac2695627143951512d700c7e3c445102ec
+
+Co-authored-by: JuliaHubRegistrator &amp;lt;juliahub-registrator@juliacomputing.com&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+</feed>

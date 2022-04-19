@@ -14,8 +14,8 @@ module Ecosystem
       "#{@registry_url}/api/v1/crates/#{name}/#{version}/download"
     end
 
-    def documentation_url(name, version = nil)
-      "https://docs.rs/#{name}/#{version}"
+    def documentation_url(package, version = nil)
+      "https://docs.rs/#{package.name}/#{version}"
     end
 
     def check_status_url(package)

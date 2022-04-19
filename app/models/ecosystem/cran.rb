@@ -10,8 +10,8 @@ module Ecosystem
       "https://cran.r-project.org/src/contrib/#{name}_#{version}.tar.gz"
     end
 
-    def documentation_url(name, _version = nil)
-      "http://cran.r-project.org/web/packages/#{name}/#{name}.pdf"
+    def documentation_url(package, _version = nil)
+      "http://cran.r-project.org/web/packages/#{package.name}/#{package.name}.pdf"
     end
 
     def check_status_url(package)

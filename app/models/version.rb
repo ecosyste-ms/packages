@@ -20,7 +20,7 @@ class Version < ApplicationRecord
   end
 
   def documentation_url
-    package.registry.ecosystem_instance.documentation_url(package.name, number)
+    package.registry.ecosystem_instance.documentation_url(package, number)
   end
 
   def published_at

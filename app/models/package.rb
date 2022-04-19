@@ -20,7 +20,7 @@ class Package < ApplicationRecord
   end
 
   def documentation_url
-    registry.ecosystem_instance.documentation_url(name)
+    registry.ecosystem_instance.documentation_url(self)
   end
 
   def update_details

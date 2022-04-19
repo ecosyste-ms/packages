@@ -10,8 +10,8 @@ module Ecosystem
       "pip install #{package.name}" + (version ? "==#{version}" : "") + " --index-url #{@registry_url}/simple"
     end
 
-    def documentation_url(name, version = nil)
-      "https://#{name}.readthedocs.io/" + (version ? "en/#{version}" : "")
+    def documentation_url(package, version = nil)
+      "https://#{package.name}.readthedocs.io/" + (version ? "en/#{version}" : "")
     end
 
     def formatted_name
