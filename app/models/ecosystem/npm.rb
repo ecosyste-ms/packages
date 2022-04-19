@@ -7,7 +7,7 @@ module Ecosystem
     end
 
     def download_url(name, version = nil)
-      "#{@registry_url}/#{name}/-/#{name}-#{version}.tgz"
+      "#{@registry_url}/#{name}/-/#{name.split('/').last}-#{version}.tgz"
     end
 
     def install_command(package, version = nil)
