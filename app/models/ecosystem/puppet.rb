@@ -19,25 +19,27 @@ module Ecosystem
       get_json("https://forgeapi.puppetlabs.com/v3/modules/#{name}")
     end
 
-    def map_package_metadata(raw_package)
-      current_release = raw_package["current_release"]
+    def map_package_metadata(package)
+      current_release = package["current_release"]
       metadata = current_release["metadata"]
       {
-        name: raw_package["slug"],
+        name: package["slug"],
         repository_url: metadata["source"],
         homepage: metadata["project_page"],
         description: metadata["summary"],
         keywords_array: current_release["tags"],
         licenses: metadata["license"],
-        releases: raw_package['releases']
+        releases: package['releases']
       }
     end
 
-    def versions_metadata(raw_package)
-      raw_package[:releases].map do |release|
+    def versions_metadata(package)
+      package[:releases].map do |release|
+        version = get_json("https://forgeapi.puppetlabs.com/v3/releases/#{package[:name]}-#{release["version"]}")
         {
           number: release["version"],
           published_at: release["created_at"],
+          integrity: 'sha256-' + version['file_sha256']
         }
       end
     end
