@@ -83,22 +83,16 @@ class PuppetTest < ActiveSupport::TestCase
   test 'versions_metadata' do
     stub_request(:get, "https://forgeapi.puppetlabs.com/v3/modules/puppet-fail2ban")
       .to_return({ status: 200, body: file_fixture('puppet/puppet-fail2ban') })
+    stub_request(:get, "https://forgeapi.puppetlabs.com/v3/releases/puppet-fail2ban-4.1.0")
+      .to_return({ status: 200, body: file_fixture('puppet/puppet-fail2ban-4.1.0') })
+    stub_request(:get, "https://forgeapi.puppetlabs.com/v3/releases/puppet-fail2ban-4.0.0")
+      .to_return({ status: 200, body: file_fixture('puppet/puppet-fail2ban-4.0.0') })
     package_metadata = @ecosystem.package_metadata('puppet-fail2ban')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
-      {:number=>"4.1.0", :published_at=>"2022-04-11 23:14:42 -0700"},
-      {:number=>"4.0.0", :published_at=>"2021-12-13 14:43:26 -0800"},
-      {:number=>"3.3.0", :published_at=>"2020-08-15 12:37:43 -0700"},
-      {:number=>"3.2.0", :published_at=>"2020-05-05 03:09:28 -0700"},
-      {:number=>"3.1.0", :published_at=>"2020-04-22 02:50:51 -0700"},
-      {:number=>"3.0.0", :published_at=>"2020-04-21 04:36:12 -0700"},
-      {:number=>"2.4.1", :published_at=>"2018-10-17 12:31:54 -0700"},
-      {:number=>"2.4.0", :published_at=>"2018-10-17 11:57:20 -0700"},
-      {:number=>"2.3.0", :published_at=>"2018-08-02 01:43:26 -0700"},
-      {:number=>"2.2.0", :published_at=>"2018-05-30 01:48:09 -0700"},
-      {:number=>"2.1.0", :published_at=>"2018-05-12 14:42:46 -0700"},
-      {:number=>"2.0.0", :published_at=>"2018-03-30 11:33:15 -0700"}
+      {:number=>"4.1.0", :published_at=>"2022-04-11 23:14:42 -0700", :integrity=>"sha256-ef58252f5398aeee9c332c99e16ffb75244b2a5a0bf42ca1f0d8f34e06a3a8ee"},
+      {:number=>"4.0.0", :published_at=>"2021-12-13 14:43:26 -0800", :integrity=>"sha256-e1a249468eb4130d3e02afe761084a973048e6f804e93dcf0def27ac8a8efe38"}
     ]
   end
 
