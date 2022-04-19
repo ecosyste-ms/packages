@@ -42,7 +42,7 @@ module Ecosystem
       nil
     end
 
-    def documentation_url(_name, _version = nil)
+    def documentation_url(_package, _version = nil)
       nil
     end
 

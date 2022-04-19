@@ -10,8 +10,8 @@ module Ecosystem
       "#{@registry_url}/downloads/#{name}-#{version}.gem"
     end
 
-    def documentation_url(name, version = nil)
-      "http://www.rubydoc.info/gems/#{name}/#{version}"
+    def documentation_url(package, version = nil)
+      "http://www.rubydoc.info/gems/#{package.name}/#{version}"
     end
 
     def install_command(package, version = nil)

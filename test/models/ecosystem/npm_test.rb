@@ -29,12 +29,12 @@ class NpmTest < ActiveSupport::TestCase
   end
 
   test 'documentation_url' do
-    documentation_url = @ecosystem.documentation_url(@package.name)
+    documentation_url = @ecosystem.documentation_url(@package)
     assert_nil documentation_url
   end
 
   test 'documentation_url with version' do
-    documentation_url = @ecosystem.documentation_url(@package.name, @version.number)
+    documentation_url = @ecosystem.documentation_url(@package, @version.number)
     assert_nil documentation_url
   end
 

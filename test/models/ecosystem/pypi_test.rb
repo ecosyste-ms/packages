@@ -24,12 +24,12 @@ class PypiTest < ActiveSupport::TestCase
   end
 
   test 'documentation_url' do
-    documentation_url = @ecosystem.documentation_url(@package.name)
+    documentation_url = @ecosystem.documentation_url(@package)
     assert_equal documentation_url, 'https://urllib3.readthedocs.io/'
   end
 
   test 'documentation_url with version' do
-    documentation_url = @ecosystem.documentation_url(@package.name, @version.number)
+    documentation_url = @ecosystem.documentation_url(@package, @version.number)
     assert_equal documentation_url, 'https://urllib3.readthedocs.io/en/1.26.8'
   end
 

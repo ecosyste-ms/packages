@@ -10,8 +10,8 @@ module Ecosystem
       "https://repo.hex.pm/tarballs/#{name}-#{version}.tar"
     end
 
-    def documentation_url(name, version = nil)
-      "http://hexdocs.pm/#{name}/#{version}"
+    def documentation_url(package, version = nil)
+      "http://hexdocs.pm/#{package.name}/#{version}"
     end
 
     def install_command(package, version = nil)

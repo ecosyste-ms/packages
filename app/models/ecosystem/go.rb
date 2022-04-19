@@ -4,8 +4,9 @@ module Ecosystem
       "https://pkg.go.dev/#{package.name}#{"@#{version}" if version}"
     end
 
-    def documentation_url(name, version = nil)
-      "https://pkg.go.dev/#{name}#{"@#{version}" if version}#section-documentation"
+    def documentation_url(package, version = nil)
+
+      "https://pkg.go.dev/#{package.name}#{"@#{version}" if version}#section-documentation"
     end
 
     def install_command(package, version = nil)

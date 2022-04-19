@@ -10,8 +10,8 @@ module Ecosystem
       "#{@registry_url}/packages/#{name}/versions/#{version}.tar.gz"
     end
 
-    def documentation_url(name, version = nil)
-      "#{@registry_url}/documentation/#{name}/#{version}"
+    def documentation_url(package, version = nil)
+      "#{@registry_url}/documentation/#{package.name}/#{version}"
     end
 
     def install_command(package, version = nil)

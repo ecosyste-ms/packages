@@ -24,12 +24,12 @@ class CargoTest < ActiveSupport::TestCase
   end
 
   test 'documentation_url' do
-    documentation_url = @ecosystem.documentation_url(@package.name)
+    documentation_url = @ecosystem.documentation_url(@package)
     assert_equal documentation_url, "https://docs.rs/rand/"
   end
 
   test 'documentation_url with version' do
-    documentation_url = @ecosystem.documentation_url(@package.name, @version.number)
+    documentation_url = @ecosystem.documentation_url(@package, @version.number)
     assert_equal documentation_url, "https://docs.rs/rand/0.8.5"
   end
 
