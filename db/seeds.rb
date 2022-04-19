@@ -17,6 +17,7 @@ default_registries = [
   {name: 'formulae.brew.sh', url: 'http://formulae.brew.sh', ecosystem: 'homebrew', github: 'homebrew'},
   {name: 'forge.puppet.com', url: 'https://forge.puppet.com', ecosystem: 'puppet', github: 'puppet'},
   {name: 'juliahub.com', url: 'https://juliahub.com', ecosystem: 'julia', github: 'JuliaRegistries'},
+  {name: 'package.elm-lang.org', url: 'https://package.elm-lang.org', ecosystem: 'elm', github: 'elm'},
 ]
 
 default_registries.each do |registry|

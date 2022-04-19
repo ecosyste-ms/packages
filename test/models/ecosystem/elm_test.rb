@@ -82,8 +82,10 @@ class ElmTest < ActiveSupport::TestCase
   test 'versions_metadata' do
     stub_request(:get, "https://package.elm-lang.org/packages/rtfeldman/count/releases.json")
       .to_return({ status: 200, body: file_fixture('elm/releases.json') })
-    
-    versions_metadata = @ecosystem.versions_metadata({}, 'rtfeldman/count')
+    stub_request(:get, "https://package.elm-lang.org/packages/rtfeldman/count/1.0.1/elm.json")
+      .to_return({ status: 200, body: file_fixture('elm/elm.json') })
+    package_metadata = @ecosystem.package_metadata('rtfeldman/count')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
       {:number=>"1.0.0", :published_at=>"2017-04-15 16:24:16 +0100"},
