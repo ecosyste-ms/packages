@@ -1,0 +1,25 @@
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title">
+      <%= version.number %>
+    </h5>
+    
+    <small class='text-muted'>
+      Published: <%= time_ago_in_words version.published_at %> ago
+      <br/>
+      <% if version.registry_url.present? %>
+        <%= link_to 'Registry', version.registry_url, target: :_blank %> - 
+      <% end %>
+      <% if version.documentation_url.present? %>
+        <%= link_to 'Documentation', version.documentation_url, target: :_blank %> - 
+      <% end %>
+      <% if version.download_url.present? %>
+        <%= link_to 'Download', version.download_url, target: :_blank %> -
+      <% end %>
+      <% if version.integrity.present? %>
+        Integrity: <%= version.integrity %> -
+      <% end %>
+      Indexed: <%= time_ago_in_words version.created_at %> ago
+    </small>
+  </div>
+</div>

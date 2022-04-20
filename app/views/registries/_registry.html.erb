@@ -4,7 +4,7 @@
       
       <div class="flex-grow-1 ms-3 text-break">
         <h5 class='card-title'>
-          <%= link_to registry.name, registry.url, target: :_blank %>
+          <%= link_to registry.name, registry_packages_path(registry.name) %>
         </h5>
       
         <p class="card-subtitle mb-2 text-muted">

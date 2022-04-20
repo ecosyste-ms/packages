@@ -22,5 +22,11 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :registries, constraints: { id: /.*/ }, only: [:index, :show] do
+    resources :packages, constraints: { id: /.*/ }, only: [:index, :show] do 
+      resources :versions, only: [:index]
+    end
+  end
+
   root "home#index"
 end

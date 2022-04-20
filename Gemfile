@@ -35,7 +35,7 @@ gem 'rswag-ui'
 gem 'spdx', '2.0.12'
 gem "semantic"
 gem "semantic_range"
-
+gem "sanitize-url"
 gem "toml-rb"
 
 group :development, :test do

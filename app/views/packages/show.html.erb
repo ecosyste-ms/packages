@@ -1,0 +1,25 @@
+<div class="container-sm">
+  <h2><%= @registry.name %>: <%= @package.name %></h2>
+
+  <p>
+    <%= @package.description %>
+  </p>
+
+  <p>
+    <% if link = @package.registry_url %>
+      <%= link_to 'Registry', link %>
+    <% end %>
+    <% if sanitize_user_url(@package.repository_url).present? && @package.repository_url != @package.registry_url %>
+      - <%= link_to 'Source', sanitize_user_url(@package.repository_url), :rel => 'nofollow' %>
+    <% end %>
+    <% if sanitize_user_url(@package.homepage).present?  && @package.repository_url != @package.homepage %>
+      - <%= link_to('Homepage', sanitize_user_url(@package.homepage), :rel => 'nofollow') %>
+    <% end %>
+    <% if link = @package.documentation_url %>
+      - <%= link_to 'Documentation', link %>
+    <% end %>
+  </p>
+
+  <%= render @versions %>
+  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+</div>

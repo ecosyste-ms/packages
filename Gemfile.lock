@@ -240,6 +240,7 @@ GEM
       actionpack (>= 3.1, < 7.1)
       railties (>= 3.1, < 7.1)
     ruby2_keywords (0.0.5)
+    sanitize-url (0.1.4)
     sassc (2.4.0)
       ffi (~> 1.9)
     sassc-rails (2.1.2)
@@ -345,6 +346,7 @@ DEPENDENCIES
   rails-controller-testing
   rswag-api
   rswag-ui
+  sanitize-url
   sassc-rails
   semantic
   semantic_range
