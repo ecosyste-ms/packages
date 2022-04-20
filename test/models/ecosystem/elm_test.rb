@@ -99,7 +99,7 @@ class ElmTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('rtfeldman/count', '1.0.1', {})
 
     assert_equal dependencies_metadata, [
-      {:package_name=>"elm/core", :requirements=>"1.0.0 <= v < 2.0.0", :kind=>"runtime", :platform=>"Elm"}
+      {:package_name=>"elm/core", :requirements=>"1.0.0 <= v < 2.0.0", :kind=>"runtime", :ecosystem=>"Elm"}
     ]
   end
 end
