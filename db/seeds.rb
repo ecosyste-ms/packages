@@ -18,6 +18,7 @@ default_registries = [
   {name: 'forge.puppet.com', url: 'https://forge.puppet.com', ecosystem: 'puppet', github: 'puppet'},
   {name: 'juliahub.com', url: 'https://juliahub.com', ecosystem: 'julia', github: 'JuliaRegistries'},
   {name: 'package.elm-lang.org', url: 'https://package.elm-lang.org', ecosystem: 'elm', github: 'elm'},
+  {name: 'deno.land', url: 'https://deno.land', ecosystem: 'deno', github: 'denoland'},
 ]
 
 default_registries.each do |registry|
