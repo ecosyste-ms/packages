@@ -53,12 +53,16 @@ module Ecosystem
 
     def versions_metadata(package)
       package[:versions].map do |version|
-        ver = get("https://cdn.deno.land/#{package[:name]}/versions/#{version}/meta/meta.json")
-        {
-          number: version,
-          published_at: ver['uploaded_at'],
-        }
-      end
+        begin
+          ver = get("https://cdn.deno.land/#{package[:name]}/versions/#{version}/meta/meta.json")
+          {
+            number: version,
+            published_at: ver['uploaded_at'],
+          }
+        rescue
+          nil
+        end
+      end.compact
     end
 
     def dependencies_metadata(name, version, _mapped_package)
