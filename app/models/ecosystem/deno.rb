@@ -38,7 +38,7 @@ module Ecosystem
       versions = get("https://cdn.deno.land/#{name}/meta/versions.json")
       latest_version_number = versions['latest']
       return false if latest_version_number.nil?
-      latest_version = get("https://cdn.deno.land/#{name}/versions/#{latest_version_number}/meta/meta.json")
+      latest_version = get("https://cdn.deno.land/#{name}/versions/#{CGI.escape(latest_version_number)}/meta/meta.json")
       {
         name: name,
         description: meta['data']['description'],
@@ -54,7 +54,7 @@ module Ecosystem
     def versions_metadata(package)
       package[:versions].map do |version|
         begin
-          ver = get("https://cdn.deno.land/#{package[:name]}/versions/#{version}/meta/meta.json")
+          ver = get("https://cdn.deno.land/#{package[:name]}/versions/#{CGI.escape(version)}/meta/meta.json")
           {
             number: version,
             published_at: ver['uploaded_at'],
@@ -66,7 +66,7 @@ module Ecosystem
     end
 
     def dependencies_metadata(name, version, _mapped_package)
-      nodes = get("https://cdn.deno.land/#{name}/versions/#{version}/meta/deps_v2.json").fetch("graph", {}).fetch("nodes", {})
+      nodes = get("https://cdn.deno.land/#{name}/versions/#{CGI.escape(version)}/meta/deps_v2.json").fetch("graph", {}).fetch("nodes", {})
       deps = nodes.select{|k,v| k.split('/')[4] == "#{name}@#{version}"}
                   .map{|k,v| v['deps']}.flatten.uniq
                   .map{|k| k.split('/')[4]}.uniq
