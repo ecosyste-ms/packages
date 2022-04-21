@@ -37,6 +37,7 @@ module Ecosystem
       meta = get("https://api.deno.land/modules/#{name}")
       versions = get("https://cdn.deno.land/#{name}/meta/versions.json")
       latest_version_number = versions['latest']
+      return false if latest_version_number.nil?
       latest_version = get("https://cdn.deno.land/#{name}/versions/#{latest_version_number}/meta/meta.json")
       {
         name: name,
