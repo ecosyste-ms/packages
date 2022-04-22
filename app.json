@@ -2,7 +2,7 @@
   "cron": [
     {
       "command": "bundle exec rake packages:sync_recent",
-      "schedule": "@hourly"
+      "schedule": "*/10 * * * *"
     }
   ]
 }
