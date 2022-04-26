@@ -70,11 +70,12 @@ GEM
       public_suffix (>= 2.0.2, < 5.0)
     autoprefixer-rails (10.4.2.0)
       execjs (~> 2)
-    bibliothecary (7.3.6)
+    bibliothecary (8.0.0)
       commander
       deb_control
       librariesio-gem-parser
       ox (>= 2.8.1)
+      packageurl-ruby
       sdl4r
       strings
       strings-ansi
@@ -176,6 +177,7 @@ GEM
       racc (~> 1.4)
     oj (3.13.11)
     ox (2.14.11)
+    packageurl-ruby (0.1.0)
     pagy (5.10.1)
       activesupport
     pg (1.3.5)
