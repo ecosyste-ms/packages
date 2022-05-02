@@ -5,7 +5,6 @@ module Ecosystem
     end
 
     def documentation_url(package, version = nil)
-
       "https://pkg.go.dev/#{package.name}#{"@#{version}" if version}#section-documentation"
     end
 
