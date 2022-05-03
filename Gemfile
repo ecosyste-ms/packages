@@ -20,6 +20,8 @@ gem "nokogiri"
 gem "oj"
 gem "ox"
 gem "simple-rss"
+gem "hiredis"
+gem "redis", require: ["redis", "redis/connection/hiredis"]
 gem "sidekiq"
 gem "sidekiq-unique-jobs"
 gem "bibliothecary"
