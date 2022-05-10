@@ -118,9 +118,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Package'
+                $ref: '#/components/schemas/Package'
   /registries/{registryName}/packages/{packageName}/versions:
     get:
       summary: get a list of versions for a package
@@ -157,6 +155,36 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Version'
+  /registries/{registryName}/packages/{packageName}/versions/{versionNumber}:
+    get:
+      summary: get a version of a package
+      operationId: getRegistryPackageVersion
+      parameters:
+        - in: path
+          name: registryName
+          schema:
+            type: string
+          required: true
+          description: name of registry
+        - in: path
+          name: packageName
+          schema:
+            type: string
+          required: true
+          description: name of package
+        - in: path
+          name: versionNumber
+          schema:
+            type: string
+          required: true
+          description: number of version
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Version'
 components:
   schemas:
     Registry:

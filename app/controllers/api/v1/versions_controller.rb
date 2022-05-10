@@ -4,4 +4,10 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     @package = @registry.packages.find_by_name!(params[:package_id])
     @pagy, @versions = pagy(@package.versions.includes(:dependencies).order('published_at desc, created_at desc'))
   end
+
+  def show
+    @registry = Registry.find_by_name!(params[:registry_id])
+    @package = @registry.packages.find_by_name!(params[:package_id])
+    @version = @package.versions.find_by_number(params[:id])
+  end
 end

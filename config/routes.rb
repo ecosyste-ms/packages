@@ -16,7 +16,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :registries, constraints: { id: /.*/ }, only: [:index, :show] do
         resources :packages, constraints: { id: /.*/ }, only: [:index, :show] do 
-          resources :versions, only: [:index]
+          resources :versions, only: [:index, :show], constraints: { id: /.*/ }
         end
       end
     end
@@ -24,7 +24,7 @@ Rails.application.routes.draw do
 
   resources :registries, constraints: { id: /.*/ }, only: [:index, :show] do
     resources :packages, constraints: { id: /.*/ }, only: [:index, :show] do 
-      resources :versions, only: [:index, :show]
+      resources :versions, only: [:index, :show], constraints: { id: /.*/ }
     end
   end
 
