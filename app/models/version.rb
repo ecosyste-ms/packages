@@ -48,11 +48,11 @@ class Version < ApplicationRecord
   end
 
   def archive_list_url
-    "https://archives.ecosyste.ms/api/v1/archives/list?url=#{download_url}"
+    "https://archives.ecosyste.ms/api/v1/archives/list?url=#{CGI.escape(download_url)}"
   end
 
   def archive_contents_url(path)
-    "https://archives.ecosyste.ms/api/v1/archives/contents?url=#{download_url}&path=#{path}"
+    "https://archives.ecosyste.ms/api/v1/archives/contents?url=#{CGI.escape(download_url)}&path=#{path}"
   end
 
   def archive_basename
