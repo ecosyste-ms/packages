@@ -1,5 +1,5 @@
 <div class="container-sm">
-  <h2><%= @registry.name %>: <%= @package.name %></h2>
+  <h2><%= link_to @registry.name, registry_packages_path(@registry.name) %> : <%= @package.name %></h2>
 
   <p>
     <%= @package.description %>

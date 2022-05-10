@@ -1,0 +1,90 @@
+<div class="container-sm">
+  <h2><%= link_to @registry.name, registry_packages_path(@registry.name) %> : <%= link_to @package.name, registry_package_path(@registry.name, @package.name) %> : <%= @version.number %></h2>
+
+  <p>
+    <%= @package.description %>
+  </p>
+
+  <p>
+    <% if @version.registry_url.present? %>
+      <%= link_to 'Registry', @version.registry_url, target: :_blank %> - 
+    <% end %>
+    <% if @version.documentation_url.present? %>
+      <%= link_to 'Documentation', @version.documentation_url, target: :_blank %> - 
+    <% end %>
+    <% if @version.download_url.present? %>
+      <%= link_to 'Download', @version.download_url, target: :_blank %> -
+    <% end %>
+    <% if @version.integrity.present? %>
+      Integrity: <%= @version.integrity %> -
+    <% end %>
+    Published: <%= time_ago_in_words @version.published_at %> ago - Indexed: <%= time_ago_in_words @version.created_at %> ago 
+  </p>
+
+  <% if @version.download_url.present? %>
+    <% if params[:path].present? %>
+      <% contents = @version.archive_contents(params[:path]) %>
+      <% if contents["directory"] %>
+        <div class="card">
+          <div class="card-header">
+            <%= link_to @version.archive_basename, url_for(path:nil) %>
+            <% parts = params[:path].split('/') %>
+            <% parts.each_with_index do |part, i| %>
+              / <% if i == parts.length-1 %>
+                <%= part %>
+              <% else %>
+                <%= link_to part, url_for(path: parts[0..i].join('/')) %>
+              <% end %>
+            <% end %>
+          </div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <% parent = params[:path].split('/')[0..-2].join('/') %>
+              <% parent = nil if parent == params[:path] %>
+              <%= link_to '..', url_for(path: parent) %>
+            </li>
+          
+            <% contents["contents"].each do |path| %>
+              <% next if path.split('/').length > 1 %>
+              <li class="list-group-item">
+                <%= link_to path, url_for(path: [params[:path],path].join('/')) %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% else %>
+        <div class="card mb-3">
+          <div class="card-header">
+            <%= link_to @version.archive_basename, url_for(path:nil) %>
+            <% parts = params[:path].split('/') %>
+            <% parts.each_with_index do |part, i| %>
+              / <% if i == parts.length-1 %>
+                <%= part %>
+              <% else %>
+                <%= link_to part, url_for(path: parts[0..i].join('/')) %>
+              <% end %>
+            <% end %>
+          </div>
+          <div class="card-body">
+            <pre><code><%= contents['contents'] %></code></pre>
+          </div>
+        </div>
+
+      <% end %>
+    <% else%>
+      <div class="card">
+        <div class="card-header">
+          <%= @version.archive_basename %>
+        </div>
+        <ul class="list-group list-group-flush">
+          <% @version.archive_list.each do |path| %>
+            <% next if path.split('/').length > 1 %>
+            <li class="list-group-item">
+              <%= link_to path, url_for(path: path) %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+  <% end %>
+</div>

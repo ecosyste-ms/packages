@@ -1,7 +1,7 @@
 <div class="card mb-3">
   <div class="card-body">
     <h5 class="card-title">
-      <%= version.number %>
+      <%= link_to version.number, registry_package_version_path(registry_id: @registry.name, package_id: @package.name, id: version.number) %>
     </h5>
     
     <small class='text-muted'>

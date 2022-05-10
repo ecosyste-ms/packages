@@ -27,6 +27,38 @@ class Version < ApplicationRecord
     @published_at ||= read_attribute(:published_at).presence || created_at
   end
 
+  def archive_list
+    return [] unless download_url.present?
+
+    begin
+      Oj.load(Faraday.get(archive_list_url).body)
+    rescue
+      []
+    end
+  end
+
+  def archive_contents(path)
+    return {} unless download_url.present?
+
+    begin
+      Oj.load(Faraday.get(archive_contents_url(path)).body)
+    rescue
+      {}
+    end
+  end
+
+  def archive_list_url
+    "https://archives.ecosyste.ms/api/v1/archives/list?url=#{download_url}"
+  end
+
+  def archive_contents_url(path)
+    "https://archives.ecosyste.ms/api/v1/archives/contents?url=#{download_url}&path=#{path}"
+  end
+
+  def archive_basename
+    File.basename(download_url)
+  end
+
   def <=>(other)
     if parsed_number.is_a?(String) || other.parsed_number.is_a?(String)
       other.published_at <=> published_at
