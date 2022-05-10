@@ -7,7 +7,7 @@ module Ecosystem
     end
 
     def download_url(name, version = nil)
-      "https://api.nuget.org/v3-flatcontainer/#{name}/#{version}/#{name}.#{version}.nupkg"
+      "https://api.nuget.org/v3-flatcontainer/#{name.downcase}/#{version}/#{name.downcase}.#{version}.nupkg"
     end
 
     def install_command(package, version = nil)
