@@ -67,7 +67,7 @@ module Ecosystem
           number: k,
           published_at: v["time"],
           metadata: {
-            download_url: v["dist"]["url"]
+            download_url: v.dig("dist", "url")
           }
         }
       end
