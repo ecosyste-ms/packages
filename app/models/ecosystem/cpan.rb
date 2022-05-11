@@ -11,6 +11,7 @@ module Ecosystem
     end
 
     def download_url(package, version)
+      return version.metadata["download_url"] if version.metadata["download_url"].present?
       author = package.metadata["author"]
       return nil if author.nil?
       "https://cpan.metacpan.org/authors/id/#{author[0]}/#{author[0..1]}/#{author}/#{package.name}-#{version}.tar.gz"
@@ -61,7 +62,10 @@ module Ecosystem
         {
           number: version["_source"]["version"],
           published_at: version["_source"]["date"],
-          integrity: "sha256-"+version["_source"]['checksum_sha256']
+          integrity: "sha256-"+version["_source"]['checksum_sha256'],
+          metadata: {
+            download_url: version["_source"]["download_url"]
+          }
         }
       end
     end
