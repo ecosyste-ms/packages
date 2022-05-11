@@ -47,9 +47,9 @@ module Ecosystem
       {
         name: package["name"],
         description: package["summary"],
-        homepage: package["homepages"].first,
+        homepage: package.fetch("homepages", []).first,
         licenses: [],
-        repository_url: package["homepages"].first,
+        repository_url: package.fetch("homepages", []).first,
         versions: package["version"],
         dependencies: package['dependencies']
       }
