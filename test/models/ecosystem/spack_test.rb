@@ -5,7 +5,7 @@ class SpackTest < ActiveSupport::TestCase
     @registry = Registry.new(name: 'Spack.io', url: 'https://spack.github.io', ecosystem: 'spack')
     @ecosystem = Ecosystem::Spack.new(@registry.url)
     @package = Package.new(ecosystem: 'spack', name: '3proxy')
-    @version = @package.versions.build(number: '0.8.13')
+    @version = @package.versions.build(number: '0.8.13', metadata: {download_url: "https://github.com/z3APA3A/3proxy/archive/0.8.13.tar.gz"})
   end
 
   test 'registry_url' do
@@ -20,7 +20,7 @@ class SpackTest < ActiveSupport::TestCase
 
   test 'download_url' do
     download_url = @ecosystem.download_url(@package, @version)
-    assert_nil download_url
+    assert_equal download_url, "https://github.com/z3APA3A/3proxy/archive/0.8.13.tar.gz"
   end
 
   test 'documentation_url' do
@@ -44,10 +44,10 @@ class SpackTest < ActiveSupport::TestCase
   end
 
   test 'all_package_names' do
-    stub_request(:get, "https://spack.github.io/packages/data/packages.json")
-      .to_return({ status: 200, body: file_fixture('spack/packages.json') })
+    stub_request(:get, "https://spack.github.io/packages/data/repology.json")
+      .to_return({ status: 200, body: file_fixture('spack/repology.json') })
     all_package_names = @ecosystem.all_package_names
-    assert_equal all_package_names.length, 6371
+    assert_equal all_package_names.length, 6438
     assert_equal all_package_names.last, 'zziplib'
   end
 
@@ -60,6 +60,8 @@ class SpackTest < ActiveSupport::TestCase
   end
 
   test 'package_metadata' do
+    stub_request(:get, "https://spack.github.io/packages/data/repology.json")
+      .to_return({ status: 200, body: file_fixture('spack/repology.json') })
     stub_request(:get, "https://spack.github.io/packages/data/packages/3proxy.json")
       .to_return({ status: 200, body: file_fixture('spack/3proxy.json') })
     package_metadata = @ecosystem.package_metadata('3proxy')
@@ -73,19 +75,23 @@ class SpackTest < ActiveSupport::TestCase
   end
 
   test 'versions_metadata' do
+    stub_request(:get, "https://spack.github.io/packages/data/repology.json")
+      .to_return({ status: 200, body: file_fixture('spack/repology.json') })
     stub_request(:get, "https://spack.github.io/packages/data/packages/3proxy.json")
       .to_return({ status: 200, body: file_fixture('spack/3proxy.json') })
     package_metadata = @ecosystem.package_metadata('3proxy')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
-
+    
     assert_equal versions_metadata, [
-      {:number=>"0.8.13", :integrity=>"sha256-a6d3cf9dd264315fa6ec848f6fe6c9057db005ce4ca8ed1deb00f6e1c3900f88"},
-      {:number=>"0.8.12", :integrity=>"sha256-c2ad3798b4f0df06cfcc7b49f658304e451d60e4834e2705ef83ddb85a03f849"},
-      {:number=>"0.8.11", :integrity=>"sha256-fc4295e1a462baa61977fcc21747db7861c4e3d0dcca86cbaa3e06017e5c66c9"}
+      {:number=>"0.8.13", :integrity=>"sha256-a6d3cf9dd264315fa6ec848f6fe6c9057db005ce4ca8ed1deb00f6e1c3900f88", :metadata=>{:download_url=>"https://github.com/z3APA3A/3proxy/archive/0.8.13.tar.gz"}},
+      {:number=>"0.8.12", :integrity=>"sha256-c2ad3798b4f0df06cfcc7b49f658304e451d60e4834e2705ef83ddb85a03f849", :metadata=>{:download_url=>"https://github.com/z3APA3A/3proxy/archive/0.8.12.tar.gz"}},
+      {:number=>"0.8.11", :integrity=>"sha256-fc4295e1a462baa61977fcc21747db7861c4e3d0dcca86cbaa3e06017e5c66c9", :metadata=>{:download_url=>"https://github.com/z3APA3A/3proxy/archive/0.8.11.tar.gz"}}
     ]
   end
 
   test 'dependencies_metadata' do
+    stub_request(:get, "https://spack.github.io/packages/data/repology.json")
+      .to_return({ status: 200, body: file_fixture('spack/repology.json') })
     stub_request(:get, "https://spack.github.io/packages/data/packages/3proxy.json")
       .to_return({ status: 200, body: file_fixture('spack/3proxy.json') })
     package_metadata = @ecosystem.package_metadata('3proxy')

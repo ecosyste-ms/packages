@@ -10,8 +10,16 @@ module Ecosystem
       "spack install #{package.name}" + (version ? "@#{version}" : "")
     end
 
+    def download_url(_package, version)
+      version.metadata['download_url']
+    end
+
+    def package_data
+      @package_data || get_json("#{@registry_url}/packages/data/repology.json")
+    end
+
     def all_package_names
-      get_json("#{@registry_url}/packages/data/packages.json")
+      package_data["packages"].keys.sort
     rescue StandardError
       {}
     end
@@ -23,7 +31,14 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
-      get_json("#{@registry_url}/packages/data/packages/#{name}.json")
+      json = get_json("#{@registry_url}/packages/data/packages/#{name}.json")
+      data = package_data["packages"][name]
+      data["name"] = name
+      json 
+      json["versions"].each do |v|
+        data['version'].find{|vv| vv["version"] == v["name"]}['sha256'] = v['sha256']
+      end
+      data
     rescue StandardError
       {}
     end
@@ -31,11 +46,11 @@ module Ecosystem
     def map_package_metadata(package)
       {
         name: package["name"],
-        description: package["description"],
-        homepage: package["homepage"],
+        description: package["summary"],
+        homepage: package["homepages"].first,
         licenses: [],
-        repository_url: package["homepage"],
-        versions: package["versions"],
+        repository_url: package["homepages"].first,
+        versions: package["version"],
         dependencies: package['dependencies']
       }
     end
@@ -43,8 +58,11 @@ module Ecosystem
     def versions_metadata(package)
       package[:versions].map do |v|
         {
-          number: v["name"],
-          integrity: "sha256-" + v['sha256']
+          number: v["version"],
+          integrity: "sha256-" + v['sha256'],
+          metadata: {
+            download_url: v['downloads'].first
+          }
         }
       end
     rescue StandardError
@@ -56,7 +74,7 @@ module Ecosystem
 
       package[:dependencies].map do |dep|
         {
-          package_name: dep["name"],
+          package_name: dep,
           requirements: '*',
           kind: 'runtime',
           ecosystem: self.class.name.demodulize.downcase
