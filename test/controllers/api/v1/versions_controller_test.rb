@@ -4,7 +4,7 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @registry = Registry.create(name: 'crates.io', url: 'https://crates.io', ecosystem: 'cargo')
     @package = @registry.packages.create(ecosystem: 'cargo', name: 'rand')
-    @version = @package.versions.create(number: '1.0.0')
+    @version = @package.versions.create(number: '1.0.0', metadata: {foo: 'bar'})
   end
 
   test 'list versions for a package' do
@@ -25,5 +25,6 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     actual_response = JSON.parse(@response.body)
 
     assert_equal actual_response['number'], "1.0.0"
+    assert_equal actual_response['metadata'], {"foo"=>"bar"}
   end
 end

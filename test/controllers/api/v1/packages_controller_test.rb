@@ -3,7 +3,7 @@ require 'test_helper'
 class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
   setup do
     @registry = Registry.create(name: 'crates.io', url: 'https://crates.io', ecosystem: 'cargo')
-    @package = @registry.packages.create(ecosystem: 'cargo', name: 'rand')
+    @package = @registry.packages.create(ecosystem: 'cargo', name: 'rand', metadata: {foo: 'bar'})
   end
 
   test 'list packages for a registry' do
@@ -24,5 +24,6 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     actual_response = JSON.parse(@response.body)
 
     assert_equal actual_response["name"], @package.name
+    assert_equal actual_response['metadata'], {"foo"=>"bar"}
   end
 end
