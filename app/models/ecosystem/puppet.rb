@@ -69,8 +69,8 @@ module Ecosystem
       "https://forge.puppet.com/#{db_package.name.sub('-', '/')}" + (version ? "/#{version}" : "")
     end
 
-    def download_url(name, version = nil)
-      "https://forge.puppet.com/v3/files/#{name}-#{version}.tar.gz"
+    def download_url(package, version = nil)
+      "https://forge.puppet.com/v3/files/#{package.name}-#{version}.tar.gz"
     end
   end
 end

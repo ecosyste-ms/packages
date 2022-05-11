@@ -4,7 +4,7 @@ class CpanTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'Metacpan.org', url: 'https://metacpan.org', ecosystem: 'cpan')
     @ecosystem = Ecosystem::Cpan.new(@registry.url)
-    @package = Package.new(ecosystem: 'cpan', name: 'Dpkg')
+    @package = Package.new(ecosystem: 'cpan', name: 'Dpkg', metadata: {author: 'GUILLEM'})
     @version = @package.versions.build(number: '1.21.5')
   end
 
@@ -19,8 +19,8 @@ class CpanTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    download_url = @ecosystem.download_url(@package.name, @version.number)
-    assert_nil download_url
+    download_url = @ecosystem.download_url(@package, @version.number)
+    assert_equal download_url, "https://cpan.metacpan.org/authors/id/G/GU/GUILLEM/Dpkg-1.21.5.tar.gz"
   end
 
   test 'documentation_url' do
@@ -76,7 +76,10 @@ class CpanTest < ActiveSupport::TestCase
       :homepage=>"https://wiki.debian.org/Teams/Dpkg", 
       :description=>"Debian Package Manager Perl modules", 
       :licenses=>"gpl_2", 
-      :repository_url=>"https://git.dpkg.org/cgit/dpkg/dpkg.git"
+      :repository_url=>"https://git.dpkg.org/cgit/dpkg/dpkg.git",
+      :metadata=>{
+        :author=>"GUILLEM"
+      }
     }
   end
 

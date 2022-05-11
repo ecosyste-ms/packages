@@ -38,7 +38,7 @@ module Ecosystem
       nil
     end
 
-    def download_url(_name, _version = nil)
+    def download_url(_package, _version = nil)
       nil
     end
 

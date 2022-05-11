@@ -19,7 +19,7 @@ class ElmTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    download_url = @ecosystem.download_url(@package.name, @version.number)
+    download_url = @ecosystem.download_url(@package, @version.number)
     assert_equal download_url, "https://github.com/rtfeldman/count/archive/1.0.1.zip"
   end
 

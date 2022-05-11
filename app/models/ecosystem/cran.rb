@@ -6,8 +6,8 @@ module Ecosystem
       "https://cran.r-project.org/package=#{package.name}"
     end
 
-    def download_url(name, version = nil)
-      "https://cran.r-project.org/src/contrib/#{name}_#{version}.tar.gz"
+    def download_url(package, version = nil)
+      "https://cran.r-project.org/src/contrib/#{package.name}_#{version}.tar.gz"
     end
 
     def documentation_url(package, _version = nil)

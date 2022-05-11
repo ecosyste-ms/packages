@@ -6,8 +6,8 @@ module Ecosystem
       "#{@registry_url}/gems/#{package.name}" + (version ? "/versions/#{version}" : "")
     end
 
-    def download_url(name, version)
-      "#{@registry_url}/downloads/#{name}-#{version}.gem"
+    def download_url(package, version)
+      "#{@registry_url}/downloads/#{package.name}-#{version}.gem"
     end
 
     def documentation_url(package, version = nil)

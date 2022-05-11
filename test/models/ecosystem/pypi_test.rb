@@ -19,7 +19,7 @@ class PypiTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    download_url = @ecosystem.download_url(@package.name, @version.number)
+    download_url = @ecosystem.download_url(@package, @version.number)
     assert_nil download_url
   end
 

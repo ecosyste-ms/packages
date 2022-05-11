@@ -12,8 +12,8 @@ module Ecosystem
       "go get #{package.name}#{"@#{version}" if version}"
     end
 
-    def download_url(name, version)
-      "#{@registry_url}/#{encode_for_proxy(name)}/@v/#{version}.zip"
+    def download_url(package, version)
+      "#{@registry_url}/#{encode_for_proxy(package.name)}/@v/#{version}.zip"
     end
 
     def all_package_names

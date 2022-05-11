@@ -10,6 +10,11 @@ module Ecosystem
       "https://metacpan.org/dist/#{package.name}"
     end
 
+    def download_url(package, version)
+      author = package.metadata["author"]
+      "https://cpan.metacpan.org/authors/id/#{author[0]}/#{author[0..1]}/#{author}/#{package.name}-#{version}.tar.gz"
+    end
+
     def all_package_names
       packages = []
       size = 5000
@@ -43,6 +48,9 @@ module Ecosystem
         description: package["abstract"],
         licenses: package.fetch("license", []).join(","),
         repository_url: repo_fallback(package.fetch("resources", {}).fetch("repository", {})["web"], package.fetch("resources", {})["homepage"]),
+        metadata:{
+          author: package['author']
+        }
       }
     end
 

@@ -18,7 +18,7 @@ class BowerTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    download_url = @ecosystem.download_url(@package.name, '1.0.0')
+    download_url = @ecosystem.download_url(@package, '1.0.0')
     assert_nil download_url
   end
 

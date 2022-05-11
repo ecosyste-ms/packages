@@ -6,8 +6,8 @@ module Ecosystem
       "#{@registry_url}/packages/#{package.name}/#{version}"
     end
 
-    def download_url(name, version = nil)
-      "https://repo.hex.pm/tarballs/#{name}-#{version}.tar"
+    def download_url(package, version = nil)
+      "https://repo.hex.pm/tarballs/#{package.name}-#{version}.tar"
     end
 
     def documentation_url(package, version = nil)

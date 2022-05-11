@@ -4,8 +4,8 @@ module Ecosystem
       "https://package.elm-lang.org/packages/#{package.name}/#{version || 'latest'}"
     end
 
-    def download_url(name, version = "master")
-      "https://github.com/#{name}/archive/#{version}.zip"
+    def download_url(package, version = "master")
+      "https://github.com/#{package.name}/archive/#{version}.zip"
     end
 
     def install_command(package, version = nil)
