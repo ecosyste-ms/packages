@@ -5,7 +5,7 @@ class PackagistTest < ActiveSupport::TestCase
     @registry = Registry.new(name: 'Packagist.org', url: 'https://packagist.org', ecosystem: 'Packagist')
     @ecosystem = Ecosystem::Packagist.new(@registry.url)
     @package = Package.new(ecosystem: 'Packagist', name: 'psr/log')
-    @version = @package.versions.build(number: '3.0.0')
+    @version = @package.versions.build(number: '3.0.0', :metadata=>{:download_url=>"https://api.github.com/repos/php-fig/log/zipball/fe5ea303b0887d5caefd3d431c3e61ad47037001"})
   end
 
   test 'registry_url' do
@@ -20,7 +20,7 @@ class PackagistTest < ActiveSupport::TestCase
 
   test 'download_url' do
     download_url = @ecosystem.download_url(@package, @version)
-    assert_nil download_url
+    assert_equal download_url, "https://api.github.com/repos/php-fig/log/zipball/fe5ea303b0887d5caefd3d431c3e61ad47037001"
   end
 
   test 'documentation_url' do
@@ -86,16 +86,16 @@ class PackagistTest < ActiveSupport::TestCase
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
-      {:number=>"3.0.0", :published_at=>"2021-07-14T16:46:02+00:00"},
-      {:number=>"2.0.0", :published_at=>"2021-07-14T16:41:46+00:00"},
-      {:number=>"1.1.4", :published_at=>"2021-05-03T11:20:27+00:00"},
-      {:number=>"1.1.3", :published_at=>"2020-03-23T09:12:05+00:00"},
-      {:number=>"1.1.2", :published_at=>"2019-11-01T11:05:21+00:00"},
-      {:number=>"1.1.1", :published_at=>"2019-10-25T08:06:51+00:00"},
-      {:number=>"1.1.0", :published_at=>"2018-11-20T15:27:04+00:00"},
-      {:number=>"1.0.2", :published_at=>"2016-10-10T12:19:37+00:00"},
-      {:number=>"1.0.1", :published_at=>"2016-09-19T16:02:08+00:00"},
-      {:number=>"1.0.0", :published_at=>"2012-12-21T11:40:51+00:00"}
+      {:number=>"3.0.0", :published_at=>"2021-07-14T16:46:02+00:00", :metadata=>{:download_url=>"https://api.github.com/repos/php-fig/log/zipball/fe5ea303b0887d5caefd3d431c3e61ad47037001"}},
+      {:number=>"2.0.0", :published_at=>"2021-07-14T16:41:46+00:00", :metadata=>{:download_url=>"https://api.github.com/repos/php-fig/log/zipball/ef29f6d262798707a9edd554e2b82517ef3a9376"}},
+      {:number=>"1.1.4", :published_at=>"2021-05-03T11:20:27+00:00", :metadata=>{:download_url=>"https://api.github.com/repos/php-fig/log/zipball/d49695b909c3b7628b6289db5479a1c204601f11"}},
+      {:number=>"1.1.3", :published_at=>"2020-03-23T09:12:05+00:00", :metadata=>{:download_url=>"https://api.github.com/repos/php-fig/log/zipball/0f73288fd15629204f9d42b7055f72dacbe811fc"}},
+      {:number=>"1.1.2", :published_at=>"2019-11-01T11:05:21+00:00", :metadata=>{:download_url=>"https://api.github.com/repos/php-fig/log/zipball/446d54b4cb6bf489fc9d75f55843658e6f25d801"}},
+      {:number=>"1.1.1", :published_at=>"2019-10-25T08:06:51+00:00", :metadata=>{:download_url=>"https://api.github.com/repos/php-fig/log/zipball/bf73deb2b3b896a9d9c75f3f0d88185d2faa27e2"}},
+      {:number=>"1.1.0", :published_at=>"2018-11-20T15:27:04+00:00", :metadata=>{:download_url=>"https://api.github.com/repos/php-fig/log/zipball/6c001f1daafa3a3ac1d8ff69ee4db8e799a654dd"}},
+      {:number=>"1.0.2", :published_at=>"2016-10-10T12:19:37+00:00", :metadata=>{:download_url=>"https://api.github.com/repos/php-fig/log/zipball/4ebe3a8bf773a19edfe0a84b6585ba3d401b724d"}},
+      {:number=>"1.0.1", :published_at=>"2016-09-19T16:02:08+00:00", :metadata=>{:download_url=>"https://api.github.com/repos/php-fig/log/zipball/5277094ed527a1c4477177d102fe4c53551953e0"}},
+      {:number=>"1.0.0", :published_at=>"2012-12-21T11:40:51+00:00", :metadata=>{:download_url=>"https://api.github.com/repos/php-fig/log/zipball/fe0936ee26643249e916849d48e3a51d5f5e278b"}}
     ]
   end
 

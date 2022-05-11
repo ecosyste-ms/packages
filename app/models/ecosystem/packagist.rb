@@ -10,6 +10,10 @@ module Ecosystem
       "composer require #{package.name}" + (version ? ":#{version}" : "")
     end
 
+    def download_url(_package, version)
+      version.metadata["download_url"]
+    end
+
     def all_package_names
       get("#{@registry_url}/packages/list.json")["packageNames"]
     end
@@ -62,6 +66,9 @@ module Ecosystem
         {
           number: k,
           published_at: v["time"],
+          metadata: {
+            download_url: v["dist"]["url"]
+          }
         }
       end
     end
