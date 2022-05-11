@@ -102,6 +102,6 @@ class Package < ApplicationRecord
   end
 
   def update_versions_async
-    UpdateVersionWorker.perform_async(id)
+    UpdateVersionsWorker.perform_async(id)
   end
 end
