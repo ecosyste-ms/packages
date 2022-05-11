@@ -12,6 +12,7 @@ module Ecosystem
 
     def download_url(package, version)
       author = package.metadata["author"]
+      return nil if author.nil?
       "https://cpan.metacpan.org/authors/id/#{author[0]}/#{author[0..1]}/#{author}/#{package.name}-#{version}.tar.gz"
     end
 
