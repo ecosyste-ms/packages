@@ -6,7 +6,7 @@ module Ecosystem
       offset = 0
       packages = []
       loop do
-        results = get_json("https://forgeapi.puppetlabs.com/v3/modules?limit=100&offset=#{offset}")["results"].map { |result| result["slug"] }
+        results = get_json("https://forgeapi-cdn.puppet.com/v3/modules?limit=100&offset=#{offset}")["results"].map { |result| result["slug"] }
         break if results == []
 
         packages += results
@@ -16,7 +16,7 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
-      get_json("https://forgeapi.puppetlabs.com/v3/modules/#{name}")
+      get_json("https://forgeapi-cdn.puppet.com/v3/modules/#{name}")
     end
 
     def map_package_metadata(package)
@@ -35,7 +35,7 @@ module Ecosystem
 
     def versions_metadata(package)
       package[:releases].map do |release|
-        version = get_json("https://forgeapi.puppetlabs.com/v3/releases/#{package[:name]}-#{release["version"]}")
+        version = get_json("https://forgeapi-cdn.puppet.com/v3/releases/#{package[:name]}-#{release["version"]}")
         {
           number: release["version"],
           published_at: release["created_at"],
@@ -45,7 +45,7 @@ module Ecosystem
     end
 
     def dependencies_metadata(name, version, _mapped_package)
-      release = get_json("https://forgeapi.puppetlabs.com/v3/releases/#{name}-#{version}")
+      release = get_json("https://forgeapi-cdn.puppet.com/v3/releases/#{name}-#{version}")
       metadata = release["metadata"]
       metadata["dependencies"].map do |dependency|
         {
@@ -58,7 +58,7 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      get_json("https://forgeapi.puppetlabs.com/v3/modules?limit=100&sort_by=latest_release")["results"].map { |result| result["slug"] }
+      get_json("https://forgeapi-cdn.puppet.com/v3/modules?limit=100&sort_by=latest_release")["results"].map { |result| result["slug"] }
     end
 
     def install_command(db_package, version = nil)

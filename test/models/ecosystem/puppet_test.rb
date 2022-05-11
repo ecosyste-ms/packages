@@ -50,9 +50,9 @@ class PuppetTest < ActiveSupport::TestCase
   end
 
   test 'all_package_names' do
-    stub_request(:get, "https://forgeapi.puppetlabs.com/v3/modules?limit=100&offset=0")
+    stub_request(:get, "https://forgeapi-cdn.puppet.com/v3/modules?limit=100&offset=0")
       .to_return({ status: 200, body: file_fixture('puppet/modules?limit=100&offset=0') })
-    stub_request(:get, "https://forgeapi.puppetlabs.com/v3/modules?limit=100&offset=100")
+    stub_request(:get, "https://forgeapi-cdn.puppet.com/v3/modules?limit=100&offset=100")
       .to_return({ status: 200, body: file_fixture('puppet/modules?limit=100&offset=100') })
     all_package_names = @ecosystem.all_package_names
     assert_equal all_package_names.length, 100
@@ -60,7 +60,7 @@ class PuppetTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
-    stub_request(:get, "https://forgeapi.puppetlabs.com/v3/modules?limit=100&sort_by=latest_release")
+    stub_request(:get, "https://forgeapi-cdn.puppet.com/v3/modules?limit=100&sort_by=latest_release")
       .to_return({ status: 200, body: file_fixture('puppet/modules?limit=100&sort_by=latest_release') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
     assert_equal recently_updated_package_names.length, 100
@@ -68,7 +68,7 @@ class PuppetTest < ActiveSupport::TestCase
   end
 
   test 'package_metadata' do
-    stub_request(:get, "https://forgeapi.puppetlabs.com/v3/modules/puppet-fail2ban")
+    stub_request(:get, "https://forgeapi-cdn.puppet.com/v3/modules/puppet-fail2ban")
       .to_return({ status: 200, body: file_fixture('puppet/puppet-fail2ban') })
     package_metadata = @ecosystem.package_metadata('puppet-fail2ban')
     
@@ -81,11 +81,11 @@ class PuppetTest < ActiveSupport::TestCase
   end
 
   test 'versions_metadata' do
-    stub_request(:get, "https://forgeapi.puppetlabs.com/v3/modules/puppet-fail2ban")
+    stub_request(:get, "https://forgeapi-cdn.puppet.com/v3/modules/puppet-fail2ban")
       .to_return({ status: 200, body: file_fixture('puppet/puppet-fail2ban') })
-    stub_request(:get, "https://forgeapi.puppetlabs.com/v3/releases/puppet-fail2ban-4.1.0")
+    stub_request(:get, "https://forgeapi-cdn.puppet.com/v3/releases/puppet-fail2ban-4.1.0")
       .to_return({ status: 200, body: file_fixture('puppet/puppet-fail2ban-4.1.0') })
-    stub_request(:get, "https://forgeapi.puppetlabs.com/v3/releases/puppet-fail2ban-4.0.0")
+    stub_request(:get, "https://forgeapi-cdn.puppet.com/v3/releases/puppet-fail2ban-4.0.0")
       .to_return({ status: 200, body: file_fixture('puppet/puppet-fail2ban-4.0.0') })
     package_metadata = @ecosystem.package_metadata('puppet-fail2ban')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
@@ -97,9 +97,9 @@ class PuppetTest < ActiveSupport::TestCase
   end
 
   test 'dependencies_metadata' do
-    stub_request(:get, "https://forgeapi.puppetlabs.com/v3/modules/puppet-fail2ban")
+    stub_request(:get, "https://forgeapi-cdn.puppet.com/v3/modules/puppet-fail2ban")
       .to_return({ status: 200, body: file_fixture('puppet/puppet-fail2ban') })
-    stub_request(:get, "https://forgeapi.puppetlabs.com/v3/releases/puppet-fail2ban-4.1.0")
+    stub_request(:get, "https://forgeapi-cdn.puppet.com/v3/releases/puppet-fail2ban-4.1.0")
       .to_return({ status: 200, body: file_fixture('puppet/puppet-fail2ban-4.1.0') })
     package_metadata = @ecosystem.package_metadata('puppet-fail2ban')
     dependencies_metadata = @ecosystem.dependencies_metadata('puppet-fail2ban', '4.1.0', package_metadata)
