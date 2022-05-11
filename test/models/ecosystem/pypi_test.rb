@@ -5,7 +5,7 @@ class PypiTest < ActiveSupport::TestCase
     @registry = Registry.new(name: 'Pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
     @ecosystem = Ecosystem::Pypi.new(@registry.url)
     @package = Package.new(ecosystem: 'pypi', name: 'urllib3')
-    @version = @package.versions.build(number: '1.26.8')
+    @version = @package.versions.build(number: '1.26.8', metadata: {download_url: 'https://files.pythonhosted.org/packages/8b/e1/40122572f57349365391b8955178d52cd42d2c1f767030cbd196883adee7/yiban-0.1.2.32-py3-none-any.whl'})
   end
 
   test 'registry_url' do
@@ -19,8 +19,8 @@ class PypiTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    download_url = @ecosystem.download_url(@package, @version.number)
-    assert_nil download_url
+    download_url = @ecosystem.download_url(@package, @version)
+    assert_equal download_url, 'https://files.pythonhosted.org/packages/8b/e1/40122572f57349365391b8955178d52cd42d2c1f767030cbd196883adee7/yiban-0.1.2.32-py3-none-any.whl'
   end
 
   test 'documentation_url' do
@@ -86,7 +86,14 @@ class PypiTest < ActiveSupport::TestCase
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
-      {:number=>"0.1.2.32", :published_at=>"2019-11-05T15:06:04", :integrity=>"sha256-29ffb8f9b1d6114757a53a1a713a4e07ce4e1c4c50d31332644593db208f30e7"}
+      {
+        :number=>"0.1.2.32", 
+        :published_at=>"2019-11-05T15:06:04", 
+        :integrity=>"sha256-29ffb8f9b1d6114757a53a1a713a4e07ce4e1c4c50d31332644593db208f30e7", 
+        :metadata=>{
+          :download_url=>"https://files.pythonhosted.org/packages/8b/e1/40122572f57349365391b8955178d52cd42d2c1f767030cbd196883adee7/yiban-0.1.2.32-py3-none-any.whl"
+        }
+      }
     ]
   end
 

@@ -19,7 +19,7 @@ class PuppetTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    download_url = @ecosystem.download_url(@package, @version.number)
+    download_url = @ecosystem.download_url(@package, @version)
     assert_equal download_url, "https://forge.puppet.com/v3/files/puppet-fail2ban-4.1.0.tar.gz"
   end
 

@@ -19,7 +19,7 @@ class GoTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    download_url = @ecosystem.download_url(@package, @version.number)
+    download_url = @ecosystem.download_url(@package, @version)
     assert_equal download_url, 'https://proxy.golang.org/github.com/aws/smithy-go/@v/v1.11.1.zip'
   end
 

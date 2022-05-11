@@ -8,7 +8,7 @@ class Version < ApplicationRecord
   has_many :runtime_dependencies, -> { where kind: %w[runtime normal] }, class_name: "Dependency"
 
   def download_url
-    package.registry.ecosystem_instance.download_url(package, number)
+    package.registry.ecosystem_instance.download_url(package, self)
   end
 
   def install_command

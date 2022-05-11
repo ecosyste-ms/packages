@@ -2,9 +2,10 @@ require "test_helper"
 
 class BowerTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'Bower.io', url: 'https://bower.io', ecosystem: 'bower')
+    @registry = Registry.create(name: 'Bower.io', url: 'https://bower.io', ecosystem: 'bower')
     @ecosystem = Ecosystem::Bower.new(@registry.url)
-    @package = Package.new(ecosystem: 'bower', name: 'bower-angular')
+    @package = @registry.packages.create(ecosystem: 'bower', name: 'bower-angular')
+    @version = @package.versions.create(number: '1.0.0')
   end
 
   test 'registry_url' do
@@ -18,7 +19,7 @@ class BowerTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    download_url = @ecosystem.download_url(@package, '1.0.0')
+    download_url = @ecosystem.download_url(@package, @version)
     assert_nil download_url
   end
 

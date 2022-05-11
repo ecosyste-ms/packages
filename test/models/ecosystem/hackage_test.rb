@@ -19,7 +19,7 @@ class HackageTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    download_url = @ecosystem.download_url(@package, @version.number)
+    download_url = @ecosystem.download_url(@package, @version)
     assert_equal download_url, 'http://hackage.haskell.org/package/blockfrost-client-0.4.0.1/blockfrost-client-0.4.0.1.tar.gz'
   end
 

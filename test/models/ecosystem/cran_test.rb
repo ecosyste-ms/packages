@@ -19,7 +19,7 @@ class CranTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    download_url = @ecosystem.download_url(@package, @version.number)
+    download_url = @ecosystem.download_url(@package, @version)
     assert_equal download_url, 'https://cran.r-project.org/src/contrib/pack_0.1-1.tar.gz'
   end
 

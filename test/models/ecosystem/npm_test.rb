@@ -19,7 +19,7 @@ class NpmTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    download_url = @ecosystem.download_url(@package, @version.number)
+    download_url = @ecosystem.download_url(@package, @version)
     assert_equal download_url, "https://registry.npmjs.org/base62/-/base62-2.0.1.tgz"
   end
 

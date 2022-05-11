@@ -19,7 +19,7 @@ class PubTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    download_url = @ecosystem.download_url(@package, @version.number)
+    download_url = @ecosystem.download_url(@package, @version)
     assert_equal download_url, 'https://pub.dev/packages/bloc/versions/8.0.3.tar.gz'
   end
 

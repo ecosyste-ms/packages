@@ -19,7 +19,7 @@ class RubygemsTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    download_url = @ecosystem.download_url(@package, @version.number)
+    download_url = @ecosystem.download_url(@package, @version)
     assert_equal download_url, 'https://rubygems.org/downloads/rails-7.0.0.gem'
   end
 

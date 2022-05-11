@@ -14,6 +14,10 @@ module Ecosystem
       "https://#{package.name}.readthedocs.io/" + (version ? "en/#{version}" : "")
     end
 
+    def download_url(_package, version)
+      version.metadata['download_url']
+    end
+
     def formatted_name
       "PyPI"
     end
@@ -55,12 +59,13 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata)
       pkg_metadata[:releases].reject { |_k, v| v == [] }.map do |k, v|
-        # release = get("#{@registry_url}/pypi/#{pkg_metadata[:name]}/#{k}/json")
         {
           number: k,
           published_at: v[0]["upload_time"],
-          integrity: 'sha256-' + v[0]['digests']['sha256']
-          # licenses: release.dig("info", "license"),
+          integrity: 'sha256-' + v[0]['digests']['sha256'],
+          metadata: {
+            download_url: v[0]['url']
+          }
         }
       end
     end
