@@ -77,4 +77,27 @@ class Package < ApplicationRecord
       .gsub("apache license, version", "apache license version")
       .gsub("apache software license, version", "apache software license version")
   end
+
+  def sync
+    registry.sync_package(name)
+  end
+
+  def sync_async
+    registry.sync_package_async(name)
+  end
+
+  def update_versions
+    package_metadata = registry.ecosystem_instance.package_metadata(name)
+    return false unless package_metadata
+    versions_metadata = registry.ecosystem_instance.versions_metadata(package_metadata)
+
+    versions_metadata.each do |version|
+      v = versions.find{|ver| ver.number == version[:number]}
+      if v
+        v.update(version)
+      else
+        versions.create(version)
+      end
+    end
+  end
 end
