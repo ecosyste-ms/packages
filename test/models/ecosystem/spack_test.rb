@@ -52,11 +52,11 @@ class SpackTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
-    stub_request(:get, "https://spack.github.io/packages/data/packages.json")
-      .to_return({ status: 200, body: file_fixture('spack/packages.json') })
+    stub_request(:get, "https://github.com/spack/spack/commits/develop.atom")
+      .to_return({ status: 200, body: file_fixture('spack/develop.atom') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 6371
-    assert_equal recently_updated_package_names.last, 'zziplib'
+    assert_equal recently_updated_package_names.length, 18
+    assert_equal recently_updated_package_names.last, 'cray-mpich'
   end
 
   test 'package_metadata' do

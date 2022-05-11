@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xml:lang="en-US">
+  <id>tag:github.com,2008:/spack/spack/commits/develop</id>
+  <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commits/develop"/>
+  <link type="application/atom+xml" rel="self" href="https://github.com/spack/spack/commits/develop.atom"/>
+  <title>Recent Commits to spack:develop</title>
+  <updated>2022-05-11T14:41:40Z</updated>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/f9d701f9cf48731a861ae8210f014fb6d038b5a0</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/f9d701f9cf48731a861ae8210f014fb6d038b5a0"/>
+    <title>
+        ReFrame: add v3.11.0 (#30578)
+    </title>
+    <updated>2022-05-11T14:41:40Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/611019?s=30&amp;u=7f43b8c933cef950a416097e6de869850ccf5e19&amp;v=4"/>
+    <author>
+      <name>vkarak</name>
+      <uri>https://github.com/vkarak</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;ReFrame: add v3.11.0 (#30578)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/63f7053fe8a99c5718a15e94ca385f1c478d53e4</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/63f7053fe8a99c5718a15e94ca385f1c478d53e4"/>
+    <title>
+        eccodes: add v2.25.0 (#30618)
+    </title>
+    <updated>2022-05-11T12:04:43Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/194764?s=30&amp;u=3c961c01fb914af8e2bffa5d599a04d4273b584a&amp;v=4"/>
+    <author>
+      <name>haampie</name>
+      <uri>https://github.com/haampie</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;eccodes: add v2.25.0 (#30618)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/1c51d6313bb3c884f192771b41efe61a0d600c09</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/1c51d6313bb3c884f192771b41efe61a0d600c09"/>
+    <title>
+        jasper: avoid --gc-sections / hidden symbols (#30617)
+    </title>
+    <updated>2022-05-11T11:52:54Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/194764?s=30&amp;u=3c961c01fb914af8e2bffa5d599a04d4273b584a&amp;v=4"/>
+    <author>
+      <name>haampie</name>
+      <uri>https://github.com/haampie</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;jasper: avoid --gc-sections / hidden symbols (#30617)
+
+Jasper v3.x changed a default to hide hidden symbols, but apparently
+eccodes relies on those symbols and fails to link otherwise.&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/c164e6fe037b3f7a28471cfbf998cc8bb7126594</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/c164e6fe037b3f7a28471cfbf998cc8bb7126594"/>
+    <title>
+        jasper: update cmake dependency (#30616)
+    </title>
+    <updated>2022-05-11T11:33:46Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/194764?s=30&amp;u=3c961c01fb914af8e2bffa5d599a04d4273b584a&amp;v=4"/>
+    <author>
+      <name>haampie</name>
+      <uri>https://github.com/haampie</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;jasper: update cmake dependency (#30616)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/2d823dcf90d2f23d8be355d338ffe27767bc80e4</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/2d823dcf90d2f23d8be355d338ffe27767bc80e4"/>
+    <title>
+        gobject-introspection: add libffi dependency (#30601)
+    </title>
+    <updated>2022-05-11T11:29:54Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/3641995?s=30&amp;u=c17e8c52f29f616585933f7c38399266690aa8e6&amp;v=4"/>
+    <author>
+      <name>lee218llnl</name>
+      <uri>https://github.com/lee218llnl</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;gobject-introspection: add libffi dependency (#30601)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/a12c6382246e82152a2d6e66ddc1f2c97c331c24</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/a12c6382246e82152a2d6e66ddc1f2c97c331c24"/>
+    <title>
+        Neovim luajit (#28855)
+    </title>
+    <updated>2022-05-11T11:01:35Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/660149?s=30&amp;v=4"/>
+    <author>
+      <name>trws</name>
+      <uri>https://github.com/trws</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Neovim luajit (#28855)
+
+Upstream neovim builds with luajit-openresty or luajit in almost all
+cases.  To support the current usage, a user can specify that they want
+lua, but this will allow the use of the normal (faster, better tested
+and better maintained) setup.&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/0739691688ff187811ccc871d25f7dd885275d7c</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/0739691688ff187811ccc871d25f7dd885275d7c"/>
+    <title>
+        flecsi: add GPU dependencies and refactor (#30543)
+    </title>
+    <updated>2022-05-11T10:51:21Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/2828630?s=30&amp;u=13783ab47cb25aa777f7d7e3ff87c74b23887dbf&amp;v=4"/>
+    <author>
+      <name>rbberger</name>
+      <uri>https://github.com/rbberger</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;flecsi: add GPU dependencies and refactor (#30543)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/62ffc8c1dda7bb0103c1b9cdd737e94e739ba88a</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/62ffc8c1dda7bb0103c1b9cdd737e94e739ba88a"/>
+    <title>
+        vecgeom: new version 1.2.0 (#30586)
+    </title>
+    <updated>2022-05-11T10:49:14Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/741229?s=30&amp;u=eb79f1a382f7f01cf71c45a1a7933361f5aa43cb&amp;v=4"/>
+    <author>
+      <name>sethrj</name>
+      <uri>https://github.com/sethrj</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;vecgeom: new version 1.2.0 (#30586)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/61969566f8e882fd317b033c2ac17e60635ced55</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/61969566f8e882fd317b033c2ac17e60635ced55"/>
+    <title>
+        pango: updated versions with MesonPackage (#30591)
+    </title>
+    <updated>2022-05-11T10:48:07Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/4656391?s=30&amp;u=e2522a95485b59ac1338c7ba691ba5c38ede377f&amp;v=4"/>
+    <author>
+      <name>wdconinc</name>
+      <uri>https://github.com/wdconinc</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;pango: updated versions with MesonPackage (#30591)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/49948bb3e700051ba4c8592a506055c0e5f44100</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/49948bb3e700051ba4c8592a506055c0e5f44100"/>
+    <title>
+        root: changes due to var name webui-&gt;webgui from version 6.17.02 (#29…
+    </title>
+    <updated>2022-05-11T10:44:17Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/102957074?s=30&amp;u=1b874dddb5c86a6f68c84cc43acfca9b70cf511f&amp;v=4"/>
+    <author>
+      <name>imjelde</name>
+      <uri>https://github.com/imjelde</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;root: changes due to var name webui-&amp;gt;webgui from version 6.17.02 (#29964)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/c9c347f0f07ea2958a900fb0d09d7d56750644f6</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/c9c347f0f07ea2958a900fb0d09d7d56750644f6"/>
+    <title>
+        jasper: add 3.0.x (#30614)
+    </title>
+    <updated>2022-05-11T10:26:23Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/194764?s=30&amp;u=3c961c01fb914af8e2bffa5d599a04d4273b584a&amp;v=4"/>
+    <author>
+      <name>haampie</name>
+      <uri>https://github.com/haampie</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;jasper: add 3.0.x (#30614)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/ee9b61be7ad968d07a119cf8ce7a1a9a3da40205</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/ee9b61be7ad968d07a119cf8ce7a1a9a3da40205"/>
+    <title>
+        upcxx,gasnet: Add a note to the `+cuda` variant description (#30602)
+    </title>
+    <updated>2022-05-11T04:45:32Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/7160884?s=30&amp;u=80d3c7764d89bcb22cc08f91f6df01d5c691c757&amp;v=4"/>
+    <author>
+      <name>bonachea</name>
+      <uri>https://github.com/bonachea</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;upcxx,gasnet: Add a note to the `+cuda` variant description (#30602)
+
+Resolves issue #30589&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/be45292a9c7139984c4929a35a7db19265543ff5</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/be45292a9c7139984c4929a35a7db19265543ff5"/>
+    <title>
+        last: updating to 1282 (#30606)
+    </title>
+    <updated>2022-05-11T00:26:54Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/7978778?s=30&amp;u=2fa55a1b35afc15f483bf01914be031f219be72e&amp;v=4"/>
+    <author>
+      <name>snehring</name>
+      <uri>https://github.com/snehring</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;last: updating to 1282 (#30606)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/61f8c97bb7566c8b0c17d289e87d9f34df64bcd5</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/61f8c97bb7566c8b0c17d289e87d9f34df64bcd5"/>
+    <title>
+        helics: Add version 3.2.0 (#30604)
+    </title>
+    <updated>2022-05-10T23:02:08Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/45982316?s=30&amp;u=a89964a547da36659aafff24ed8432732b4d5955&amp;v=4"/>
+    <author>
+      <name>HELICS-bot</name>
+      <uri>https://github.com/HELICS-bot</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;helics: Add version 3.2.0 (#30604)
+
+Co-authored-by: github-actions[bot] &amp;lt;github-actions[bot]@users.noreply.github.com&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/b0403624cf16a66a4873db32585544ca406662f5</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/b0403624cf16a66a4873db32585544ca406662f5"/>
+    <title>
+        py-scikit-learn: add v1.1.0rc1 (#30600)
+    </title>
+    <updated>2022-05-10T21:50:56Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/12021217?s=30&amp;u=cfe1ad6cab25dc72904d16eb3f25326cc645b624&amp;v=4"/>
+    <author>
+      <name>adamjstewart</name>
+      <uri>https://github.com/adamjstewart</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;py-scikit-learn: add v1.1.0rc1 (#30600)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/4baed234be5820b6dde4fa0331839325a3b460c1</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/4baed234be5820b6dde4fa0331839325a3b460c1"/>
+    <title>
+        py-xarray: add v2022.3.0 (#30599)
+    </title>
+    <updated>2022-05-10T21:45:55Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/12021217?s=30&amp;u=cfe1ad6cab25dc72904d16eb3f25326cc645b624&amp;v=4"/>
+    <author>
+      <name>adamjstewart</name>
+      <uri>https://github.com/adamjstewart</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;py-xarray: add v2022.3.0 (#30599)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/9de1edee80c0a01d1202f4afe66dad6bb401b87c</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/9de1edee80c0a01d1202f4afe66dad6bb401b87c"/>
+    <title>
+        py-geopandas: add v0.10.X (#30597)
+    </title>
+    <updated>2022-05-10T21:32:12Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/12021217?s=30&amp;u=cfe1ad6cab25dc72904d16eb3f25326cc645b624&amp;v=4"/>
+    <author>
+      <name>adamjstewart</name>
+      <uri>https://github.com/adamjstewart</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;py-geopandas: add v0.10.X (#30597)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/9ce726eed5be7f26c02d159b31f2067159c6ab04</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/9ce726eed5be7f26c02d159b31f2067159c6ab04"/>
+    <title>
+        openmpi: only set variants when condition is met (#30585)
+    </title>
+    <updated>2022-05-10T19:05:44Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/194764?s=30&amp;u=3c961c01fb914af8e2bffa5d599a04d4273b584a&amp;v=4"/>
+    <author>
+      <name>haampie</name>
+      <uri>https://github.com/haampie</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;openmpi: only set variants when condition is met (#30585)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/c45ee381bd3b9db15862d4639d1e9f66549fa05c</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/c45ee381bd3b9db15862d4639d1e9f66549fa05c"/>
+    <title>
+        hyperfine: add v1.13.0 (#30584)
+    </title>
+    <updated>2022-05-10T18:05:13Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/194764?s=30&amp;u=3c961c01fb914af8e2bffa5d599a04d4273b584a&amp;v=4"/>
+    <author>
+      <name>haampie</name>
+      <uri>https://github.com/haampie</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;hyperfine: add v1.13.0 (#30584)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/56d76766b761d69221ba4c9b35c1d6cecc045f5f</id>
+    <link type="text/html" rel="alternate" href="https://github.com/spack/spack/commit/56d76766b761d69221ba4c9b35c1d6cecc045f5f"/>
+    <title>
+        cray-mpich: add variant &#39;wrappers&#39; (#30249)
+    </title>
+    <updated>2022-05-10T17:22:04Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/19591868?s=30&amp;u=98667a7c6edc47dd1209dcaaaec36e82c9e74107&amp;v=4"/>
+    <author>
+      <name>skosukhin</name>
+      <uri>https://github.com/skosukhin</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;cray-mpich: add variant &amp;#39;wrappers&amp;#39; (#30249)&lt;/pre&gt;
+    </content>
+  </entry>
+</feed>
