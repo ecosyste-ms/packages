@@ -14,7 +14,7 @@ class CargoTest < ActiveSupport::TestCase
   end
 
   test 'registry_url with version' do
-    registry_url = @ecosystem.registry_url(@package, @version.number)
+    registry_url = @ecosystem.registry_url(@package, @version)
     assert_equal registry_url, 'https://crates.io/crates/rand/0.8.5'
   end
 

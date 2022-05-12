@@ -14,7 +14,7 @@ class DenoTest < ActiveSupport::TestCase
   end
 
   test 'registry_url with version' do
-    registry_url = @ecosystem.registry_url(@package, @version.number)
+    registry_url = @ecosystem.registry_url(@package, @version)
     assert_equal registry_url, "https://deno.land/x/deno_es@v0.4.2"
   end
 

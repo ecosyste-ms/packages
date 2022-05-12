@@ -14,7 +14,7 @@ class GoTest < ActiveSupport::TestCase
   end
 
   test 'registry_url with version' do
-    registry_url = @ecosystem.registry_url(@package, @version.number)
+    registry_url = @ecosystem.registry_url(@package, @version)
     assert_equal registry_url, 'https://pkg.go.dev/github.com/aws/smithy-go@v1.11.1'
   end
 

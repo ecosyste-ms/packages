@@ -14,7 +14,7 @@ class NugetTest < ActiveSupport::TestCase
   end
 
   test 'registry_url with version' do
-    registry_url = @ecosystem.registry_url(@package, @version.number)
+    registry_url = @ecosystem.registry_url(@package, @version)
     assert_equal registry_url, 'https://www.nuget.org/packages/ogcapi.net.sqlserver/0.3.1'
   end
 

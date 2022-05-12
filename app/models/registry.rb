@@ -101,6 +101,7 @@ class Registry < ApplicationRecord
       all_versions = package.versions.includes(:dependencies)
 
       all_versions.each do |version|
+         version
         next if version.dependencies.any?
 
         deps = begin

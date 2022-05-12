@@ -16,7 +16,7 @@ class Version < ApplicationRecord
   end
 
   def registry_url
-    package.registry.ecosystem_instance.registry_url(package, number)
+    package.registry.ecosystem_instance.registry_url(package, self)
   end
 
   def documentation_url

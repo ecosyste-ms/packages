@@ -14,7 +14,7 @@ class NpmTest < ActiveSupport::TestCase
   end
 
   test 'registry_url with version' do
-    registry_url = @ecosystem.registry_url(@package, @version.number)
+    registry_url = @ecosystem.registry_url(@package, @version)
     assert_equal registry_url, 'https://www.npmjs.com/package/base62/v/2.0.1'
   end
 

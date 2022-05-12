@@ -14,7 +14,7 @@ class PackagistTest < ActiveSupport::TestCase
   end
 
   test 'registry_url with version' do
-    registry_url = @ecosystem.registry_url(@package, @version.number)
+    registry_url = @ecosystem.registry_url(@package, @version)
     assert_equal registry_url, 'https://packagist.org/packages/psr/log#3.0.0'
   end
 

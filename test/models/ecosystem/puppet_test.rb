@@ -14,7 +14,7 @@ class PuppetTest < ActiveSupport::TestCase
   end
 
   test 'registry_url with version' do
-    registry_url = @ecosystem.registry_url(@package, @version.number)
+    registry_url = @ecosystem.registry_url(@package, @version)
     assert_equal registry_url, 'https://forge.puppet.com/puppet/fail2ban/4.1.0'
   end
 

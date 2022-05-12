@@ -3,11 +3,19 @@
 module Ecosystem
   class Rubygems < Base
     def registry_url(package, version = nil)
-      "#{@registry_url}/gems/#{package.name}" + (version ? "/versions/#{version}" : "")
+      if version && (version.metadata["platform"].nil? || version.metadata["platform"] == 'ruby')
+        "#{@registry_url}/gems/#{package.name}" + (version ? "/versions/#{version}" : "")
+      else
+        "#{@registry_url}/gems/#{package.name}" + (version ? "/versions/#{version}-#{version.metadata["platform"]}" : "")
+      end
     end
 
     def download_url(package, version)
-      "#{@registry_url}/downloads/#{package.name}-#{version}.gem"
+      if version.metadata["platform"].nil? || version.metadata["platform"] == 'ruby'
+        "#{@registry_url}/downloads/#{package.name}-#{version.number}.gem"
+      else
+        "#{@registry_url}/downloads/#{package.name}-#{version.number}-#{version.metadata["platform"]}.gem"
+      end
     end
 
     def documentation_url(package, version = nil)

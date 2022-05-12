@@ -14,7 +14,7 @@ class PypiTest < ActiveSupport::TestCase
   end
 
   test 'registry_url with version' do
-    registry_url = @ecosystem.registry_url(@package, @version.number)
+    registry_url = @ecosystem.registry_url(@package, @version)
     assert_equal registry_url, 'https://pypi.org/package/urllib3/1.26.8'
   end
 
