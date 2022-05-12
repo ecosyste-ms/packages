@@ -36,7 +36,7 @@ module Ecosystem
     def versions_metadata(package)
       package[:releases].map do |release|
         version = get_json("https://forgeapi-cdn.puppet.com/v3/releases/#{package[:name]}-#{release["version"]}")
-        integrity = version ? 'sha256-' + version['file_sha256'] : nil
+        integrity = version['file_sha256'] ? 'sha256-' + version['file_sha256'] : nil        
         {
           number: release["version"],
           published_at: release["created_at"],
