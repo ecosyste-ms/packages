@@ -85,8 +85,20 @@ class RubygemsTest < ActiveSupport::TestCase
     versions_metadata = @ecosystem.versions_metadata({name: 'rubystats'})
 
     assert_equal versions_metadata, [
-      {:number=>"0.3.0", :published_at=>"2017-12-02T17:23:59.896Z", :licenses=>"MIT", :integrity=>"sha256-d328ec2cd0c2139ff0cb2787e1f92c799bd7557b0c58cc22f4e4728f0d510587"},
-      {:number=>"0.2.6", :published_at=>"2017-07-24T11:40:49.445Z", :licenses=>"MIT", :integrity=>"sha256-56eeac510738d45af725d12cc441e14beed661428b56ce9bcc8f7ba5204a7042"}
+      {
+        :number=>"0.3.0",
+        :published_at=>"2017-12-02T17:23:59.896Z",
+        :licenses=>"MIT",
+        :integrity=>"sha256-d328ec2cd0c2139ff0cb2787e1f92c799bd7557b0c58cc22f4e4728f0d510587",
+        :metadata=>{:platform=>"ruby"}
+      },
+      {
+       :number=>"0.2.6",
+       :published_at=>"2017-07-24T11:40:49.445Z",
+       :licenses=>"MIT",
+       :integrity=>"sha256-56eeac510738d45af725d12cc441e14beed661428b56ce9bcc8f7ba5204a7042",
+       :metadata=>{:platform=>"ruby"}
+      }
     ]
   end
 
