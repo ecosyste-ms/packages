@@ -104,4 +104,9 @@ class Package < ApplicationRecord
   def update_versions_async
     UpdateVersionsWorker.perform_async(id)
   end
+
+  def update_integrities_async
+    return if versions.first.try(:download_url).blank?
+    versions.find_each(&:update_integrity_async)
+  end
 end

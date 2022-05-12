@@ -91,6 +91,12 @@ class Version < ApplicationRecord
     @clean_number ||= (SemanticRange.clean(number) || number)
   end
 
+  def update_integrity_async
+    return if integrity.present?
+    return if download_url.blank?
+    UpdateIntegrityWorker.perform_async(id)
+  end
+
   def update_integrity
     return if integrity.present?
     return if download_url.blank?
