@@ -92,7 +92,7 @@ class Package < ApplicationRecord
     versions_metadata = registry.ecosystem_instance.versions_metadata(package_metadata)
 
     versions_metadata.each do |version|
-      if version[:integrity].present? && versions.select{|ver| ver.number == version[:number] }.length > 1
+      if version[:integrity].present?
         v = versions.find{|ver| ver.integrity == version[:integrity] }
       else
         v = versions.find{|ver| ver.number == version[:number] }

@@ -3,19 +3,11 @@
 module Ecosystem
   class Rubygems < Base
     def registry_url(package, version = nil)
-      if version && (version.metadata["platform"].nil? || version.metadata["platform"] == 'ruby')
-        "#{@registry_url}/gems/#{package.name}" + (version ? "/versions/#{version}" : "")
-      else
-        "#{@registry_url}/gems/#{package.name}" + (version ? "/versions/#{version}-#{version.metadata["platform"]}" : "")
-      end
+      "#{@registry_url}/gems/#{package.name}" + (version ? "/versions/#{version}" : "")
     end
 
     def download_url(package, version)
-      if version.metadata["platform"].nil? || version.metadata["platform"] == 'ruby'
-        "#{@registry_url}/downloads/#{package.name}-#{version.number}.gem"
-      else
-        "#{@registry_url}/downloads/#{package.name}-#{version.number}-#{version.metadata["platform"]}.gem"
-      end
+      "#{@registry_url}/downloads/#{package.name}-#{version.number}.gem"
     end
 
     def documentation_url(package, version = nil)
@@ -61,8 +53,9 @@ module Ecosystem
     def versions_metadata(pkg_metadata)
       json = get_json("#{@registry_url}/api/v1/versions/#{pkg_metadata[:name]}.json")
       json.map do |v|
+        number = v["platform"] == 'ruby' ? v["number"] : "#{v["number"]}-#{v["platform"]}"
         {
-          number: v["number"],
+          number: number,
           published_at: v["created_at"],
           licenses: v.fetch("licenses", []).try(:join, ","),
           integrity: "sha256-" + v["sha"],

@@ -4,48 +4,48 @@ class RubygemsTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
     @ecosystem = Ecosystem::Rubygems.new(@registry.url)
-    @package = Package.new(ecosystem: 'rubygems', name: 'rails')
-    @version = @package.versions.build(number: '7.0.0')
+    @package = Package.new(ecosystem: 'rubygems', name: 'nokogiri')
+    @version = @package.versions.build(number: '1.13.6')
   end
 
   test 'registry_url' do
     registry_url = @ecosystem.registry_url(@package)
-    assert_equal registry_url, 'https://rubygems.org/gems/rails'
+    assert_equal registry_url, 'https://rubygems.org/gems/nokogiri'
   end
 
   test 'registry_url with version' do
     registry_url = @ecosystem.registry_url(@package, @version)
-    assert_equal registry_url, 'https://rubygems.org/gems/rails/versions/7.0.0'
+    assert_equal registry_url, 'https://rubygems.org/gems/nokogiri/versions/1.13.6'
   end
 
   test 'download_url' do
     download_url = @ecosystem.download_url(@package, @version)
-    assert_equal download_url, 'https://rubygems.org/downloads/rails-7.0.0.gem'
+    assert_equal download_url, 'https://rubygems.org/downloads/nokogiri-1.13.6.gem'
   end
 
   test 'documentation_url' do
     documentation_url = @ecosystem.documentation_url(@package)
-    assert_equal documentation_url, 'http://www.rubydoc.info/gems/rails/'
+    assert_equal documentation_url, 'http://www.rubydoc.info/gems/nokogiri/'
   end
 
   test 'documentation_url with version' do
     documentation_url = @ecosystem.documentation_url(@package, @version.number)
-    assert_equal documentation_url, 'http://www.rubydoc.info/gems/rails/7.0.0'
+    assert_equal documentation_url, 'http://www.rubydoc.info/gems/nokogiri/1.13.6'
   end
 
   test 'install_command' do
     install_command = @ecosystem.install_command(@package)
-    assert_equal install_command, 'gem install rails -s https://rubygems.org'
+    assert_equal install_command, 'gem install nokogiri -s https://rubygems.org'
   end
 
   test 'install_command with version' do
     install_command = @ecosystem.install_command(@package, @version.number)
-    assert_equal install_command, 'gem install rails -s https://rubygems.org -v 7.0.0'
+    assert_equal install_command, 'gem install nokogiri -s https://rubygems.org -v 1.13.6'
   end
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "https://rubygems.org/api/v1/versions/rails.json"
+    assert_equal check_status_url, "https://rubygems.org/api/v1/versions/nokogiri.json"
   end
 
   test 'all_package_names' do
@@ -67,45 +67,32 @@ class RubygemsTest < ActiveSupport::TestCase
   end
   
   test 'package_metadata' do
-    stub_request(:get, "https://rubygems.org/api/v1/gems/rubystats.json")
-      .to_return({ status: 200, body: file_fixture('rubygems/rubystats.json') })
-    package_metadata = @ecosystem.package_metadata('rubystats')
+    stub_request(:get, "https://rubygems.org/api/v1/gems/nokogiri.json")
+      .to_return({ status: 200, body: file_fixture('rubygems/nokogiri.json') })
+    package_metadata = @ecosystem.package_metadata('nokogiri')
 
-    assert_equal package_metadata, {:name=>"rubystats",
-      :description=>"Ruby Stats is a port of the statistics libraries from PHPMath. Probability distributions include binomial, beta, and normal distributions with PDF, CDF and inverse CDF as well as Fisher's Exact Test.", 
-      :homepage=>"https://github.com/phillbaker/rubystats", 
-      :licenses=>"MIT", 
-      :repository_url=>"https://github.com/phillbaker/rubystats"
+    assert_equal package_metadata, {
+      :name=>"nokogiri", 
+      :description=>"Nokogiri (鋸) makes it easy and painless to work with XML and HTML from Ruby. It provides a\nsensible, easy-to-understand API for reading, writing, modifying, and querying documents. It is\nfast and standards-compliant by relying on native parsers like libxml2 (C) and xerces (Java).\n", 
+      :homepage=>"https://nokogiri.org",
+      :licenses=>"MIT",
+      :repository_url=>"https://github.com/sparklemotion/nokogiri"
     }
   end
 
   test 'versions_metadata' do
-    stub_request(:get, "https://rubygems.org/api/v1/versions/rubystats.json")
-      .to_return({ status: 200, body: file_fixture('rubygems/rubystats-versions.json') })
-    versions_metadata = @ecosystem.versions_metadata({name: 'rubystats'})
+    stub_request(:get, "https://rubygems.org/api/v1/versions/nokogiri.json")
+      .to_return({ status: 200, body: file_fixture('rubygems/nokogiri-versions.json') })
+    versions_metadata = @ecosystem.versions_metadata({name: 'nokogiri'})
 
-    assert_equal versions_metadata, [
-      {
-        :number=>"0.3.0",
-        :published_at=>"2017-12-02T17:23:59.896Z",
-        :licenses=>"MIT",
-        :integrity=>"sha256-d328ec2cd0c2139ff0cb2787e1f92c799bd7557b0c58cc22f4e4728f0d510587",
-        :metadata=>{:platform=>"ruby"}
-      },
-      {
-       :number=>"0.2.6",
-       :published_at=>"2017-07-24T11:40:49.445Z",
-       :licenses=>"MIT",
-       :integrity=>"sha256-56eeac510738d45af725d12cc441e14beed661428b56ce9bcc8f7ba5204a7042",
-       :metadata=>{:platform=>"ruby"}
-      }
-    ]
+    assert_equal versions_metadata.first, {:number=>"1.13.6", :published_at=>"2022-05-08T14:34:51.113Z", :licenses=>"MIT", :integrity=>"sha256-b1512fdc0aba446e1ee30de3e0671518eb363e75fab53486e99e8891d44b8587", :metadata=>{:platform=>"ruby"}}
+    assert_equal versions_metadata.second, {:number=>"1.13.6-x86_64-linux", :published_at=>"2022-05-08T14:34:45.502Z", :licenses=>"MIT", :integrity=>"sha256-3fa37b0c3b5744af45f9da3e4ae9cbd89480b35e12ae36b5e87a0452e0b38335", :metadata=>{:platform=>"x86_64-linux"}}
   end
 
   test 'dependencies_metadata' do
-    stub_request(:get, "https://rubygems.org/api/v2/rubygems/rubystats/versions/0.3.0.json")
+    stub_request(:get, "https://rubygems.org/api/v2/rubygems/nokogiri/versions/0.3.0.json")
       .to_return({ status: 200, body: file_fixture('rubygems/0.3.0.json') })
-    dependencies_metadata = @ecosystem.dependencies_metadata('rubystats', '0.3.0', nil)
+    dependencies_metadata = @ecosystem.dependencies_metadata('nokogiri', '0.3.0', nil)
     
     assert_equal dependencies_metadata, [
       {:package_name=>"hoe", :requirements=>">= 1.7.0", :kind=>"Development", :ecosystem=>"rubygems"},
