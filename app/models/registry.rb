@@ -125,7 +125,7 @@ class Registry < ApplicationRecord
 
     package.assign_attributes(updates)
     package.save
-    package.update_integrities_async
+    # package.update_integrities_async
     return package
   end
 
