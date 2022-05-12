@@ -44,6 +44,7 @@ module Ecosystem
     end
 
     def map_package_metadata(package)
+      return false unless package["name"].present?
       {
         name: package["name"],
         description: package["summary"],
