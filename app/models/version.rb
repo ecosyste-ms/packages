@@ -90,4 +90,30 @@ class Version < ApplicationRecord
   def clean_number
     @clean_number ||= (SemanticRange.clean(number) || number)
   end
+
+  def update_integrity
+    return if integrity.present?
+    return if download_url.blank?
+
+    update(integrity: calculate_integrity['sri'])
+  end
+
+  def check_integrity
+    return if integrity.blank?
+    return if download_url.blank?
+
+    calculate_integrity['sri'] == integrity
+  end
+
+  def calculate_integrity
+    begin
+      Oj.load(Faraday.get(digest_url).body)
+    rescue
+      {}
+    end
+  end
+
+  def digest_url
+    "https://digest.ecosyste.ms/digest?url=#{CGI.escape(download_url)}&encoding=hex&algorithm=sha256" # TODO encoding and algorithm should come from ecosystem_instance
+  end
 end
