@@ -98,7 +98,8 @@ class Package < ApplicationRecord
         v = versions.find{|ver| ver.number == version[:number] }
       end
       if v
-        v.update(version)
+        v.assign_attributes(version) 
+        v.save(validate: false)
       else
         versions.create(version)
       end
