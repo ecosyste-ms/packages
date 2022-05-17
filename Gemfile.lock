@@ -120,7 +120,7 @@ GEM
     faraday-gzip (0.1.0)
       faraday (>= 1.0)
       zlib (~> 2.1)
-    faraday-net_http (2.0.2)
+    faraday-net_http (2.0.3)
     faraday-retry (1.0.3)
     ffi (1.15.5)
     fuzzy_match (2.1.0)
