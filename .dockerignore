@@ -4,9 +4,9 @@
 README.md
 
 log
+tmp
 test
 vendor
-openshift/
 coverage/
 .bundle
 .ruby-version
