@@ -71,6 +71,22 @@ class Version < ApplicationRecord
     end
   end
 
+  def related_versions
+    @related_versions ||= package.try(:versions).try(:sort)
+  end
+
+  def version_index
+    related_versions.index(self)
+  end
+
+  def next_version
+    related_versions[version_index - 1]
+  end
+
+  def previous_version
+    related_versions[version_index + 1]
+  end
+
   def to_s
     number
   end
@@ -121,5 +137,16 @@ class Version < ApplicationRecord
 
   def digest_url
     "https://digest.ecosyste.ms/digest?url=#{CGI.escape(download_url)}&encoding=hex&algorithm=sha256" # TODO encoding and algorithm should come from ecosystem_instance
+  end
+
+  def diff_url(other_version)
+    if [other_version, self].sort.first == self
+      url_1 = CGI.escape(other_version.download_url)
+      url_2 = CGI.escape(download_url)
+    else
+      url_1 = CGI.escape(download_url)
+      url_2 = CGI.escape(other_version.download_url)
+    end
+    "https://diff.ecosyste.ms/diff?url_1=#{url_1}&url_2=#{url_2}"
   end
 end
