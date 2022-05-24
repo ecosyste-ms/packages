@@ -4,7 +4,7 @@
 README.md
 
 log
-tmp
+tmp/cache
 test
 vendor
 coverage/
