@@ -291,7 +291,7 @@ GEM
     timeout (0.3.0)
     toml-rb (2.1.2)
       citrus (~> 3.0, > 3.0)
-    tomlrb (2.0.1)
+    tomlrb (2.0.2)
     treetop (1.6.11)
       polyglot (~> 0.3)
     typhoeus (1.4.0)
