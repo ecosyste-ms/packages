@@ -70,7 +70,7 @@ GEM
       public_suffix (>= 2.0.2, < 5.0)
     autoprefixer-rails (10.4.7.0)
       execjs (~> 2)
-    bibliothecary (8.3.1)
+    bibliothecary (8.3.2)
       commander
       deb_control
       librariesio-gem-parser
@@ -291,7 +291,7 @@ GEM
     timeout (0.3.0)
     toml-rb (2.1.2)
       citrus (~> 3.0, > 3.0)
-    tomlrb (2.0.1)
+    tomlrb (2.0.2)
     treetop (1.6.11)
       polyglot (~> 0.3)
     typhoeus (1.4.0)
