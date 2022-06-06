@@ -39,10 +39,10 @@ We support and encourage security research on Ecosyste.ms under the terms of our
 
 ### Code of Conduct
 
-Please note that this project is released with a [Contributor Code of Conduct](docs/CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
+Please note that this project is released with a [Contributor Code of Conduct](https://github.com/ecosyste-ms/.github/blob/main/CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
 
 ## Copyright
 
 Code is licensed under [GNU Affero License](LICENSE) © 2022 [Andrew Nesbitt](https://github.com/andrew).
 
-Data from the API is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+Data from the API is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
