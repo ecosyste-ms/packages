@@ -51,7 +51,7 @@ class CargoTest < ActiveSupport::TestCase
   test 'all_package_names' do
     stub_request(:get, "https://crates.io/api/v1/crates?page=1&per_page=100")
       .to_return({ status: 200, body: file_fixture('cargo/crates') })
-      stub_request(:get, "https://crates.io/api/v1/crates?page=2&per_page=100")
+    stub_request(:get, "https://crates.io/api/v1/crates?page=2&per_page=100")
       .to_return({ status: 200, body: file_fixture('cargo/crates2') })
     all_package_names = @ecosystem.all_package_names
     assert_equal all_package_names.length, 100
