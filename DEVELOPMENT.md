@@ -110,6 +110,8 @@ stub_request(:get, "https://crates.io/api/v1/crates?page=1&per_page=100")
       .to_return({ status: 200, body: file_fixture('cargo/crates') })
 ```
 
+Also don't forget to add a new default registry for your ecosystem to [db/seeds.rb](db/seeds.rb).
+
 ## Deployment
 
 A container-based deployment is highly recommended, we use [dokku.com](https://dokku.com/).
