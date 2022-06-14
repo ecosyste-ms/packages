@@ -99,6 +99,36 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Package'
+  /registries/{registryName}/recent_versions:
+    get:
+      summary: get a list of recently published versions from a registry
+      operationId: getRegistryRecentVersions
+      parameters:
+        - in: path
+          name: registryName
+          schema:
+            type: string
+          required: true
+          description: name of registry
+        - name: page
+          in: query
+          description: pagination page number 
+          required: false
+          type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return 
+          required: false
+          type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VersionWithPackage'
   /registries/{registryName}/packages/{packageName}:
     get:
       summary: get a package by name
@@ -282,6 +312,72 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/Dependency'
+    VersionWithPackage:
+      type: object
+      properties:
+        name:
+          type: string
+        ecosystem:
+          type: string
+        description:
+          type: string
+        homepage:
+          type: string
+        licenses:
+          type: string
+        repository_url:
+          type: string
+        keywords_array:
+          type: array
+          items: {}
+        versions_count:
+          type: integer
+        latest_release_published_at:
+          type: string
+          format: date-time
+        latest_release_number:
+          type: string
+        last_synced_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        registry_url:
+          type: string
+        documentation_url:
+          type: string
+        install_command:
+          type: string
+        versions_url:
+          type: string
+        metadata:
+          type: object
+        number:
+          type: string
+        published_at:
+          type: string
+        licenses:
+          type: string
+        integrity:
+          type: string
+        status:
+          type: string
+        download_url:
+          type: string
+        registry_url:
+          type: string
+        documentation_url:
+          type: string
+        install_command:
+          type: string
+        dependencies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dependency'
     Dependency:
       type: object
       properties:

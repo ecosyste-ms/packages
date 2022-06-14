@@ -18,6 +18,10 @@ Rails.application.routes.draw do
         resources :packages, constraints: { id: /.*/ }, only: [:index, :show] do 
           resources :versions, only: [:index, :show], constraints: { id: /.*/ }
         end
+
+        member do
+          get :recent_versions, to: 'versions#recent'
+        end
       end
     end
   end

@@ -27,4 +27,19 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response['number'], "1.0.0"
     assert_equal actual_response['metadata'], {"foo"=>"bar"}
   end
+
+  test 'get recent versions' do
+    get recent_versions_api_v1_registry_path(id: @registry.name)
+    assert_response :success
+    assert_template 'versions/recent', file: 'versions/recent.json.jbuilder'
+
+    actual_response = JSON.parse(@response.body)
+
+    first_version = actual_response.first
+
+    assert_equal first_version['ecosystem'], "cargo"
+    assert_equal first_version['name'], "rand"
+    assert_equal first_version['number'], "1.0.0"
+    assert_equal first_version['metadata'], {"foo"=>"bar"}
+  end
 end
