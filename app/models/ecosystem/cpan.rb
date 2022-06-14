@@ -72,6 +72,8 @@ module Ecosystem
           }
         }
       end
+    rescue
+      []
     end
 
     def dependencies_metadata(name, version, _package)
