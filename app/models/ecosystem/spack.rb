@@ -3,7 +3,7 @@
 module Ecosystem
   class Spack < Base
     def registry_url(package, version = nil)
-      "#{@registry_url}/packages/package.html?name=#{package.name}"
+      "#{@registry_url}/package.html?name=#{package.name}"
     end
 
     def install_command(package, version = nil)
@@ -15,13 +15,13 @@ module Ecosystem
     end
 
     def package_data
-      @package_data || get_json("#{@registry_url}/packages/data/repology.json")
+      @package_data || get_json("#{@registry_url}/data/repology.json")
     end
 
     def all_package_names
       package_data["packages"].keys.sort
     rescue StandardError
-      {}
+      []
     end
 
     def recently_updated_package_names
@@ -33,7 +33,7 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
-      json = get_json("#{@registry_url}/packages/data/packages/#{name}.json")
+      json = get_json("#{@registry_url}/data/packages/#{name}.json")
       data = package_data["packages"][name]
       data["name"] = name
       json 

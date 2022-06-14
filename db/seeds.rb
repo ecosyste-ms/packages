@@ -11,7 +11,7 @@ default_registries = [
   {name: 'pub.dev', url: 'https://pub.dev', ecosystem: 'pub', github: 'dart-lang'},
   {name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi', github: 'pypi'},
   {name: 'rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems', github: 'rubygems'},
-  {name: 'spack.io', url: 'https://spack.github.io', ecosystem: 'spack', github: 'spack'},
+  {name: 'spack.io', url: 'https://packages.spack.io', ecosystem: 'spack', github: 'spack'},
   {name: 'hackage.haskell.org', url: 'https://hackage.haskell.org', ecosystem: 'hackage', github: 'haskell-infra'},
   {name: 'cran.r-project.org', url: 'https://cran.r-project.org', ecosystem: 'cran', github: 'r-project-org'},
   {name: 'formulae.brew.sh', url: 'http://formulae.brew.sh', ecosystem: 'homebrew', github: 'homebrew'},

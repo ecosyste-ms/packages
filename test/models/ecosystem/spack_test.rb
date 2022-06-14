@@ -2,7 +2,7 @@ require "test_helper"
 
 class SpackTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'Spack.io', url: 'https://spack.github.io', ecosystem: 'spack')
+    @registry = Registry.new(name: 'Spack.io', url: 'https://packages.spack.io', ecosystem: 'spack')
     @ecosystem = Ecosystem::Spack.new(@registry.url)
     @package = Package.new(ecosystem: 'spack', name: '3proxy')
     @version = @package.versions.build(number: '0.8.13', metadata: {download_url: "https://github.com/z3APA3A/3proxy/archive/0.8.13.tar.gz"})
@@ -10,12 +10,12 @@ class SpackTest < ActiveSupport::TestCase
 
   test 'registry_url' do
     registry_url = @ecosystem.registry_url(@package)
-    assert_equal registry_url, 'https://spack.github.io/packages/package.html?name=3proxy'
+    assert_equal registry_url, 'https://packages.spack.io/package.html?name=3proxy'
   end
 
   test 'registry_url with version' do
     registry_url = @ecosystem.registry_url(@package, @version)
-    assert_equal registry_url, 'https://spack.github.io/packages/package.html?name=3proxy'
+    assert_equal registry_url, 'https://packages.spack.io/package.html?name=3proxy'
   end
 
   test 'download_url' do
@@ -44,7 +44,7 @@ class SpackTest < ActiveSupport::TestCase
   end
 
   test 'all_package_names' do
-    stub_request(:get, "https://spack.github.io/packages/data/repology.json")
+    stub_request(:get, "https://packages.spack.io/data/repology.json")
       .to_return({ status: 200, body: file_fixture('spack/repology.json') })
     all_package_names = @ecosystem.all_package_names
     assert_equal all_package_names.length, 6438
@@ -60,9 +60,9 @@ class SpackTest < ActiveSupport::TestCase
   end
 
   test 'package_metadata' do
-    stub_request(:get, "https://spack.github.io/packages/data/repology.json")
+    stub_request(:get, "https://packages.spack.io/data/repology.json")
       .to_return({ status: 200, body: file_fixture('spack/repology.json') })
-    stub_request(:get, "https://spack.github.io/packages/data/packages/3proxy.json")
+    stub_request(:get, "https://packages.spack.io/data/packages/3proxy.json")
       .to_return({ status: 200, body: file_fixture('spack/3proxy.json') })
     package_metadata = @ecosystem.package_metadata('3proxy')
     
@@ -75,9 +75,9 @@ class SpackTest < ActiveSupport::TestCase
   end
 
   test 'versions_metadata' do
-    stub_request(:get, "https://spack.github.io/packages/data/repology.json")
+    stub_request(:get, "https://packages.spack.io/data/repology.json")
       .to_return({ status: 200, body: file_fixture('spack/repology.json') })
-    stub_request(:get, "https://spack.github.io/packages/data/packages/3proxy.json")
+    stub_request(:get, "https://packages.spack.io/data/packages/3proxy.json")
       .to_return({ status: 200, body: file_fixture('spack/3proxy.json') })
     package_metadata = @ecosystem.package_metadata('3proxy')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
@@ -90,9 +90,9 @@ class SpackTest < ActiveSupport::TestCase
   end
 
   test 'dependencies_metadata' do
-    stub_request(:get, "https://spack.github.io/packages/data/repology.json")
+    stub_request(:get, "https://packages.spack.io/data/repology.json")
       .to_return({ status: 200, body: file_fixture('spack/repology.json') })
-    stub_request(:get, "https://spack.github.io/packages/data/packages/3proxy.json")
+    stub_request(:get, "https://packages.spack.io/data/packages/3proxy.json")
       .to_return({ status: 200, body: file_fixture('spack/3proxy.json') })
     package_metadata = @ecosystem.package_metadata('3proxy')
     dependencies_metadata = @ecosystem.dependencies_metadata('3proxy', '0.8.13', package_metadata)
