@@ -145,40 +145,47 @@ paths:
           in: query
           description: pagination page number 
           required: false
-          type: integer
+          schema:
+            type: integer
         - name: per_page
           in: query
           description: Number of records to return 
           required: false
-          type: integer
+          schema:
+            type: integer
         - name: created_after
           in: query
           description: filter by created_at after given time
           required: false
-          type: string
-          format: date-time
+          schema:
+            type: string
+            format: date-time
         - name: updated_after
           in: query
           description: filter by updated_at after given time
           required: false
-          type: string
-          format: date-time
+          schema:
+            type: string
+            format: date-time
         - name: published_after
           in: query
           description: filter by published_at after given time
           required: false
-          type: string
-          format: date-time
+          schema:
+            type: string
+            format: date-time
         - name: sort
           in: query
           description: field to order results by
           required: false
-          type: string
+          schema: 
+            type: string
         - name: order
           in: query
           description: direction to order results by
           required: false
-          type: string
+          schema:
+            type: string
       responses:
         200:
           description: OK
@@ -233,40 +240,47 @@ paths:
           in: query
           description: pagination page number 
           required: false
-          type: integer
+          schema:
+            type: integer
         - name: per_page
           in: query
           description: Number of records to return 
           required: false
-          type: integer
+          schema:
+            type: integer
         - name: created_after
           in: query
           description: filter by created_at after given time
           required: false
-          type: string
-          format: date-time
+          schema:
+            type: string
+            format: date-time
         - name: updated_after
           in: query
           description: filter by updated_at after given time
           required: false
-          type: string
-          format: date-time
+          schema:
+            type: string
+            format: date-time
         - name: published_after
           in: query
           description: filter by published_at after given time
           required: false
-          type: string
-          format: date-time
+          schema:
+            type: string
+            format: date-time
         - name: sort
           in: query
           description: field to order results by
           required: false
-          type: string
+          schema:
+            type: string
         - name: order
           in: query
           description: direction to order results by
           required: false
-          type: string
+          schema:
+            type: string
       responses:
         200:
           description: OK
@@ -402,47 +416,6 @@ components:
     VersionWithPackage:
       type: object
       properties:
-        name:
-          type: string
-        ecosystem:
-          type: string
-        description:
-          type: string
-        homepage:
-          type: string
-        licenses:
-          type: string
-        repository_url:
-          type: string
-        keywords_array:
-          type: array
-          items: {}
-        versions_count:
-          type: integer
-        latest_release_published_at:
-          type: string
-          format: date-time
-        latest_release_number:
-          type: string
-        last_synced_at:
-          type: string
-          format: date-time
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-        registry_url:
-          type: string
-        documentation_url:
-          type: string
-        install_command:
-          type: string
-        versions_url:
-          type: string
-        metadata:
-          type: object
         number:
           type: string
         published_at:
@@ -461,6 +434,9 @@ components:
           type: string
         install_command:
           type: string
+        package:
+          type: object
+          $ref: '#/components/schemas/Package'
         dependencies:
           type: array
           items:

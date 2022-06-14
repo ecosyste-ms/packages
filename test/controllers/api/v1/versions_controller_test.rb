@@ -37,8 +37,8 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
 
     first_version = actual_response.first
 
-    assert_equal first_version['ecosystem'], "cargo"
-    assert_equal first_version['name'], "rand"
+    assert_equal first_version['package']['ecosystem'], "cargo"
+    assert_equal first_version['package']['name'], "rand"
     assert_equal first_version['number'], "1.0.0"
     assert_equal first_version['metadata'], {"foo"=>"bar"}
   end
