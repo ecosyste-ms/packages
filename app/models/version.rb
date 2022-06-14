@@ -7,6 +7,10 @@ class Version < ApplicationRecord
   has_many :dependencies, -> { order('package_name asc') }, dependent: :delete_all
   has_many :runtime_dependencies, -> { where kind: %w[runtime normal] }, class_name: "Dependency"
 
+  scope :created_after, ->(created_at) { where('created_at > ?', created_at) }
+  scope :published_after, ->(published_at) { where('published_at > ?', published_at) }
+  scope :updated_after, ->(updated_at) { where('updated_at > ?', updated_at) }
+
   def download_url
     package.registry.ecosystem_instance.download_url(package, self)
   end

@@ -20,7 +20,7 @@ Rails.application.routes.draw do
         end
 
         member do
-          get :recent_versions, to: 'versions#recent'
+          get :versions, to: 'versions#recent'
         end
       end
     end
@@ -32,7 +32,7 @@ Rails.application.routes.draw do
     end
 
     member do
-      get :recent_versions, to: 'versions#recent'
+      get :versions, to: 'versions#recent'
     end
   end
 

@@ -29,7 +29,7 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'get recent versions' do
-    get recent_versions_api_v1_registry_path(id: @registry.name)
+    get versions_api_v1_registry_path(id: @registry.name)
     assert_response :success
     assert_template 'versions/recent', file: 'versions/recent.json.jbuilder'
 

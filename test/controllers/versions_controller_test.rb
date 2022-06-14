@@ -17,7 +17,7 @@ class VersionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'get recent versions' do
-    get recent_versions_registry_path(id: @registry.name)
+    get versions_registry_path(id: @registry.name)
     assert_response :success
     assert_template 'versions/recent', file: 'versions/recent.html.erb'
   end

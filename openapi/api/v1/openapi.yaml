@@ -90,6 +90,28 @@ paths:
           description: Number of records to return 
           required: false
           type: integer
+        - name: created_after
+          in: query
+          description: filter by created_at after given time
+          required: false
+          type: string
+          format: date-time
+        - name: updated_after
+          in: query
+          description: filter by updated_at after given time
+          required: false
+          type: string
+          format: date-time
+        - name: sort
+          in: query
+          description: field to order results by
+          required: false
+          type: string
+        - name: order
+          in: query
+          description: direction to order results by
+          required: false
+          type: string
       responses:
         200:
           description: OK
@@ -99,7 +121,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Package'
-  /registries/{registryName}/recent_versions:
+  /registries/{registryName}/versions:
     get:
       summary: get a list of recently published versions from a registry
       operationId: getRegistryRecentVersions
@@ -120,6 +142,34 @@ paths:
           description: Number of records to return 
           required: false
           type: integer
+        - name: created_after
+          in: query
+          description: filter by created_at after given time
+          required: false
+          type: string
+          format: date-time
+        - name: updated_after
+          in: query
+          description: filter by updated_at after given time
+          required: false
+          type: string
+          format: date-time
+        - name: published_after
+          in: query
+          description: filter by published_at after given time
+          required: false
+          type: string
+          format: date-time
+        - name: sort
+          in: query
+          description: field to order results by
+          required: false
+          type: string
+        - name: order
+          in: query
+          description: direction to order results by
+          required: false
+          type: string
       responses:
         200:
           description: OK
@@ -180,6 +230,34 @@ paths:
           description: Number of records to return 
           required: false
           type: integer
+        - name: created_after
+          in: query
+          description: filter by created_at after given time
+          required: false
+          type: string
+          format: date-time
+        - name: updated_after
+          in: query
+          description: filter by updated_at after given time
+          required: false
+          type: string
+          format: date-time
+        - name: published_after
+          in: query
+          description: filter by published_at after given time
+          required: false
+          type: string
+          format: date-time
+        - name: sort
+          in: query
+          description: field to order results by
+          required: false
+          type: string
+        - name: order
+          in: query
+          description: direction to order results by
+          required: false
+          type: string
       responses:
         200:
           description: OK
