@@ -10,6 +10,10 @@ class Registry < ApplicationRecord
     all.each(&:sync_recently_updated_packages_async)
   end
 
+  def self.sync_all_packages
+    all.each(&:sync_all_packages)
+  end
+
   def versions_count
     packages.sum(:versions_count)
   end
