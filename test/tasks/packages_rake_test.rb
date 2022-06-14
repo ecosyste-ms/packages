@@ -10,4 +10,14 @@ class PackagesRakeTest < ActiveSupport::TestCase
     Registry.expects(:sync_all_recently_updated_packages_async).returns(:true)
     Rake::Task["packages:sync_recent"].invoke
   end
+
+  test "should sync all packages" do
+    Registry.expects(:sync_all_packages).returns(:true)
+    Rake::Task["packages:sync_all"].invoke
+  end
+
+  test "should sync least recently synced packages" do
+    Registry.expects(:sync_least_recent_async).returns(:true)
+    Rake::Task["packages:sync_least_recent"].invoke
+  end
 end
