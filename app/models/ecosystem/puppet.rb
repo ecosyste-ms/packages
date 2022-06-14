@@ -13,6 +13,8 @@ module Ecosystem
         offset += 100
       end
       packages
+    rescue
+      []
     end
 
     def fetch_package_metadata(name)

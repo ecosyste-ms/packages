@@ -25,6 +25,8 @@ module Ecosystem
     def all_package_names
       index = Nokogiri::HTML(get_raw("#{@registry_url}/simple/"))
       index.css("a").map(&:text)
+    rescue
+      []
     end
 
     def recently_updated_package_names

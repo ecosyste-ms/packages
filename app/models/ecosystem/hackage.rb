@@ -16,6 +16,8 @@ module Ecosystem
 
     def all_package_names
       get_html("#{@registry_url}/packages/names").css('.packages a:first').map(&:text)
+    rescue
+      []
     end
 
     def recently_updated_package_names

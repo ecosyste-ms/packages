@@ -38,6 +38,8 @@ module Ecosystem
         package_ids.each { |id| names << id }
       end
       return names
+    rescue
+      []
     end
 
     def fetch_package_metadata(name)

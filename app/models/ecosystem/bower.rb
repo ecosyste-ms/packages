@@ -23,6 +23,8 @@ module Ecosystem
         end
 
         packages
+      rescue
+        {}
       end
     end
 

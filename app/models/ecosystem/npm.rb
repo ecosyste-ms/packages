@@ -20,6 +20,8 @@ module Ecosystem
 
     def all_package_names
       get("https://raw.githubusercontent.com/nice-registry/all-the-package-names/master/names.json")
+    rescue
+      []
     end
 
     def recently_updated_package_names

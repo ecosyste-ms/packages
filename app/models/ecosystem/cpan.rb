@@ -32,6 +32,8 @@ module Ecosystem
         scroll_id = r['_scroll_id']
       end
       packages.map { |package| package["fields"]["distribution"] }.flatten.uniq
+    rescue
+      []
     end
 
     def recently_updated_package_names

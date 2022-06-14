@@ -23,7 +23,11 @@ module Ecosystem
     end
 
     def packages
-      @packages ||= get_json('https://juliahub.com/app/packages/info')['packages']
+      @packages ||= begin
+        get_json('https://juliahub.com/app/packages/info')['packages']
+      rescue
+        {}
+      end
     end
 
     def all_package_names

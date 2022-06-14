@@ -16,6 +16,8 @@ module Ecosystem
 
     def all_package_names
       get("#{@registry_url}/packages/list.json")["packageNames"]
+    rescue
+      []
     end
 
     def recently_updated_package_names

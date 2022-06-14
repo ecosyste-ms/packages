@@ -25,6 +25,8 @@ module Ecosystem
     def all_package_names
       gems = Marshal.load(Gem::Util.gunzip(get_raw("#{@registry_url}/specs.4.8.gz")))
       gems.map(&:first).uniq
+    rescue
+      []
     end
 
     def recently_updated_package_names

@@ -18,6 +18,8 @@ module Ecosystem
 
     def packages
       @packages ||= get("https://package.elm-lang.org/all-packages")
+    rescue
+      {}
     end
 
     def recently_updated_package_names

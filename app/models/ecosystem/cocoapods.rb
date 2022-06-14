@@ -16,6 +16,8 @@ module Ecosystem
 
     def all_package_names
       get_raw("https://cdn.cocoapods.org/all_pods.txt").force_encoding('UTF-8').split("\n")
+    rescue
+      []
     end
 
     def recently_updated_package_names

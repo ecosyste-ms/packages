@@ -30,6 +30,8 @@ module Ecosystem
       end
 
       names.uniq
+    rescue
+      []
     end
 
     def recently_updated_package_names

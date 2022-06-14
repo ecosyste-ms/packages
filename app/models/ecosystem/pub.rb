@@ -29,6 +29,8 @@ module Ecosystem
         page += 1
       end
       packages.map { |package| package["name"] }.sort
+    rescue
+      []
     end
 
     def recently_updated_package_names

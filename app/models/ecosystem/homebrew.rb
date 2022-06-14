@@ -12,6 +12,8 @@ module Ecosystem
 
     def all_package_names
       get("https://formulae.brew.sh/api/formula.json").map { |package| package["name"] }.uniq
+    rescue
+      []
     end
 
     def recently_updated_package_names
