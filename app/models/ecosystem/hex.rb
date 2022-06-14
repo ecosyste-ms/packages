@@ -42,9 +42,12 @@ module Ecosystem
 
     def fetch_package_metadata(name)
       get("#{@registry_url}/api/packages/#{name}")
+    rescue
+      false
     end
 
     def map_package_metadata(package)
+      return false unless package
       links = package["meta"].fetch("links", {}).each_with_object({}) do |(k, v), h|
         h[k.downcase] = v
       end

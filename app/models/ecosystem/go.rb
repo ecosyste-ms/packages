@@ -50,9 +50,12 @@ module Ecosystem
       # send back nil if the response is blank
       # base package manager handles if the package is not present
       { name: name, html: doc_html, overview_html: doc_html } unless doc_html.text.blank?
+    rescue
+      false
     end
 
     def map_package_metadata(package)
+      return false unless package
       if package[:html]
         url = package[:overview_html]&.css(".UnitMeta-repo a")&.first&.attribute("href")&.value
 

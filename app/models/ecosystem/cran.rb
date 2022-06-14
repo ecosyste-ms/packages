@@ -44,6 +44,7 @@ module Ecosystem
     end
 
     def map_package_metadata(package)
+      return false unless package
       {
         name: package[:name],
         homepage: package[:properties].fetch("URL:", "").split(",").first,
