@@ -91,6 +91,8 @@ GEM
     brpoplpush-redis_script (0.1.2)
       concurrent-ruby (~> 1.0, >= 1.0.5)
       redis (>= 1.0, <= 5.0)
+    bugsnag (6.24.2)
+      concurrent-ruby (~> 1.0)
     builder (3.2.4)
     citrus (3.0.2)
     commander (4.6.0)
@@ -325,6 +327,7 @@ DEPENDENCIES
   bibliothecary
   bootsnap
   bootstrap
+  bugsnag
   counter_culture
   debug
   faraday
