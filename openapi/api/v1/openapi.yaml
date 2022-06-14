@@ -8,8 +8,7 @@ info:
     url: https://ecosyste.ms 
   version: 1.0.0
   license:
-    name: CC BY-SA 4.0
-    identifier: CC-BY-SA-4.0
+    name: CC-BY-SA-4.0
     url: https://creativecommons.org/licenses/by-sa/4.0/
 externalDocs:
   description: GitHub Repository
