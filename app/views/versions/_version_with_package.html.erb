@@ -1,8 +1,11 @@
 <div class="card mb-3">
   <div class="card-body">
     <h5 class="card-title">
+      <%= link_to version.package.name, registry_package_path(version.package.registry.name, version.package.name) %>
       <%= link_to version.number, registry_package_version_path(registry_id: @registry.name, package_id: version.package.name, id: version.number) %>
     </h5>
+
+    <%= truncate version.package.description, :length => 100 %><br/>
     
     <small class='text-muted'>
       Published: <%= time_ago_in_words version.published_at %> ago
@@ -19,6 +22,9 @@
       <% if version.integrity.present? %>
         Integrity: <span title="<%= version.integrity %>"><%= version.integrity.first(20) %>...</span> -
       <% end %>
+      
+      <%= version.package.versions_count > 1 ? 'Updated' : 'Published' %>
+      
       Indexed: <%= time_ago_in_words version.created_at %> ago
     </small>
   </div>
