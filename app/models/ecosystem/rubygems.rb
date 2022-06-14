@@ -31,6 +31,8 @@ module Ecosystem
       updated = get("#{@registry_url}/api/v1/activity/just_updated.json").map { |h| h["name"] }
       new_gems = get("#{@registry_url}/api/v1/activity/latest.json").map { |h| h["name"] }
       (updated + new_gems).uniq
+    rescue
+      []
     end
 
     def fetch_package_metadata(name)

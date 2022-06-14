@@ -22,6 +22,8 @@ module Ecosystem
       u = "#{@registry_url}/packages/recent.rss"
       titles = SimpleRSS.parse(get_raw(u)).items.map(&:title)
       titles.map { |t| t.split(" ").first }.uniq
+    rescue
+      []
     end
 
     def fetch_package_metadata(name)

@@ -34,6 +34,8 @@ module Ecosystem
       u = "https://github.com/JuliaRegistries/General/commits/master/Registry.toml.atom"
       titles = SimpleRSS.parse(get_raw(u)).items.map(&:title)
       titles.map { |t| t.split(" ")[2] }.uniq
+    rescue
+      []
     end
 
     def fetch_package_metadata(name)

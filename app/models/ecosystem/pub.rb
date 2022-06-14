@@ -33,6 +33,8 @@ module Ecosystem
 
     def recently_updated_package_names
       get("#{@registry_url}/api/packages?page=1")["packages"].map { |package| package["name"] }
+    rescue
+      []
     end
 
     def fetch_package_metadata(name)

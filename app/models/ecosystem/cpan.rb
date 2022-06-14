@@ -37,6 +37,8 @@ module Ecosystem
     def recently_updated_package_names
       names = get("https://fastapi.metacpan.org/v1/release/_search?q=status:latest&fields=distribution&sort=date:desc&size=100")["hits"]["hits"]
       names.map { |package| package["fields"]["distribution"] }.uniq
+    rescue
+      []
     end
 
     def fetch_package_metadata(name)

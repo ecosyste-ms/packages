@@ -28,6 +28,8 @@ module Ecosystem
       u = "https://github.com/spack/spack/commits/develop.atom"
       titles = SimpleRSS.parse(get_raw(u)).items.map(&:title)
       titles.map { |t| t.split(/[\s,:]/)[0] }.uniq
+    rescue
+      []
     end
 
     def fetch_package_metadata(name)

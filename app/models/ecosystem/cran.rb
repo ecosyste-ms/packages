@@ -21,6 +21,8 @@ module Ecosystem
     def all_package_names
       html = get_html("https://cran.r-project.org/web/packages/available_packages_by_date.html")
       html.css("tr")[1..-1].map { |tr| tr.css("td")[1].text.strip }
+    rescue
+      []
     end
 
     def recently_updated_package_names

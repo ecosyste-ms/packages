@@ -9,3 +9,5 @@ namespace :packages do
     Registry.sync_all_packages
   end
 end
+
+Registry.all.each{|r| puts r.name; r.sync_recently_updated_packages_async }

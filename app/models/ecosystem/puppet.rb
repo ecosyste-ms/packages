@@ -60,6 +60,8 @@ module Ecosystem
 
     def recently_updated_package_names
       get_json("https://forgeapi-cdn.puppet.com/v3/modules?limit=100&sort_by=latest_release")["results"].map { |result| result["slug"] }
+    rescue
+      []
     end
 
     def install_command(db_package, version = nil)

@@ -31,6 +31,8 @@ module Ecosystem
       names += json['data']['recently_added_modules'].map { |p| p["name"] }
       names += json['data']['recently_uploaded_versions'].map { |p| p["name"] }
       names.uniq
+    rescue
+      []
     end
 
     def fetch_package_metadata(name)

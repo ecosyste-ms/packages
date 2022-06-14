@@ -16,6 +16,8 @@ module Ecosystem
 
     def recently_updated_package_names
       name_endpoints.reverse[0..1].map { |url| get_names(url) }.flatten.uniq
+    rescue
+      []
     end
 
     def name_endpoints

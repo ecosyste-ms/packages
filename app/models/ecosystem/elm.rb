@@ -22,6 +22,8 @@ module Ecosystem
 
     def recently_updated_package_names
       get("https://package.elm-lang.org/all-packages/since/1").map{|name| name.split('@').first }.uniq
+    rescue
+      []
     end
 
     def fetch_package_metadata(name)

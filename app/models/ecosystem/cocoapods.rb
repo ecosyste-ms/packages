@@ -22,6 +22,8 @@ module Ecosystem
       u = "https://github.com/CocoaPods/Specs/commits/master.atom"
       titles = SimpleRSS.parse(get_raw(u)).items.map(&:title)
       titles.map { |t| t.split(" ")[1] }.uniq
+    rescue
+      []
     end
 
     def fetch_package_metadata(name)

@@ -34,6 +34,8 @@ module Ecosystem
     def recently_updated_package_names
       (get("#{@registry_url}/api/packages?sort=inserted_at").map { |package| package["name"] } +
       get("#{@registry_url}/api/packages?sort=updated_at").map { |package| package["name"] }).uniq
+    rescue
+      []
     end
 
     def fetch_package_metadata(name)

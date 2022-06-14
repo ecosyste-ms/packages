@@ -40,6 +40,8 @@ module Ecosystem
       updated_names = json["just_updated"].map { |c| c["name"] }
       new_names = json["new_crates"].map { |c| c["name"] }
       (updated_names + new_names).uniq
+    rescue
+      []
     end
 
     def fetch_package_metadata(name)
