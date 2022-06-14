@@ -25,12 +25,14 @@ paths:
           in: query
           description: pagination page number 
           required: false
-          type: integer
+          schema:
+            type: integer
         - name: per_page
           in: query
           description: Number of records to return 
           required: false
-          type: integer
+          schema:
+            type: integer
       responses:
         200:
           description: OK
@@ -55,12 +57,14 @@ paths:
           in: query
           description: pagination page number 
           required: false
-          type: integer
+          schema:
+            type: integer
         - name: per_page
           in: query
           description: Number of records to return 
           required: false
-          type: integer
+          schema:
+            type: integer
       responses:
         200:
           description: OK
@@ -83,34 +87,40 @@ paths:
           in: query
           description: pagination page number 
           required: false
-          type: integer
+          schema:
+            type: integer
         - name: per_page
           in: query
           description: Number of records to return 
           required: false
-          type: integer
+          schema:
+            type: integer
         - name: created_after
           in: query
           description: filter by created_at after given time
           required: false
-          type: string
-          format: date-time
+          schema:
+            type: string
+            format: date-time
         - name: updated_after
           in: query
           description: filter by updated_at after given time
           required: false
-          type: string
-          format: date-time
+          schema:
+            type: string
+            format: date-time
         - name: sort
           in: query
           description: field to order results by
           required: false
-          type: string
+          schema:
+            type: string
         - name: order
           in: query
           description: direction to order results by
           required: false
-          type: string
+          schema:
+            type: string
       responses:
         200:
           description: OK
