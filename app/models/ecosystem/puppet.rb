@@ -19,9 +19,12 @@ module Ecosystem
 
     def fetch_package_metadata(name)
       get_json("https://forgeapi-cdn.puppet.com/v3/modules/#{name}")
+    rescue
+      false
     end
 
     def map_package_metadata(package)
+      return false unless package
       current_release = package["current_release"]
       metadata = current_release["metadata"]
       {
