@@ -11,6 +11,6 @@ namespace :packages do
 
   desc 'sync least recently synced packages'
   task sync_least_recent: :environment do
-    Registry.sync_least_recent_async
+    Package.sync_least_recent_async
   end
 end
