@@ -184,7 +184,7 @@ GEM
     packageurl-ruby (0.1.0)
     pagy (5.10.1)
       activesupport
-    pg (1.3.5)
+    pg (1.4.0)
     pg_query (2.1.3)
       google-protobuf (>= 3.19.2)
     pghero (2.8.3)
@@ -342,7 +342,7 @@ DEPENDENCIES
   oj
   ox
   pagy
-  pg (~> 1.1)
+  pg (~> 1.4)
   pg_query
   pghero
   puma (~> 5.0)
