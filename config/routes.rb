@@ -21,6 +21,7 @@ Rails.application.routes.draw do
 
         member do
           get :versions, to: 'versions#recent'
+          get :package_names, to: 'packages#names', as: :package_names
         end
       end
     end

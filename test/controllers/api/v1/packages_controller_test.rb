@@ -16,6 +16,16 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.length, 1
   end
 
+  test 'list package names for a registry' do
+    get package_names_api_v1_registry_path(id: @registry.name)
+    assert_response :success
+    
+    actual_response = JSON.parse(@response.body)
+
+    assert_equal actual_response.length, 1
+    assert_equal actual_response.first, @package.name
+  end
+
   test 'get a package for a registry' do
     get api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
     assert_response :success
