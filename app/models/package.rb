@@ -131,6 +131,11 @@ class Package < ApplicationRecord
     response = Typhoeus.head(url)
     if ecosystem == "packagist" && [302, 404].include?(response.response_code)
       update_columns(status: "removed", last_synced_at: Time.now)
+    elsif ecosystem == "npm" && response.response_code == 200
+      json = registry.ecosystem_instance.fetch_package_metadata(name)
+      if json.present? && json["versions"].blank?
+        update_columns(status: "unpublished", last_synced_at: Time.now)  
+      end
     elsif ecosystem != "packagist" && [400, 404, 410].include?(response.response_code)
       update_columns(status: "removed", last_synced_at: Time.now)
     end
