@@ -18,8 +18,8 @@ module Ecosystem
       @package_data || get_json("#{@registry_url}/data/repology.json")
     end
 
-    def check_status_url(package)
-      "#{@registry_url}/data/packages/#{name}.json"
+    def check_status(package)
+      return 'removed' if package_data["packages"][package.name].nil?
     end
 
     def all_package_names
