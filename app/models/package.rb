@@ -127,9 +127,9 @@ class Package < ApplicationRecord
 
     response = Typhoeus.head(url)
     if ecosystem == "packagist" && [302, 404].include?(response.response_code)
-      update_attribute(:status, "removed")
+      update_columns(status: "removed", last_synced_at: Time.now)
     elsif ecosystem != "packagist" && [400, 404, 410].include?(response.response_code)
-      update_attribute(:status, "removed")
+      update_columns(status: "removed", last_synced_at: Time.now)
     end
   end
 
