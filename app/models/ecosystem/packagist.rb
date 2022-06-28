@@ -31,7 +31,8 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
-      get_json("#{@registry_url}/packages/#{name}.json")["package"]
+      get("https://repo.packagist.org/p2/#{name}.json")&.dig("packages", name).presence || 
+        get("https://repo.packagist.org/p2/#{name}~dev.json")&.dig("packages", name)
     end
 
     def deprecation_info(name)
@@ -45,47 +46,41 @@ module Ecosystem
 
     def map_package_metadata(pkg_metadata)
       return false if pkg_metadata.nil?
-      return false unless pkg_metadata["versions"].any?
-
-      # for version comparison of php, we want to reject any dev versions unless
-      # there are only dev versions of the package
-      versions = pkg_metadata["versions"].values.reject { |v| v["version"].include? "dev" }
-      versions = pkg_metadata["versions"].values if versions.empty?
-      # then we'll use the most recently published as our most recent version
-      latest_version = versions.reject{|v| v['time'].blank? }.max_by { |v| v["time"] }
+      latest_version = pkg_metadata.first
       return false if latest_version.nil?
+
       {
         name: latest_version["name"],
         description: latest_version["description"].try(:delete, "\u0000"),
-        homepage: latest_version["home_page"],
+        homepage: latest_version["homepage"],
         keywords_array: Array.wrap(latest_version["keywords"]),
         licenses: Array.wrap(latest_version["license"]).join(","),
-        repository_url: repo_fallback(pkg_metadata["repository"], latest_version["home_page"]),
-        versions: pkg_metadata["versions"],
+        repository_url: repo_fallback(latest_version["source"]&.fetch("url"), latest_version["homepage"]),
+        versions: pkg_metadata
       }
     end
 
     def versions_metadata(pkg_metadata)
-      acceptable_versions(pkg_metadata).map do |k, v|
+      acceptable_versions(pkg_metadata[:versions]).map do |version|
         {
-          number: k,
-          published_at: v["time"],
+          number: version["version"],
+          published_at: version["time"],
           metadata: {
-            download_url: v.dig("dist", "url")
+            download_url: version.dig("dist", "url")
           }
         }
       end
     end
 
-    def acceptable_versions(pkg_metadata)
-      pkg_metadata[:versions].select do |k, _v|
+    def acceptable_versions(versions)
+      versions.select do |k|
         # See: https://getcomposer.org/doc/articles/versions.md#branches
-        (k =~ /^dev-.*/i).nil? && (k =~ /\.x-dev$/i).nil?
+        (k['version'] =~ /^dev-.*/i).nil? && (k['version'] =~ /\.x-dev$/i).nil?
       end
     end
 
     def dependencies_metadata(_name, version, package)
-      vers = package[:versions][version]
+      vers = package[:versions].first{|v| v['version'] == version}
       return [] if vers.nil?
 
       map_dependencies(vers.fetch("require", {}).reject { |k, _v| k == "php" }, "runtime") +
