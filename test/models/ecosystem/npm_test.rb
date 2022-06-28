@@ -51,7 +51,7 @@ class NpmTest < ActiveSupport::TestCase
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "https://www.npmjs.com/package/base62"
+    assert_equal check_status_url, "https://registry.npmjs.org/base62"
   end
 
   test 'all_package_names' do
