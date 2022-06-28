@@ -36,6 +36,12 @@ module Ecosystem
       false
     end
 
+    def check_status(package)
+      url = check_status_url(package)
+      response = Typhoeus.head(url)
+      "removed" if [302, 404].include?(response.response_code)
+    end
+
     def deprecation_info(name)
       is_deprecated = fetch_package_metadata(name).dig("abandoned") || ""
 

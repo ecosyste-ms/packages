@@ -54,6 +54,12 @@ module Ecosystem
       registry_url(package)
     end
 
+    def check_status(package)
+      url = check_status_url(package)
+      response = Typhoeus.head(url)
+      "removed" if [400, 404, 410].include?(response.response_code)
+    end
+
     def ecosystem_name(ecosystem)
       find(ecosystem).try(:formatted_name) || ecosystem
     end

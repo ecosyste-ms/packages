@@ -18,6 +18,10 @@ module Ecosystem
       @package_data || get_json("#{@registry_url}/data/repology.json")
     end
 
+    def check_status_url(package)
+      "#{@registry_url}/data/packages/#{name}.json"
+    end
+
     def all_package_names
       package_data["packages"].keys.sort
     rescue StandardError
