@@ -40,7 +40,7 @@ module Ecosystem
     end
 
     def deprecation_info(name)
-      versions = package(name)["versions"].values
+      versions = fetch_package_metadata(name)["versions"].values
 
       {
         is_deprecated: versions.all? { |v| v["deprecated"] },

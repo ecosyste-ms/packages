@@ -37,7 +37,7 @@ module Ecosystem
     end
 
     def deprecation_info(name)
-      is_deprecated = package(name).dig("abandoned") || ""
+      is_deprecated = fetch_package_metadata(name).dig("abandoned") || ""
 
       {
         is_deprecated: is_deprecated != "",
