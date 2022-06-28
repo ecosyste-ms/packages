@@ -10,11 +10,12 @@ class Package < ApplicationRecord
   scope :ecosystem, ->(ecosystem) { where(ecosystem: Ecosystem::Base.format_name(ecosystem)) }
   scope :created_after, ->(created_at) { where('created_at > ?', created_at) }
   scope :updated_after, ->(updated_at) { where('updated_at > ?', updated_at) }
+  scope :active, -> { where(status: nil) }
 
   before_save  :update_details
 
   def self.sync_least_recent_async
-    Package.all.order('last_synced_at asc nulls first').includes(:registry).limit(2000).each(&:sync_async)
+    Package.active.order('last_synced_at asc nulls first').includes(:registry).limit(2000).each(&:sync_async)
   end
 
   def install_command
@@ -124,6 +125,7 @@ class Package < ApplicationRecord
   def check_status
     url = registry.ecosystem_instance.check_status_url(self)
     return if url.blank?
+    return if status.present?
 
     response = Typhoeus.head(url)
     if ecosystem == "packagist" && [302, 404].include?(response.response_code)

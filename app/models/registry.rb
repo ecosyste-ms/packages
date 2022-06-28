@@ -39,7 +39,7 @@ class Registry < ApplicationRecord
   end
 
   def least_recently_synced_package_names
-    packages.order('last_synced_at asc nulls first').limit(100).pluck(:name)
+    packages.active.order('last_synced_at asc nulls first').limit(100).pluck(:name)
   end
 
   def sync_all_packages
