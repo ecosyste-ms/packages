@@ -15,7 +15,7 @@ class Package < ApplicationRecord
   before_save  :update_details
 
   def self.sync_least_recent_async
-    Package.active.order('last_synced_at asc nulls first').includes(:registry).limit(2000).each(&:sync_async)
+    Package.active.order('last_synced_at asc nulls first').includes(:registry).limit(5000).each(&:sync_async)
   end
 
   def install_command
