@@ -31,8 +31,9 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
-      get("https://repo.packagist.org/p2/#{name}.json")&.dig("packages", name).presence || 
-        get("https://repo.packagist.org/p2/#{name}~dev.json")&.dig("packages", name)
+      get_json("https://repo.packagist.org/p2/#{name}.json")&.dig("packages", name)
+    rescue
+      false
     end
 
     def deprecation_info(name)
@@ -45,7 +46,7 @@ module Ecosystem
     end
 
     def map_package_metadata(pkg_metadata)
-      return false if pkg_metadata.nil?
+      return false unless pkg_metadata
       latest_version = pkg_metadata.first
       return false if latest_version.nil?
 
