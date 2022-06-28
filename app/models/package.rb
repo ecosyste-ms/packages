@@ -86,7 +86,8 @@ class Package < ApplicationRecord
   end
 
   def sync
-    registry.sync_package(name)
+    result = registry.sync_package(name)
+    check_status unless result
   end
 
   def sync_async
