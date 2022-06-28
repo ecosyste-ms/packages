@@ -14,6 +14,10 @@ module Ecosystem
       "npm install #{package.name}" + (version ? "@#{version}" : "")
     end
 
+    def check_status_url(package)
+      "#{@registry_url}/#{package.name.gsub('/', '%2F')}"
+    end
+
     def formatted_name
       "npm"
     end

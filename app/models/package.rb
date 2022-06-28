@@ -120,4 +120,20 @@ class Package < ApplicationRecord
     return if versions.first.try(:download_url).blank?
     versions.find_each(&:update_integrity_async)
   end
+
+  def check_status
+    url = registry.ecosystem_instance.check_status_url(self)
+    return if url.blank?
+
+    response = Typhoeus.head(url)
+    if ecosystem == "packagist" && [302, 404].include?(response.response_code)
+      update_attribute(:status, "removed")
+    elsif ecosystem != "packagist" && [400, 404, 410].include?(response.response_code)
+      update_attribute(:status, "removed")
+    end
+  end
+
+  def check_status_async
+    CheckStatusWorker.perform_async(id)
+  end
 end
