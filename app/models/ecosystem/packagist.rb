@@ -76,7 +76,7 @@ module Ecosystem
           number: version["version"],
           published_at: version["time"],
           metadata: {
-            download_url: version.dig("dist", "url")
+            download_url: version['dist'] ? version['dist']['url'] : nil
           }
         }
       end
