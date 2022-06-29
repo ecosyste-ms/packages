@@ -45,7 +45,7 @@ class CranTest < ActiveSupport::TestCase
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "http://cran.r-project.org/web/packages/pack/index.html"
+    assert_equal check_status_url, "https://cran.r-project.org/package=pack"
   end
 
   test 'all_package_names' do
