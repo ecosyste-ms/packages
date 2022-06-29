@@ -14,8 +14,10 @@ module Ecosystem
       "http://cran.r-project.org/web/packages/#{package.name}/#{package.name}.pdf"
     end
 
-    def check_status_url(package)
-      "http://cran.r-project.org/web/packages/#{package.name}/index.html"
+    def check_status(package)
+      url = "https://cran.r-project.org/web/packages/#{package.name}/index.html"
+      html = get_html(url)
+      return 'removed' if html.css('.container').text.match?("Package ‘#{package.name}’ was removed from the CRAN repository.")
     end
 
     def all_package_names
