@@ -41,7 +41,7 @@ module Ecosystem
       response = Typhoeus.head(url)
       return "removed" if [302, 404].include?(response.response_code)
 
-      json = get_json("https://repo.packagist.org/p2/#{package.name}.json")&.dig("packages", package.name)
+      json = get_json("https://repo.packagist.org/p2/#{package.name}~dev.json")&.dig("packages", package.name)
       return "abandoned" if json == []
     end
 
