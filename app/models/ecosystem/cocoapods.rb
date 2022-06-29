@@ -20,6 +20,10 @@ module Ecosystem
       []
     end
 
+    def check_status(package)
+      return 'removed' unless all_package_names.include?(package.name)
+    end
+
     def recently_updated_package_names
       u = "https://github.com/CocoaPods/Specs/commits/master.atom"
       titles = SimpleRSS.parse(get_raw(u)).items.map(&:title)
