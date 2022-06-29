@@ -14,10 +14,6 @@ class Registry < ApplicationRecord
     all.each(&:sync_all_packages)
   end
 
-  def self.sync_least_recent_async
-    all.each(&:sync_least_recent_async)
-  end
-
   def versions_count
     packages.sum(:versions_count)
   end
@@ -36,10 +32,6 @@ class Registry < ApplicationRecord
 
   def missing_package_names
     all_package_names - existing_package_names
-  end
-
-  def least_recently_synced_package_names
-    packages.active.order('last_synced_at asc nulls first').limit(100).pluck(:name)
   end
 
   def sync_all_packages
@@ -64,14 +56,6 @@ class Registry < ApplicationRecord
 
   def sync_recently_updated_packages_async
     sync_packages_async(recently_updated_package_names)
-  end
-
-  def sync_least_recent
-    sync_packages(least_recently_synced_package_names)
-  end
-
-  def sync_least_recent_async
-    sync_packages_async(least_recently_synced_package_names)
   end
 
   def sync_packages(package_names)
