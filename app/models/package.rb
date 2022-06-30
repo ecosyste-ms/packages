@@ -91,7 +91,7 @@ class Package < ApplicationRecord
   end
 
   def sync_async
-    registry.sync_package_async(name)
+    UpdatePackageWorker.perform_async(id)
   end
 
   def update_versions
