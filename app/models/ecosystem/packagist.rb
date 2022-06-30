@@ -31,7 +31,7 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
-      get_json("https://repo.packagist.org/p2/#{name}.json")&.dig("packages", name)
+      get_json("https://repo.packagist.org/p2/#{name}.json")&.dig("packages", name).presence || get_json("https://repo.packagist.org/p2/#{name}~dev.json")&.dig("packages", name)
     rescue
       false
     end
