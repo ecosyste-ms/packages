@@ -157,7 +157,7 @@ GEM
     mini_portile2 (2.8.0)
     minitest (5.16.1)
     mocha (1.14.0)
-    msgpack (1.5.2)
+    msgpack (1.5.3)
     net-imap (0.2.3)
       digest
       net-protocol
