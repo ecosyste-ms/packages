@@ -114,6 +114,8 @@ module Ecosystem
     def integrity(version)
       dist = version.fetch("dist", {})
       dist.fetch("integrity", nil) || "sha1-"+dist.fetch("shasum", nil)
+    rescue
+      nil
     end
 
     def dependencies_metadata(_name, version, package)
