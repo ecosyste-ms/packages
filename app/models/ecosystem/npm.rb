@@ -66,7 +66,7 @@ module Ecosystem
       repo_url = repo.try(:fetch, "url", nil)
 
       {
-        name: package["name"],
+        name: package["_id"],
         description: latest_version["description"].try(:delete, "\u0000"),
         homepage: package["homepage"],
         keywords_array: Array.wrap(latest_version.fetch("keywords", [])).flatten,
