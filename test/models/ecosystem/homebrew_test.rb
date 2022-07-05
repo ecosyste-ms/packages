@@ -10,12 +10,12 @@ class HomebrewTest < ActiveSupport::TestCase
 
   test 'registry_url' do
     registry_url = @ecosystem.registry_url(@package)
-    assert_equal registry_url, 'http://formulae.brew.sh/formula/abook'
+    assert_equal registry_url, 'https://formulae.brew.sh/formula/abook'
   end
 
   test 'registry_url with version' do
     registry_url = @ecosystem.registry_url(@package, @version)
-    assert_equal registry_url, 'http://formulae.brew.sh/formula/abook'
+    assert_equal registry_url, 'https://formulae.brew.sh/formula/abook'
   end
 
   test 'download_url' do
@@ -45,7 +45,7 @@ class HomebrewTest < ActiveSupport::TestCase
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "http://formulae.brew.sh/formula/abook"
+    assert_equal check_status_url, "https://formulae.brew.sh/formula/abook"
   end
 
   test 'all_package_names' do
