@@ -6,7 +6,7 @@ module Ecosystem
       offset = 0
       packages = []
       loop do
-        results = get_json("https://forgeapi-cdn.puppet.com/v3/modules?limit=100&offset=#{offset}")["results"].map { |result| result["slug"] }
+        results = get_json("#{@registry_url}/v3/modules?limit=100&offset=#{offset}")["results"].map { |result| result["slug"] }
         break if results == []
 
         packages += results
@@ -18,7 +18,7 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
-      get_json("https://forgeapi-cdn.puppet.com/v3/modules/#{name}")
+      get_json("#{@registry_url}/v3/modules/#{name}")
     rescue
       false
     end
@@ -40,7 +40,7 @@ module Ecosystem
 
     def versions_metadata(package)
       package[:releases].map do |release|
-        version = get_json("https://forgeapi-cdn.puppet.com/v3/releases/#{package[:name]}-#{release["version"]}")
+        version = get_json("#{@registry_url}/v3/releases/#{package[:name]}-#{release["version"]}")
         integrity = version['file_sha256'] ? 'sha256-' + version['file_sha256'] : nil        
         {
           number: release["version"],
@@ -51,7 +51,7 @@ module Ecosystem
     end
 
     def dependencies_metadata(name, version, _mapped_package)
-      release = get_json("https://forgeapi-cdn.puppet.com/v3/releases/#{name}-#{version}")
+      release = get_json("#{@registry_url}/v3/releases/#{name}-#{version}")
       metadata = release["metadata"]
       metadata["dependencies"].map do |dependency|
         {
@@ -64,7 +64,7 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      get_json("https://forgeapi-cdn.puppet.com/v3/modules?limit=100&sort_by=latest_release")["results"].map { |result| result["slug"] }
+      get_json("#{@registry_url}/v3/modules?limit=100&sort_by=latest_release")["results"].map { |result| result["slug"] }
     rescue
       []
     end
@@ -74,11 +74,11 @@ module Ecosystem
     end
 
     def registry_url(db_package, version = nil)
-      "https://forge.puppet.com/#{db_package.name.sub('-', '/')}" + (version ? "/#{version}" : "")
+      "#{@registry_url}/#{db_package.name.sub('-', '/')}" + (version ? "/#{version}" : "")
     end
 
     def download_url(package, version = nil)
-      "https://forge.puppet.com/v3/files/#{package.name}-#{version}.tar.gz"
+      "#{@registry_url}/v3/files/#{package.name}-#{version}.tar.gz"
     end
   end
 end
