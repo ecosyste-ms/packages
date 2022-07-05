@@ -7,6 +7,10 @@
     {
       "command": "bundle exec rake packages:sync_least_recent",
       "schedule": "5,15,25,35,45,55 * * * *"
+    },
+    {
+      "command": "bundle exec rake packages:check_statuses",
+      "schedule": "0 * * * *"
     }
   ]
 }
