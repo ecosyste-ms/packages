@@ -18,4 +18,9 @@ namespace :packages do
   task check_statuses: :environment do
     Package.check_statuses_async
   end
+
+  desc "sync missing packages"
+  task sync_missing: :environment do
+    Registry.sync_all_missing_packages_async
+  end
 end

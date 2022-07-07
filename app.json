@@ -11,6 +11,10 @@
     {
       "command": "bundle exec rake packages:check_statuses",
       "schedule": "0 * * * *"
+    },
+    {
+      "command": "bundle exec rake packages:sync_missing",
+      "schedule": "0 0 * * *"
     }
   ]
 }
