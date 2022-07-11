@@ -14,7 +14,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       scope = scope.order('latest_release_published_at DESC nulls last, created_at DESC')
     end
 
-    @pagy, @packages = pagy(scope)
+    @pagy, @packages = pagy_countless(scope)
   end
 
   def names
@@ -32,7 +32,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       scope = scope.order('latest_release_published_at DESC nulls last, created_at DESC')
     end
 
-    @pagy, @packages = pagy(scope, max_items: 10000)
+    @pagy, @packages = pagy_countless(scope, max_items: 10000)
     render json: @packages.pluck(:name)
   end
 

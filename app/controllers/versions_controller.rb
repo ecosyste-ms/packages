@@ -7,6 +7,6 @@ class VersionsController < ApplicationController
 
   def recent
     @registry = Registry.find_by_name!(params[:id])
-    @pagy, @versions = pagy(@registry.versions.order('published_at DESC, created_at DESC'))
+    @pagy, @versions = pagy_countless(@registry.versions.order('published_at DESC, created_at DESC'))
   end
 end

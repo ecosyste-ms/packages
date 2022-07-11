@@ -11,7 +11,7 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     scope = scope.created_after(params[:created_after]) if params[:created_after].present?
     scope = scope.published_after(params[:published_after]) if params[:published_after].present?
     scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
-    @pagy, @versions = pagy(scope.order(sort_options))
+    @pagy, @versions = pagy_countless(scope.order(sort_options))
   end
 
   def show
@@ -31,6 +31,6 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     scope = scope.created_after(params[:created_after]) if params[:created_after].present?
     scope = scope.published_after(params[:published_after]) if params[:published_after].present?
     scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
-    @pagy, @versions = pagy(scope.order(sort_options))
+    @pagy, @versions = pagy_countless(scope.order(sort_options))
   end
 end
