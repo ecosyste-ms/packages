@@ -49,6 +49,8 @@ module Ecosystem
         repository_url: 'https://github.com/'+latest_version['upload_options']['repository'],
         versions: versions['versions']
       }
+    rescue
+      nil
     end
 
     def map_package_metadata(package)
