@@ -48,6 +48,7 @@ module Ecosystem
 
     def map_package_metadata(package)
       return false unless package
+      return false unless package['metadata']['docslink']
       {
         name: package['name'],
         description: package['metadata']['description'],
