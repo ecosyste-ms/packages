@@ -23,7 +23,7 @@ module Ecosystem
       response = Typhoeus.get(url)
       return "removed" if [400, 404, 410].include?(response.response_code)
       json = Oj.load(response.body)
-      return "unpublished" if json["versions"].blank?
+      return "unpublished" if json && json["versions"].blank?
     end
 
     def formatted_name
