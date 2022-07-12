@@ -44,8 +44,14 @@ module Ecosystem
         licenses: bower_json['license'],
         keywords_array: bower_json['keywords'],
         homepage: bower_json["homepage"],
-        description: bower_json["description"]
+        description: description(bower_json["description"])
       }
+    end
+
+    def description(string)
+      return nil if string.nil?
+      return '' unless string.force_encoding('UTF-8').valid_encoding?
+      string
     end
 
     def load_bower_json(package)
