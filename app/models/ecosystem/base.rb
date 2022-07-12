@@ -102,8 +102,8 @@ module Ecosystem
     def repo_fallback(repo, homepage)
       repo = "" if repo.nil?
       homepage = "" if homepage.nil?
-      repo_url = UrlParser.try_all(repo)
-      homepage_url = UrlParser.try_all(homepage)
+      repo_url = UrlParser.try_all(repo) rescue ""
+      homepage_url = UrlParser.try_all(homepage) rescue ""
       if repo_url.present?
         repo_url
       elsif homepage_url.present?
