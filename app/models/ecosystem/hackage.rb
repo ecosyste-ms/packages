@@ -29,13 +29,16 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
+      page = get_html("#{@registry_url}/package/#{name}", headers: { "Accept" => "text/html" })
+      return nil unless page.css('#content div').first
       {
         name: name,
-        page: get_html("#{@registry_url}/package/#{name}", headers: { "Accept" => "text/html" })
+        page: page
       }
     end
 
     def map_package_metadata(package)
+      return nil if package.nil?
       {
         name: package[:name],
         keywords_array: Array(package[:page].css('#content div').first.css('a')[0..-2].map(&:text)),
