@@ -32,9 +32,12 @@ module Ecosystem
       versions = get("https://package.elm-lang.org/packages/#{name}/releases.json") # get list of version numbers first
       latest_version = versions.keys.last
       get("https://package.elm-lang.org/packages/#{name}/#{latest_version}/elm.json")
+    rescue
+      {}
     end
 
     def map_package_metadata(package)
+      return false unless package[:name]
       {
         name: package["name"],
         description: package["summary"],
