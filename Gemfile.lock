@@ -177,14 +177,14 @@ GEM
       net-protocol
       timeout
     nio4r (2.5.8)
-    nokogiri (1.13.6)
+    nokogiri (1.13.7)
       mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
-    nokogiri (1.13.6-aarch64-linux)
+    nokogiri (1.13.7-aarch64-linux)
       racc (~> 1.4)
-    nokogiri (1.13.6-arm64-darwin)
+    nokogiri (1.13.7-arm64-darwin)
       racc (~> 1.4)
-    nokogiri (1.13.6-x86_64-linux)
+    nokogiri (1.13.7-x86_64-linux)
       racc (~> 1.4)
     oj (3.13.16)
     ox (2.14.11)
