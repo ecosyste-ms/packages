@@ -47,7 +47,7 @@ module Ecosystem
     end
 
     def map_package_metadata(package)
-      return false unless package
+      return false unless package && package["meta"]
       links = package["meta"].fetch("links", {}).each_with_object({}) do |(k, v), h|
         h[k.downcase] = v
       end
