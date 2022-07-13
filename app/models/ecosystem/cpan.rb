@@ -48,6 +48,7 @@ module Ecosystem
     end
 
     def map_package_metadata(package)
+      return nil if package["distribution"].nil?
       {
         name: package["distribution"],
         homepage: package.fetch("resources", {})["homepage"],
