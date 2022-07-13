@@ -50,7 +50,7 @@ module Ecosystem
 
     def description(string)
       return nil if string.nil?
-      return '' unless string.force_encoding('UTF-8').valid_encoding?
+      return '' unless string.to_s.force_encoding('UTF-8').valid_encoding?
       string
     end
 
