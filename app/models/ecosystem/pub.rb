@@ -41,10 +41,13 @@ module Ecosystem
 
     def fetch_package_metadata(name)
       get("#{@registry_url}/api/packages/#{name}")
+    rescue
+      {}
     end
 
     def map_package_metadata(package)
       latest_version = package["latest"]
+      return false if latest_version.nil?
       {
         name: package["name"],
         homepage: latest_version["pubspec"]["homepage"],
