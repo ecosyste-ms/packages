@@ -299,7 +299,7 @@ GEM
     thor (1.2.1)
     tilt (2.0.10)
     timeout (0.3.0)
-    toml-rb (2.1.2)
+    toml-rb (2.2.0)
       citrus (~> 3.0, > 3.0)
     tomlrb (2.0.3)
     treetop (1.6.11)
