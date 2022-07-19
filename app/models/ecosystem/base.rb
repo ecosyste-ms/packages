@@ -134,6 +134,7 @@ module Ecosystem
         builder.request :retry, { max: 2, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
 
         builder.request :instrumentation
+        builder.adapter  Faraday.default_adapter
       end
       connection.get
     end
@@ -147,7 +148,7 @@ module Ecosystem
     end
 
     def get_xml(url, options = {})
-      Ox.parse(get_raw(url, options))
+      Nokogiri::XML(get_raw(url, options))
     end
 
     def get_json(url)
