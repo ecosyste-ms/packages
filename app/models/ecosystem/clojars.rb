@@ -40,12 +40,15 @@ module Ecosystem
       url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/maven-metadata.xml"
       xml = get_xml(url)
       version_numbers = xml.css("version").map(&:text).filter { |item| !item.ends_with?("-SNAPSHOT") }
+      return {} if version_numbers.empty?
       latest_version_number = xml.css("versioning > latest, versioning > release, metadata > version").map(&:text).first
+      latest_version_number = version_numbers.last if latest_version_number.blank?
       latest_version_xml = download_pom(group_id, artifact_id, latest_version_number)
       mapping_from_pom_xml(latest_version_xml, 0).merge({ name: name, versions: version_numbers })
     end
 
     def map_package_metadata(package)
+      return false if package.blank?
       package
     end
 
