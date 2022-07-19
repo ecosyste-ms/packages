@@ -19,6 +19,7 @@ default_registries = [
   {name: 'juliahub.com', url: 'https://juliahub.com', ecosystem: 'julia', github: 'JuliaRegistries'},
   {name: 'package.elm-lang.org', url: 'https://package.elm-lang.org', ecosystem: 'elm', github: 'elm'},
   {name: 'deno.land', url: 'https://deno.land', ecosystem: 'deno', github: 'denoland'},
+  {name: 'clojars.org', url: 'https://repo.clojars.org', ecosystem: 'clojars', github: 'clojars'},
 ]
 
 default_registries.each do |registry|

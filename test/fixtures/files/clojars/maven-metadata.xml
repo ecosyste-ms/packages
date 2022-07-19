@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>missionary</groupId>
+  <artifactId>missionary</artifactId>
+  <versioning>
+    <release>b.26</release>
+    <versions>
+      <version>b.25</version>
+      <version>b.26</version>
+      <version>b.27-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20220719085902</lastUpdated>
+  </versioning>
+</metadata>
