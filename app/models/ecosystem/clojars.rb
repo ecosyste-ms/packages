@@ -103,7 +103,7 @@ module Ecosystem
         licenses: "",
         properties: {},
       }
-      if xml.locate("parent").present? && depth < MAX_DEPTH
+      if xml.locate("parent").present? && depth < 5
         group_id = extract_pom_value(xml, "parent/groupId")&.strip
         artifact_id = extract_pom_value(xml, "parent/artifactId")&.strip
         version = extract_pom_value(xml, "parent/version")&.strip
