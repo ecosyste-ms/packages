@@ -306,7 +306,7 @@ GEM
       polyglot (~> 0.3)
     typhoeus (1.4.0)
       ethon (>= 0.9.0)
-    tzinfo (2.0.4)
+    tzinfo (2.0.5)
       concurrent-ruby (~> 1.0)
     unicode-display_width (2.2.0)
     unicode_utils (1.4.0)
