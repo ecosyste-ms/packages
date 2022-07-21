@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>dev.zio</groupId>
+    <artifactId>zio-aws-autoscaling_3</artifactId>
+    <packaging>jar</packaging>
+    <description>Low-level AWS wrapper for ZIO</description>
+    <url>https://github.com/vigoo/zio-aws</url>
+    <version>5.17.102.7</version>
+    <licenses>
+        <license>
+            <name>APL2</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <name>zio-aws-autoscaling</name>
+    <organization>
+        <name>dev.zio</name>
+        <url>https://github.com/vigoo/zio-aws</url>
+    </organization>
+    <scm>
+        <url>https://github.com/vigoo/zio-aws</url>
+        <connection>git@github.com:vigoo/zio-aws.git</connection>
+    </scm>
+    <developers>
+        <developer>
+            <id>vigoo</id>
+            <name>Daniel Vigovszky</name>
+            <url>https://vigoo.github.io</url>
+            <email>daniel.vigovszky@gmail.com</email>
+        </developer>
+    </developers>
+    <dependencies>
+        <dependency>
+            <groupId>dev.zio</groupId>
+            <artifactId>zio-aws-core_3</artifactId>
+            <version>5.17.102.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala3-library_3</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>autoscaling</artifactId>
+            <version>2.17.102</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.zio</groupId>
+            <artifactId>zio-test_3</artifactId>
+            <version>2.0.0-RC1</version>
+        </dependency>
+    </dependencies>
+</project>

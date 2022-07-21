@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archetype-catalog>
+  <archetypes>
+    <archetype>
+      <groupId>am.ik.archetype</groupId>
+      <artifactId>elm-spring-boot-blank-archetype</artifactId>
+      <version>0.0.3</version>
+      <description>Blank multi project for Spring Boot + Elm</description>
+    </archetype>
+    <archetype>
+      <groupId>am.ik.archetype</groupId>
+      <artifactId>elm-spring-boot-blank-archetype</artifactId>
+      <version>0.0.2</version>
+      <description>Blank multi project for Spring Boot + Elm</description>
+    </archetype>
+    <archetype>
+      <groupId>am.ik.archetype</groupId>
+      <artifactId>elm-spring-boot-blank-archetype</artifactId>
+      <version>0.0.1</version>
+      <description>Blank multi project for Spring Boot + Elm</description>
+    </archetype>
+  </archetypes>
+</archetype-catalog>
