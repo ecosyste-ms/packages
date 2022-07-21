@@ -153,7 +153,7 @@ module Ecosystem
 
       xml = Ox.parse(pom_request.body)
       published_at = pom_request.headers["Last-Modified"]
-      pat = Ox::Element.new("publishedAt")#.replace_text(published_at)
+      pat = Ox::Element.new("publishedAt")
       pat << published_at
       xml << pat
       xml

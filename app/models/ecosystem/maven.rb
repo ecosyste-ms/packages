@@ -28,21 +28,22 @@ module Ecosystem
       
       url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/maven-metadata.xml"
       xml = get_xml(url)
-
-      version_numbers = xml.css("version").map(&:text)
+      version_numbers = xml.css("version").map(&:text).filter { |item| !item.ends_with?("-SNAPSHOT") }
+      return {} if version_numbers.empty?
       latest_version_number = xml.css("versioning > latest, versioning > release, metadata > version").map(&:text).first
-
+      latest_version_number = version_numbers.last if latest_version_number.blank?
       latest_version_xml = download_pom(group_id, artifact_id, latest_version_number)
-
-      mapping_from_pom_xml(latest_version_xml, 0).merge({ name: name, version_numbers: version_numbers })
+      return nil if latest_version_xml.nil?
+      mapping_from_pom_xml(latest_version_xml, 0).merge({ name: name, versions: version_numbers })
     end
 
     def map_package_metadata(package)
+      return false if package.blank?
       package
     end
 
     def versions_metadata(pkg_metadata)
-      pkg_metadata[:version_numbers]
+      pkg_metadata[:versions]
         .map do |version|
           pom = get_pom(*pkg_metadata[:name].split(':', 2), version)
           begin
@@ -77,6 +78,7 @@ module Ecosystem
     end
 
     def mapping_from_pom_xml(version_xml, depth = 0)
+      return nil if version_xml.nil?
       xml = if version_xml.respond_to?("project")
               version_xml.project
             else
@@ -90,15 +92,16 @@ module Ecosystem
         licenses: "",
         properties: {},
       }
-      if xml.locate("parent").present? && depth < MAX_DEPTH
+      if xml.locate("parent").present? && depth < 5
         group_id = extract_pom_value(xml, "parent/groupId")&.strip
         artifact_id = extract_pom_value(xml, "parent/artifactId")&.strip
         version = extract_pom_value(xml, "parent/version")&.strip
         if group_id && artifact_id && version
-          parent = mapping_from_pom_xml(
+          par = mapping_from_pom_xml(
             get_pom(group_id, artifact_id, version),
             depth + 1
           )
+          parent = par unless par.nil?
         end
       end
 
@@ -134,7 +137,7 @@ module Ecosystem
 
       xml = Ox.parse(pom_request.body)
       published_at = pom_request.headers["Last-Modified"]
-      pat = Ox::Element.new("publishedAt")#.replace_text(published_at)
+      pat = Ox::Element.new("publishedAt")
       pat << published_at
       xml << pat
       xml
@@ -142,6 +145,7 @@ module Ecosystem
 
     def get_pom(group_id, artifact_id, version, seen = [])
       xml = download_pom(group_id, artifact_id, version)
+      return nil if xml.nil?
       seen << [group_id, artifact_id, version]
 
       next_group_id = xml.locate("distributionManagement/relocation/groupId/?[0]").first || group_id
