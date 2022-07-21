@@ -20,7 +20,7 @@ default_registries = [
   {name: 'package.elm-lang.org', url: 'https://package.elm-lang.org', ecosystem: 'elm', github: 'elm'},
   {name: 'deno.land', url: 'https://deno.land', ecosystem: 'deno', github: 'denoland'},
   {name: 'clojars.org', url: 'https://repo.clojars.org', ecosystem: 'clojars', github: 'clojars'},
-  {name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2/', ecosystem: 'maven', github: 'maven'},
+  {name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven', github: 'maven-central'},
 ]
 
 default_registries.each do |registry|
