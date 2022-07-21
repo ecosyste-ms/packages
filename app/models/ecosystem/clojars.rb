@@ -94,6 +94,7 @@ module Ecosystem
     end
 
     def mapping_from_pom_xml(version_xml, depth = 0)
+      return nil if version_xml.nil?
       xml = if version_xml.respond_to?("project")
               version_xml.project
             else
@@ -112,10 +113,11 @@ module Ecosystem
         artifact_id = extract_pom_value(xml, "parent/artifactId")&.strip
         version = extract_pom_value(xml, "parent/version")&.strip
         if group_id && artifact_id && version
-          parent = mapping_from_pom_xml(
+          par = mapping_from_pom_xml(
             get_pom(group_id, artifact_id, version),
             depth + 1
           )
+          parent = par unless par.nil?
         end
       end
 
@@ -159,6 +161,7 @@ module Ecosystem
 
     def get_pom(group_id, artifact_id, version, seen = [])
       xml = download_pom(group_id, artifact_id, version)
+      return nil if xml.nil?
       seen << [group_id, artifact_id, version]
 
       next_group_id = xml.locate("distributionManagement/relocation/groupId/?[0]").first || group_id
