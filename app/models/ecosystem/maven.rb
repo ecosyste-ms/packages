@@ -16,7 +16,7 @@ module Ecosystem
     def all_package_names
       get_xml("#{@registry_url}/archetype-catalog.xml").css("archetype").map do |archetype|
         archetype.css('groupId').first.text + ":" + archetype.css('artifactId').first.text
-      end
+      end.uniq
     end
 
     def recently_updated_package_names
