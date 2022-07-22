@@ -46,12 +46,13 @@ module Ecosystem
       pkg_metadata[:versions]
         .map do |version|
           pom = get_pom(*pkg_metadata[:name].split(':', 2), version)
+          next if pom.nil?
           begin
             license_list = licenses(pom)
           rescue StandardError
             license_list = nil
           end
-
+          
           {
             number: version,
             published_at: Time.parse(pom.locate("publishedAt").first.text),
