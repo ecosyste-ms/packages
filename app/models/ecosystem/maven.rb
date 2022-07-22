@@ -122,7 +122,7 @@ module Ecosystem
     end
 
     def extract_pom_value(xml, location, parent_properties = {})
-      Bibliothecary::Parsers::Maven.extract_pom_info(xml, location, parent_properties)
+      Bibliothecary::Parsers::Maven.extract_pom_info(xml, location, parent_properties) rescue nil
     end
 
     def extract_pom_properties(xml)
@@ -142,6 +142,8 @@ module Ecosystem
       pat << published_at
       xml << pat
       xml
+    rescue URI::InvalidURIError
+      nil
     end
 
     def get_pom(group_id, artifact_id, version, seen = [])

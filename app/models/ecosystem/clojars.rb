@@ -59,6 +59,7 @@ module Ecosystem
           group_id, artifact_id = *pkg_metadata[:name].split('/', 2)
           artifact_id = group_id if artifact_id.blank?
           pom = get_pom(group_id, artifact_id, version)
+          next if pom.nil?
           begin
             license_list = licenses(pom)
           rescue StandardError
@@ -137,7 +138,7 @@ module Ecosystem
     end
 
     def extract_pom_value(xml, location, parent_properties = {})
-      Bibliothecary::Parsers::Maven.extract_pom_info(xml, location, parent_properties)
+      Bibliothecary::Parsers::Maven.extract_pom_info(xml, location, parent_properties) rescue nil
     end
 
     def extract_pom_properties(xml)
@@ -157,6 +158,8 @@ module Ecosystem
       pat << published_at
       xml << pat
       xml
+    rescue URI::InvalidURIError
+      nil
     end
 
     def get_pom(group_id, artifact_id, version, seen = [])
