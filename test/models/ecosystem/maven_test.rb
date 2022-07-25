@@ -26,12 +26,12 @@ class MavenTest < ActiveSupport::TestCase
 
   test 'documentation_url' do
     documentation_url = @ecosystem.documentation_url(@package)
-    assert_nil documentation_url
+    assert_equal documentation_url, "https://appdoc.app/artifact/dev.zio/zio-aws-autoscaling_3/"
   end
 
   test 'documentation_url with version' do
     documentation_url = @ecosystem.documentation_url(@package, @version.number)
-    assert_nil documentation_url
+    assert_equal documentation_url, "https://appdoc.app/artifact/dev.zio/zio-aws-autoscaling_3/5.17.224.2"
   end
 
   test 'install_command' do

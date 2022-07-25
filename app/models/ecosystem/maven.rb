@@ -13,6 +13,11 @@ module Ecosystem
       "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version.present? ? version.number + '/' : ''}"
     end
 
+    def documentation_url(package, version = nil)
+      group_id, artifact_id = *package.name.split(':', 2)
+      "https://appdoc.app/artifact/#{group_id}/#{artifact_id}/#{version}"
+    end
+
     def all_package_names
       get_xml("#{@registry_url}/archetype-catalog.xml").css("archetype").map do |archetype|
         archetype.css('groupId').first.text + ":" + archetype.css('artifactId').first.text
