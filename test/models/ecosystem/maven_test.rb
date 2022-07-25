@@ -53,7 +53,7 @@ class MavenTest < ActiveSupport::TestCase
     stub_request(:get, "https://repo1.maven.org/maven2/archetype-catalog.xml")
       .to_return({ status: 200, body: file_fixture('maven/archetype-catalog.xml') })
     all_package_names = @ecosystem.all_package_names
-    assert_equal all_package_names.length, 3
+    assert_equal all_package_names.length, 1
     assert_equal all_package_names.last, 'am.ik.archetype:elm-spring-boot-blank-archetype'
   end
 
@@ -61,7 +61,7 @@ class MavenTest < ActiveSupport::TestCase
     stub_request(:get, "https://repo1.maven.org/maven2/archetype-catalog.xml")
       .to_return({ status: 200, body: file_fixture('maven/archetype-catalog.xml') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 3
+    assert_equal recently_updated_package_names.length, 1
     assert_equal recently_updated_package_names.last, 'am.ik.archetype:elm-spring-boot-blank-archetype'
   end
 
