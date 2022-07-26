@@ -53,7 +53,7 @@ module Ecosystem
           pom = get_pom(*pkg_metadata[:name].split(':', 2), version)
           next if pom.nil?
           begin
-            license_list = licenses(pom)
+            license_list = licenses(pom).join(',')
           rescue StandardError
             license_list = nil
           end
@@ -175,7 +175,7 @@ module Ecosystem
     def licenses(xml)
       xml_licenses = xml
         .locate("*/licenses/license/name")
-        .flat_map(&:nodes)
+        .flat_map(&:nodes).map{|s| s.encode('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '') }
       return xml_licenses if xml_licenses.any?
 
       comments = xml.locate("*/^Comment")
