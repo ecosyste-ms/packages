@@ -35,6 +35,6 @@ namespace :packages do
     end
   
     puts names.length
-    File.write(unique-terms.txt', names.to_a.join("\n"))
+    File.write('unique-terms.txt', names.to_a.join("\n"))
   end
 end
