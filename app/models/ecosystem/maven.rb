@@ -140,8 +140,8 @@ module Ecosystem
       url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.pom"
       pom_request = request(url)
       return nil if pom_request.status == 404
-
       xml = Ox.parse(pom_request.body)
+      return nil if xml.nil?
       published_at = pom_request.headers["Last-Modified"]
       pat = Ox::Element.new("publishedAt")
       pat << published_at
