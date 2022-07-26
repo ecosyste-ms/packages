@@ -147,7 +147,7 @@ module Ecosystem
       pat << published_at
       xml << pat
       xml
-    rescue URI::InvalidURIError
+    rescue URI::InvalidURIError, Ox::Error
       nil
     end
 
