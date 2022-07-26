@@ -23,4 +23,18 @@ namespace :packages do
   task sync_missing: :environment do
     Registry.sync_all_missing_packages_async
   end
+
+  desc "parse unique maven names"
+  task parse_maven_names: :environment do
+    names = Set.new
+
+    File.readlines('terms.txt').each_with_index do |line,i|
+      parts = line.split('|')
+      names.add [[parts[0], parts[1]].join(':')]
+      puts "#{i} row (#{names.length} uniq names)" if i % 10000 == 0
+    end
+  
+    puts names.length
+    File.write(unique-terms.txt', names.to_a.join("\n"))
+  end
 end
