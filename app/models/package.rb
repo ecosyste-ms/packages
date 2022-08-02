@@ -34,6 +34,15 @@ class Package < ApplicationRecord
     registry.ecosystem_instance.documentation_url(self)
   end
 
+  def download_url
+    registry.ecosystem_instance.download_url(self)
+  end
+
+  def archive_basename
+    return if download_url.blank?
+    File.basename(download_url)
+  end
+
   def update_details
     normalize_licenses
     set_latest_release_published_at
