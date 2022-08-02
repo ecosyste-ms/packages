@@ -13,6 +13,14 @@ module Ecosystem
       []
     end
 
+    def download_url(package, version = nil)
+      return nil if package.repository_url.blank?
+      return nil unless package.repository_url.include?('/github.com/')
+      full_name = package.repository_url.gsub('https://github.com/', '').gsub('.git', '')
+      
+      "https://codeload.github.com/#{full_name}/tar.gz/refs/heads/master"
+    end
+
     def packages
       @packages ||= begin
         packages = {}

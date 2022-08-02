@@ -7,10 +7,10 @@
 
   <p>
     <% if link = @package.registry_url %>
-      <%= link_to 'Registry', link %>
+      <%= link_to 'Registry', link %> -
     <% end %>
     <% if sanitize_user_url(@package.repository_url).present? && @package.repository_url != @package.registry_url %>
-      - <%= link_to 'Source', sanitize_user_url(@package.repository_url), :rel => 'nofollow' %>
+      <%= link_to 'Source', sanitize_user_url(@package.repository_url), :rel => 'nofollow' %>
     <% end %>
     <% if sanitize_user_url(@package.homepage).present?  && @package.repository_url != @package.homepage %>
       - <%= link_to('Homepage', sanitize_user_url(@package.homepage), :rel => 'nofollow') %>
@@ -20,6 +20,14 @@
     <% end %>
   </p>
 
-  <%= render @versions %>
-  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+  <% if @versions.any? %>
+    <%= render @versions %>
+    <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+  <% else %>
+    <div class='card' id="files" data-url="<%= @package.download_url %>" data-basename="<%= @package.archive_basename %>" data-path="<%= params[:path] %>">
+      <div id='files-header' class="card-header"></div>
+      <ul id="files-list" class="list-group list-group-flush"></ul>
+      <div id="files-content" class="card-body">Loading...</div>
+    </div>
+  <% end %>
 </div>
