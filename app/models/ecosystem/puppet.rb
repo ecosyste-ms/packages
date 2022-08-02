@@ -26,6 +26,7 @@ module Ecosystem
     def map_package_metadata(package)
       return false unless package
       current_release = package["current_release"]
+      return false if current_release.nil?
       metadata = current_release["metadata"]
       {
         name: package["slug"],
