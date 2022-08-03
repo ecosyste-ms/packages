@@ -41,6 +41,7 @@ module Ecosystem
     end
 
     def map_package_metadata(pkg)
+      return false unless pkg
       {
         name: pkg["name"],
         repository_url: repo_fallback("", pkg["source"]),
