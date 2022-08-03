@@ -94,7 +94,7 @@ GEM
     bugsnag (6.24.2)
       concurrent-ruby (~> 1.0)
     builder (3.2.4)
-    chartkick (4.2.0)
+    chartkick (4.2.1)
     citrus (3.0.2)
     commander (4.6.0)
       highline (~> 2.0.0)
