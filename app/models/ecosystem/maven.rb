@@ -2,6 +2,7 @@ module Ecosystem
   class Maven < Base
 
     def download_url(package, version)
+      return nil unless version.present?
       group_id, artifact_id = *package.name.split(':', 2)
       
       "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.jar"

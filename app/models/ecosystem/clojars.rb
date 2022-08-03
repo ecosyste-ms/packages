@@ -2,6 +2,7 @@ module Ecosystem
   class Clojars < Base
 
     def download_url(package, version)
+      return nil unless version.present?
       group_id, artifact_id = *package.name.split('/', 2)
       artifact_id = group_id if artifact_id.blank?
       

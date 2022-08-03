@@ -13,6 +13,7 @@ module Ecosystem
     end
 
     def download_url(package, version)
+      return nil unless version.present?
       "#{@registry_url}/#{encode_for_proxy(package.name)}/@v/#{version}.zip"
     end
 

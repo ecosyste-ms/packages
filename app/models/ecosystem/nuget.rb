@@ -6,7 +6,8 @@ module Ecosystem
       "#{@registry_url}/packages/#{package.name}/#{version}"
     end
 
-    def download_url(package, version = nil)
+    def download_url(package, version)
+      return nil unless version.present?
       "https://api.nuget.org/v3-flatcontainer/#{package.name.downcase}/#{version}/#{package.name.downcase}.#{version}.nupkg"
     end
 

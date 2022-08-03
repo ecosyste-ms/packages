@@ -10,7 +10,8 @@ module Ecosystem
       "cargo install #{package.name}" + (version ? " --version #{version}" : "")
     end
 
-    def download_url(package, version = nil)
+    def download_url(package, version)
+      return nil unless version.present?
       "#{@registry_url}/api/v1/crates/#{package.name}/#{version}/download"
     end
 

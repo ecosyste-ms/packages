@@ -11,6 +11,7 @@ module Ecosystem
     end
 
     def download_url(package, version)
+      return nil unless version.present?
       return version.metadata["download_url"] if version.metadata["download_url"].present?
       author = package.metadata["author"]
       return nil if author.nil?

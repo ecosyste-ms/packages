@@ -78,7 +78,8 @@ module Ecosystem
       "#{@registry_url}/#{db_package.name.sub('-', '/')}" + (version ? "/#{version}" : "")
     end
 
-    def download_url(package, version = nil)
+    def download_url(package, version)
+      return nil unless version.present?
       "#{@registry_url}/v3/files/#{package.name}-#{version}.tar.gz"
     end
   end

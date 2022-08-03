@@ -6,7 +6,8 @@ module Ecosystem
       "https://cran.r-project.org/package=#{package.name}"
     end
 
-    def download_url(package, version = nil)
+    def download_url(package, version)
+      return nil unless version.present?
       "https://cran.r-project.org/src/contrib/#{package.name}_#{version}.tar.gz"
     end
 

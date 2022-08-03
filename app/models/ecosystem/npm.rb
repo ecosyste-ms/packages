@@ -6,7 +6,8 @@ module Ecosystem
       "https://www.npmjs.com/package/#{package.name}" + (version ? "/v/#{version}" : "")
     end
 
-    def download_url(package, version = nil)
+    def download_url(package, version)
+      return nil unless version.present?
       "#{@registry_url}/#{package.name}/-/#{package.name.split('/').last}-#{version}.tgz"
     end
 

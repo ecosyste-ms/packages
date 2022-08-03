@@ -11,6 +11,7 @@ module Ecosystem
     end
 
     def download_url(_package, version)
+      return nil unless version.present?
       version.metadata['download_url']
     end
 

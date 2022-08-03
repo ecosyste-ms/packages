@@ -7,6 +7,7 @@ module Ecosystem
     end
 
     def download_url(package, version)
+      return nil unless version.present?
       "#{@registry_url}/downloads/#{package.name}-#{version.number}.gem"
     end
 
