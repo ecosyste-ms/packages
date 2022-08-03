@@ -35,7 +35,7 @@ class Package < ApplicationRecord
   end
 
   def download_url
-    registry.ecosystem_instance.download_url(self)
+    registry.ecosystem_instance.download_url(self, latest_version)
   end
 
   def archive_basename
