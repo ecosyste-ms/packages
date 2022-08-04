@@ -3,11 +3,9 @@
     <%= @registry.name %> packages
   </h2>
 
-  <% if @recent_versions.any? %>
-    <div class='my-3'>
-      <%= line_chart @recent_versions, thousands: "," %>
-    </div>
-  <% end %>
+  <div class='my-3'>
+    <%= line_chart recent_versions_data_registry_packages_path(@registry.name), thousands: "," %>
+  </div>
 
   <%= render @packages %>
   <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  

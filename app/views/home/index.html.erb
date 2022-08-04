@@ -2,7 +2,7 @@
 
 <div class="container-sm">
   <div class='mb-5'>
-    <%= line_chart @recent_versions, thousands: "," %>
+    <%= line_chart recent_versions_data_path, thousands: "," %>
   </div>
 
   <%= render @registries %>

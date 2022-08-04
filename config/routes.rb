@@ -30,12 +30,17 @@ Rails.application.routes.draw do
   resources :registries, constraints: { id: /[^\/]+/  }, only: [:index, :show] do
     resources :packages, constraints: { id: /.*/ }, only: [:index, :show] do 
       resources :versions, only: [:index, :show], constraints: { id: /.*/ }
+      collection do
+        get :recent_versions_data, to: 'packages#recent_versions_data'
+      end
     end
 
     member do
       get :versions, to: 'versions#recent'
     end
   end
+
+  get :recent_versions_data, to: 'home#recent_versions_data'
 
   root "home#index"
 end
