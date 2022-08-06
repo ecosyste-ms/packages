@@ -70,7 +70,7 @@ GEM
       public_suffix (>= 2.0.2, < 5.0)
     autoprefixer-rails (10.4.7.0)
       execjs (~> 2)
-    bibliothecary (8.3.7)
+    bibliothecary (8.3.8)
       commander
       deb_control
       librariesio-gem-parser
@@ -315,7 +315,7 @@ GEM
       activemodel (>= 6.0.0)
       bindex (>= 0.4.0)
       railties (>= 6.0.0)
-    webmock (3.16.0)
+    webmock (3.17.0)
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
