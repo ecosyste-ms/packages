@@ -42,7 +42,7 @@ Rails.application.routes.draw do
 
   get :recent_versions_data, to: 'home#recent_versions_data'
 
-  resources :exports, only: [:index]
+  resources :exports, only: [:index], path: 'open-data'
 
   root "home#index"
 end
