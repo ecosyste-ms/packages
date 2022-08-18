@@ -446,6 +446,11 @@ components:
           type: string
         metadata:
           type: object
+        repo_metadata:
+          type: object
+        repo_metadata_updated_at:
+          type: string
+          format: date-time
     Version:
       type: object
       properties:
