@@ -24,6 +24,11 @@ namespace :packages do
     Registry.sync_all_missing_packages_async
   end
 
+  desc 'update repo metadata'
+  task update_repo_metadata: :environment do
+    Package.update_repo_metadata_async
+  end
+
   desc "parse unique maven names"
   task parse_maven_names: :environment do
     names = Set.new

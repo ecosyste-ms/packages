@@ -11,8 +11,10 @@ class Package < ApplicationRecord
   scope :created_after, ->(created_at) { where('created_at > ?', created_at) }
   scope :updated_after, ->(updated_at) { where('updated_at > ?', updated_at) }
   scope :active, -> { where(status: nil) }
+  scope :with_repository_url, -> { where("repository_url <> ''") }
 
   before_save  :update_details
+  after_commit :update_repo_metadata_async, on: :create
 
   def self.sync_least_recent_async
     Package.active.order('last_synced_at asc nulls first').limit(5000).each(&:sync_async)
@@ -143,5 +145,35 @@ class Package < ApplicationRecord
 
   def check_status_async
     CheckStatusWorker.perform_async(id)
+  end
+
+  def self.update_repo_metadata_async
+    Package.with_repository_url.order('repo_metadata_updated_at DESC nulls first').limit(1000).each(&:update_repo_metadata_async)
+  end
+
+  def update_repo_metadata_async
+    return if repository_url.blank?
+    UpdateRepoMetadataWorker.perform_async(id)
+  end
+
+  def update_repo_metadata
+    return if repository_url.blank?
+    repo_metadata = fetch_repo_metadata
+    update_columns(repo_metadata: repo_metadata) if repo_metadata.present?
+    update_columns(repo_metadata_updated_at: Time.now)
+  end
+
+  def fetch_repo_metadata
+    return if repository_url.blank?
+
+    conn = Faraday.new('https://repos.ecosyste.ms') do |f|
+      f.request :json
+      f.request :retry
+      f.response :json
+    end
+    
+    response = conn.get('/api/v1/repositories/lookup', url: repository_url)
+    return nil unless response.success?
+    repo_metadata = response.body
   end
 end
