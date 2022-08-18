@@ -148,7 +148,7 @@ class Package < ApplicationRecord
   end
 
   def self.update_repo_metadata_async
-    Package.with_repository_url.order('repo_metadata_updated_at DESC nulls first').limit(1000).each(&:update_repo_metadata_async)
+    Package.with_repository_url.order('repo_metadata_updated_at DESC nulls first').limit(400).each(&:update_repo_metadata_async)
   end
 
   def update_repo_metadata_async

@@ -9,6 +9,10 @@
       "schedule": "*/15 * * * *"
     },
     {
+      "command": "bundle exec rake packages:update_repo_metadata_async",
+      "schedule": "*/5 * * * *"
+    },
+    {
       "command": "bundle exec rake packages:check_statuses",
       "schedule": "0 * * * *"
     },
