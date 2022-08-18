@@ -332,6 +332,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  addressable
   bibliothecary
   bootsnap
   bootstrap

@@ -43,6 +43,7 @@ gem "bugsnag"
 gem "chartkick"
 gem "groupdate"
 gem 'jquery-rails'
+gem 'addressable'
 
 group :development, :test do
   gem "debug", platforms: %i[ mri mingw x64_mingw ]
