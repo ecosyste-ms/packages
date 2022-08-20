@@ -70,7 +70,7 @@ GEM
       public_suffix (>= 2.0.2, < 5.0)
     autoprefixer-rails (10.4.7.0)
       execjs (~> 2)
-    bibliothecary (8.3.9)
+    bibliothecary (8.4.0)
       commander
       deb_control
       librariesio-gem-parser
