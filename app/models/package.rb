@@ -150,7 +150,7 @@ class Package < ApplicationRecord
   end
 
   def repository_or_homepage_url
-    repository_url.presence || homepage_url
+    repository_url.presence || homepage
   end
 
   def self.update_repo_metadata_async
