@@ -66,11 +66,11 @@ GEM
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
-    addressable (2.8.0)
-      public_suffix (>= 2.0.2, < 5.0)
+    addressable (2.8.1)
+      public_suffix (>= 2.0.2, < 6.0)
     autoprefixer-rails (10.4.7.0)
       execjs (~> 2)
-    bibliothecary (8.4.0)
+    bibliothecary (8.4.2)
       commander
       deb_control
       librariesio-gem-parser
@@ -186,7 +186,7 @@ GEM
       racc (~> 1.4)
     nokogiri (1.13.8-x86_64-linux)
       racc (~> 1.4)
-    oj (3.13.20)
+    oj (3.13.21)
     ox (2.14.11)
     packageurl-ruby (0.1.0)
     pagy (5.10.1)
@@ -198,7 +198,7 @@ GEM
       activerecord (>= 5)
     polyglot (0.3.5)
     popper_js (2.11.5)
-    public_suffix (4.0.7)
+    public_suffix (5.0.0)
     puma (5.6.4)
       nio4r (~> 2.0)
     racc (1.6.0)
