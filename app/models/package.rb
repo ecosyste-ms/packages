@@ -12,6 +12,8 @@ class Package < ApplicationRecord
   scope :updated_after, ->(updated_at) { where('updated_at > ?', updated_at) }
   scope :active, -> { where(status: nil) }
   scope :with_repository_url, -> { where("repository_url <> ''") }
+  scope :with_homepage, -> { where("homepage <> ''") }
+  scope :with_repository_or_homepage_url, -> { where("repository_url <> '' OR homepage <> ''") }
 
   before_save  :update_details
   after_commit :update_repo_metadata_async, on: :create
@@ -147,17 +149,21 @@ class Package < ApplicationRecord
     CheckStatusWorker.perform_async(id)
   end
 
+  def repository_or_homepage_url
+    repository_url.presence || homepage_url
+  end
+
   def self.update_repo_metadata_async
-    Package.with_repository_url.order('repo_metadata_updated_at DESC nulls first').limit(400).each(&:update_repo_metadata_async)
+    Package.with_repository_or_homepage_url.order('repo_metadata_updated_at DESC nulls first').limit(400).each(&:update_repo_metadata_async)
   end
 
   def update_repo_metadata_async
-    return if repository_url.blank?
+    return if repository_or_homepage_url.blank?
     UpdateRepoMetadataWorker.perform_async(id)
   end
 
   def update_repo_metadata
-    return if repository_url.blank?
+    return if repository_or_homepage_url.blank?
     repo_metadata = fetch_repo_metadata
     update_columns(repo_metadata: repo_metadata) if repo_metadata.present?
     update_columns(repo_metadata_updated_at: Time.now)
@@ -172,7 +178,7 @@ class Package < ApplicationRecord
       f.response :json
     end
     
-    response = conn.get('/api/v1/repositories/lookup', url: repository_url)
+    response = conn.get('/api/v1/repositories/lookup', url: repository_or_homepage_url)
     return nil unless response.success?
     repo_metadata = response.body
   end
