@@ -165,7 +165,11 @@ class Package < ApplicationRecord
   def update_repo_metadata
     return if repository_or_homepage_url.blank?
     repo_metadata = fetch_repo_metadata
-    update_columns(repo_metadata: repo_metadata) if repo_metadata.present?
+    if repo_metadata.present?
+      tags = fetch_tags
+      repo_metadata.merge!({'tags' => tags}) if tags
+      update_columns(repo_metadata: repo_metadata)
+    end
     update_columns(repo_metadata_updated_at: Time.now)
   end
 
@@ -180,6 +184,21 @@ class Package < ApplicationRecord
     
     response = conn.get('/api/v1/repositories/lookup', url: repository_or_homepage_url)
     return nil unless response.success?
-    repo_metadata = response.body
+    return response.body
+  end
+
+  def fetch_tags
+    return if repository_url.blank?
+    return if repo_metadata['host'].blank?
+
+    conn = Faraday.new('https://repos.ecosyste.ms') do |f|
+      f.request :json
+      f.request :retry
+      f.response :json
+    end
+
+    response = conn.get("/api/v1/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}/tags")
+    return nil unless response.success?
+    return response.body
   end
 end
