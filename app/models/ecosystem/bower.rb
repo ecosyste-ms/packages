@@ -36,7 +36,23 @@ module Ecosystem
       end
     end
 
-    def versions_metadata(name)
+    def versions_metadata(pkg_metadata)
+      repo_json = get_json("https://repos.ecosyste.ms/api/v1/repositories/lookup?url=#{CGI.escape(pkg_metadata[:repository_url])}")
+      return [] if repo_json.blank?
+      tags_json = get_json("https://repos.ecosyste.ms/api/v1/hosts/#{repo_json['host']['name']}/repositories/#{repo_json['full_name']}/tags")
+      return [] if tags_json.blank?
+
+      tags_json.map do |tag|
+        {
+          number: tag['name'],
+          published_at: tag['published_at'],
+          metadata: {
+            sha: tag['sha'],
+            download_url: tag['download_url']
+          }
+        }
+      end
+    rescue StandardError
       []
     end
 
@@ -48,12 +64,23 @@ module Ecosystem
       bower_json = load_bower_json(package) || package
       {
         name: package["name"],
-        repository_url: package["url"],
+        repository_url: repo_fallback(package["url"], nil),
         licenses: bower_json['license'],
         keywords_array: bower_json['keywords'],
-        homepage: bower_json["homepage"],
+        homepage: repo_fallback(nil, bower_json["homepage"]),
         description: description(bower_json["description"])
       }
+    end
+
+    def dependencies_metadata(name, version, package)
+      return [] unless package[:repository_url]
+      github_name_with_owner = GithubUrlParser.parse(package[:repository_url])
+      return [] unless github_name_with_owner
+      deps = get_json("https://raw.githubusercontent.com/#{github_name_with_owner}/#{version}/bower.json")
+
+      map_dependencies(deps["dependencies"], "runtime") + map_dependencies(deps["devDependencies"], "development")
+    rescue StandardError
+      []
     end
 
     def description(string)
