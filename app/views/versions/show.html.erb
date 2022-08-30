@@ -16,9 +16,21 @@
       <%= link_to 'Download', @version.download_url, target: :_blank %> -
     <% end %>
     <% if @version.integrity.present? %>
-      <br>Integrity: <%= @version.integrity %> -
+      <br>Integrity: <span title='<%= @version.integrity %>'><%= truncate(@version.integrity) %> -
     <% end %>
-    Published: <%= time_ago_in_words @version.published_at %> ago - Indexed: <%= time_ago_in_words @version.created_at %> ago 
+    <br>Published: <%= time_ago_in_words @version.published_at %> ago
+    <br>Indexed: <%= time_ago_in_words @version.created_at %> ago 
+    <% if @version.related_tag %>
+      <br>Related tag:
+      <% if @version.related_tag["html_url"] %>
+        <%= link_to @version.related_tag["name"], @version.related_tag["html_url"] %>
+      <% else %>
+        <%= @version.related_tag["name"] %>
+      <% end %>
+      <% if @version.compare_url.present? %>
+        - <%= link_to 'compare', @version.compare_url, target: :_blank %>
+      <% end %>
+    <% end %>
   </p>
 
   <% if @version.download_url.present? && @package.versions_count > 1 %>

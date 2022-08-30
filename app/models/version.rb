@@ -154,6 +154,13 @@ class Version < ApplicationRecord
     "https://diff.ecosyste.ms/diff?url_1=#{url_1}&url_2=#{url_2}"
   end
 
+  def compare_url
+    return unless related_tag && related_tag['download_url'].present?
+    return unless download_url.present?
+    return if related_tag['download_url'] == download_url
+    "https://diff.ecosyste.ms/diff?url_1=#{download_url}&url_2=#{related_tag['download_url']}"
+  end
+
   def related_tag
     return unless package.repo_metadata && package.repo_metadata['tags']
     package.repo_metadata['tags'].find { |tag| tag['name'].delete_prefix('v') == number.delete_prefix('v') }
