@@ -21,8 +21,8 @@ default_registries = [
   {name: 'deno.land', url: 'https://deno.land', ecosystem: 'deno', github: 'denoland'},
   {name: 'clojars.org', url: 'https://repo.clojars.org', ecosystem: 'clojars', github: 'clojars'},
   {name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven', github: 'maven-central'},
-  {name: 'pkgs.racket-lang.org', url: 'http://pkgs.racket-lang.org/', ecosystem: 'racket', github: 'racket-lang'},
-  {name: 'elpa.gnu.org', url: 'https://elpa.gnu.org/packages/', ecosystem: 'elpa', github: 'emacs'},
+  {name: 'pkgs.racket-lang.org', url: 'http://pkgs.racket-lang.org', ecosystem: 'racket', github: 'racket-lang'},
+  {name: 'elpa.gnu.org', url: 'https://elpa.gnu.org/packages', ecosystem: 'elpa', github: 'emacs'},
   {name: 'elpa.nongnu.org', url: 'https://elpa.nongnu.org/nongnu', ecosystem: 'elpa', github: 'emacs'},
 ]
 
