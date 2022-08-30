@@ -242,7 +242,10 @@ GEM
       thor (~> 1.0)
       zeitwerk (~> 2.5)
     rake (13.0.6)
-    redis (4.8.0)
+    redis (5.0.0)
+      redis-client (~> 0.7)
+    redis-client (0.7.1)
+      connection_pool
     reline (0.3.1)
       io-console (~> 0.5)
     rexml (3.2.5)
