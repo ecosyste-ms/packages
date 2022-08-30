@@ -78,7 +78,7 @@ module Ecosystem
 
     def dependencies_metadata(name, version, package)
       return [] unless package[:repository_url]
-      github_name_with_owner = GithubUrlParser.parse(package[:repository_url])
+      github_name_with_owner = GithubUrlParser.parse(package[:repository_url]) # TODO this could be any host
       return [] unless github_name_with_owner
       deps = get_json("https://raw.githubusercontent.com/#{github_name_with_owner}/#{version}/bower.json")
 
@@ -95,7 +95,7 @@ module Ecosystem
 
     def load_bower_json(package)
       return package unless package['url']
-      github_name_with_owner = GithubUrlParser.parse(package['url'])
+      github_name_with_owner = GithubUrlParser.parse(package['url'])  # TODO this could be any host
       return package unless github_name_with_owner
       get_json("https://raw.githubusercontent.com/#{github_name_with_owner}/master/bower.json") rescue {}
     end
