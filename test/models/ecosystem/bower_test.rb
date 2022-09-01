@@ -5,7 +5,7 @@ class BowerTest < ActiveSupport::TestCase
     @registry = Registry.create(name: 'Bower.io', url: 'https://bower.io', ecosystem: 'bower')
     @ecosystem = Ecosystem::Bower.new(@registry.url)
     @package = @registry.packages.create(ecosystem: 'bower', name: 'bower-angular', repository_url: "https://github.com/angular/bower-angular")
-    @version = @package.versions.create(number: '1.0.0')
+    @version = @package.versions.create(number: '1.0.0', metadata: {download_url:"https://codeload.github.com/angular/bower-angular/tar.gz/refs/v1.0.0"})
   end
 
   test 'registry_url' do
@@ -20,7 +20,7 @@ class BowerTest < ActiveSupport::TestCase
 
   test 'download_url' do
     download_url = @ecosystem.download_url(@package, @version)
-    assert_equal download_url, "https://codeload.github.com/angular/bower-angular/tar.gz/refs/heads/master"
+    assert_equal download_url, "https://codeload.github.com/angular/bower-angular/tar.gz/refs/v1.0.0"
   end
 
   test 'documentation_url' do
