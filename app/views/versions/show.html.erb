@@ -52,7 +52,7 @@
   <% end %>
 
   <% if @version.download_url.present? %>
-    <div class='card' id="files" data-url="<%= @version.download_url %>" data-basename="<%= @version.archive_basename %>" data-path="<%= params[:path] %>">
+    <div class='card' id="files" data-url="<%= @version.download_url %>" data-basename="Files" data-path="<%= params[:path] %>">
       <div id='files-header' class="card-header"></div>
       <ul id="files-list" class="list-group list-group-flush"></ul>
       <div id="files-content" class="card-body">Loading...</div>
@@ -60,26 +60,24 @@
   <% end %>
 
   <% if @version.dependencies.any? %>
-      <h5 class='mt-3'>Dependencies</h5>
-      <div class="card mb-3">
+      <div class="card my-3">
+        <div class="card-header">Dependencies</div>
         <ul class="list-group list-group-flush">
-            <% @version.dependencies.sort_by{|d| [d.kind, d.package_name]}.each do |dependency| %>
-              <li class="list-group-item">
-                <%= link_to dependency.package_name, registry_package_path(registry_id: @registry.name, package_id: dependency.package_name) %>
-                <i><%= dependency.requirements %></i>
-                <small class='text-muted'>
-                <% if dependency.kind != 'runtime' %>
-                  <%= dependency.kind %>
-                <% end %>
-                <% if dependency.optional %>
-                  (optional)
-                <% end %>
-                </small>
-              </li>
-            
+          <% @version.dependencies.sort_by{|d| [d.kind, d.package_name]}.each do |dependency| %>
+            <li class="list-group-item">
+              <%= link_to dependency.package_name, registry_package_path(@registry.name, dependency.package_name) %>
+              <i><%= dependency.requirements %></i>
+              <small class='text-muted'>
+              <% if dependency.kind != 'runtime' %>
+                <%= dependency.kind %>
+              <% end %>
+              <% if dependency.optional %>
+                (optional)
+              <% end %>
+              </small>
+            </li>
           <% end %>
         </ul>
       </div>
-    
   <% end %>
 </div>
