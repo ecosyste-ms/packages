@@ -58,4 +58,28 @@
       <div id="files-content" class="card-body">Loading...</div>
     </div>
   <% end %>
+
+  <% if @version.dependencies.any? %>
+      <h5 class='mt-3'>Dependencies</h5>
+      <div class="card mb-3">
+        <ul class="list-group list-group-flush">
+            <% @version.dependencies.sort_by{|d| [d.kind, d.package_name]}.each do |dependency| %>
+              <li class="list-group-item">
+                <%= link_to dependency.package_name, registry_package_path(registry_id: @registry.name, package_id: dependency.package_name) %>
+                <i><%= dependency.requirements %></i>
+                <small class='text-muted'>
+                <% if dependency.kind != 'runtime' %>
+                  <%= dependency.kind %>
+                <% end %>
+                <% if dependency.optional %>
+                  (optional)
+                <% end %>
+                </small>
+              </li>
+            
+          <% end %>
+        </ul>
+      </div>
+    
+  <% end %>
 </div>
