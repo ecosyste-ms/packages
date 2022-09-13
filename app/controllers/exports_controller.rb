@@ -1,5 +1,5 @@
 class ExportsController < ApplicationController
   def index
-    @exports = Export.all
+    @exports = Export.order("date DESC")
   end
 end
