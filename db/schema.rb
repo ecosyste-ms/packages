@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_08_18_124706) do
+ActiveRecord::Schema[7.0].define(version: 2022_09_19_161859) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -22,6 +22,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_08_18_124706) do
     t.string "kind"
     t.boolean "optional", default: false
     t.string "requirements"
+    t.index ["ecosystem", "package_name"], name: "index_dependencies_on_ecosystem_and_package_name"
     t.index ["version_id"], name: "index_dependencies_on_version_id"
   end
 

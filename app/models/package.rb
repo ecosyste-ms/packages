@@ -31,12 +31,12 @@ class Package < ApplicationRecord
   end
 
   def dependent_versions
-    package_ids = Dependency.where(package_name: name).pluck(:version_id).uniq
+    package_ids = Dependency.where(package_name: name, ecosystem: ecosystem).pluck('distinct(version_id)')
     Version.where(id: package_ids)
   end
 
   def dependent_packages
-    package_ids = dependent_versions.pluck(:package_id).uniq
+    package_ids = Dependency.where(package_name: name, ecosystem: ecosystem).joins(:version).pluck('distinct(versions.package_id)')
     Package.where(id: package_ids).where(registry_id: registry_id)
   end
 
