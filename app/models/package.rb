@@ -26,6 +26,20 @@ class Package < ApplicationRecord
     Package.active.order('last_synced_at asc nulls first').limit(1000).each(&:check_status_async)
   end
 
+  def to_param
+    name
+  end
+
+  def dependent_versions
+    package_ids = Dependency.where(package_name: name).pluck(:version_id).uniq
+    Version.where(id: package_ids)
+  end
+
+  def dependent_packages
+    package_ids = dependent_versions.pluck(:package_id).uniq
+    Package.where(id: package_ids).where(registry_id: registry_id)
+  end
+
   def install_command
     registry.ecosystem_instance.install_command(self)
   end

@@ -33,6 +33,9 @@ Rails.application.routes.draw do
       collection do
         get :recent_versions_data, to: 'packages#recent_versions_data'
       end
+      member do
+        get :dependent_packages, to: 'packages#dependent_packages'
+      end
     end
 
     member do

@@ -18,6 +18,10 @@ class Registry < ApplicationRecord
     all.each(&:sync_missing_packages_async)
   end
 
+  def to_param
+    name
+  end
+
   def versions_count
     packages.sum(:versions_count)
   end

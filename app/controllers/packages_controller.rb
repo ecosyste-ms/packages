@@ -16,4 +16,10 @@ class PackagesController < ApplicationController
     @package = @registry.packages.find_by_name!(params[:id])
     @pagy, @versions = pagy_countless(@package.versions.order('published_at DESC, created_at DESC'))
   end
+
+  def dependent_packages
+    @registry = Registry.find_by_name!(params[:registry_id])
+    @package = @registry.packages.find_by_name!(params[:id])
+    @pagy, @dependent_packages = pagy_countless(@package.dependent_packages.order('latest_release_published_at DESC nulls last, created_at DESC'))
+  end
 end

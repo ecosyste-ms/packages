@@ -22,21 +22,13 @@
 
   <ul class="nav nav-tabs my-3">
     <li class="nav-item">
-      <a class="nav-link active" aria-current="page" href="#">Versions</a>
+      <a class="nav-link" href="<%= registry_package_path(@registry, @package) %>">Versions</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="<%= dependent_packages_registry_package_path(@registry, @package) %>">Dependent Packages</a>
+      <a class="nav-link active" aria-current="page" href="#">Dependent Packages</a>
     </li>
   </ul>
 
-  <% if @versions.any? %>
-    <%= render @versions %>
-    <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
-  <% elsif @package.download_url.present? %>
-    <div class='card' id="files" data-url="<%= @package.download_url %>" data-basename="<%= @package.archive_basename %>" data-path="<%= params[:path] %>">
-      <div id='files-header' class="card-header"></div>
-      <ul id="files-list" class="list-group list-group-flush"></ul>
-      <div id="files-content" class="card-body">Loading...</div>
-    </div>
-  <% end %>
+
+  <%= render @dependent_packages %>
 </div>
