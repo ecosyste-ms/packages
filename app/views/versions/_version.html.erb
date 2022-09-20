@@ -19,7 +19,7 @@
       <% if version.integrity.present? %>
         Integrity: <span title="<%= version.integrity %>"><%= version.integrity.first(20) %>...</span> -
       <% end %>
-      <span title="<%= version.created_at %>">Indexed <%= time_ago_in_words version.created_at %> ago</span>
+      <span title="<%= version.created_at %>">Indexed: <%= time_ago_in_words version.created_at %> ago</span>
     </small>
   </div>
 </div>
