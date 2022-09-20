@@ -516,6 +516,8 @@ components:
         repo_metadata_updated_at:
           type: string
           format: date-time
+        dependent_packages_count:
+          type: integer
     Version:
       type: object
       properties:
@@ -537,6 +539,14 @@ components:
             type: string
           install_command:
             type: string
+          metadata:
+            type: object
+          created_at:
+            type: string
+            format: date-time
+          updated_at:
+            type: string
+            format: date-time
           dependencies:
             type: array
             items:
@@ -562,6 +572,14 @@ components:
           type: string
         install_command:
           type: string
+        metadata:
+            type: object
+          created_at:
+            type: string
+            format: date-time
+          updated_at:
+            type: string
+            format: date-time
         package:
           type: object
           $ref: '#/components/schemas/Package'
