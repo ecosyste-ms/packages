@@ -25,7 +25,7 @@
       <a class="nav-link" href="<%= registry_package_path(@registry, @package) %>">
         Versions
         <span class="badge bg-secondary rounded-pill">
-          <%= @package.versions_count %>
+          <%= number_with_delimiter @package.versions_count %>
         </span>
       </a>
     </li>
@@ -33,7 +33,7 @@
       <a class="nav-link active" aria-current="page" >
         Dependent Packages
         <span class="badge bg-secondary rounded-pill">
-          <%= @package.dependent_packages_count %>
+          <%= number_with_delimiter @package.dependent_packages_count %>
         </span>
       </a>
     </li>

@@ -19,7 +19,7 @@
       <% end %>
 
       <% if package.dependent_packages_count > 0 %>
-        - <%= pluralize package.dependent_packages_count, 'dependent package' %>
+        - <%= pluralize number_with_delimiter(package.dependent_packages_count), 'dependent package' %>
       <% end %>
 
       - <span title="<%= package.created_at %>">Indexed: <%= time_ago_in_words package.created_at %> ago</span>
