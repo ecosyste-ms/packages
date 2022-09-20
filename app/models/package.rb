@@ -30,6 +30,10 @@ class Package < ApplicationRecord
     name
   end
 
+  def update_dependent_packages_count
+    update_columns(dependent_packages_count: dependent_packages.count)
+  end
+
   def dependent_versions
     package_ids = Dependency.where(package_name: name, ecosystem: ecosystem).pluck('distinct(version_id)')
     Version.where(id: package_ids)
