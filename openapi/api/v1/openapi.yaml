@@ -574,12 +574,12 @@ components:
           type: string
         metadata:
             type: object
-          created_at:
-            type: string
-            format: date-time
-          updated_at:
-            type: string
-            format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
         package:
           type: object
           $ref: '#/components/schemas/Package'
