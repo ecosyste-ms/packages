@@ -1,8 +1,17 @@
 class PackagesController < ApplicationController
   def index
     @registry = Registry.find_by_name!(params[:registry_id])
-    
-    @pagy, @packages = pagy_countless(@registry.packages.order('latest_release_published_at DESC nulls last, created_at DESC'))
+    scope = @registry.packages
+    if params[:sort].present? || params[:order].present?
+      sort = params[:sort] || 'latest_release_published_at,created_at'
+      order = params[:order] || 'desc,desc'
+      sort_options = sort.split(',').zip(order.split(',')).to_h
+      scope = scope.order(sort_options)
+    else
+      scope = scope.order('latest_release_published_at DESC nulls last, created_at DESC')
+    end
+
+    @pagy, @packages = pagy_countless(scope)
   end
 
   def recent_versions_data
@@ -20,6 +29,18 @@ class PackagesController < ApplicationController
   def dependent_packages
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = @registry.packages.find_by_name!(params[:id])
-    @pagy, @dependent_packages = pagy_countless(@package.dependent_packages.order('latest_release_published_at DESC nulls last, created_at DESC'))
+
+    scope = @package.dependent_packages
+    if params[:sort].present? || params[:order].present?
+      sort = params[:sort] || 'latest_release_published_at,created_at'
+      order = params[:order] || 'desc,desc'
+      sort_options = sort.split(',').zip(order.split(',')).to_h
+      scope = scope.order(sort_options)
+    else
+      scope = scope.order('latest_release_published_at DESC nulls last, created_at DESC')
+    end
+
+
+    @pagy, @dependent_packages = pagy_countless(scope)
   end
 end
