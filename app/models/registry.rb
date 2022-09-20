@@ -138,6 +138,7 @@ class Registry < ApplicationRecord
 
     package.assign_attributes(updates)
     package.save
+    package.update_dependent_packages_count
     # package.update_integrities_async
     return package
   end
