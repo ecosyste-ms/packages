@@ -5,7 +5,7 @@
     </h5>
     
     <small class='text-muted'>
-      Published: <%= time_ago_in_words version.published_at %> ago
+      <span title='<%= version.published_at %>'>Published: <%= time_ago_in_words version.published_at %> ago</span>
       <br/>
       <% if version.registry_url.present? %>
         <%= link_to 'Registry', version.registry_url, target: :_blank %> - 
@@ -19,7 +19,7 @@
       <% if version.integrity.present? %>
         Integrity: <span title="<%= version.integrity %>"><%= version.integrity.first(20) %>...</span> -
       <% end %>
-      Indexed: <%= time_ago_in_words version.created_at %> ago
+      <span title="<%= version.created_at %>">Indexed <%= time_ago_in_words version.created_at %> ago</span>
     </small>
   </div>
 </div>

@@ -14,14 +14,14 @@
       <% end %>
       
       <% if package.latest_release_published_at %>
-        - Latest release: <%= time_ago_in_words package.latest_release_published_at %> ago
+        - <span title="<%= package.latest_release_published_at %>">Latest release: <%= time_ago_in_words package.latest_release_published_at %> ago</span>
       <% end %>
 
       <% if package.dependent_packages_count > 0 %>
         - <%= pluralize package.dependent_packages_count, 'dependent package' %>
       <% end %>
 
-      - Indexed <%= time_ago_in_words package.created_at %> ago
+      - <span title="<%= package.created_at %>">Indexed <%= time_ago_in_words package.created_at %> ago</span>
     </small>
   </div>
 </div>
