@@ -518,6 +518,10 @@ components:
           format: date-time
         dependent_packages_count:
           type: integer
+        downloads:
+          type: integer
+        downloads_period:
+          type: string
     Version:
       type: object
       properties:
