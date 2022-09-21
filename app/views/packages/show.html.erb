@@ -25,7 +25,9 @@
     <% if @package.downloads %>
       <br/>Downloads: <%= number_with_delimiter(@package.downloads) %> <%= download_period(@package.downloads_period) %>
     <% end %>
-    <br/><span title="<%= @package.last_synced_at %>">Last synced: <%= time_ago_in_words @package.last_synced_at %> ago</span>
+    <% if @package.last_synced_at %>
+      <br/><span title="<%= @package.last_synced_at %>">Last synced: <%= time_ago_in_words @package.last_synced_at %> ago</span>
+    <% end %>
   </p>
 
   <ul class="nav nav-tabs my-3">
