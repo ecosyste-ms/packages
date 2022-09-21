@@ -109,7 +109,7 @@ module Ecosystem
           number: item["catalogEntry"]["version"],
           published_at: item["catalogEntry"]["published"],
           metadata: {
-            downloads: package[:download_stats]['data'][0]['versions'].find{|v| v['version'] == item["catalogEntry"]["version"]}['downloads'],
+            downloads: package[:download_stats]['data'][0]['versions'].find{|v| v['version'] == item["catalogEntry"]["version"]}.try(:fetch,'downloads'),
           }
         }
       end
