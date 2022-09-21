@@ -93,7 +93,7 @@ module Ecosystem
         repository_url: repo_fallback("", item["packageUrl"]),
         releases: package[:releases],
         licenses: item["licenseExpression"],
-        downloads: package[:download_stats]['data'][0]['totalDownloads'],
+        downloads: package[:download_stats]['data'].try(:first).try(:fetch,'totalDownloads'),
         downloads_period: 'total',
         download_stats: package[:download_stats],
       }
@@ -109,10 +109,15 @@ module Ecosystem
           number: item["catalogEntry"]["version"],
           published_at: item["catalogEntry"]["published"],
           metadata: {
-            downloads: package[:download_stats]['data'][0]['versions'].find{|v| v['version'] == item["catalogEntry"]["version"]}.try(:fetch,'downloads'),
+            downloads: version_downloads(package, item["catalogEntry"]["version"])
           }
         }
       end
+    end
+
+    def version_downloads(package, version)
+      return nil unless package[:download_stats]['data'].any?
+      package[:download_stats]['data'][0]['versions'].find{|v| v['version'] == version}.try(:fetch,'downloads')
     end
 
     def dependencies_metadata(_name, version, package)
