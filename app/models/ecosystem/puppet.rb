@@ -35,7 +35,9 @@ module Ecosystem
         description: metadata["summary"],
         keywords_array: current_release["tags"],
         licenses: metadata["license"],
-        releases: package['releases']
+        releases: package['releases'],
+        downloads: package['downloads'],
+        downloads_period: 'total'
       }
     end
 
@@ -46,7 +48,10 @@ module Ecosystem
         {
           number: release["version"],
           published_at: release["created_at"],
-          integrity: integrity
+          integrity: integrity,
+          metadata: {
+            downloads: version['downloads']
+          }
         }
       end
     end

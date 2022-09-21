@@ -67,8 +67,8 @@ class PackagistTest < ActiveSupport::TestCase
   end
 
   test 'package_metadata' do
-    stub_request(:get, "https://repo.packagist.org/p2/psr/log.json")
-      .to_return({ status: 200, body: file_fixture('packagist/log.json') })
+    stub_request(:get, "https://packagist.org/packages/psr/log.json")
+      .to_return({ status: 200, body: file_fixture('packagist/log.json.1') })
     package_metadata = @ecosystem.package_metadata('psr/log')
 
     assert_equal package_metadata[:name], "psr/log"
@@ -77,11 +77,13 @@ class PackagistTest < ActiveSupport::TestCase
     assert_equal package_metadata[:licenses], "MIT"
     assert_equal package_metadata[:repository_url], "https://github.com/php-fig/log"
     assert_equal package_metadata[:keywords_array], ["log", "psr", "psr-3"]
+    assert_equal package_metadata[:downloads], 566842099
+    assert_equal package_metadata[:downloads_period], 'total'
   end
 
   test 'versions_metadata' do
-    stub_request(:get, "https://repo.packagist.org/p2/psr/log.json")
-      .to_return({ status: 200, body: file_fixture('packagist/log.json') })
+    stub_request(:get, "https://packagist.org/packages/psr/log.json")
+      .to_return({ status: 200, body: file_fixture('packagist/log.json.1') })
     package_metadata = @ecosystem.package_metadata('psr/log')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
@@ -100,8 +102,8 @@ class PackagistTest < ActiveSupport::TestCase
   end
 
   test 'dependencies_metadata' do
-    stub_request(:get, "https://repo.packagist.org/p2/maztech/instagram-php-graph-sdk.json")
-      .to_return({ status: 200, body: file_fixture('packagist/instagram-php-graph-sdk.json') })
+    stub_request(:get, "https://packagist.org/packages/maztech/instagram-php-graph-sdk.json")
+      .to_return({ status: 200, body: file_fixture('packagist/instagram-php-graph-sdk.json.1') })
     package_metadata = @ecosystem.package_metadata('maztech/instagram-php-graph-sdk')
     dependencies_metadata = @ecosystem.dependencies_metadata('maztech/instagram-php-graph-sdk', 'v1.0.0', package_metadata)
     

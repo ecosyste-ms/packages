@@ -68,13 +68,15 @@ class HomebrewTest < ActiveSupport::TestCase
     stub_request(:get, "https://formulae.brew.sh/api/formula/abook.json")
       .to_return({ status: 200, body: file_fixture('homebrew/abook.json') })
     package_metadata = @ecosystem.package_metadata('abook')
-    
+
     assert_equal package_metadata[:name], "abook"
     assert_equal package_metadata[:description], "Address book with mutt support"
     assert_equal package_metadata[:homepage], "https://abook.sourceforge.io/"
     assert_equal package_metadata[:licenses], "GPL-2.0-only and GPL-2.0-or-later and GPL-3.0-or-later and Public Domain and X11"
     assert_equal package_metadata[:repository_url], ""
     assert_nil package_metadata[:keywords_array]
+    assert_equal package_metadata[:downloads], 28
+    assert_equal package_metadata[:downloads_period], "last-month"
   end
 
   test 'versions_metadata' do

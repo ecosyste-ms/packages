@@ -74,8 +74,16 @@ module Ecosystem
         licenses: licenses(latest_version),
         repository_url: repo_fallback(repo_url, package["homepage"]),
         versions: package["versions"],
-        time: package["time"]
+        time: package["time"],
+        downloads: downloads(package),
+        downloads_period: "last-month",
       }
+    end
+
+    def downloads(package)
+      get_json("https://api.npmjs.org/downloads/point/last-month/#{package["_id"]}")['downloads']
+    rescue
+      {}
     end
 
     def licenses(latest_version)

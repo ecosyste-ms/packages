@@ -58,7 +58,9 @@ module Ecosystem
         repository_url: links["github"],
         description: package["meta"]["description"],
         licenses: repo_fallback(package["meta"].fetch("licenses", []).join(","), links.except("github").first.try(:last)),
-        releases: package['releases']
+        releases: package['releases'],
+        downloads: package['downloads']['all'],
+        downloads_period: 'total'
       }
     end
 
@@ -68,7 +70,10 @@ module Ecosystem
         {
           number: version["version"],
           published_at: version["inserted_at"],
-          integrity: "sha256-" + vers['checksum']
+          integrity: "sha256-" + vers['checksum'],
+          metadata: {
+            downloads: vers['downloads']
+          }
         }
       end
     end

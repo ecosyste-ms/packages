@@ -42,7 +42,9 @@ module Ecosystem
         licenses: package['license'],
         version: package.dig("versions", "stable"),
         dependencies: package["dependencies"],
-        versions: package['versions']
+        versions: package['versions'],
+        downloads: package['analytics']['install']['30d'][package['name']],
+        downloads_period: 'last-month'
       }
     end
 

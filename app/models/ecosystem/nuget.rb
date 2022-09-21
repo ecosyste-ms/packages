@@ -48,10 +48,16 @@ module Ecosystem
         name: name,
       }
       h[:releases] = get_releases(name)
+      h[:download_stats] = download_stats(name)
       h[:versions] = versions_metadata(h)
+      
       return {} unless h[:versions].any?
 
       h
+    end
+
+    def download_stats(name)
+      get_json("https://azuresearch-usnc.nuget.org/query?q=packageid:#{name.downcase}")
     end
 
     def get_releases(name)
@@ -87,6 +93,9 @@ module Ecosystem
         repository_url: repo_fallback("", item["packageUrl"]),
         releases: package[:releases],
         licenses: item["licenseExpression"],
+        downloads: package[:download_stats]['data'][0]['totalDownloads'],
+        downloads_period: 'total',
+        download_stats: package[:download_stats],
       }
     end
 
@@ -99,6 +108,9 @@ module Ecosystem
         {
           number: item["catalogEntry"]["version"],
           published_at: item["catalogEntry"]["published"],
+          metadata: {
+            downloads: package[:download_stats]['data'][0]['versions'].find{|v| v['version'] == item["catalogEntry"]["version"]}['downloads'],
+          }
         }
       end
     end

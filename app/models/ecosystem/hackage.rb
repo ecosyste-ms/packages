@@ -47,7 +47,9 @@ module Ecosystem
         licenses: find_attribute(package[:page], "License"),
         homepage: find_attribute(package[:page], "Home page"),
         repository_url: repo_fallback(repository_url(find_attribute(package[:page], "Source repository")), find_attribute(package[:page], "Home page")),
-        page: package[:page]
+        page: package[:page],
+        downloads: find_attribute(package[:page], "Downloads").split(' ').first.to_i,
+        downloads_period: 'total'
       }
     end
 

@@ -75,6 +75,8 @@ class HackageTest < ActiveSupport::TestCase
     assert_equal package_metadata[:licenses], "Apache-2.0"
     assert_equal package_metadata[:repository_url], "https://github.com/blockfrost/blockfrost-haskell"
     assert_equal package_metadata[:keywords_array], ["apache", "cardano", "library"]
+    assert_equal package_metadata[:downloads], 303
+    assert_equal package_metadata[:downloads_period], 'total'
   end
 
   test 'versions_metadata' do

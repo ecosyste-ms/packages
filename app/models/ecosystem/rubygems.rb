@@ -52,6 +52,8 @@ module Ecosystem
         homepage: pkg_metadata["homepage_uri"],
         licenses: pkg_metadata.fetch("licenses", []).try(:join, ","),
         repository_url: repo_fallback(pkg_metadata["source_code_uri"], pkg_metadata["homepage_uri"]),
+        downloads: pkg_metadata["downloads"],
+        downloads_period: "total"
       }
     end
 
@@ -65,7 +67,8 @@ module Ecosystem
           licenses: v.fetch("licenses", []).try(:join, ","),
           integrity: "sha256-" + v["sha"],
           metadata: {
-            platform: v["platform"]
+            platform: v["platform"],
+            downloads: v["downloads_count"],
           }
         }
       end

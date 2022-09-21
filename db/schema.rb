@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_09_20_112841) do
+ActiveRecord::Schema[7.0].define(version: 2022_09_21_110142) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -57,6 +57,8 @@ ActiveRecord::Schema[7.0].define(version: 2022_09_20_112841) do
     t.json "repo_metadata", default: {}
     t.datetime "repo_metadata_updated_at"
     t.integer "dependent_packages_count", default: 0
+    t.integer "downloads"
+    t.string "downloads_period"
     t.index ["registry_id", "name"], name: "index_packages_on_registry_id_and_name", unique: true
   end
 

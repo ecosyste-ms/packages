@@ -78,6 +78,8 @@ class PuppetTest < ActiveSupport::TestCase
     assert_equal package_metadata[:licenses], "Apache-2.0"
     assert_equal package_metadata[:repository_url], "https://github.com/voxpupuli/puppet-fail2ban.git"
     assert_equal package_metadata[:keywords_array], ["iptables", "fail2ban", "firewall", "firewalling"]
+    assert_equal package_metadata[:downloads], 50321
+    assert_equal package_metadata[:downloads_period], "total"
   end
 
   test 'versions_metadata' do
@@ -91,8 +93,8 @@ class PuppetTest < ActiveSupport::TestCase
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
-      {:number=>"4.1.0", :published_at=>"2022-04-11 23:14:42 -0700", :integrity=>"sha256-ef58252f5398aeee9c332c99e16ffb75244b2a5a0bf42ca1f0d8f34e06a3a8ee"},
-      {:number=>"4.0.0", :published_at=>"2021-12-13 14:43:26 -0800", :integrity=>"sha256-e1a249468eb4130d3e02afe761084a973048e6f804e93dcf0def27ac8a8efe38"}
+      {:number=>"4.1.0", :published_at=>"2022-04-11 23:14:42 -0700", :integrity=>"sha256-ef58252f5398aeee9c332c99e16ffb75244b2a5a0bf42ca1f0d8f34e06a3a8ee", :metadata=>{:downloads=>33}},
+      {:number=>"4.0.0", :published_at=>"2021-12-13 14:43:26 -0800", :integrity=>"sha256-e1a249468eb4130d3e02afe761084a973048e6f804e93dcf0def27ac8a8efe38", :metadata=>{:downloads=>3795}}
     ]
   end
 

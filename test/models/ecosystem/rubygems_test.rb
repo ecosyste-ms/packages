@@ -76,7 +76,9 @@ class RubygemsTest < ActiveSupport::TestCase
       :description=>"Nokogiri (鋸) makes it easy and painless to work with XML and HTML from Ruby. It provides a\nsensible, easy-to-understand API for reading, writing, modifying, and querying documents. It is\nfast and standards-compliant by relying on native parsers like libxml2 (C) and xerces (Java).\n", 
       :homepage=>"https://nokogiri.org",
       :licenses=>"MIT",
-      :repository_url=>"https://github.com/sparklemotion/nokogiri"
+      :repository_url=>"https://github.com/sparklemotion/nokogiri",
+      :downloads=>509098464, 
+      :downloads_period=>"total"
     }
   end
 
@@ -85,8 +87,8 @@ class RubygemsTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('rubygems/nokogiri-versions.json') })
     versions_metadata = @ecosystem.versions_metadata({name: 'nokogiri'})
 
-    assert_equal versions_metadata.first, {:number=>"1.13.6", :published_at=>"2022-05-08T14:34:51.113Z", :licenses=>"MIT", :integrity=>"sha256-b1512fdc0aba446e1ee30de3e0671518eb363e75fab53486e99e8891d44b8587", :metadata=>{:platform=>"ruby"}}
-    assert_equal versions_metadata.second, {:number=>"1.13.6-x86_64-linux", :published_at=>"2022-05-08T14:34:45.502Z", :licenses=>"MIT", :integrity=>"sha256-3fa37b0c3b5744af45f9da3e4ae9cbd89480b35e12ae36b5e87a0452e0b38335", :metadata=>{:platform=>"x86_64-linux"}}
+    assert_equal versions_metadata.first, {:number=>"1.13.6", :published_at=>"2022-05-08T14:34:51.113Z", :licenses=>"MIT", :integrity=>"sha256-b1512fdc0aba446e1ee30de3e0671518eb363e75fab53486e99e8891d44b8587", :metadata=>{:platform=>"ruby", :downloads=>13099}}
+    assert_equal versions_metadata.second, {:number=>"1.13.6-x86_64-linux", :published_at=>"2022-05-08T14:34:45.502Z", :licenses=>"MIT", :integrity=>"sha256-3fa37b0c3b5744af45f9da3e4ae9cbd89480b35e12ae36b5e87a0452e0b38335", :metadata=>{:platform=>"x86_64-linux", :downloads=>366367}}
   end
 
   test 'dependencies_metadata' do

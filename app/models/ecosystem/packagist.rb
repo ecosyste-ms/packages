@@ -32,7 +32,8 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
-      get_json("https://repo.packagist.org/p2/#{name}.json")&.dig("packages", name).presence || get_json("https://repo.packagist.org/p2/#{name}~dev.json")&.dig("packages", name)
+      get_json("https://packagist.org/packages/#{name}.json")['package']
+      # get_json("https://repo.packagist.org/p2/#{name}.json")&.dig("packages", name).presence || get_json("https://repo.packagist.org/p2/#{name}~dev.json")&.dig("packages", name)
     rescue
       false
     end
@@ -57,22 +58,24 @@ module Ecosystem
 
     def map_package_metadata(pkg_metadata)
       return false unless pkg_metadata
-      latest_version = pkg_metadata.first
+      latest_version = pkg_metadata['versions'][pkg_metadata['versions'].keys.first]
       return false if latest_version.nil?
 
       {
-        name: latest_version["name"],
-        description: latest_version["description"].try(:delete, "\u0000"),
+        name: pkg_metadata["name"],
+        description: pkg_metadata["description"].try(:delete, "\u0000"),
         homepage: latest_version["homepage"],
         keywords_array: Array.wrap(latest_version["keywords"]),
         licenses: Array.wrap(latest_version["license"]).join(","),
         repository_url: repo_fallback(latest_version["source"]&.fetch("url"), latest_version["homepage"]),
-        versions: pkg_metadata
+        versions: pkg_metadata['versions'],
+        downloads: pkg_metadata["downloads"]['total'],
+        downloads_period: 'total',
       }
     end
 
     def versions_metadata(pkg_metadata)
-      acceptable_versions(pkg_metadata[:versions]).map do |version|
+      acceptable_versions(pkg_metadata[:versions]).map do |name, version|
         {
           number: version["version"],
           published_at: version["time"],
@@ -84,14 +87,14 @@ module Ecosystem
     end
 
     def acceptable_versions(versions)
-      versions.select do |k|
+      versions.select do |_n, k|
         # See: https://getcomposer.org/doc/articles/versions.md#branches
         (k['version'] =~ /^dev-.*/i).nil? && (k['version'] =~ /\.x-dev$/i).nil?
       end
     end
 
     def dependencies_metadata(_name, version, package)
-      vers = package[:versions].first{|v| v['version'] == version}
+      vers = package[:versions][version]
       return [] if vers.nil?
 
       map_dependencies(vers.fetch("require", {}).reject { |k, _v| k == "php" }, "runtime") +

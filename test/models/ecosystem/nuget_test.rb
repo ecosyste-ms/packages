@@ -71,6 +71,8 @@ class NugetTest < ActiveSupport::TestCase
   test 'package_metadata' do
     stub_request(:get, "https://api.nuget.org/v3/registration5-semver1/ogcapi.net.sqlserver/index.json")
       .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
+    stub_request(:get, "https://azuresearch-usnc.nuget.org/query?q=packageid:ogcapi.net.sqlserver")
+      .to_return({ status: 200, body: file_fixture('nuget/query?q=packageid:ogcapi.net.sqlserver') })
     package_metadata = @ecosystem.package_metadata('OgcApi.Net.SqlServer')
     
     assert_equal package_metadata[:name], "OgcApi.Net.SqlServer"
@@ -79,23 +81,29 @@ class NugetTest < ActiveSupport::TestCase
     assert_equal package_metadata[:licenses], "MIT"
     assert_equal package_metadata[:repository_url], ""
     assert_equal package_metadata[:keywords_array], [""]
+    assert_equal package_metadata[:downloads], 1331
+    assert_equal package_metadata[:downloads_period], "total"
   end
 
   test 'versions_metadata' do
     stub_request(:get, "https://api.nuget.org/v3/registration5-semver1/ogcapi.net.sqlserver/index.json")
       .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
+    stub_request(:get, "https://azuresearch-usnc.nuget.org/query?q=packageid:ogcapi.net.sqlserver")
+      .to_return({ status: 200, body: file_fixture('nuget/query?q=packageid:ogcapi.net.sqlserver') })
     package_metadata = @ecosystem.package_metadata('OgcApi.Net.SqlServer')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
-      {:number=>"0.3.0", :published_at=>"2022-03-25T05:11:36.793+00:00"},
-      {:number=>"0.3.1", :published_at=>"2022-03-25T10:25:47.79+00:00"}
+      {:number=>"0.3.0", :published_at=>"2022-03-25T05:11:36.793+00:00", metadata: {downloads: 92}},
+      {:number=>"0.3.1", :published_at=>"2022-03-25T10:25:47.79+00:00", metadata: {downloads: 83}}
     ]
   end
 
   test 'dependencies_metadata' do
     stub_request(:get, "https://api.nuget.org/v3/registration5-semver1/ogcapi.net.sqlserver/index.json")
       .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
+    stub_request(:get, "https://azuresearch-usnc.nuget.org/query?q=packageid:ogcapi.net.sqlserver")
+      .to_return({ status: 200, body: file_fixture('nuget/query?q=packageid:ogcapi.net.sqlserver') })
     package_metadata = @ecosystem.package_metadata('OgcApi.Net.SqlServer')
     dependencies_metadata = @ecosystem.dependencies_metadata('OgcApi.Net.SqlServer', '0.3.0', package_metadata)
 

@@ -61,7 +61,9 @@ module Ecosystem
         keywords_array: Array.wrap(package["crate"]["keywords"]),
         licenses: latest_version["license"],
         repository_url: repo_fallback(package["crate"]["repository"], package["crate"]["homepage"]),
-        versions: package["versions"]
+        versions: package["versions"],
+        downloads: package["crate"]["downloads"],
+        downloads_period: 'total'
       }
     end
 
@@ -70,6 +72,9 @@ module Ecosystem
         {
           number: version["num"],
           published_at: version["created_at"],
+          metadata: {
+            downloads: version["downloads"],
+          }
         }
       end
     end

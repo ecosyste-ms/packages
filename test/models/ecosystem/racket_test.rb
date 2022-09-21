@@ -2,19 +2,19 @@ require "test_helper"
 
 class RacketTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.create(name: 'Racket', url: 'http://pkgs.racket-lang.org/', ecosystem: 'racket')
+    @registry = Registry.create(name: 'Racket', url: 'http://pkgs.racket-lang.org', ecosystem: 'racket')
     @ecosystem = Ecosystem::Racket.new(@registry.url)
     @package = @registry.packages.create(ecosystem: 'racket', name: '4chdl', repository_url: "https://github.com/winny-/4chdl")
   end
 
   test 'registry_url' do
     registry_url = @ecosystem.registry_url(@package)
-    assert_equal registry_url, "http://pkgs.racket-lang.org//package/4chdl"
+    assert_equal registry_url, "http://pkgs.racket-lang.org/package/4chdl"
   end
 
   test 'registry_url with version' do
     registry_url = @ecosystem.registry_url(@package, '1.0.0')
-    assert_equal registry_url, "http://pkgs.racket-lang.org//package/4chdl"
+    assert_equal registry_url, "http://pkgs.racket-lang.org/package/4chdl"
   end
 
   test 'download_url' do
@@ -44,7 +44,7 @@ class RacketTest < ActiveSupport::TestCase
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "http://pkgs.racket-lang.org//package/4chdl"
+    assert_equal check_status_url, "http://pkgs.racket-lang.org/package/4chdl"
   end
 
   test 'all_package_names' do
