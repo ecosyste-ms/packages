@@ -69,6 +69,8 @@ class PypiTest < ActiveSupport::TestCase
   test 'package_metadata' do
     stub_request(:get, "https://pypi.org/pypi/yiban/json")
       .to_return({ status: 200, body: file_fixture('pypi/yiban') })
+    stub_request(:get, "https://pypistats.org/api/packages/yiban/recent")
+      .to_return({ status: 200, body: file_fixture('pypi/recent') })
     package_metadata = @ecosystem.package_metadata('yiban')
     
     assert_equal package_metadata[:name], "yiban"
@@ -77,11 +79,15 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal package_metadata[:licenses], "BSD 3-Clause"
     assert_equal package_metadata[:repository_url], "https://github.com/DukeBode/Yiban"
     assert_equal package_metadata[:keywords_array], ["Yiban"]
+    assert_equal package_metadata[:downloads], 18
+    assert_equal package_metadata[:downloads_period], "last-month"
   end
 
   test 'versions_metadata' do
     stub_request(:get, "https://pypi.org/pypi/yiban/json")
       .to_return({ status: 200, body: file_fixture('pypi/yiban') })
+    stub_request(:get, "https://pypistats.org/api/packages/yiban/recent")
+      .to_return({ status: 200, body: file_fixture('pypi/recent') })
     package_metadata = @ecosystem.package_metadata('yiban')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 

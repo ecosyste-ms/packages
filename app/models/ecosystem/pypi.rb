@@ -58,7 +58,9 @@ module Ecosystem
           package.dig("info", "registry_urls", "Source").presence || package.dig("info", "registry_urls", "Source Code"),
           package["info"]["home_page"].presence || package.dig("info", "registry_urls", "Homepage")
         ),
-        releases: package['releases']
+        releases: package['releases'],
+        downloads: downloads(package),
+        downloads_period: 'last-month',
       }
     end
 
@@ -73,6 +75,10 @@ module Ecosystem
           }
         }
       end
+    end
+
+    def downloads(package)
+      get_json("https://pypistats.org/api/packages/#{package["info"]["name"]}/recent").fetch('data',{}).fetch('last_month')
     end
 
     def licenses(package)
