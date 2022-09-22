@@ -79,6 +79,8 @@ module Ecosystem
 
     def downloads(package)
       get_json("https://pypistats.org/api/packages/#{package["info"]["name"]}/recent").fetch('data',{}).fetch('last_month')
+    rescue
+      nil
     end
 
     def licenses(package)
