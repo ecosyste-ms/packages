@@ -63,6 +63,24 @@ module Ecosystem
       end
     end
 
+    def dependencies_metadata(name, version, _package)
+      page = get_html("#{@registry_url}/package/#{name}-#{version}", headers: { "Accept" => "text/html" })
+      return [] if page.nil?
+      deps = find_attribute(page, "Dependencies")
+      deps.gsub!('[details]', '')
+      deps.split(',').map do |dep|
+        parts = dep.split(' ')
+        package_name = parts[0]
+        requirements = parts[1..-1].join(' ').gsub('(','').gsub(')','')
+        {
+          package_name: package_name,
+          requirements: requirements.presence || '*',
+          kind: 'runtime',
+          ecosystem: self.class.name.demodulize.downcase,
+        }
+      end
+    end
+
     def find_attribute(page, name)
       tr = page.css("#content tr").select { |t| t.css("th").text.to_s.start_with?(name) }.first
       tr&.css("td")&.text&.strip 

@@ -89,8 +89,22 @@ class HackageTest < ActiveSupport::TestCase
   end
 
   test 'dependencies_metadata' do
-    dependencies_metadata = @ecosystem.dependencies_metadata('blockfrost-client', '0.1.2.32', nil)
+    stub_request(:get, "http://hackage.haskell.org/package/aeson-0.2.0.0")
+      .to_return({ status: 200, body: file_fixture('hackage/aeson-0.2.0.0') })
+    dependencies_metadata = @ecosystem.dependencies_metadata('aeson', '0.2.0.0', nil)
 
-    assert_equal dependencies_metadata, []
+    assert_equal dependencies_metadata, [
+      {:package_name=>"attoparsec", :requirements=>">=0.8.5.0", :kind=>"runtime", :ecosystem=>"hackage"},
+      {:package_name=>"base", :requirements=>">=4 && <4.4", :kind=>"runtime", :ecosystem=>"hackage"},
+      {:package_name=>"blaze-builder", :requirements=>">=0.2.1.4", :kind=>"runtime", :ecosystem=>"hackage"},
+      {:package_name=>"bytestring", :requirements=>"*", :kind=>"runtime", :ecosystem=>"hackage"},
+      {:package_name=>"containers", :requirements=>"*", :kind=>"runtime", :ecosystem=>"hackage"},
+      {:package_name=>"deepseq", :requirements=>"<1.2", :kind=>"runtime", :ecosystem=>"hackage"},
+      {:package_name=>"monads-fd", :requirements=>"*", :kind=>"runtime", :ecosystem=>"hackage"},
+      {:package_name=>"old-locale", :requirements=>"*", :kind=>"runtime", :ecosystem=>"hackage"},
+      {:package_name=>"syb", :requirements=>"*", :kind=>"runtime", :ecosystem=>"hackage"},
+      {:package_name=>"text", :requirements=>">=0.11.0.2", :kind=>"runtime", :ecosystem=>"hackage"},
+      {:package_name=>"time", :requirements=>"<1.5", :kind=>"runtime", :ecosystem=>"hackage"},
+      {:package_name=>"vector", :requirements=>">=0.7", :kind=>"runtime", :ecosystem=>"hackage"}]
   end
 end
