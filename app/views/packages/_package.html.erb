@@ -7,6 +7,11 @@
         <%= package.latest_release_number %>
         </small>
       <% end %>
+      <% if package.status %>
+        <small class='badge bg-secondary'>
+        <%= package.status %>
+        </small>
+      <% end %>
     </h5>
 
     <%= truncate package.description, :length => 100 %><br/>

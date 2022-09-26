@@ -1,5 +1,8 @@
 <div class="container-sm">
-  <h2><%= link_to @registry.name, registry_packages_path(@registry.name) %> : <%= @package.name %></h2>
+  <h2>
+    <%= link_to @registry.name, registry_packages_path(@registry.name) %> : <%= @package.name %>
+
+  </h2>
 
   <p>
     <%= @package.description %>
@@ -17,6 +20,9 @@
     <% end %>
     <% if link = @package.documentation_url %>
       - <%= link_to 'Documentation', link %>
+    <% end %>
+    <% if @package.status %>
+      <br/>Status: <%= @package.status %>
     <% end %>
     <% if @package.latest_release_published_at %>
         <br><span title="<%= @package.latest_release_published_at %>">Latest release: <%= time_ago_in_words @package.latest_release_published_at %> ago</span>
