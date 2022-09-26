@@ -7,7 +7,7 @@ class Package < ApplicationRecord
   has_many :versions
   has_many :dependencies, -> { group 'package_name' }, through: :versions
 
-  scope :ecosystem, ->(ecosystem) { where(ecosystem: Ecosystem::Base.format_name(ecosystem)) }
+  scope :ecosystem, ->(ecosystem) { where(ecosystem: ecosystem.downcase) }
   scope :created_after, ->(created_at) { where('created_at > ?', created_at) }
   scope :updated_after, ->(updated_at) { where('updated_at > ?', updated_at) }
   scope :active, -> { where(status: nil) }
