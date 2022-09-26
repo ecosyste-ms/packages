@@ -40,7 +40,6 @@ class PackagesController < ApplicationController
       scope = scope.order('latest_release_published_at DESC nulls last, created_at DESC')
     end
 
-
     @pagy, @dependent_packages = pagy_countless(scope)
   end
 end
