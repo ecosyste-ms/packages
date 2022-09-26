@@ -10,12 +10,12 @@ class PuppetTest < ActiveSupport::TestCase
 
   test 'registry_url' do
     registry_url = @ecosystem.registry_url(@package)
-    assert_equal registry_url, 'https://forge.puppet.com/puppet/fail2ban'
+    assert_equal registry_url, 'https://forge.puppet.com/modules/puppet/fail2ban'
   end
 
   test 'registry_url with version' do
     registry_url = @ecosystem.registry_url(@package, @version)
-    assert_equal registry_url, 'https://forge.puppet.com/puppet/fail2ban/4.1.0'
+    assert_equal registry_url, 'https://forge.puppet.com/modules/puppet/fail2ban/4.1.0'
   end
 
   test 'download_url' do
@@ -46,7 +46,7 @@ class PuppetTest < ActiveSupport::TestCase
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "https://forge.puppet.com/puppet/fail2ban"
+    assert_equal check_status_url, "https://forge.puppet.com/modules/puppet/fail2ban"
   end
 
   test 'all_package_names' do

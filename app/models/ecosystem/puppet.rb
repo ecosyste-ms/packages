@@ -80,7 +80,7 @@ module Ecosystem
     end
 
     def registry_url(db_package, version = nil)
-      "#{@registry_url}/#{db_package.name.sub('-', '/')}" + (version ? "/#{version}" : "")
+      "#{@registry_url}/modules/#{db_package.name.sub('-', '/')}" + (version ? "/#{version}" : "")
     end
 
     def download_url(package, version)
