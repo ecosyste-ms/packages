@@ -15,6 +15,12 @@ module Ecosystem
       "Install-Package #{package.name}" + (version ? " -Version #{version}" : "")
     end
 
+    def check_status(package)
+      url = check_status_url(package)
+      response = Typhoeus.get(url)
+      return "removed" if [400, 404, 410].include?(response.response_code)
+    end
+
     def recently_updated_package_names
       name_endpoints.reverse[0..1].map { |url| get_names(url) }.flatten.uniq
     rescue
