@@ -9,10 +9,11 @@
   </p>
 
   <p>
-    <% if link = @package.registry_url %>
-      <%= link_to 'Registry', link %> -
+    <% if @package.registry_url %>
+      <%= link_to 'Registry', @package.registry_url %>
     <% end %>
     <% if sanitize_user_url(@package.repository_url).present? && @package.repository_url != @package.registry_url %>
+      <%= '-' if @package.registry_url %>
       <%= link_to 'Source', sanitize_user_url(@package.repository_url), :rel => 'nofollow' %>
     <% end %>
     <% if sanitize_user_url(@package.homepage).present?  && @package.repository_url != @package.homepage %>
