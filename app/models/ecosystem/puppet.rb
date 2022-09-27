@@ -87,5 +87,13 @@ module Ecosystem
       return nil unless version.present?
       "#{@registry_url}/v3/files/#{package.name}-#{version}.tar.gz"
     end
+
+    def check_status(package)
+      url = "#{@registry_url}/v3/modules/#{package.name}"
+      response = Typhoeus.get(url)
+      return "removed" if [400, 404, 410].include?(response.response_code)
+      json = Oj.load(response.body)
+      return "unpublished" if json && json["current_release"].blank?
+    end
   end
 end
