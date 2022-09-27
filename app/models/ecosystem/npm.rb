@@ -83,7 +83,7 @@ module Ecosystem
     def downloads(package)
       get_json("https://api.npmjs.org/downloads/point/last-month/#{package["_id"]}")['downloads']
     rescue
-      {}
+      0
     end
 
     def licenses(latest_version)
