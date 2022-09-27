@@ -10,12 +10,12 @@ class PypiTest < ActiveSupport::TestCase
 
   test 'registry_url' do
     registry_url = @ecosystem.registry_url(@package)
-    assert_equal registry_url, 'https://pypi.org/package/urllib3/'
+    assert_equal registry_url, 'https://pypi.org/project/urllib3/'
   end
 
   test 'registry_url with version' do
     registry_url = @ecosystem.registry_url(@package, @version)
-    assert_equal registry_url, 'https://pypi.org/package/urllib3/1.26.8'
+    assert_equal registry_url, 'https://pypi.org/project/urllib3/1.26.8'
   end
 
   test 'download_url' do
@@ -45,7 +45,7 @@ class PypiTest < ActiveSupport::TestCase
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "https://pypi.org/package/urllib3/"
+    assert_equal check_status_url, "https://pypi.org/project/urllib3/"
   end
 
   test 'all_package_names' do
