@@ -3,7 +3,7 @@
 module Ecosystem
   class Pypi < Base
     def registry_url(package, version = nil)
-      "#{@registry_url}/package/#{package.name}/#{version}"
+      "#{@registry_url}/project/#{package.name}/#{version}"
     end
 
     def install_command(package, version = nil)
