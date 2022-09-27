@@ -75,12 +75,12 @@ module Ecosystem
       []
     end
 
-    def install_command(db_package, version = nil)
-      "puppet module install #{db_package.name}" + (version ? " --version #{version}" : "")
+    def install_command(package, version = nil)
+      "puppet module install #{package.name}" + (version ? " --version #{version}" : "")
     end
 
-    def registry_url(db_package, version = nil)
-      "#{@registry_url}/modules/#{db_package.name.sub('-', '/')}" + (version ? "/#{version}" : "")
+    def registry_url(package, version = nil)
+      "#{@registry_url}/modules/#{package.name.sub('-', '/')}" + (version ? "/#{version}" : "")
     end
 
     def download_url(package, version)

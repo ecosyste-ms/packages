@@ -2,12 +2,12 @@
 
 module Ecosystem
   class Homebrew < Base
-    def registry_url(db_package, _version = nil)
-      "https://formulae.brew.sh/formula/#{db_package.name}"
+    def registry_url(package, _version = nil)
+      "https://formulae.brew.sh/formula/#{package.name}"
     end
 
-    def install_command(db_package, _version = nil)
-      "brew install #{db_package.name}"
+    def install_command(package, _version = nil)
+      "brew install #{package.name}"
     end
 
     def all_package_names
