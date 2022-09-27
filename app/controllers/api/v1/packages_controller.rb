@@ -6,12 +6,12 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
 
     if params[:sort].present? || params[:order].present?
-      sort = params[:sort] || 'latest_release_published_at,created_at'
+      sort = params[:sort] || 'latest_release_published_at'
       order = params[:order] || 'desc,desc'
       sort_options = sort.split(',').zip(order.split(',')).to_h
       scope = scope.order(sort_options)
     else
-      scope = scope.order('latest_release_published_at DESC nulls last, created_at DESC')
+      scope = scope.order('latest_release_published_at DESC')
     end
 
     @pagy, @packages = pagy_countless(scope)
@@ -24,12 +24,12 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
 
     if params[:sort].present? || params[:order].present?
-      sort = params[:sort] || 'latest_release_published_at,created_at'
+      sort = params[:sort] || 'latest_release_published_at'
       order = params[:order] || 'desc,desc'
       sort_options = sort.split(',').zip(order.split(',')).to_h
       scope = scope.order(sort_options)
     else
-      scope = scope.order('latest_release_published_at DESC nulls last, created_at DESC')
+      scope = scope.order('latest_release_published_at DESC')
     end
 
     @pagy, @packages = pagy_countless(scope, max_items: 10000)
@@ -51,12 +51,12 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
 
     if params[:sort].present? || params[:order].present?
-      sort = params[:sort] || 'latest_release_published_at,created_at'
+      sort = params[:sort] || 'latest_release_published_at'
       order = params[:order] || 'desc,desc'
       sort_options = sort.split(',').zip(order.split(',')).to_h
       scope = scope.order(sort_options)
     else
-      scope = scope.order('latest_release_published_at DESC nulls last, created_at DESC')
+      scope = scope.order('latest_release_published_at DESC')
     end
 
     @pagy, @packages = pagy_countless(scope)

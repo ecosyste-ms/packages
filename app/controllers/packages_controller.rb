@@ -3,12 +3,12 @@ class PackagesController < ApplicationController
     @registry = Registry.find_by_name!(params[:registry_id])
     scope = @registry.packages
     if params[:sort].present? || params[:order].present?
-      sort = params[:sort] || 'latest_release_published_at,created_at'
-      order = params[:order] || 'desc,desc'
+      sort = params[:sort] || 'latest_release_published_at'
+      order = params[:order] || 'desc'
       sort_options = sort.split(',').zip(order.split(',')).to_h
       scope = scope.order(sort_options)
     else
-      scope = scope.order('latest_release_published_at DESC nulls last, created_at DESC')
+      scope = scope.order('latest_release_published_at DESC')
     end
 
     @pagy, @packages = pagy_countless(scope)
@@ -32,12 +32,12 @@ class PackagesController < ApplicationController
 
     scope = @package.dependent_packages
     if params[:sort].present? || params[:order].present?
-      sort = params[:sort] || 'latest_release_published_at,created_at'
-      order = params[:order] || 'desc,desc'
+      sort = params[:sort] || 'latest_release_published_at'
+      order = params[:order] || 'desc'
       sort_options = sort.split(',').zip(order.split(',')).to_h
       scope = scope.order(sort_options)
     else
-      scope = scope.order('latest_release_published_at DESC nulls last, created_at DESC')
+      scope = scope.order('latest_release_published_at DESC')
     end
 
     @pagy, @dependent_packages = pagy_countless(scope)
