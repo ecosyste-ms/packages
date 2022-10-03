@@ -459,6 +459,8 @@ components:
         packages_count:
           type: integer
           format: int64
+        metadata:
+          type: object
         created_at:
           type: string
           format: date-time
