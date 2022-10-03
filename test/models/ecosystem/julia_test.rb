@@ -3,7 +3,7 @@ require "test_helper"
 class JuliaTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'juliahub.com', url: 'http://juliahub.com', ecosystem: 'julia')
-    @ecosystem = Ecosystem::Julia.new(@registry.url)
+    @ecosystem = Ecosystem::Julia.new(@registry)
     @package = Package.new(ecosystem: 'julia', name: 'Inequality', metadata: {slug: 'xDAp7'})
     @version = @package.versions.build(number: '0.0.4')
   end

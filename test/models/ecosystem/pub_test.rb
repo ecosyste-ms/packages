@@ -3,7 +3,7 @@ require "test_helper"
 class PubTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'Pub.dev', url: 'https://pub.dev', ecosystem: 'pub')
-    @ecosystem = Ecosystem::Pub.new(@registry.url)
+    @ecosystem = Ecosystem::Pub.new(@registry)
     @package = Package.new(ecosystem: 'pub', name: 'bloc')
     @version = @package.versions.build(number: '8.0.3')
   end

@@ -3,7 +3,7 @@ require "test_helper"
 class RacketTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.create(name: 'Racket', url: 'http://pkgs.racket-lang.org', ecosystem: 'racket')
-    @ecosystem = Ecosystem::Racket.new(@registry.url)
+    @ecosystem = Ecosystem::Racket.new(@registry)
     @package = @registry.packages.create(ecosystem: 'racket', name: '4chdl', repository_url: "https://github.com/winny-/4chdl")
   end
 

@@ -4,7 +4,7 @@ require "test_helper"
 class MavenTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
-    @ecosystem = Ecosystem::Maven.new(@registry.url)
+    @ecosystem = Ecosystem::Maven.new(@registry)
     @package = Package.new(ecosystem: 'maven', name: 'dev.zio:zio-aws-autoscaling_3')
     @version = @package.versions.build(number: '5.17.224.2')
   end

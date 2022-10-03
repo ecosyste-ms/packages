@@ -3,7 +3,7 @@ require "test_helper"
 class NugetTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'NuGet.org', url: 'https://www.nuget.org', ecosystem: 'nuget')
-    @ecosystem = Ecosystem::Nuget.new(@registry.url)
+    @ecosystem = Ecosystem::Nuget.new(@registry)
     @package = Package.new(ecosystem: 'nuget', name: 'ogcapi.net.sqlserver')
     @version = @package.versions.build(number: '0.3.1')
   end

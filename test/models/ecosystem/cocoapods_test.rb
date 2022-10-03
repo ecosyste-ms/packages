@@ -3,7 +3,7 @@ require "test_helper"
 class CocoapodsTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'Cocoapod.org', url: 'https://cocoapods.org', ecosystem: 'cocoapods')
-    @ecosystem = Ecosystem::Cocoapods.new(@registry.url)
+    @ecosystem = Ecosystem::Cocoapods.new(@registry)
     @package = Package.new(ecosystem: 'cocoapods', name: 'Foo')
     @version = @package.versions.build(number: '0.8.5')
   end

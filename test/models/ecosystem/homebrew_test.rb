@@ -3,7 +3,7 @@ require "test_helper"
 class HomebrewTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'Homebrew.org', url: 'https://homebrew.org', ecosystem: 'homebrew')
-    @ecosystem = Ecosystem::Homebrew.new(@registry.url)
+    @ecosystem = Ecosystem::Homebrew.new(@registry)
     @package = Package.new(ecosystem: 'homebrew', name: 'abook')
     @version = @package.versions.build(number: '1.26.8')
   end

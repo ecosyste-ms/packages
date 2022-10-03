@@ -3,7 +3,7 @@ require "test_helper"
 class HexTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'Hex.pm', url: 'https://hex.pm', ecosystem: 'Hex')
-    @ecosystem = Ecosystem::Hex.new(@registry.url)
+    @ecosystem = Ecosystem::Hex.new(@registry)
     @package = Package.new(ecosystem: 'Hex', name: 'rand')
     @version = @package.versions.build(number: '0.8.5')
   end

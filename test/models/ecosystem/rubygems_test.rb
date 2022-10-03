@@ -3,7 +3,7 @@ require "test_helper"
 class RubygemsTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
-    @ecosystem = Ecosystem::Rubygems.new(@registry.url)
+    @ecosystem = Ecosystem::Rubygems.new(@registry)
     @package = Package.new(ecosystem: 'rubygems', name: 'nokogiri')
     @version = @package.versions.build(number: '1.13.6')
   end

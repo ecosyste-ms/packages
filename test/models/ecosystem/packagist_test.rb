@@ -3,7 +3,7 @@ require "test_helper"
 class PackagistTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'Packagist.org', url: 'https://packagist.org', ecosystem: 'Packagist')
-    @ecosystem = Ecosystem::Packagist.new(@registry.url)
+    @ecosystem = Ecosystem::Packagist.new(@registry)
     @package = Package.new(ecosystem: 'Packagist', name: 'psr/log')
     @version = @package.versions.build(number: '3.0.0', :metadata=>{:download_url=>"https://api.github.com/repos/php-fig/log/zipball/fe5ea303b0887d5caefd3d431c3e61ad47037001"})
   end

@@ -3,7 +3,7 @@ require "test_helper"
 class NpmTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'Npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
-    @ecosystem = Ecosystem::Npm.new(@registry.url)
+    @ecosystem = Ecosystem::Npm.new(@registry)
     @package = Package.new(ecosystem: 'npm', name: 'base62')
     @version = @package.versions.build(number: '2.0.1')
   end

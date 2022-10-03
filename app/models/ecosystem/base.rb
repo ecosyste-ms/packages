@@ -2,10 +2,12 @@
 
 module Ecosystem
   class Base
+    attr_accessor :registry
     attr_accessor :registry_url
 
-    def initialize(registry_url)
-      @registry_url = registry_url
+    def initialize(registry)
+      @registry = registry
+      @registry_url = registry.url
     end
 
     def self.list

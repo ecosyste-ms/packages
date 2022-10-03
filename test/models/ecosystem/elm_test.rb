@@ -3,7 +3,7 @@ require "test_helper"
 class ElmTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'package.elm-lang.org', url: 'https://package.elm-lang.org', ecosystem: 'elm')
-    @ecosystem = Ecosystem::Elm.new(@registry.url)
+    @ecosystem = Ecosystem::Elm.new(@registry)
     @package = Package.new(ecosystem: 'elm', name: 'rtfeldman/count')
     @version = @package.versions.build(number: '1.0.1')
   end

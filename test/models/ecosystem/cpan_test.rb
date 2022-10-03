@@ -3,7 +3,7 @@ require "test_helper"
 class CpanTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'Metacpan.org', url: 'https://metacpan.org', ecosystem: 'cpan')
-    @ecosystem = Ecosystem::Cpan.new(@registry.url)
+    @ecosystem = Ecosystem::Cpan.new(@registry)
     @package = Package.new(ecosystem: 'cpan', name: 'Dpkg')
     @version = @package.versions.build(number: '1.21.5', :metadata=>{:download_url=>"https://cpan.metacpan.org/authors/id/G/GU/GUILLEM/Dpkg-1.21.5.tar.gz"})
   end

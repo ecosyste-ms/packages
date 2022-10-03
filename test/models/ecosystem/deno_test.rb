@@ -3,7 +3,7 @@ require "test_helper"
 class DenoTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'deno.land', url: 'https://deno.land', ecosystem: 'deno')
-    @ecosystem = Ecosystem::Deno.new(@registry.url)
+    @ecosystem = Ecosystem::Deno.new(@registry)
     @package = Package.new(ecosystem: 'deno', name: 'deno_es')
     @version = @package.versions.build(number: 'v0.4.2')
   end

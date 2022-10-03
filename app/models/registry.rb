@@ -147,7 +147,7 @@ class Registry < ApplicationRecord
   end
 
   def ecosystem_instance
-    @ecosystem_instance ||= ecosystem_class.new(url)
+    @ecosystem_instance ||= ecosystem_class.new(self)
   end
 
   def ecosystem_class
