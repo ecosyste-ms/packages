@@ -7,7 +7,7 @@ class UnseenController < ApplicationController
   def ecosystem
     @ecosystem = params[:ecosystem]
     @registry = Registry.where(ecosystem: @ecosystem).first
-    @scope = @registry.packages.with_repo_metadata.order('downloads DESC').where('downloads > ?', 10_000).where("(repo_metadata ->> 'stargazers_count')::text::integer < 100")
+    @scope = @registry.packages.with_repo_metadata.order('downloads DESC').where('downloads > ?', 100_000).where("(repo_metadata ->> 'stargazers_count')::text::integer < 100")
     @pagy, @packages = pagy(@scope)
   end
 end
