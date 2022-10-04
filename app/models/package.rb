@@ -203,7 +203,7 @@ class Package < ApplicationRecord
   end
 
   def fetch_repo_metadata
-    return if repository_url.blank?
+    return if repository_or_homepage_url.blank?
 
     conn = Faraday.new('https://repos.ecosyste.ms') do |f|
       f.request :json
@@ -217,7 +217,7 @@ class Package < ApplicationRecord
   end
 
   def fetch_tags
-    return if repository_url.blank?
+    return if repository_or_homepage_url.blank?
     return if repo_metadata['host'].blank?
 
     conn = Faraday.new('https://repos.ecosyste.ms') do |f|
