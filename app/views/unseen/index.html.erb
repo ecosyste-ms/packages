@@ -1,0 +1,28 @@
+<div class="container-sm">
+  <h2>
+    Unseen Infrastucture
+  </h2>
+
+  <% @registries.each do |registry| %>
+    <div class="card mb-3 registry d-flex" id="registry_<%= registry.id %>">
+      <div class="card-body pb-1">
+        <div class="d-flex">
+          
+          <div class="flex-grow-1 ms-3 text-break">
+            <h5 class='card-title'>
+              <%= link_to registry.name, unseen_ecosystem_path(registry.ecosystem) %>
+            </h5>
+          
+            <p class="card-subtitle mb-2 text-muted">
+              <%= registry.packages.with_repo_metadata.where('downloads > ?', 10_000).where("(repo_metadata ->> 'stargazers_count')::text::integer < 100").count %>
+            </p>
+          </div>
+          <div class="flex-shrink-0">
+            <img src="https://github.com/<%= registry.github %>.png" class="rounded" height='40' width='40' onerror="this.style.display='none'">
+          </div>  
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+</div>

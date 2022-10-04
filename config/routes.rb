@@ -46,6 +46,9 @@ Rails.application.routes.draw do
     end
   end
 
+  get :unseen, to: 'unseen#index'
+  get 'unseen/:ecosystem', to: 'unseen#ecosystem', as: :unseen_ecosystem
+
   get :recent_versions_data, to: 'home#recent_versions_data'
 
   resources :exports, only: [:index], path: 'open-data'

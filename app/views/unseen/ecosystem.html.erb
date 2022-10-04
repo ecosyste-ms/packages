@@ -1,0 +1,48 @@
+<div class="container-sm">
+  <h1 class='mb-3'>
+    <%= link_to 'Unseen Infrastucture', unseen_path %> - <%= @registry.name %>
+  </h1>
+
+  <% @packages.each do |package| %>
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5 class="card-title">
+          <%= link_to package.name, registry_package_path(package.registry.name, package.name) %>
+          <% if package.latest_release_number %>
+            <small class='text-muted'>
+            <%= package.latest_release_number %>
+            </small>
+          <% end %>
+          <% if package.status %>
+            <small class='badge bg-secondary'>
+            <%= package.status %>
+            </small>
+          <% end %>
+        </h5>
+
+        <%= truncate package.description, :length => 100 %><br/>
+
+        <small class='text-muted'>
+          <%= pluralize number_with_delimiter(package.versions_count), 'version' %>
+
+          <% if package.latest_release_published_at %>
+            - <span title="<%= package.latest_release_published_at %>">Latest release: <%= time_ago_in_words package.latest_release_published_at %> ago</span>
+          <% end %>
+
+          <% if package.dependent_packages_count > 0 %>
+            - <%= pluralize number_with_delimiter(package.dependent_packages_count), 'dependent package' %>
+          <% end %>
+
+          <% if package.downloads %>
+            - <%= number_with_delimiter(package.downloads) %> downloads <%= download_period(package.downloads_period) %>
+          <% end %>
+
+          <% if package.repo_metadata.present? %>
+            - <%= package.repo_metadata['stargazers_count'] %> stars on <%= package.repo_metadata.fetch('host',{})['name'] %>
+          <% end %>
+        </small>
+      </div>
+    </div>
+  <% end %>
+
+</div>
