@@ -14,6 +14,7 @@ class Package < ApplicationRecord
   scope :with_repository_url, -> { where("repository_url <> ''") }
   scope :with_homepage, -> { where("homepage <> ''") }
   scope :with_repository_or_homepage_url, -> { where("repository_url <> '' OR homepage <> ''") }
+  scope :with_repo_metadata, -> { where('length(repo_metadata::text) > 2 ') }
 
   before_save  :update_details
   after_commit :update_repo_metadata_async, on: :create
@@ -28,6 +29,10 @@ class Package < ApplicationRecord
 
   def to_param
     name
+  end
+
+  def description
+    read_attribute(:description).presence || repo_metadata['description']
   end
 
   def update_dependent_packages_count
