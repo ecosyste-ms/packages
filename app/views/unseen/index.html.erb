@@ -4,6 +4,8 @@
   </h2>
 
   <% @registries.each do |registry| %>
+    <% count = registry.packages.with_repo_metadata.where('downloads > ?', 10_000).where("(repo_metadata ->> 'stargazers_count')::text::integer < 100").count %>
+    <% next if count.zero? %>
     <div class="card mb-3 registry d-flex" id="registry_<%= registry.id %>">
       <div class="card-body pb-1">
         <div class="d-flex">
@@ -14,7 +16,7 @@
             </h5>
           
             <p class="card-subtitle mb-2 text-muted">
-              <%= registry.packages.with_repo_metadata.where('downloads > ?', 10_000).where("(repo_metadata ->> 'stargazers_count')::text::integer < 100").count %>
+              <%= count %> packages
             </p>
           </div>
           <div class="flex-shrink-0">
