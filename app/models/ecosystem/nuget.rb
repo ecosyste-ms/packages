@@ -94,7 +94,7 @@ module Ecosystem
       {
         name: package[:name],
         description: description(item),
-        homepage: item["packageUrl"],
+        homepage: item["projectUrl"],
         keywords_array: Array(item["tags"]),
         repository_url: repo_fallback("", item["packageUrl"]),
         releases: package[:releases],
