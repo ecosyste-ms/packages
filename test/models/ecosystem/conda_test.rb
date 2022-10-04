@@ -56,14 +56,6 @@ class CondaTest < ActiveSupport::TestCase
     assert_equal all_package_names.last, 'zlib-devel-amzn2-aarch64'
   end
 
-  test 'recently_updated_package_names' do
-    stub_request(:get, "https://conda.libraries.io/Main/")
-      .to_return({ status: 200, body: file_fixture('conda/index.html') })
-    recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 1
-    assert_equal recently_updated_package_names.last, 'pyreadline3'
-  end
-  
   test 'package_metadata' do
     stub_request(:get, "https://conda.libraries.io/Main/")
       .to_return({ status: 200, body: file_fixture('conda/index.html') })
