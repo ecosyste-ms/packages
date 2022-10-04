@@ -459,6 +459,8 @@ components:
         packages_count:
           type: integer
           format: int64
+        github:
+          type: string
         metadata:
           type: object
         created_at:
