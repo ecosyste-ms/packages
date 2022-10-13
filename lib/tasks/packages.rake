@@ -42,4 +42,9 @@ namespace :packages do
     puts names.length
     File.write('unique-terms.txt', names.to_a.join("\n"))
   end
+
+  desc 'sync package download counts'
+  task sync_download_counts: :environment do
+    Package.sync_download_counts_async
+  end
 end

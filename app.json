@@ -19,6 +19,10 @@
     {
       "command": "bundle exec rake packages:sync_missing",
       "schedule": "0 0 * * *"
+    },
+    {
+      "command": "bundle exec rake packages:sync_download_counts",
+      "schedule": "*/10 * * * *"
     }
   ]
 }

@@ -27,6 +27,14 @@ class Package < ApplicationRecord
     Package.active.order('last_synced_at asc nulls first').limit(1000).each(&:check_status_async)
   end
 
+  def self.sync_download_counts_async
+    return if Sidekiq::Queue.new('default').size > 10_000
+    Package.active
+            .where(downloads: nil)
+            .where(ecosystem: ['cargo','hackage','hex','homebrew','npm','nuget','packagist','puppet','rubygems','pypi'])
+            .limit(1000).each(&:sync_async)
+  end
+
   def to_param
     name
   end
