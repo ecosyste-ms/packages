@@ -238,4 +238,10 @@ class Package < ApplicationRecord
     return nil unless response.success?
     return response.body
   end
+
+  def repos_url
+    return if repo_metadata.blank?
+    return if repo_metadata['host'].blank?
+    "https://repos.ecosyste.ms/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name'].gsub('.', '%2E')}"
+  end
 end

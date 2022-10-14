@@ -35,6 +35,10 @@
     <% if @package.last_synced_at %>
       <br/><span title="<%= @package.last_synced_at %>">Last synced: <%= time_ago_in_words @package.last_synced_at %> ago</span>
     <% end %>
+
+    <% if @package.repos_url %>
+      <br/>See more repository details: <%= link_to 'repos.ecosyste.ms', @package.repos_url, target: :_blank %>
+    <% end %>    
   </p>
 
   <ul class="nav nav-tabs my-3">
