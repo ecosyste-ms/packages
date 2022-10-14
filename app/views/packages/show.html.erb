@@ -28,7 +28,15 @@
     <% if @package.latest_release_published_at %>
         <br><span title="<%= @package.latest_release_published_at %>">Latest release: <%= time_ago_in_words @package.latest_release_published_at %> ago</span>
       <% end %>
-    <br/>Dependent packages: <%= number_with_delimiter(@package.dependent_packages_count) %>
+
+    <% if @package.dependent_packages_count > 0 %>  
+      <br/>Dependent packages: <%= number_with_delimiter(@package.dependent_packages_count) %>
+    <% end %>
+
+    <% if @package.dependent_repos_count > 0 %>
+      <br/>Dependent repositories: <%= number_with_delimiter(@package.dependent_repos_count) %>
+    <% end %>
+
     <% if @package.downloads %>
       <br/>Downloads: <%= number_with_delimiter(@package.downloads) %> <%= download_period(@package.downloads_period) %>
     <% end %>

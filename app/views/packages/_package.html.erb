@@ -27,6 +27,10 @@
         - <%= pluralize number_with_delimiter(package.dependent_packages_count), 'dependent package' %>
       <% end %>
 
+      <% if package.dependent_repos_count > 0 %>
+        - <%= pluralize number_with_delimiter(package.dependent_repos_count), 'dependent repositories' %>
+      <% end %>
+
       <% if package.downloads %>
         - <%= number_with_delimiter(package.downloads) %> downloads <%= download_period(package.downloads_period) %>
       <% end %>
