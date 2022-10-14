@@ -226,6 +226,8 @@ class Package < ApplicationRecord
     response = conn.get('/api/v1/repositories/lookup', url: repository_or_homepage_url)
     return nil unless response.success?
     return response.body
+  rescue
+    nil
   end
 
   def fetch_tags
@@ -241,6 +243,8 @@ class Package < ApplicationRecord
     response = conn.get("/api/v1/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}/tags")
     return nil unless response.success?
     return response.body
+  rescue
+    nil
   end
 
   def repos_url
@@ -263,6 +267,8 @@ class Package < ApplicationRecord
     response = conn.get("/api/v1/usage/#{ecosystem}/#{to_param}?per_page=1")
     return nil unless response.success?
     return response.body
+  rescue
+    nil
   end
 
   def update_dependent_repos_count
