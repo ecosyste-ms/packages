@@ -526,6 +526,8 @@ components:
           type: integer
         downloads_period:
           type: string
+        dependent_repos_count:
+          type: integer
     Version:
       type: object
       properties:
