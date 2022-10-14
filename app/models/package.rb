@@ -141,7 +141,11 @@ class Package < ApplicationRecord
 
   def sync
     result = registry.sync_package(name)
-    check_status unless result
+    if result
+      update_dependent_repos_count_async
+    else
+      check_status
+    end
   end
 
   def sync_async
@@ -243,5 +247,28 @@ class Package < ApplicationRecord
     return if repo_metadata.blank?
     return if repo_metadata['host'].blank?
     "https://repos.ecosyste.ms/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name'].gsub('.', '%2E')}"
+  end
+
+  def update_dependent_repos_count_async
+    UpdateDependentReposCountWorker.perform_async(id)
+  end
+
+  def fetch_dependent_repos_count
+    conn = Faraday.new('https://repos.ecosyste.ms') do |f|
+      f.request :json
+      f.request :retry
+      f.response :json
+    end
+
+    response = conn.get("/api/v1/usage/#{ecosystem}/#{to_param}?per_page=1")
+    return nil unless response.success?
+    return response.body
+  end
+
+  def update_dependent_repos_count
+    json = fetch_dependent_repos_count
+    return if json.blank?
+
+    update_columns(dependent_repos_count: json['dependents_count'])
   end
 end
