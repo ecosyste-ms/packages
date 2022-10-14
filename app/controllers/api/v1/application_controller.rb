@@ -1,7 +1,7 @@
 class Api::V1::ApplicationController < ApplicationController
   after_action { pagy_headers_merge(@pagy) if @pagy }
 
-  after_action :set_rate_limit_headers!
+  # after_action :set_rate_limit_headers!
 
   def set_rate_limit_headers!
     throttle_data = request.env['rack.attack.throttle_data']["requests by ip"]
