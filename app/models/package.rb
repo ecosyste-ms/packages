@@ -277,4 +277,11 @@ class Package < ApplicationRecord
 
     update_columns(dependent_repos_count: json['dependents_count'])
   end
+
+  def average_ranking
+    fields = [:dependent_repos_count, :downloads, :dependent_packages_count]
+    json_fields = ['stargazers_count', 'forks_count']
+    scores = fields.map { |field| registry.top_percentage_for(self, field) } + json_fields.map { |field| registry.top_percentage_for_json(self, field) }
+    scores.sum / scores.size
+  end
 end
