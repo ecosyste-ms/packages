@@ -40,8 +40,6 @@
       <% if package.downloads %>
         - <%= number_with_delimiter(package.downloads) %> downloads <%= download_period(package.downloads_period) %>
       <% end %>
-
-      - <span title="<%= package.created_at %>">Indexed: <%= time_ago_in_words package.created_at %> ago</span>
     </small>
   </div>
 </div>
