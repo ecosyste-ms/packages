@@ -297,6 +297,6 @@ class Package < ApplicationRecord
 
   def update_rankings
     new_rankings = load_rankings
-    update_column(:rankings, load_rankings) if rankings != new_rankings
+    update_column(:rankings, new_rankings) if rankings != new_rankings
   end
 end
