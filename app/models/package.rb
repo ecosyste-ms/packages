@@ -287,7 +287,11 @@ class Package < ApplicationRecord
       stargazers_count: registry.top_percentage_for_json(self, 'stargazers_count'),
       forks_count: registry.top_percentage_for_json(self, 'forks_count'),
     }
-    rankings[:average] = rankings.values.sum / rankings.size.to_f
+    if rankings.values.compact.any?
+      rankings[:average] = rankings.values.compact.sum / rankings.values.compact.length.to_f
+    else
+      rankings[:average] = 100
+    end
     rankings
   end
 
