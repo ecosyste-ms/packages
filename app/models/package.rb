@@ -278,10 +278,20 @@ class Package < ApplicationRecord
     update_columns(dependent_repos_count: json['dependents_count'])
   end
 
-  def average_ranking
-    fields = [:dependent_repos_count, :downloads, :dependent_packages_count]
-    json_fields = ['stargazers_count', 'forks_count']
-    scores = fields.map { |field| registry.top_percentage_for(self, field) } + json_fields.map { |field| registry.top_percentage_for_json(self, field) }
-    scores.sum / scores.size
+  def load_rankings
+    rankings = {
+      downloads: registry.top_percentage_for(self, :downloads),
+      dependent_repos_count: registry.top_percentage_for(self, :dependent_repos_count),
+      dependent_packages_count: registry.top_percentage_for(self, :dependent_packages_count),
+      stargazers_count: registry.top_percentage_for_json(self, 'stargazers_count'),
+      forks_count: registry.top_percentage_for_json(self, 'forks_count'),
+    }
+    rankings[:average] = rankings.values.sum / rankings.size.to_f
+    rankings
+  end
+
+  def update_rankings
+    new_rankings = load_rankings
+    update_column(:rankings, load_rankings) if rankings != new_rankings
   end
 end

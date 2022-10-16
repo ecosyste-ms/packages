@@ -46,6 +46,8 @@ Rails.application.routes.draw do
     end
   end
 
+  get :infrastructure, to: 'infrastructure#index'
+  
   get :unseen, to: 'unseen#index'
   get 'unseen/:ecosystem', to: 'unseen#ecosystem', as: :unseen_ecosystem
 

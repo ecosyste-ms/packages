@@ -1,5 +1,11 @@
 <div class="card mb-3">
   <div class="card-body">
+    <% if package.rankings.present? %>
+      <span class='badge bg-secondary float-end'>
+          Top <%= package.rankings['average'].round(1) %>% on <%= package.registry.name %>
+        </span>
+    <% end %>
+
     <h5 class="card-title">
       <%= link_to package.name, registry_package_path(package.registry.name, package.name) %>
       <% if package.latest_release_number %>
