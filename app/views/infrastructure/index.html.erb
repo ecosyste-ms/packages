@@ -2,7 +2,11 @@
 
   <h1 class='mb-3'>Critical OSS Infrastucture</h1>
 
-  <p>The top <%= number_with_delimiter @scope.count %> packages based on their rankings within their individual registries.</p>
+  <p class='lead'>
+    The following <%= number_with_delimiter @pagy.count %> packages are critical to the operation of the <%= @registry.try(:ecosystem) %> open source ecosystem.
+    They are the foundation of the software supply chain, and are used by millions of developers.
+    They are also the most vulnerable to supply chain attacks.
+  </p>
 
   <div class="row">
     <div class="col-9">
