@@ -8,6 +8,12 @@
     They are also the most vulnerable to supply chain attacks.
   </p>
 
+  <p>
+    This list has been compiled from data from over <%= number_to_human Package.fast_total %> packages as well as 30 Million open source repositories and 6 Billion dependencies linking them together.
+    Rankings are based on packages with the highest downloads, dependent packages and repositories, stars and forks within each supported registry.
+    New data is being collected and aggregated all the time, so these lists will continue to change and update.
+  </p>
+
   <div class="row">
     <div class="col-lg-9">
       <%= render @packages %>
