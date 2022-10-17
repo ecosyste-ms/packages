@@ -143,6 +143,7 @@ class Package < ApplicationRecord
   def sync
     result = registry.sync_package(name)
     if result
+      update_rankings
       update_dependent_repos_count_async
     else
       check_status
@@ -277,6 +278,7 @@ class Package < ApplicationRecord
     return if json.blank?
 
     update_columns(dependent_repos_count: json['dependents_count'])
+    update_rankings
   end
 
   def load_rankings
