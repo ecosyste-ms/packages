@@ -3,6 +3,17 @@
     Unseen Infrastucture
   </h2>
 
+  <p class='lead'>
+    The following packages are critical to the operation of the <%= @registry.try(:ecosystem) %> open source ecosystem but have very low levels of attention.
+    They are the foundation of the software supply chain, and are used by millions of developers and are also the most vulnerable to supply chain attacks.
+  </p>
+
+  <p>
+    These lists have been compiled from packages with over 1 million downloads and less than 100 stars.
+    Not all package registries make download statistics available, so the download counts may be incomplete.
+    New data is being collected and aggregated all the time, so these lists will continue to change and update.
+  <p>
+
   <% @registries.each do |registry| %>
     <% count = registry.packages.with_repo_metadata.where('downloads > ?', 100_000).where("(repo_metadata ->> 'stargazers_count')::text::integer < 100").count %>
     <% next if count.zero? %>

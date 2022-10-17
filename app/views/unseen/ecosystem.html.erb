@@ -3,6 +3,15 @@
     <%= link_to 'Unseen Infrastucture', unseen_path %> - <%= @registry.name %>
   </h1>
 
+  <p class='lead'>
+    The following packages are critical to the operation of the <%= @registry.try(:ecosystem) %> open source ecosystem but have very low levels of attention.
+    They are the foundation of the software supply chain, and are used by millions of developers and are also the most vulnerable to supply chain attacks.
+  </p>
+
+  <p>
+    This list has been compiled from packages with over 1 million downloads and less than 100 stars. New data is being collected and aggregated all the time, so these lists will continue to change and update.
+  <p>
+
   <% @packages.each do |package| %>
     <div class="card mb-3">
       <div class="card-body">
