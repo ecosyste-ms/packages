@@ -1,13 +1,22 @@
 class UnseenController < ApplicationController
   def index
-    @ecosystems = ['cargo','hackage','hex','homebrew','npm','nuget','packagist','puppet','rubygems','pypi']
-    @registries = Registry.where(ecosystem: @ecosystems).order('packages_count DESC')
+    @scope = Package.includes(:registry).with_repo_metadata.order('downloads DESC').where('downloads > ?', 100_000).where("(repo_metadata ->> 'stargazers_count')::text::integer < 100")
+
+    @all_registries = Registry.all
+    @registry_ids = @scope.pluck(:registry_id).tally
+    @registries = @registry_ids.map{|id, count| [@all_registries.find{|r| r.id == id}, count]}.sort_by{|r, count| -count}
+
+    if params[:registry]
+      @registry = Registry.find_by!(name: params[:registry])
+      @scope = @scope.where(registry_id: @registry.id)
+    end
+
+    @pagy, @packages = pagy_countless(@scope)
   end
 
   def ecosystem
     @ecosystem = params[:ecosystem]
     @registry = Registry.where(ecosystem: @ecosystem).first
-    @scope = @registry.packages.with_repo_metadata.order('downloads DESC').where('downloads > ?', 100_000).where("(repo_metadata ->> 'stargazers_count')::text::integer < 100")
-    @pagy, @packages = pagy_countless(@scope)
+    redirect_to unseen_path(registry: @registry.name)
   end
 end

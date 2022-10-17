@@ -14,28 +14,26 @@
     New data is being collected and aggregated all the time, so these lists will continue to change and update.
   <p>
 
-  <% @registries.each do |registry| %>
-    <% count = registry.packages.with_repo_metadata.where('downloads > ?', 100_000).where("(repo_metadata ->> 'stargazers_count')::text::integer < 100").count %>
-    <% next if count.zero? %>
-    <div class="card mb-3 registry d-flex" id="registry_<%= registry.id %>">
-      <div class="card-body pb-1">
-        <div class="d-flex">
-          
-          <div class="flex-grow-1 ms-3 text-break">
-            <h5 class='card-title'>
-              <%= link_to registry.name, unseen_ecosystem_path(registry.ecosystem) %>
-            </h5>
-          
-            <p class="card-subtitle mb-2 text-muted">
-              <%= number_with_delimiter count %> packages
-            </p>
-          </div>
-          <div class="flex-shrink-0">
-            <img src="https://github.com/<%= registry.github %>.png" class="rounded" height='40' width='40' onerror="this.style.display='none'">
-          </div>  
+  <div class="row">
+    <div class="col-lg-9">
+      <%= render @packages %>
+      <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+    </div>
+    <div class="col">
+      <div class="card">
+        <div class="card-header">
+          Filter by Registry
         </div>
+        <div class="list-group list-group-flush">
+          <% @registries.each do |registry,count| %>
+            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center <%= 'active' if params[:registry] == registry.name %>" href="<%= url_for(registry: (params[:registry] == registry.name ? nil :registry.name), page: nil) %>">
+              <%= registry.name %>
+              <span class="badge bg-primary rounded-pill"><%= number_with_delimiter count%></span>
+            </a>
+          <% end %>
+        </ul>
       </div>
     </div>
-  <% end %>
+  </div>
 
 </div>
