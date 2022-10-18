@@ -104,8 +104,34 @@ class PypiTest < ActiveSupport::TestCase
   end
 
   test 'dependencies_metadata' do
+    stub_request(:get, "https://pypi.org/pypi/yiban/0.1.2.32/json")
+      .to_return({ status: 200, body: file_fixture('pypi/yiban-0.1.2.32-json') })
+    
     dependencies_metadata = @ecosystem.dependencies_metadata('yiban', '0.1.2.32', nil)
 
-    assert_equal dependencies_metadata, []
+    assert_equal dependencies_metadata, [{:package_name=>"openpyxl", :requirements=>"*", :kind=>"runtime", :ecosystem=>"pypi"}]
+  end
+
+  test 'dependencies_metadata with kinds' do
+    stub_request(:get, "https://pypi.org/pypi/siuba/0.3.0/json")
+      .to_return({ status: 200, body: file_fixture('pypi/siuba-0.3.0-json') })
+    
+    dependencies_metadata = @ecosystem.dependencies_metadata('siuba', '0.3.0', nil)
+
+    assert_equal dependencies_metadata, [
+      {:package_name=>"hypothesis", :requirements=>"*", :kind=>"test", :ecosystem=>"pypi"},
+      {:package_name=>"pytest", :requirements=>"*", :kind=>"test", :ecosystem=>"pypi"},
+      {:package_name=>"gapminder", :requirements=>"==0.1", :kind=>"docs", :ecosystem=>"pypi"},
+      {:package_name=>"jupytext", :requirements=>"*", :kind=>"docs", :ecosystem=>"pypi"},
+      {:package_name=>"nbsphinx", :requirements=>"*", :kind=>"docs", :ecosystem=>"pypi"},
+      {:package_name=>"sphinx", :requirements=>"*", :kind=>"docs", :ecosystem=>"pypi"},
+      {:package_name=>"nbval", :requirements=>"*", :kind=>"docs", :ecosystem=>"pypi"},
+      {:package_name=>"jupyter", :requirements=>"*", :kind=>"docs", :ecosystem=>"pypi"},
+      {:package_name=>"plotnine", :requirements=>"*", :kind=>"docs", :ecosystem=>"pypi"},
+      {:package_name=>"PyYAML", :requirements=>">=3.0.0", :kind=>"runtime", :ecosystem=>"pypi"},
+      {:package_name=>"SQLAlchemy", :requirements=>">=1.2.19", :kind=>"runtime", :ecosystem=>"pypi"},
+      {:package_name=>"numpy", :requirements=>">=1.12.0", :kind=>"runtime", :ecosystem=>"pypi"},
+      {:package_name=>"pandas", :requirements=>">=0.24.0", :kind=>"runtime", :ecosystem=>"pypi"}
+    ]
   end
 end

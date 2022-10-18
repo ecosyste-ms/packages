@@ -77,6 +77,23 @@ module Ecosystem
       end
     end
 
+    def dependencies_metadata(name, version, _package)
+      requires_dist = get_json("#{@registry_url}/pypi/#{name}/#{version}/json")["info"]["requires_dist"]
+      return [] if requires_dist.nil?
+      requires_dist.map do |r|
+        dep = r.split(';')[0]
+        kind = r.split(';')[1].presence || 'runtime'
+        {
+          package_name: dep.split(' ').first,
+          requirements: (dep.split(' ')[1..-1].join(' ').gsub('(', '').gsub(')', '')).presence || "*",
+          kind: kind.gsub("'", "").gsub('"', '').gsub(' ', '').gsub('extra==', ''),
+          ecosystem: self.class.name.demodulize.downcase,
+        }
+      end
+    rescue
+      []
+    end
+
     def downloads(package)
       get_json("https://pypistats.org/api/packages/#{package["info"]["name"]}/recent").fetch('data',{}).fetch('last_month')
     rescue
