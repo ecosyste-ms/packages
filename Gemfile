@@ -44,7 +44,7 @@ gem "chartkick"
 gem "groupdate"
 gem 'jquery-rails'
 gem 'addressable'
-gem 'google-protobuf', '3.21.7'
+gem 'google-protobuf', '3.21.8'
 
 group :development, :test do
   gem "debug", platforms: %i[ mri mingw x64_mingw ]
