@@ -295,10 +295,13 @@ class Package < ApplicationRecord
       rankings[:average] = 100
     end
     rankings
+  rescue 
+    nil # handle database query error
   end
 
   def update_rankings
     new_rankings = load_rankings
+    return if new_rankings.nil?
     update_column(:rankings, new_rankings) if rankings != new_rankings
   end
 end
