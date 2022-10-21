@@ -42,11 +42,11 @@
       <% end %>
 
       <% if package.downloads %>
-        - <%= number_with_delimiter(package.downloads) %> downloads <%= download_period(package.downloads_period) %>
+        - <%= number_to_human(package.downloads).downcase %> downloads <%= download_period(package.downloads_period) %>
       <% end %>
 
       <% if package.repo_metadata.present? && package.repo_metadata['stargazers_count'] %>
-        - <%= package.repo_metadata['stargazers_count'] %> stars on <%= package.repo_metadata.fetch('host',{})['name'] %>
+        - <%= number_with_delimiter package.repo_metadata['stargazers_count'] %> stars on <%= package.repo_metadata.fetch('host',{})['name'] %>
       <% end %>
     </small>
   </div>
