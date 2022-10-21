@@ -95,8 +95,10 @@ module Ecosystem
       pkg_metadata[:versions].map do |v|
         hash = {
           number: v,
+          published_at: nil,
+          metadata: {}
         }
-
+        
         if tags_json.any?
           tag = tags_json.find{|t| t['name'].downcase.delete_prefix('v') == v}
           if tag
