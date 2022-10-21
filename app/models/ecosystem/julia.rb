@@ -6,6 +6,13 @@ module Ecosystem
       "#{@registry_url}/ui/Packages/#{package.name}/#{package.metadata['slug']}/#{version}"
     end
 
+    def check_status(package)
+      return "removed" if package.metadata['slug'].blank?
+      url = check_status_url(package)
+      response = Typhoeus.head(url)
+      "removed" if [400, 404, 410].include?(response.response_code)
+    end
+
     def check_status_url(package)
       "#{@registry_url}/ui/Packages/#{package.name}/#{package.metadata['slug']}"
     end
