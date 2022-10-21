@@ -2,15 +2,14 @@ class PackagesController < ApplicationController
   def index
     @registry = Registry.find_by_name!(params[:registry_id])
     scope = @registry.packages
-    if params[:sort].present? || params[:order].present?
-      sort = params[:sort] || 'latest_release_published_at'
-      order = params[:order] || 'desc'
-      sort_options = sort.split(',').zip(order.split(',')).to_h
-      scope = scope.order(sort_options)
+    
+    sort = params[:sort].presence || 'latest_release_published_at'
+    if params[:order] == 'asc'
+      scope = scope.order(Arel.sql(sort).asc.nulls_last)
     else
-      scope = scope.order('latest_release_published_at DESC')
+      scope = scope.order(Arel.sql(sort).desc.nulls_last)
     end
-
+    
     @pagy, @packages = pagy_countless(scope)
   end
 
