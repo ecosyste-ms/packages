@@ -45,7 +45,7 @@ class JuliaTest < ActiveSupport::TestCase
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "https://juliahub.com/ui/Packages/Inequality/xDAp7"
+    assert_equal check_status_url, "https://juliahub.com/docs/Inequality/xDAp7/pkg.json"
   end
 
   test 'all_package_names' do

@@ -14,7 +14,7 @@ module Ecosystem
     end
 
     def check_status_url(package)
-      "#{@registry_url}/docs/#{package['name']}/#{slug}/pkg.json"
+      "#{@registry_url}/docs/#{package['name']}/#{package.metadata['slug']}/pkg.json"
     end
 
     def download_url(package, version = nil)
