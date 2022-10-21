@@ -2,7 +2,7 @@ require "test_helper"
 
 class JuliaTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'juliahub.com', url: 'http://juliahub.com', ecosystem: 'julia')
+    @registry = Registry.new(name: 'juliahub.com', url: 'https://juliahub.com', ecosystem: 'julia')
     @ecosystem = Ecosystem::Julia.new(@registry)
     @package = Package.new(ecosystem: 'julia', name: 'Inequality', metadata: {slug: 'xDAp7'})
     @version = @package.versions.build(number: '0.0.4')
@@ -67,11 +67,13 @@ class JuliaTest < ActiveSupport::TestCase
   test 'package_metadata' do
     stub_request(:get, "https://juliahub.com/app/packages/info")
       .to_return({ status: 200, body: file_fixture('julia/info') })
+    stub_request(:get, "https://juliahub.com/docs/Inequality/xDAp7/pkg.json")
+      .to_return({ status: 200, body: file_fixture('julia/pkg.json') })
     package_metadata = @ecosystem.package_metadata('Inequality')
     
     assert_equal package_metadata[:name], "Inequality"
     assert_equal package_metadata[:description], "Julia package for computing inequality indicators"
-    assert_nil package_metadata[:homepage]
+    assert_equal package_metadata[:homepage], ""
     assert_equal package_metadata[:licenses], "MIT"
     assert_equal package_metadata[:repository_url], "https://github.com/JosepER/Inequality.jl"
     assert_equal package_metadata[:keywords_array], []
@@ -80,6 +82,8 @@ class JuliaTest < ActiveSupport::TestCase
   test 'versions_metadata' do
     stub_request(:get, "https://juliahub.com/app/packages/info")
       .to_return({ status: 200, body: file_fixture('julia/info') })
+    stub_request(:get, "https://juliahub.com/docs/Inequality/xDAp7/pkg.json")
+      .to_return({ status: 200, body: file_fixture('julia/pkg.json') })
     package_metadata = @ecosystem.package_metadata('Inequality')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
@@ -87,8 +91,21 @@ class JuliaTest < ActiveSupport::TestCase
   end
 
   test 'dependencies_metadata' do
-    dependencies_metadata = @ecosystem.dependencies_metadata('Inequality', '0.0.4', {})
+    stub_request(:get, "https://juliahub.com/app/packages/info")
+      .to_return({ status: 200, body: file_fixture('julia/info') })
+    stub_request(:get, "https://juliahub.com/docs/Inequality/xDAp7/pkg.json")
+      .to_return({ status: 200, body: file_fixture('julia/pkg.json') })
+    stub_request(:get, "https://juliahub.com/docs/Inequality/xDAp7/0.0.4/pkg.json")
+      .to_return({ status: 200, body: file_fixture('julia/0.0.4.pkg.json') })
+    package_metadata = @ecosystem.package_metadata('Inequality')
+    dependencies_metadata = @ecosystem.dependencies_metadata('Inequality', '0.0.4', package_metadata)
 
-    assert_equal dependencies_metadata, []
+    assert_equal dependencies_metadata, [
+      {:package_name=>"DataFrames", :requirements=>"1.3.0-1", :kind=>"runtime", :ecosystem=>"julia"},
+      {:package_name=>"Documenter", :requirements=>"0.27", :kind=>"runtime", :ecosystem=>"julia"},
+      {:package_name=>"Statistics", :requirements=>"*", :kind=>"runtime", :ecosystem=>"julia"},
+      {:package_name=>"StatsBase", :requirements=>"0.33", :kind=>"runtime", :ecosystem=>"julia"},
+      {:package_name=>"julia", :requirements=>"1", :kind=>"runtime", :ecosystem=>"julia"}
+    ]
   end
 end
