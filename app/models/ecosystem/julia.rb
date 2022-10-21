@@ -78,11 +78,25 @@ module Ecosystem
         keywords_array: package['metadata']['tags'],
         versions: package['metadata']['versions'],
         licenses: package['license'],
+        downloads: fetch_downloads(package),
+        downloads_period: 'last-month',
         metadata: {
           uuid: package['uuid'],
           slug: slug
         }
       }
+    end
+
+    def fetch_downloads(package)
+      headers = {
+        'X-Hasura-Role': 'anonymous',
+        'Content-Type': 'application/json'
+      }
+      body = Faraday.post("https://juliahub.com/v1/graphql", {"operationName":"PackageStats","variables":{"name":package['name']},"query":"query PackageStats($name: String!) {\n  packageStats: packagestats(where: {package: {name: {_eq: $name}}}) {\n users\n    }\n}\n"}.to_json, headers).body
+      json = JSON.parse(body)
+      json['data']['packageStats'].first['users'] rescue nil
+    rescue
+      nil
     end
 
     def versions_metadata(pkg_metadata)
