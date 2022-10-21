@@ -103,7 +103,6 @@ class JuliaTest < ActiveSupport::TestCase
     assert_equal dependencies_metadata, [
       {:package_name=>"DataFrames", :requirements=>"1.3.0-1", :kind=>"runtime", :ecosystem=>"julia"},
       {:package_name=>"Documenter", :requirements=>"0.27", :kind=>"runtime", :ecosystem=>"julia"},
-      {:package_name=>"Statistics", :requirements=>"*", :kind=>"runtime", :ecosystem=>"julia"},
       {:package_name=>"StatsBase", :requirements=>"0.33", :kind=>"runtime", :ecosystem=>"julia"},
       {:package_name=>"julia", :requirements=>"1", :kind=>"runtime", :ecosystem=>"julia"}
     ]

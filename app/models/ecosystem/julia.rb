@@ -78,6 +78,7 @@ module Ecosystem
       json = get_json("#{@registry_url}/docs/#{package[:name]}/#{package[:metadata][:slug]}/#{version}/pkg.json")
       json['deps'].map do |dep|
         next if dep['direct'] == false
+        next if dep['versions'].join(',') == '*' # skip std libraries
         {
           package_name: dep['name'],
           requirements: dep['versions'].join(','),
