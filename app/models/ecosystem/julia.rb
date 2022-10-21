@@ -52,7 +52,7 @@ module Ecosystem
       {
         name: package['name'],
         description: package['metadata']['description'],
-        repository_url: package['metadata']['repo'],
+        repository_url: repo_fallback(package['metadata']['repo'], ''),
         keywords_array: package['metadata']['tags'],
         versions: package['metadata']['versions'],
         licenses: package['license'],

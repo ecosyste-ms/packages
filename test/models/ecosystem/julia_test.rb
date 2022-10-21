@@ -73,7 +73,7 @@ class JuliaTest < ActiveSupport::TestCase
     assert_equal package_metadata[:description], "Julia package for computing inequality indicators"
     assert_nil package_metadata[:homepage]
     assert_equal package_metadata[:licenses], "MIT"
-    assert_equal package_metadata[:repository_url], "https://github.com/JosepER/Inequality.jl.git"
+    assert_equal package_metadata[:repository_url], "https://github.com/JosepER/Inequality.jl"
     assert_equal package_metadata[:keywords_array], []
   end
 
