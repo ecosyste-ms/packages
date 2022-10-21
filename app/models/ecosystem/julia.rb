@@ -99,11 +99,13 @@ module Ecosystem
 
         if tags_json.any?
           tag = tags_json.find{|t| t['name'].downcase.delete_prefix('v') == v}
-          hash[:published_at] = tag['published_at']
-          hash[:metadata] = {
-            sha: tag['sha'],
-            download_url: tag['download_url']
-          }
+          if tag
+            hash[:published_at] = tag['published_at']
+            hash[:metadata] = {
+              sha: tag['sha'],
+              download_url: tag['download_url']
+            }
+          end
         end
 
         hash
