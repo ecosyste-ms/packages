@@ -10,6 +10,18 @@ module Ecosystem
       "#{@registry_url}/ui/Packages/#{package.name}/#{package.metadata['slug']}"
     end
 
+    def download_url(package, version = nil)
+      if version.present?
+        version.metadata["download_url"]
+      else
+        return nil if package.repository_url.blank?
+        return nil unless package.repository_url.include?('/github.com/')
+        full_name = package.repository_url.gsub('https://github.com/', '').gsub('.git', '')
+        
+        "https://codeload.github.com/#{full_name}/tar.gz/refs/heads/master"
+      end
+    end
+
     def documentation_url(package, version = nil)
       "https://docs.juliahub.com/#{package.name}/#{package.metadata['slug']}/#{version}"
     end
@@ -66,11 +78,28 @@ module Ecosystem
       }
     end
 
-    def versions_metadata(package)
-      package[:versions].map do |v|
-        {
+    def versions_metadata(pkg_metadata)
+      begin
+        repo_json = get_json("https://repos.ecosyste.ms/api/v1/repositories/lookup?url=#{CGI.escape(pkg_metadata[:repository_url])}")
+        tags_json = get_json("https://repos.ecosyste.ms/api/v1/hosts/#{repo_json['host']['name']}/repositories/#{repo_json['full_name']}/tags")
+      rescue
+        tags_json = []
+      end
+      pkg_metadata[:versions].map do |v|
+        hash = {
           number: v,
         }
+
+        if tags_json.any?
+          tag = tags_json.find{|t| t['name'].downcase.delete_prefix('v') == v}
+          hash[:published_at] = tag['published_at']
+          hash[:metadata] = {
+            sha: tag['sha'],
+            download_url: tag['download_url']
+          }
+        end
+
+        hash
       end
     end
 

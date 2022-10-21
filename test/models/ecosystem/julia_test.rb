@@ -4,7 +4,7 @@ class JuliaTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'juliahub.com', url: 'https://juliahub.com', ecosystem: 'julia')
     @ecosystem = Ecosystem::Julia.new(@registry)
-    @package = Package.new(ecosystem: 'julia', name: 'Inequality', metadata: {slug: 'xDAp7'})
+    @package = Package.new(ecosystem: 'julia', name: 'Inequality', metadata: {slug: 'xDAp7'}, repository_url: "https://github.com/JosepER/Inequality.jl")
     @version = @package.versions.build(number: '0.0.4')
   end
 
@@ -82,12 +82,16 @@ class JuliaTest < ActiveSupport::TestCase
   test 'versions_metadata' do
     stub_request(:get, "https://juliahub.com/app/packages/info")
       .to_return({ status: 200, body: file_fixture('julia/info') })
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/JosepER/Inequality.jl")
+      .to_return({ status: 200, body: file_fixture('julia/lookup?url=https:%2F%2Fgithub.com%2FJosepER%2FInequality.jl') })
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/JosepER/Inequality.jl/tags")
+      .to_return({ status: 200, body: file_fixture('julia/tags') })
     stub_request(:get, "https://juliahub.com/docs/Inequality/xDAp7/pkg.json")
       .to_return({ status: 200, body: file_fixture('julia/pkg.json') })
     package_metadata = @ecosystem.package_metadata('Inequality')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
-    assert_equal versions_metadata, [{:number=>"0.0.4"}]
+    assert_equal versions_metadata, [{:number=>"0.0.4", :published_at=>"2022-04-05T14:38:12.000Z", :metadata=>{:sha=>"5b80978727dd84af7978b803d9e1e4c8ae7f75e8", :download_url=>"https://codeload.github.com/JosepER/Inequality.jl/tar.gz/v0.0.4"}}]
   end
 
   test 'dependencies_metadata' do
