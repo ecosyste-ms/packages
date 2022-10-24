@@ -55,8 +55,8 @@ module Ecosystem
         keywords_array: Array.wrap(package["info"]["keywords"].try(:split, /[\s.,]+/)),
         licenses: licenses(package),
         repository_url: repo_fallback(
-          package.dig("info", "registry_urls", "Source").presence || package.dig("info", "registry_urls", "Source Code"),
-          package["info"]["home_page"].presence || package.dig("info", "registry_urls", "Homepage")
+          package.dig("info", "project_urls", "Source").presence || package.dig("info", "project_urls", "Source Code"),
+          package["info"]["home_page"].presence || package.dig("info", "project_urls", "Homepage")
         ),
         releases: package['releases'],
         downloads: downloads(package),
