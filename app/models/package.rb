@@ -45,7 +45,7 @@ class Package < ApplicationRecord
   end
 
   def update_dependent_packages_count
-    update_columns(dependent_packages_count: dependent_packages.count)
+    update_columns(dependent_packages_count: dependent_packages_count)
   end
 
   def dependent_version_ids
@@ -54,6 +54,10 @@ class Package < ApplicationRecord
 
   def dependent_versions
     Version.where(id: dependent_version_ids)
+  end
+
+  def dependent_packages_count
+    Dependency.where(package_name: name).joins(:version).select('distinct(versions.package_id)').where('versions.package_id != ?', id).count
   end
 
   def dependent_package_ids

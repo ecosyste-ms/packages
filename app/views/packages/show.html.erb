@@ -93,7 +93,7 @@
       <br/><span title="<%= @package.last_synced_at %>">Last synced: <%= time_ago_in_words @package.last_synced_at %> ago</span>
     <% end %>
 
-    <% if funding = format_funding_links(@package) %>
+    <% if format_funding_links(@package).present? %>
       <br/>Funding: <% format_funding_links(@package).each_with_index do |url,i| %><%= ', ' if i > 0 %><%= link_to(url, url) %><% end %>
     <% end %>
 
