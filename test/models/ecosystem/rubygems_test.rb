@@ -78,7 +78,8 @@ class RubygemsTest < ActiveSupport::TestCase
       :licenses=>"MIT",
       :repository_url=>"https://github.com/sparklemotion/nokogiri",
       :downloads=>509098464, 
-      :downloads_period=>"total"
+      :downloads_period=>"total",
+      :metadata=>{"funding"=>nil}
     }
   end
 

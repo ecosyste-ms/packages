@@ -61,6 +61,9 @@ module Ecosystem
         releases: package['releases'],
         downloads: downloads(package),
         downloads_period: 'last-month',
+        metadata: {
+          "funding" => package.dig("info", "project_urls", "Funding"),
+        }
       }
     end
 

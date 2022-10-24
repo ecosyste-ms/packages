@@ -77,6 +77,9 @@ module Ecosystem
         time: package["time"],
         downloads: downloads(package),
         downloads_period: "last-month",
+        metadata: {
+          "funding" => latest_version["funding"],
+        }
       }
     end
 

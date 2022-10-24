@@ -53,7 +53,10 @@ module Ecosystem
         licenses: pkg_metadata.fetch("licenses", []).try(:join, ","),
         repository_url: repo_fallback(pkg_metadata["source_code_uri"], pkg_metadata["homepage_uri"]),
         downloads: pkg_metadata["downloads"],
-        downloads_period: "total"
+        downloads_period: "total",
+        metadata: {
+          "funding" => pkg_metadata["funding_uri"],
+        }
       }
     end
 
