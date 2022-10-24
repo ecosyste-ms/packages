@@ -53,7 +53,7 @@ module Ecosystem
         name: package["name"],
         homepage: latest_version["pubspec"]["homepage"],
         description: latest_version["pubspec"]["description"],
-        repository_url: repo_fallback("", latest_version["pubspec"]["homepage"]),
+        repository_url: repo_fallback(latest_version["pubspec"]["repository"], latest_version["pubspec"]["homepage"]),
         versions: package["versions"]
       }
     end
