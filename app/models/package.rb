@@ -143,7 +143,6 @@ class Package < ApplicationRecord
   def sync
     result = registry.sync_package(name)
     if result
-      update_rankings
       update_dependent_repos_count_async
     else
       check_status
