@@ -15,4 +15,10 @@ module ApplicationHelper
       "total"
     end
   end
+
+  def format_funding_links(package)
+    Array(package.metadata["funding"]).map do |funding|
+      sanitize_user_url(funding.is_a?(Hash) ? funding['url'] : funding)
+    end
+  end
 end
