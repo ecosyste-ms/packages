@@ -307,4 +307,43 @@ class Package < ApplicationRecord
     return if new_rankings.nil?
     update_column(:rankings, new_rankings) if rankings != new_rankings
   end
+
+  def funding_links
+    (package_funding_links + repo_funding_links).uniq
+  end
+
+  def package_funding_links
+    return [] if metadata["funding"].blank?
+    Array(metadata["funding"]).map{|f| f.is_a?(Hash) ? f['url'] : f }
+  end
+
+  def repo_funding_links
+    return [] if repo_metadata.blank? || repo_metadata['metadata'].blank? ||  repo_metadata['metadata']["funding"].blank?
+    repo_metadata['metadata']["funding"].map do |key,v|
+      case key
+      when "github"
+        Array(v).map{|username| "https://github.com/sponsors/#{v}" }
+      when "tidelift"
+        "https://tidelift.com/funding/github/#{v}"
+      when "community_bridge"
+        "https://funding.communitybridge.org/projects/#{v}"
+      when "issuehunt"
+        "https://issuehunt.io/r/#{v}"
+      when "open_collective"
+        "https://opencollective.com/#{v}"
+      when "ko_fi"
+        "https://ko-fi.com/#{v}"
+      when "liberapay"
+        "https://liberapay.com/#{v}"
+      when "custom"
+        v
+      when "otechie"
+        "https://otechie.com/#{v}"
+      when "patreon"
+        "https://patreon.com/#{v}"
+      else
+        v
+      end
+    end.flatten
+  end
 end
