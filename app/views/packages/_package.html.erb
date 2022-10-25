@@ -18,6 +18,11 @@
         <%= package.status %>
         </small>
       <% end %>
+      <% if package.funding_links.any? %>
+        <small title='Accepts funding'>
+          💰
+        </small>
+      <% end %>
     </h5>
 
     <% if package.description.present? %>
