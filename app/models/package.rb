@@ -32,7 +32,7 @@ class Package < ApplicationRecord
     return if Sidekiq::Queue.new('default').size > 10_000
     Package.active
             .where(downloads: nil)
-            .where(ecosystem: ['cargo','hackage','hex','homebrew','npm','nuget','packagist','puppet','rubygems','pypi'])
+            .where(ecosystem: ['cargo','hackage','hex','homebrew','julia','npm','nuget','packagist','puppet','rubygems','pypi'])
             .limit(1000).each(&:sync_async)
   end
 
@@ -49,7 +49,7 @@ class Package < ApplicationRecord
   end
 
   def dependent_version_ids
-    Dependency.where(package_name: name).pluck('distinct(version_id)') - [version_ids]
+    Dependency.where(package_name: name).pluck('distinct(version_id)')
   end
 
   def dependent_versions
@@ -57,11 +57,11 @@ class Package < ApplicationRecord
   end
 
   def load_dependent_packages_count
-    Dependency.where(package_name: name).joins(version: :package).where('packages.registry_id = ?', registry_id).select('distinct(versions.package_id)').where('versions.package_id != ?', id).count
+    Dependency.where(package_name: name).joins(version: :package).where('packages.registry_id = ?', registry_id).count('distinct(versions.package_id)')
   end
 
   def dependent_package_ids
-    Dependency.where(package_name: name).joins(:version).pluck('distinct(versions.package_id)') - [id]
+    Dependency.where(package_name: name).joins(:version).pluck('distinct(versions.package_id)')
   end
 
   def dependent_packages
