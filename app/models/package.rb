@@ -314,7 +314,7 @@ class Package < ApplicationRecord
     repo_metadata['metadata']["funding"].map do |key,v|
       case key
       when "github"
-        Array(v).map{|username| "https://github.com/sponsors/#{v}" }
+        Array(v).map{|username| "https://github.com/sponsors/#{username}" }
       when "tidelift"
         "https://tidelift.com/funding/github/#{v}"
       when "community_bridge"
