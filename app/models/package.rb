@@ -5,7 +5,7 @@ class Package < ApplicationRecord
   belongs_to :registry
   counter_culture :registry
   has_many :versions
-  has_many :dependencies, -> { group 'package_name' }, through: :versions
+  has_many :dependencies # dependents 
 
   scope :ecosystem, ->(ecosystem) { where(ecosystem: ecosystem.downcase) }
   scope :created_after, ->(created_at) { where('created_at > ?', created_at) }
@@ -44,24 +44,16 @@ class Package < ApplicationRecord
     read_attribute(:description).presence || repo_metadata['description']
   end
 
+  def update_dependent_package_ids
+    Dependency.where(package_id: nil, ecosystem: registry.ecosystem, package_name: name).update_all(package_id: id)
+  end
+
   def update_dependent_packages_count
-    update_columns(dependent_packages_count: load_dependent_packages_count)
-  end
-
-  def dependent_version_ids
-    Dependency.where(package_name: name).pluck('distinct(version_id)')
-  end
-
-  def dependent_versions
-    Version.where(id: dependent_version_ids)
-  end
-
-  def load_dependent_packages_count
-    Dependency.where(package_name: name).joins(version: :package).where('packages.registry_id = ?', registry_id).count('distinct(versions.package_id)')
+    update_columns(dependent_packages_count: dependencies.count)
   end
 
   def dependent_package_ids
-    Dependency.where(package_name: name).joins(version: :package).where('packages.registry_id = ?', registry_id).pluck('distinct(packages.id)')
+    Dependency.where(package_id: id).joins(version: :package).pluck('distinct(packages.id)')
   end
 
   def dependent_packages
