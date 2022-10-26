@@ -61,11 +61,11 @@ class Package < ApplicationRecord
   end
 
   def dependent_package_ids
-    Dependency.where(package_name: name).joins(:version).pluck('distinct(versions.package_id)')
+    Dependency.where(package_name: name).joins(version: :package).where('packages.registry_id = ?', registry_id).pluck('distinct(packages.id)')
   end
 
   def dependent_packages
-    Package.where(id: dependent_package_ids).where(registry_id: registry_id)
+    Package.where(id: dependent_package_ids)
   end
 
   def install_command
