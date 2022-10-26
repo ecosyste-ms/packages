@@ -30,7 +30,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :registries, constraints: { id: /[^\/]+/  }, only: [:index, :show] do
+  resources :registries, constraints: { id: /[^\/]+/  }, only: [:index, :show], :defaults => {:format => :html} do
     resources :packages, constraints: { id: /.*/ }, only: [:index, :show] do 
       resources :versions, only: [:index, :show], constraints: { id: /.*/ }
       collection do
