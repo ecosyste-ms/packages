@@ -94,7 +94,7 @@
     <% end %>
 
     <% if @package.funding_links.any? %>
-      <br/>Funding: <% @package.funding_links.each_with_index do |url,i| %><%= ', ' if i > 0 %><%= link_to(url, sanitize_user_url(url), target: :_blank) %><% end %>
+      <br/>Funding links: <% @package.funding_links.each_with_index do |url,i| %><%= ', ' if i > 0 %><%= link_to(url, sanitize_user_url(url), target: :_blank) %><% end %>
     <% end %>
 
     <% if @package.repos_url %>
