@@ -57,7 +57,7 @@ class Package < ApplicationRecord
   end
 
   def load_dependent_packages_count
-    Dependency.where(package_name: name).joins(:version).select('distinct(versions.package_id)').where('versions.package_id != ?', id).count
+    Dependency.where(package_name: name).joins(version: :package).where('packages.registry_id = ?', registry_id).select('distinct(versions.package_id)').where('versions.package_id != ?', id).count
   end
 
   def dependent_package_ids
