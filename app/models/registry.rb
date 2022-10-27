@@ -155,12 +155,12 @@ class Registry < ApplicationRecord
   end
 
   def top_percentage_for(package, field)
-    return nil if package.send(field).nil? || package.send(field) == 0
-    packages.where("#{field} >= ?", package.send(field) || 0).count.to_f / packages_count * 100
+    return nil if package.send(field).nil?
+    packages.where("#{field} > ?", package.send(field)).count.to_f / packages_count * 100
   end
 
   def top_percentage_for_json(package, json_field)
-    return nil if package.repo_metadata[json_field].nil? || package.repo_metadata[json_field] == 0
-    packages.where("(repo_metadata ->> '#{json_field}')::text::integer >= ?", package.repo_metadata[json_field] || 0).count.to_f / packages_count * 100
+    return nil if package.repo_metadata[json_field].nil?
+    packages.where("(repo_metadata ->> '#{json_field}')::text::integer > ?", package.repo_metadata[json_field]).count.to_f / packages_count * 100
   end
 end
