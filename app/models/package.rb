@@ -37,7 +37,7 @@ class Package < ApplicationRecord
   end
 
   def to_param
-    name.gsub('.', '%2E')
+    name
   end
 
   def description
