@@ -51,12 +51,12 @@ module Ecosystem
       {
         name: package["info"]["name"],
         description: package["info"]["summary"],
-        homepage: package["info"]["home_page"],
+        homepage: (package["info"]["home_page"].presence || package.dig("info", "project_urls", "Homepage").presence || package.dig("info", "project_urls", "Home")),
         keywords_array: Array.wrap(package["info"]["keywords"].try(:split, /[\s.,]+/)),
         licenses: licenses(package),
         repository_url: repo_fallback(
-          package.dig("info", "project_urls", "Source").presence || package.dig("info", "project_urls", "Source Code"),
-          package["info"]["home_page"].presence || package.dig("info", "project_urls", "Homepage")
+          package.dig("info", "project_urls", "Source").presence || package.dig("info", "project_urls", "Source Code").presence || package.dig("info", "project_urls", "Repository"),
+          package["info"]["home_page"].presence || package.dig("info", "project_urls", "Homepage").presence || package.dig("info", "project_urls", "Home"),
         ),
         releases: package['releases'],
         downloads: downloads(package),
