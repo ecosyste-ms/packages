@@ -355,7 +355,7 @@ DEPENDENCIES
   rack-cors
   rails (~> 7.0.4)
   rails-controller-testing
-  redis
+  redis (< 5)
   rswag-api
   rswag-ui
   sanitize-url
@@ -363,7 +363,7 @@ DEPENDENCIES
   semantic
   semantic_range
   shoulda
-  sidekiq
+  sidekiq (< 7)
   sidekiq-unique-jobs
   simple-rss
   spdx (= 2.0.12)
