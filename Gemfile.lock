@@ -236,6 +236,8 @@ GEM
       zeitwerk (~> 2.5)
     rake (13.0.6)
     redis (4.8.0)
+    redis-client (0.10.0)
+      connection_pool
     reline (0.3.1)
       io-console (~> 0.5)
     rexml (3.2.5)
@@ -263,10 +265,11 @@ GEM
     shoulda-context (2.0.0)
     shoulda-matchers (4.5.1)
       activesupport (>= 4.2.0)
-    sidekiq (6.5.7)
-      connection_pool (>= 2.2.5)
-      rack (~> 2.0)
-      redis (>= 4.5.0, < 5)
+    sidekiq (7.0.0)
+      concurrent-ruby (< 2)
+      connection_pool (>= 2.3.0)
+      rack (>= 2.2.4)
+      redis-client (>= 0.9.0)
     sidekiq-unique-jobs (7.1.27)
       brpoplpush-redis_script (> 0.1.1, <= 2.0.0)
       concurrent-ruby (~> 1.0, >= 1.0.5)
@@ -363,7 +366,7 @@ DEPENDENCIES
   semantic
   semantic_range
   shoulda
-  sidekiq (< 7)
+  sidekiq (< 8)
   sidekiq-unique-jobs
   simple-rss
   spdx (= 2.0.12)
