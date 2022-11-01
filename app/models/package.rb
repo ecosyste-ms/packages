@@ -15,6 +15,7 @@ class Package < ApplicationRecord
   scope :with_homepage, -> { where("homepage <> ''") }
   scope :with_repository_or_homepage_url, -> { where("repository_url <> '' OR homepage <> ''") }
   scope :with_repo_metadata, -> { where('length(repo_metadata::text) > 2') }
+  scope :without_repo_metadata, -> { where('length(repo_metadata::text) = 2') }
   scope :with_rankings, -> { where('length(rankings::text) > 2') }
 
   before_save  :update_details
