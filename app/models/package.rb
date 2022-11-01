@@ -314,6 +314,7 @@ class Package < ApplicationRecord
 
   def repo_funding_links
     return [] if repo_metadata.blank? || repo_metadata['metadata'].blank? ||  repo_metadata['metadata']["funding"].blank?
+    return [] if repo_metadata['metadata']["funding"].is_a?(String)
     repo_metadata['metadata']["funding"].map do |key,v|
       case key
       when "github"
@@ -336,8 +337,6 @@ class Package < ApplicationRecord
         "https://otechie.com/#{v}"
       when "patreon"
         "https://patreon.com/#{v}"
-      else
-        v
       end
     end.flatten
   end
