@@ -316,6 +316,7 @@ class Package < ApplicationRecord
     return [] if repo_metadata.blank? || repo_metadata['metadata'].blank? ||  repo_metadata['metadata']["funding"].blank?
     return [] if repo_metadata['metadata']["funding"].is_a?(String)
     repo_metadata['metadata']["funding"].map do |key,v|
+      next if v.blank?
       case key
       when "github"
         Array(v).map{|username| "https://github.com/sponsors/#{username}" }
@@ -338,6 +339,6 @@ class Package < ApplicationRecord
       when "patreon"
         "https://patreon.com/#{v}"
       end
-    end.flatten
+    end.flatten.compact
   end
 end
