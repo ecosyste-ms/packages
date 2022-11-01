@@ -1,6 +1,10 @@
 <div class="container-sm">
   <h1 class='mb-3'>Funding</h1>
 
+  <p class='lead'>
+    <%= number_with_delimiter @registries.sum{|r| r.metadata['funded_packages_count'] } %> packages have declared a way to fund their development via a funding platform. Funded packages are detected via a funding url in from their registry or via a funding.yml file in their repository.
+  <p>
+
   <% @registries.each do |registry| %>
 
     <div class="card mb-3 registry d-flex" id="registry_<%= registry.id %>">
@@ -9,12 +13,12 @@
           
           <div class="flex-grow-1 ms-3 text-break">
             <h5 class='card-title'>
-              <%= link_to registry.name, registry_packages_path(registry.name) %>
+              <%= link_to registry.name, funding_registry_path(registry.name) %>
             </h5>
           
             <p class="card-subtitle mb-2 text-muted">
               <%= pluralize number_with_delimiter(registry.metadata['funded_packages_count']), 'funded package' %>
-              (<%= registry.funded_packages_percentage.round(1) %>%)
+              (<%= registry.funded_packages_percentage.round(2) %>%)
             </p>
           </div>
           <div class="flex-shrink-0">

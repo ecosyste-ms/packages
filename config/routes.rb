@@ -47,7 +47,7 @@ Rails.application.routes.draw do
   end
 
   get :funding, to: 'funding#index'
-  get 'funding/:id', to: 'funding#show', as: :funding_show
+  get 'funding/:id', to: 'funding#show', as: :funding_registry, constraints: { id: /[^\/]+/  }
 
   get :infrastructure, to: 'infrastructure#index'
   
