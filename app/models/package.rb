@@ -18,6 +18,8 @@ class Package < ApplicationRecord
   scope :without_repo_metadata, -> { where('length(repo_metadata::text) = 2') }
   scope :with_rankings, -> { where('length(rankings::text) > 2') }
 
+  scope :with_funding, -> { where("length(metadata ->> 'funding') > 2 OR length(repo_metadata -> 'metadata' ->> 'funding') > 2") }
+
   before_save  :update_details
   after_commit :update_repo_metadata_async, on: :create
 

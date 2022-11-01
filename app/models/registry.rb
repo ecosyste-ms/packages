@@ -163,4 +163,14 @@ class Registry < ApplicationRecord
     return nil if package.repo_metadata[json_field].nil?
     packages.where("(repo_metadata ->> '#{json_field}')::text::integer > ?", package.repo_metadata[json_field]).count.to_f / packages_count * 100
   end
+
+  def update_funded_packages_count
+    metadata['funded_packages_count'] = packages.active.with_funding.count
+    save
+  end
+
+  def funded_packages_percentage
+    return 0 if packages_count.zero?
+    metadata['funded_packages_count'].to_f / packages_count * 100
+  end
 end

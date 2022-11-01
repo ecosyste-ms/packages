@@ -46,6 +46,9 @@ Rails.application.routes.draw do
     end
   end
 
+  get :funding, to: 'funding#index'
+  get 'funding/:id', to: 'funding#show', as: :funding_show
+
   get :infrastructure, to: 'infrastructure#index'
   
   get :unseen, to: 'unseen#index'
