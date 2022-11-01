@@ -6,6 +6,10 @@ class Registry < ApplicationRecord
   has_many :packages
   has_many :versions, through: :packages
 
+  def self.update_funded_packages_count
+    all.each(&:update_funded_packages_count)
+  end
+
   def self.sync_all_recently_updated_packages_async
     all.each(&:sync_recently_updated_packages_async)
   end
