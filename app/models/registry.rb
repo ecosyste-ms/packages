@@ -169,8 +169,16 @@ class Registry < ApplicationRecord
   end
 
   def update_funded_packages_count
-    metadata['funded_packages_count'] = packages.active.with_funding.count
+    metadata['funded_packages_count'] = fetch_funded_packages_count
     save
+  end
+
+  def fetch_funded_packages_count
+    count = 0
+    packages.active.with_funding.select('id').find_in_batches(batch_size: 1000) do |batch|
+      count += batch.length
+    end
+    count
   end
 
   def funded_packages_percentage
