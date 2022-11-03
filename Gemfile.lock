@@ -185,7 +185,7 @@ GEM
     pagy (5.10.1)
       activesupport
     pg (1.4.4)
-    pg_query (2.1.4)
+    pg_query (2.2.0)
       google-protobuf (>= 3.19.2)
     pghero (3.0.1)
       activerecord (>= 6)
