@@ -18,7 +18,7 @@ class Package < ApplicationRecord
   scope :without_repo_metadata, -> { where('length(repo_metadata::text) = 2') }
   scope :with_rankings, -> { where('length(rankings::text) > 2') }
 
-  scope :with_funding, -> { where("length(metadata ->> 'funding') > 2 OR length(repo_metadata -> 'metadata' ->> 'funding') > 2") }
+  scope :with_funding, -> { where("length(metadata ->> 'funding') > 2 OR length(repo_metadata -> 'metadata' ->> 'funding') > 2 OR repo_metadata -> 'owner_record' -> 'metadata' ->> 'has_sponsors_listing' = 'true'") }
 
   before_save  :update_details
   after_commit :update_repo_metadata_async, on: :create
@@ -208,6 +208,8 @@ class Package < ApplicationRecord
     repo_metadata = fetch_repo_metadata
     if repo_metadata.present?
       tags = fetch_tags
+      owner = fetch_owner
+      repo_metadata.merge!({'owner_record' => owner}) if owner
       repo_metadata.merge!({'tags' => tags}) if tags
       update_columns(repo_metadata: repo_metadata)
     end
@@ -241,6 +243,24 @@ class Package < ApplicationRecord
     end
 
     response = conn.get("/api/v1/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}/tags")
+    return nil unless response.success?
+    return response.body
+  rescue
+    nil
+  end
+
+  def fetch_owner
+    return if repository_or_homepage_url.blank?
+    return if repo_metadata['host'].blank?
+
+    conn = Faraday.new('https://repos.ecosyste.ms') do |f|
+      f.request :json
+      f.request :retry
+      f.response :json
+    end
+
+    response = conn.get("/api/v1/hosts/#{repo_metadata['host']['name']}/owners/#{repo_metadata['owner']}")
+    
     return nil unless response.success?
     return response.body
   rescue
@@ -304,12 +324,18 @@ class Package < ApplicationRecord
   end
 
   def funding_links
-    (package_funding_links + repo_funding_links).uniq
+    (package_funding_links + repo_funding_links + owner_funding_links).uniq
   end
 
   def package_funding_links
     return [] if metadata["funding"].blank?
     Array(metadata["funding"]).map{|f| f.is_a?(Hash) ? f['url'] : f }
+  end
+
+  def owner_funding_links
+    return [] if repo_metadata.blank? || repo_metadata['owner_record'].blank? ||  repo_metadata['owner_record']["metadata"].blank?
+    return [] unless repo_metadata['owner_record']["metadata"]['has_sponsors_listing']
+    ["https://github.com/sponsors/#{repo_metadata['owner_record']['login']}"]
   end
 
   def repo_funding_links
