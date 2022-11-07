@@ -1,7 +1,7 @@
 class MaintainersController < ApplicationController
   def index
     @registry = Registry.find_by!(name: params[:registry_id])
-    @pagy, @maintainers = pagy(@registry.maintainers.order('packages_count DESC'))
+    @pagy, @maintainers = pagy_countless(@registry.maintainers.order('packages_count DESC'))
   end
 
   def show
