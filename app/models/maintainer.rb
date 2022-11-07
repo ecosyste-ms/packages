@@ -4,7 +4,7 @@ class Maintainer < ApplicationRecord
   has_many :packages, through: :maintainerships
 
   def to_param
-    login
+    login.presence || uuid
   end
 
   def to_s

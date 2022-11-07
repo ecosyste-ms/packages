@@ -6,7 +6,7 @@ class MaintainersController < ApplicationController
 
   def show
     @registry = Registry.find_by!(name: params[:registry_id])
-    @maintainer = @registry.maintainers.find_by!(login: params[:id])
+    @maintainer = @registry.maintainers.find_by(login: params[:id]) || @registry.maintainers.find_by!(uuid: params[:id])
     @pagy, @packages = pagy(@maintainer.packages.order('latest_release_published_at DESC'))
   end
 end
