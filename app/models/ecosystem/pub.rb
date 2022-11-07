@@ -20,16 +20,7 @@ module Ecosystem
     end
 
     def all_package_names
-      page = 1
-      packages = []
-      loop do
-        r = get("#{@registry_url}/api/packages?page=#{page}")
-        break if r["packages"] == [] || r["packages"].nil?
-
-        packages += r["packages"]
-        page += 1
-      end
-      packages.map { |package| package["name"] }.sort
+      get_json("#{@registry_url}/api/package-names")["packages"]
     rescue
       []
     end
