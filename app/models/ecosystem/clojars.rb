@@ -203,5 +203,15 @@ module Ecosystem
       }.select { |string, _| comments.any? { |c| c.value.include?(string) } }
         .map(&:last)
     end
+
+    def maintainers_metadata(name)
+      user = get_json("https://clojars.org/api/artifacts/#{name}").dig("user")
+      [{
+        uuid: user,
+        login: user
+      }]
+    rescue StandardError
+      []
+    end
   end
 end
