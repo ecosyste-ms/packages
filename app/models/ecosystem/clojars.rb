@@ -206,6 +206,7 @@ module Ecosystem
 
     def maintainers_metadata(name)
       user = get_json("https://clojars.org/api/artifacts/#{name}").dig("user")
+      # TODO support multiple maintainers via groups
       [{
         uuid: user,
         login: user
