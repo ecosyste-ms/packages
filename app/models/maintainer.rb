@@ -3,6 +3,8 @@ class Maintainer < ApplicationRecord
   has_many :maintainerships
   has_many :packages, through: :maintainerships
 
+  validates :uuid, presence: true, uniqueness: {scope: :registry_id}
+
   def to_param
     login.presence || uuid
   end
