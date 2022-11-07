@@ -96,5 +96,18 @@ module Ecosystem
     def parse_license(package_license)
       package_license.is_a?(Hash) ? package_license["type"] : package_license
     end
+
+    def maintainers_metadata(name)
+      json = get_json("https://trunk.cocoapods.org/api/v1/pods/#{name}")
+      json['owners'].map do |user|
+        {
+          uuid: user["email"],
+          email: user["email"],
+          name: user["name"],
+        }
+      end
+    rescue StandardError
+      []
+    end
   end
 end
