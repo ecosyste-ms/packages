@@ -45,6 +45,7 @@ gem "groupdate"
 gem 'jquery-rails'
 gem 'addressable'
 gem 'google-protobuf', '3.21.9'
+gem "xmlrpc"
 
 group :development, :test do
   gem "debug", platforms: %i[ mri mingw x64_mingw ]
@@ -60,5 +61,3 @@ group :test do
   gem "mocha"
   gem "rails-controller-testing"
 end
-
-

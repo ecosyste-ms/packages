@@ -312,9 +312,12 @@ GEM
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
+    webrick (1.7.0)
     websocket-driver (0.7.5)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
+    xmlrpc (0.3.2)
+      webrick
     zeitwerk (2.6.5)
     zlib (2.1.1)
 
@@ -373,6 +376,7 @@ DEPENDENCIES
   tzinfo-data
   web-console
   webmock
+  xmlrpc
 
 RUBY VERSION
    ruby 3.1.2p20

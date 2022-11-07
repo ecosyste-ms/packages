@@ -117,5 +117,20 @@ module Ecosystem
         package_name.gsub("_", "-"),
       ]
     end
+
+    def maintainers_metadata(name)
+      server = XMLRPC::Client.new 'pypi.org', 'pypi', 80
+      roles = server.call 'package_roles', name
+
+      roles.map do |role, user|
+        {
+          uuid: user,
+          login: user,
+          role: role
+        }
+      end
+    rescue StandardError
+      []
+    end
   end
 end
