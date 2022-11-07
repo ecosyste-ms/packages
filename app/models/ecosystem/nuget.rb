@@ -178,5 +178,17 @@ module Ecosystem
       requirements << ">= 0" if requirements.empty?
       requirements.join(" ")
     end
+
+    def maintainers_metadata(name)
+      json = get_json("https://azuresearch-usnc.nuget.org/query?q=packageid:#{name.downcase}")
+      json['data'][0]['owners'].map do |user|
+        {
+          uuid: user,
+          login: user
+        }
+      end
+    rescue StandardError
+      []
+    end
   end
 end
