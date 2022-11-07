@@ -49,13 +49,11 @@ class PubTest < ActiveSupport::TestCase
   end
 
   test 'all_package_names' do
-    stub_request(:get, "https://pub.dev/api/packages?page=1")
-      .to_return({ status: 200, body: file_fixture('pub/packages?page=1') })
-    stub_request(:get, "https://pub.dev/api/packages?page=2")
-      .to_return({ status: 200, body: file_fixture('pub/packages?page=2') })
+    stub_request(:get, "https://pub.dev/api/package-names")
+      .to_return({ status: 200, body: file_fixture('pub/package-names') })
     all_package_names = @ecosystem.all_package_names
-    assert_equal all_package_names.length, 100
-    assert_equal all_package_names.last, 'z_tools'
+    assert_equal all_package_names.length, 35697
+    assert_equal all_package_names.last, 'zzz_heelp_t'
   end
 
   test 'recently_updated_package_names' do
