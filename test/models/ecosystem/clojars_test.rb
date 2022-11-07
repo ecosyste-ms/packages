@@ -67,6 +67,8 @@ class ClojarsTest < ActiveSupport::TestCase
   end
 
   test 'package_metadata' do
+    stub_request(:get, "https://clojars.org/api/artifacts/missionary")
+      .to_return({ status: 200, body: file_fixture('clojars/missionary') })
     stub_request(:get, "https://repo.clojars.org/missionary/missionary/maven-metadata.xml")
       .to_return({ status: 200, body: file_fixture('clojars/maven-metadata.xml') })
     stub_request(:get, "https://repo.clojars.org/missionary/missionary/b.26/missionary-b.26.pom")
@@ -78,12 +80,16 @@ class ClojarsTest < ActiveSupport::TestCase
     assert_equal package_metadata[:homepage], "https://github.com/leonoel/missionary"
     assert_equal package_metadata[:licenses], "Eclipse Public License"
     assert_equal package_metadata[:repository_url], "https://github.com/leonoel/missionary"
+    assert_equal package_metadata[:downloads], 5990
+    assert_equal package_metadata[:downloads_period], "total"
     assert_nil package_metadata[:keywords_array]
   end
 
   test 'versions_metadata' do
     stub_request(:get, "https://repo.clojars.org/missionary/missionary/maven-metadata.xml")
       .to_return({ status: 200, body: file_fixture('clojars/maven-metadata.xml') })
+    stub_request(:get, "https://clojars.org/api/artifacts/missionary")
+      .to_return({ status: 200, body: file_fixture('clojars/missionary') })
     stub_request(:get, "https://repo.clojars.org/missionary/missionary/b.26/missionary-b.26.pom")
       .to_return({ status: 200, body: file_fixture('clojars/missionary-b.26.pom'), headers: { 'last-modified' => 'Tue, 11 Jan 2022 14:34:47 GMT' }  })
     stub_request(:get, "https://repo.clojars.org/missionary/missionary/b.25/missionary-b.25.pom")

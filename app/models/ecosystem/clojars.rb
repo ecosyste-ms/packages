@@ -46,12 +46,16 @@ module Ecosystem
       latest_version_number = version_numbers.last if latest_version_number.blank?
       latest_version_xml = download_pom(group_id, artifact_id, latest_version_number)
       return nil if latest_version_xml.nil?
-      mapping_from_pom_xml(latest_version_xml, 0).merge({ name: name, versions: version_numbers })
+      mapping_from_pom_xml(latest_version_xml, 0).merge({ name: name, versions: version_numbers, downloads: downloads(name), downloads_period: 'total' })
     end
 
     def map_package_metadata(package)
       return false if package.blank?
       package
+    end
+
+    def downloads(name)
+      get_json("https://clojars.org/api/artifacts/#{name}").dig("downloads")
     end
 
     def versions_metadata(pkg_metadata)
