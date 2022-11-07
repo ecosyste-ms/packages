@@ -1,0 +1,8 @@
+<div class="container-sm">
+  <h1 class='mb-3'>
+    <%= @registry.name %> maintainers
+  </h1>
+
+  <%= render @maintainers %>
+  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+</div>

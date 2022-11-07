@@ -98,5 +98,17 @@ module Ecosystem
         }
       end
     end
+
+    def maintainers_metadata(name)
+      json = get_json("https://rubygems.org/api/v1/gems/#{name}/owners.json")
+      json.map do |user|
+        {
+          uuid: user["id"],
+          login: user["handle"]
+        }
+      end
+    rescue StandardError
+      []
+    end
   end
 end

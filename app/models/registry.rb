@@ -5,6 +5,7 @@ class Registry < ApplicationRecord
 
   has_many :packages
   has_many :versions, through: :packages
+  has_many :maintainers
 
   def self.update_funded_packages_count
     all.each(&:update_funded_packages_count)
@@ -184,5 +185,38 @@ class Registry < ApplicationRecord
   def funded_packages_percentage
     return 0 if packages_count.zero?
     metadata['funded_packages_count'].to_f / packages_count * 100
+  end
+
+  def sync_maintainers(package)
+    
+    maintainers_json = ecosystem_instance.maintainers_metadata(package.name)
+    maintainer_records = []
+
+    return unless maintainers_json.present?
+
+    maintainers_json.each do |maintainer|
+      m = maintainers.find_or_create_by(uuid: maintainer[:uuid])
+      m.email = maintainer[:email]
+      m.login = maintainer[:login]
+      m.name = maintainer[:name]
+      m.url = maintainer[:url]
+      m.save if m.changed?
+      maintainer_records << m
+    end
+
+    existing_maintainers = package.maintainers
+
+    new_maintainers = maintainer_records - existing_maintainers
+    new_maintainers.each do |maintainer|
+      package.maintainerships.create(maintainer: maintainer)
+    end
+
+    removed_maintainers = existing_maintainers - maintainer_records
+    removed_maintainers.each do |maintainer|
+      package.maintainerships.find { |rp| rp.maintainer == maintainer }.destroy
+      maintainer.update_packages_count
+    end
+
+    package.maintainers.each(&:update_packages_count)
   end
 end

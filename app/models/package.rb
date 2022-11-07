@@ -7,6 +7,9 @@ class Package < ApplicationRecord
   has_many :versions
   has_many :dependencies # dependents 
 
+  has_many :maintainerships
+  has_many :maintainers, through: :maintainerships
+
   scope :ecosystem, ->(ecosystem) { where(ecosystem: ecosystem.downcase) }
   scope :created_after, ->(created_at) { where('created_at > ?', created_at) }
   scope :updated_after, ->(updated_at) { where('updated_at > ?', updated_at) }
@@ -366,5 +369,9 @@ class Package < ApplicationRecord
         "https://patreon.com/#{v}"
       end
     end.flatten.compact
+  end
+
+  def sync_maintainers
+    registry.sync_maintainers(self)
   end
 end

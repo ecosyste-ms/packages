@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_10_26_101120) do
+ActiveRecord::Schema[7.0].define(version: 2022_11_07_110743) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -31,6 +31,26 @@ ActiveRecord::Schema[7.0].define(version: 2022_10_26_101120) do
     t.string "date"
     t.string "bucket_name"
     t.integer "packages_count"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "maintainers", force: :cascade do |t|
+    t.integer "registry_id"
+    t.string "uuid"
+    t.string "login"
+    t.string "email"
+    t.string "name"
+    t.string "url"
+    t.integer "packages_count", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "maintainerships", force: :cascade do |t|
+    t.integer "package_id"
+    t.integer "maintainer_id"
+    t.string "role"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

@@ -1,0 +1,10 @@
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title">
+      <%= link_to maintainer, registry_maintainer_path(maintainer.registry.name, maintainer) %>
+    </h5>
+    <small class='text-muted'>
+      <%= pluralize number_with_delimiter(maintainer.packages_count), 'package' %>
+    </small>
+  </div>
+</div>
