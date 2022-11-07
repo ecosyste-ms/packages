@@ -103,5 +103,17 @@ module Ecosystem
       map_dependencies(vers.fetch("require", {}).reject { |k, _v| k == "php" }, "runtime") +
         map_dependencies(vers.fetch("require-dev", {}).reject { |k, _v| k == "php" }, "Development")
     end
+
+    def maintainers_metadata(name)
+      json = get_json("https://packagist.org/packages/#{name}.json")['package']
+      json['maintainers'].map do |user|
+        {
+          uuid: user["name"],
+          login: user["name"],
+        }
+      end
+    rescue StandardError
+      []
+    end
   end
 end
