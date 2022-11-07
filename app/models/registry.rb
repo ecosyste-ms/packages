@@ -142,7 +142,10 @@ class Registry < ApplicationRecord
     updates[:versions_count] = all_versions.length if all_versions
     package.update_details
     package.assign_attributes(updates)
-    package.update_dependent_packages_count if package.save
+    if package.save
+      package.update_dependent_packages_count
+      package.sync_maintainers_async
+    end
     # package.update_integrities_async
     return package
   end

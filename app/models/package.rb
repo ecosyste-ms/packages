@@ -374,4 +374,8 @@ class Package < ApplicationRecord
   def sync_maintainers
     registry.sync_maintainers(self)
   end
+
+  def sync_maintainers_async
+    SyncMaintainersWorker.perform_async(id)
+  end
 end
