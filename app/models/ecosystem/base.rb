@@ -123,6 +123,10 @@ module Ecosystem
       { is_deprecated: false, message: nil }
     end
 
+    def maintainers_metadata(name)
+      []
+    end
+
     private
 
     def get_raw(url, options = {})
