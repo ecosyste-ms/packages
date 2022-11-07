@@ -100,7 +100,7 @@ module Ecosystem
     end
 
     def maintainers_metadata(name)
-      json = get_json("https://rubygems.org/api/v1/gems/#{name}/owners.json")
+      json = get_json("#{@registry_url}/api/v1/gems/#{name}/owners.json")
       json.map do |user|
         {
           uuid: user["id"],

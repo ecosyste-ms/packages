@@ -93,5 +93,18 @@ module Ecosystem
         }
       end
     end
+
+    def maintainers_metadata(name)
+      json = get_json("#{@registry_url}/api/packages/#{name}")
+      json['owners'].map do |user|
+        {
+          uuid: user["username"],
+          login: user["username"],
+          email: user["email"]
+        }
+      end
+    rescue StandardError
+      []
+    end
   end
 end
