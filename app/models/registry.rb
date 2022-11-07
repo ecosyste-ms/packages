@@ -217,6 +217,6 @@ class Registry < ApplicationRecord
       maintainer.update_packages_count
     end
 
-    package.maintainers.each(&:update_packages_count)
+    package.maintainers.reload.each(&:update_packages_count)
   end
 end

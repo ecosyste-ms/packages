@@ -138,5 +138,18 @@ module Ecosystem
         map_dependencies(vers.fetch("devDependencies", {}), "Development") +
         map_dependencies(vers.fetch("optionalDependencies", {}), "Optional", true)
     end
+
+    def maintainers_metadata(name)
+      json = get_json("#{@registry_url}/#{name.gsub('/', '%2F')}")
+      json['maintainers'].map do |user|
+        {
+          uuid: user["name"],
+          login: user["name"],
+          email: user["email"]
+        }
+      end
+    rescue StandardError
+      []
+    end
   end
 end
