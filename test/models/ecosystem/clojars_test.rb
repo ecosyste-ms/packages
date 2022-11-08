@@ -26,12 +26,12 @@ class ClojarsTest < ActiveSupport::TestCase
 
   test 'documentation_url' do
     documentation_url = @ecosystem.documentation_url(@package)
-    assert_nil documentation_url
+    assert_equal documentation_url, "https://cljdoc.org/d/missionary/"
   end
 
   test 'documentation_url with version' do
     documentation_url = @ecosystem.documentation_url(@package, @version.number)
-    assert_nil documentation_url
+    assert_equal documentation_url, "https://cljdoc.org/d/missionary/b.26"
   end
 
   test 'install_command' do

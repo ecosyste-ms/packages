@@ -13,6 +13,10 @@ module Ecosystem
       "https://clojars.org/#{package.name}/#{version.present? ? 'versions/' + version.number : ''}"
     end
 
+    def documentation_url(package, version = nil)
+      "https://cljdoc.org/d/#{package.name}/#{version}"
+    end
+
     def all_package_names
       poms = get_raw('https://repo.clojars.org/all-poms.txt').split("\n")
       names = poms.map do |pom|
