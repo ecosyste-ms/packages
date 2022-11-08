@@ -72,6 +72,88 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Registry'
+  /registries/{registryName}/maintainers:
+    get:
+      summary: get a list of maintainers from a registry
+      operationId: getRegistryMaintainers
+      parameters:
+        - in: path
+          name: registryName
+          schema:
+            type: string
+          required: true
+          description: name of registry
+        - name: page
+          in: query
+          description: pagination page number 
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return 
+          required: false
+          schema:
+            type: integer
+        - name: created_after
+          in: query
+          description: filter by created_at after given time
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: updated_after
+          in: query
+          description: filter by updated_at after given time
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: sort
+          in: query
+          description: field to order results by
+          required: false
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: direction to order results by
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Maintainer'
+  /registries/{registryName}/maintainers/{MaintainerLoginOrUUID}:
+    get:
+      summary: get a maintainer by login or UUID
+      operationId: getRegistryMaintainer
+      parameters:
+        - in: path
+          name: registryName
+          schema:
+            type: string
+          required: true
+          description: name of registry
+        - in: path
+          name: MaintainerLoginOrUUID
+          schema:
+            type: string
+          required: true
+          description: login or uuid of maintainer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Package'
   /registries/{registryName}/packages:
     get:
       summary: get a list of packages from a registry
@@ -610,3 +692,25 @@ components:
           type: string
         optional:
           type: boolean
+    Maintainer:
+      type: object
+      properties:
+        uuid:
+          type: string
+        login:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        url:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        packages_count:
+          type: integer
+        

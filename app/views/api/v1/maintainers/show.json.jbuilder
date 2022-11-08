@@ -1,0 +1,1 @@
+json.partial! 'api/v1/maintainers/maintainer', maintainer: @maintainer

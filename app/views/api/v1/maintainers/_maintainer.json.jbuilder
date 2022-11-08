@@ -1,0 +1,1 @@
+json.extract! maintainer, :uuid, :login, :name, :email, :url, :created_at, :updated_at, :packages_count
