@@ -58,5 +58,21 @@ module Ecosystem
       version = filename.gsub("#{package[:name]}-",'').gsub('.tar','')
       [{ number: version, published_at: date }]
     end
+
+    def maintainers_metadata(name)
+      page = get_html("#{@registry_url}/#{name}.html", headers: { "Accept" => "text/html" })
+      fields = extract_fields(page)
+      fields['Maintainer'].split(', ').map do |string|
+        name, email = string.split(' <')
+        email = email.gsub('>','')
+        {
+          uuid: email,
+          name: name,
+          email: email
+        }
+      end
+    rescue StandardError
+      []
+    end
   end
 end
