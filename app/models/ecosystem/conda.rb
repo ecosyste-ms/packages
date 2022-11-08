@@ -3,7 +3,7 @@
 module Ecosystem
   class Conda < Base
     def registry_url(package, version = nil)
-      "#{@registry_url}/#{package.name}"
+      "https://anaconda.org/#{@registry.metadata['kind']}/#{package.name}"
     end
 
     def download_url(package, version)

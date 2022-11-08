@@ -3,9 +3,13 @@ require "test_helper"
 class CondaTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'Conda.org', url: 'https://anaconda.org/anaconda', ecosystem: 'conda', metadata: {'kind' => 'anaconda', 'key' => 'Main', 'api' => 'https://repo.ananconda.com'})
+    @registry2 = Registry.new(name: 'conda-forge.org', url: 'https://conda-forge.org/', ecosystem: 'conda', metadata: {'kind' => 'conda-forge', 'key' => 'CondaForge', 'api' => 'https://conda.anaconda.org'})
     @ecosystem = Ecosystem::Conda.new(@registry)
+    @ecosystem2 = Ecosystem::Conda.new(@registry2)
     @package = Package.new(ecosystem: 'conda', name: 'aiofiles')
+    @package2 = @registry2.packages.build(ecosystem: 'conda', name: 'aiofiles')
     @version = @package.versions.build(number: '22.1.0', metadata: {'download_url' => 'https://anaconda.org/anaconda/aiofiles/22.1.0/download/linux-64/aiofiles-22.1.0-py_0.tar.bz2'})
+    @version2 = @package2.versions.build(number: '22.1.0', metadata: {'download_url' => 'https://anaconda.org/conda-forge/aiofiles/22.1.0/download/linux-64/aiofiles-22.1.0-py_0.tar.bz2'})
   end
 
   test 'registry_url' do
@@ -85,5 +89,45 @@ class CondaTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('aiofiles', '0.4.0', package_metadata)
     
     assert_equal dependencies_metadata, [{:package_name=>"python", :requirements=>">=3.5,<3.6.0a0", :kind=>"runtime", :ecosystem=>"conda"}]
+  end
+
+  test 'conda-forge registry_url' do
+    registry_url = @ecosystem2.registry_url(@package2)
+    assert_equal registry_url, 'https://anaconda.org/conda-forge/aiofiles'
+  end
+
+  test 'conda-forge registry_url with version' do
+    registry_url = @ecosystem2.registry_url(@package2, @version2)
+    assert_equal registry_url, 'https://anaconda.org/conda-forge/aiofiles'
+  end
+
+  test 'conda-forge download_url' do
+    download_url = @ecosystem2.download_url(@package2, @version2)
+    assert_equal download_url, "https://anaconda.org/conda-forge/aiofiles/22.1.0/download/linux-64/aiofiles-22.1.0-py_0.tar.bz2"
+  end
+
+  test 'conda-forge documentation_url' do
+    documentation_url = @ecosystem2.documentation_url(@package2)
+    assert_nil documentation_url
+  end
+
+  test 'conda-forge documentation_url with version' do
+    documentation_url = @ecosystem2.documentation_url(@package2, @version2.number)
+    assert_nil documentation_url
+  end
+
+  test 'conda-forge install_command' do
+    install_command = @ecosystem2.install_command(@package2)
+    assert_equal install_command, 'conda install -c conda-forge aiofiles'
+  end
+
+  test 'conda-forge install_command with version' do
+    install_command = @ecosystem2.install_command(@package2, @version2.number)
+    assert_equal install_command, 'conda install -c conda-forge aiofiles=22.1.0'
+  end
+
+  test 'conda-forge check_status_url' do
+    check_status_url = @ecosystem2.check_status_url(@package2)
+    assert_equal check_status_url, "https://conda.libraries.io/package/aiofiles"
   end
 end
