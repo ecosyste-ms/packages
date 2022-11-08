@@ -15,7 +15,7 @@ Rails.application.routes.draw do
   namespace :api, :defaults => {:format => :json} do
     namespace :v1 do
       resources :registries, constraints: { id: /[^\/]+/  }, only: [:index, :show] do
-        resources :maintainers, only: [:index, :show]
+        resources :maintainers, only: [:index, :show], constraints: { id: /.*/ }
 
         resources :packages, constraints: { id: /.*/ }, only: [:index, :show] do 
           resources :versions, only: [:index, :show], constraints: { id: /.*/ }
@@ -33,7 +33,7 @@ Rails.application.routes.draw do
   end
 
   resources :registries, constraints: { id: /[^\/]+/  }, only: [:index, :show], :defaults => {:format => :html} do
-    resources :maintainers, only: [:index, :show]
+    resources :maintainers, only: [:index, :show], constraints: { id: /.*/ }
 
     resources :packages, constraints: { id: /.*/ }, only: [:index, :show] do 
       resources :versions, only: [:index, :show], constraints: { id: /.*/ }
