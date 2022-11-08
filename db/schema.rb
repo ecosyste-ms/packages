@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_11_07_110743) do
+ActiveRecord::Schema[7.0].define(version: 2022_11_08_144654) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -45,6 +45,8 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_07_110743) do
     t.integer "packages_count", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["registry_id", "login"], name: "index_maintainers_on_registry_id_and_login", unique: true
+    t.index ["registry_id", "uuid"], name: "index_maintainers_on_registry_id_and_uuid", unique: true
   end
 
   create_table "maintainerships", force: :cascade do |t|
@@ -53,6 +55,8 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_07_110743) do
     t.string "role"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["maintainer_id"], name: "index_maintainerships_on_maintainer_id"
+    t.index ["package_id"], name: "index_maintainerships_on_package_id"
   end
 
   create_table "packages", force: :cascade do |t|
