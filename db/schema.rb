@@ -45,7 +45,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_08_144654) do
     t.integer "packages_count", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["registry_id", "login"], name: "index_maintainers_on_registry_id_and_login", unique: true
+    t.index ["registry_id", "login"], name: "index_maintainers_on_registry_id_and_login"
     t.index ["registry_id", "uuid"], name: "index_maintainers_on_registry_id_and_uuid", unique: true
   end
 
