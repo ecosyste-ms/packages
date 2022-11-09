@@ -4,7 +4,7 @@ class Version < ApplicationRecord
 
   belongs_to :package
   counter_culture :package
-  has_many :dependencies, -> { order('package_name asc') }, dependent: :delete_all
+  has_many :dependencies, dependent: :delete_all
   has_many :runtime_dependencies, -> { where kind: %w[runtime normal] }, class_name: "Dependency"
 
   scope :created_after, ->(created_at) { where('created_at > ?', created_at) }
