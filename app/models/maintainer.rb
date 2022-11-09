@@ -1,6 +1,6 @@
 class Maintainer < ApplicationRecord
   belongs_to :registry
-  has_many :maintainerships
+  has_many :maintainerships, dependent: :delete_all
   has_many :packages, through: :maintainerships
 
   validates :uuid, presence: true, uniqueness: {scope: :registry_id}

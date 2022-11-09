@@ -7,7 +7,7 @@ class Package < ApplicationRecord
   has_many :versions
   has_many :dependencies # dependents 
 
-  has_many :maintainerships
+  has_many :maintainerships, dependent: :delete_all
   has_many :maintainers, through: :maintainerships
 
   scope :ecosystem, ->(ecosystem) { where(ecosystem: ecosystem.downcase) }
