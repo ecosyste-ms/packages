@@ -16,7 +16,7 @@ module Ecosystem
     end
 
     def check_status_url(package)
-      "https://conda.libraries.io/package/#{package.name}"
+      "https://conda.ecosyste.ms/package/#{package.name}"
     end
 
     def all_package_names
@@ -24,7 +24,7 @@ module Ecosystem
     end
 
     def all_packages
-      @all_packages ||= get_json("https://conda.libraries.io/#{@registry.metadata['key']}/")
+      @all_packages ||= get_json("https://conda.ecosyste.ms/#{@registry.metadata['key']}/")
     end
 
     def recently_updated_package_names

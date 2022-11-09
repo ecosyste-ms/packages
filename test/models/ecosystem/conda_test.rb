@@ -49,11 +49,11 @@ class CondaTest < ActiveSupport::TestCase
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "https://conda.libraries.io/package/aiofiles"
+    assert_equal check_status_url, "https://conda.ecosyste.ms/package/aiofiles"
   end
 
   test 'all_package_names' do
-    stub_request(:get, "https://conda.libraries.io/Main/")
+    stub_request(:get, "https://conda.ecosyste.ms/Main/")
       .to_return({ status: 200, body: file_fixture('conda/index.html') })
     all_package_names = @ecosystem.all_package_names
     assert_equal all_package_names.length, 2843
@@ -61,7 +61,7 @@ class CondaTest < ActiveSupport::TestCase
   end
 
   test 'package_metadata' do
-    stub_request(:get, "https://conda.libraries.io/Main/")
+    stub_request(:get, "https://conda.ecosyste.ms/Main/")
       .to_return({ status: 200, body: file_fixture('conda/index.html') })
     package_metadata = @ecosystem.package_metadata('aiofiles')
 
@@ -73,7 +73,7 @@ class CondaTest < ActiveSupport::TestCase
   end
 
   test 'versions_metadata' do
-    stub_request(:get, "https://conda.libraries.io/Main/")
+    stub_request(:get, "https://conda.ecosyste.ms/Main/")
       .to_return({ status: 200, body: file_fixture('conda/index.html') })
     package_metadata = @ecosystem.package_metadata('aiofiles')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
@@ -83,7 +83,7 @@ class CondaTest < ActiveSupport::TestCase
   end
 
   test 'dependencies_metadata' do
-    stub_request(:get, "https://conda.libraries.io/Main/")
+    stub_request(:get, "https://conda.ecosyste.ms/Main/")
       .to_return({ status: 200, body: file_fixture('conda/index.html') })
     package_metadata = @ecosystem.package_metadata('aiofiles')
     dependencies_metadata = @ecosystem.dependencies_metadata('aiofiles', '0.4.0', package_metadata)
@@ -128,6 +128,6 @@ class CondaTest < ActiveSupport::TestCase
 
   test 'conda-forge check_status_url' do
     check_status_url = @ecosystem2.check_status_url(@package2)
-    assert_equal check_status_url, "https://conda.libraries.io/package/aiofiles"
+    assert_equal check_status_url, "https://conda.ecosyste.ms/package/aiofiles"
   end
 end
