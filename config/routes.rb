@@ -42,6 +42,7 @@ Rails.application.routes.draw do
       end
       member do
         get :dependent_packages, to: 'packages#dependent_packages'
+        get :maintainers, to: 'packages#maintainers'
       end
     end
 

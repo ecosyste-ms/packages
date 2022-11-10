@@ -12,7 +12,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link active" aria-current="page" >
+      <a class="nav-link" href="<%= dependent_packages_registry_package_path(@registry, @package) %>">
         Dependent Packages
         <span class="badge bg-secondary rounded-pill">
           <%= number_with_delimiter @package.dependent_packages_count %>
@@ -20,21 +20,17 @@
       </a>
     </li>
     <% maintainers_count = @package.maintainers.count %>
-    <% if maintainers_count > 0 %>
-      <li class="nav-item">
-        <a class="nav-link" href="<%= maintainers_registry_package_path(@registry, @package) %>">
-          Maintainers
-          <span class="badge bg-secondary rounded-pill">
-            <%= number_with_delimiter maintainers_count %>
-          </span>
-        </a>
-      </li>
-    <% end %>
-    <%= render 'sort' %>
+    <li class="nav-item">
+      <a class="nav-link active" aria-current="page">
+        Maintainers
+        <span class="badge bg-secondary rounded-pill">
+          <%= number_with_delimiter maintainers_count %>
+        </span>
+      </a>
+    </li>
   </ul>
 
-
-  <%= render @dependent_packages %>
+  <%= render @maintainers %>
   <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
-</div>
 
+</div>

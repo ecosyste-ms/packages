@@ -41,4 +41,10 @@ class PackagesController < ApplicationController
 
     @pagy, @dependent_packages = pagy_countless(scope)
   end
+
+  def maintainers
+    @registry = Registry.find_by_name!(params[:registry_id])
+    @package = @registry.packages.find_by_name!(params[:id])
+    @pagy, @maintainers = pagy_countless(@package.maintainers)
+  end
 end

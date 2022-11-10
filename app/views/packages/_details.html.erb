@@ -1,0 +1,101 @@
+  <% if @package.rankings.present? %>
+    <div class="text-end float-end">
+    <% if @package.rankings.present? && @package.rankings['average'] && @package.rankings['average'] < 10.05 %>
+      <span class='badge bg-secondary'>
+        Top <%= [@package.rankings['average'].round(1), 0.1].max %>% on <%= @package.registry.name %>
+      </span><br>
+    <% end %>
+
+    <% if @package.downloads && @package.downloads > 0 && @package.rankings.present? && @package.rankings['downloads'] && @package.rankings['downloads'] < 10.05 %>
+      <span class='badge bg-secondary'>
+        Top <%= [@package.rankings['downloads'].round(1), 0.1].max %>% downloads on <%= @package.registry.name %>
+      </span><br>
+    <% end %>
+
+    <% if @package.dependent_packages_count && @package.dependent_packages_count > 0 && @package.rankings.present? && @package.rankings['dependent_packages_count'] && @package.rankings['dependent_packages_count'] < 10.05 %>
+      <span class='badge bg-secondary'>
+        Top <%= [@package.rankings['dependent_packages_count'].round(1), 0.1].max %>% dependent packages on <%= @package.registry.name %>
+      </span><br>
+    <% end %>
+
+    <% if @package.dependent_repos_count && @package.dependent_repos_count > 0 && @package.rankings.present? && @package.rankings['dependent_repos_count'] && @package.rankings['dependent_repos_count'] < 10.05 %>
+      <span class='badge bg-secondary'>
+        Top <%= [@package.rankings['dependent_repos_count'].round(1), 0.1].max %>% dependent repos on <%= @package.registry.name %>
+      </span><br>
+    <% end %>
+
+    <% if @package.rankings.present? && @package.rankings['stargazers_count'] &&  @package.repo_metadata['stargazers_count'] && @package.repo_metadata['stargazers_count'] > 0 && @package.rankings['stargazers_count'] < 10.05 %>
+      <span class='badge bg-secondary'>
+        Top <%= [@package.rankings['stargazers_count'].round(1), 0.1].max %>% stars on <%= @package.registry.name %>
+      </span><br>
+    <% end %>
+
+    <% if @package.rankings.present? && @package.rankings['forks_count'] && @package.repo_metadata['forks_count'] && @package.repo_metadata['forks_count'] > 0 && @package.rankings['forks_count'] < 10.05 %>
+      <span class='badge bg-secondary'>
+        Top <%= [@package.rankings['forks_count'].round(1), 0.1].max %>% forks on <%= @package.registry.name %>
+      </span><br>
+    <% end %>
+    </div>
+  <%end %>
+
+  <h2>
+    <%= link_to @registry.name, registry_packages_path(@registry.name) %> : <%= @package.name %>
+  </h2>
+
+  <p>
+    <%= @package.description %>
+  </p>
+
+  <p>
+    <% if @package.registry_url %>
+      <%= link_to 'Registry', @package.registry_url %>
+    <% end %>
+    <% if sanitize_user_url(@package.repository_url).present? && @package.repository_url != @package.registry_url %>
+      <%= '-' if @package.registry_url %>
+      <%= link_to 'Source', sanitize_user_url(@package.repository_url), :rel => 'nofollow' %>
+    <% end %>
+    <% if sanitize_user_url(@package.homepage).present?  && @package.repository_url != @package.homepage %>
+      - <%= link_to('Homepage', sanitize_user_url(@package.homepage), :rel => 'nofollow') %>
+    <% end %>
+    <% if link = @package.documentation_url %>
+      - <%= link_to 'Documentation', link %>
+    <% end %>
+    <% if @package.status %>
+      <br/>Status: <%= @package.status %>
+    <% end %>
+    <% if @package.latest_release_published_at %>
+        <br><span title="<%= @package.latest_release_published_at %>">Latest release: <%= time_ago_in_words @package.latest_release_published_at %> ago</span>
+      <% end %>
+
+    <% if @package.dependent_packages_count > 0 %>  
+      <br/>Dependent packages: <%= number_with_delimiter(@package.dependent_packages_count) %>
+    <% end %>
+
+    <% if @package.dependent_repos_count > 0 %>
+      <br/>Dependent repositories: <%= number_with_delimiter(@package.dependent_repos_count) %>
+    <% end %>
+
+    <% if @package.downloads %>
+      <br/>Downloads: <%= number_with_delimiter(@package.downloads) %> <%= download_period(@package.downloads_period) %>
+    <% end %>
+
+    <% if @package.repo_metadata['stargazers_count'] %>
+      <br/>Stars: <%= number_with_delimiter(@package.repo_metadata['stargazers_count']) %> on <%= @package.repo_metadata.fetch('host',{})['name'] %>
+    <% end %>
+
+    <% if @package.repo_metadata['forks_count'] %>
+      <br/>Forks: <%= number_with_delimiter(@package.repo_metadata['forks_count']) %> on <%= @package.repo_metadata.fetch('host',{})['name'] %>
+    <% end %>
+
+    <% if @package.last_synced_at %>
+      <br/><span title="<%= @package.last_synced_at %>">Last synced: <%= time_ago_in_words @package.last_synced_at %> ago</span>
+    <% end %>
+
+    <% if @package.funding_links.any? %>
+      <br/>Funding links: <% @package.funding_links.each_with_index do |url,i| %><%= ', ' if i > 0 %><%= link_to(url, sanitize_user_url(url), target: :_blank) %><% end %>
+    <% end %>
+
+    <% if @package.repos_url %>
+      <br/>See more repository details: <%= link_to 'repos.ecosyste.ms', @package.repos_url, target: :_blank %>
+    <% end %>    
+  </p>
