@@ -21,10 +21,6 @@
       "schedule": "0 0 * * *"
     },
     {
-      "command": "bundle exec rake packages:sync_download_counts",
-      "schedule": "*/10 * * * *"
-    },
-    {
       "command": "bundle exec rake packages:update_funded_packages_count",
       "schedule": "40 * * * *"
     }
