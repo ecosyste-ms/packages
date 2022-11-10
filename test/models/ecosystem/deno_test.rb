@@ -107,9 +107,9 @@ class DenoTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('deno_es', 'v0.4.2', {})
 
     assert_equal dependencies_metadata, [
-      {:package_name=>"jw_fetch", :requirements=>"v0.2.5", :kind=>"runtime", :ecosystem=>"Deno"},
-      {:package_name=>"deno_es", :requirements=>"v0.4.2", :kind=>"runtime", :ecosystem=>"Deno"},
-      {:package_name=>"deno_mock", :requirements=>"v2.0.0", :kind=>"runtime", :ecosystem=>"Deno"}
+      {:package_name=>"jw_fetch", :requirements=>"v0.2.5", :kind=>"runtime", :ecosystem=>"deno"},
+      {:package_name=>"deno_es", :requirements=>"v0.4.2", :kind=>"runtime", :ecosystem=>"deno"},
+      {:package_name=>"deno_mock", :requirements=>"v2.0.0", :kind=>"runtime", :ecosystem=>"deno"}
     ]
   end
 end
