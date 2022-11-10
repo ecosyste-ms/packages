@@ -4,5 +4,8 @@ class Dependency < ApplicationRecord
 
   validates_presence_of :package_name, :version_id, :requirements, :ecosystem
 
-  scope :ecosystem, ->(ecosystem) { where(ecosystem: Ecosystem::Base.format_name(ecosystem)) }
+  scope :ecosystem, ->(ecosystem) { where(ecosystem: ecosystem.downcase) }
+
+  scope :with_package, -> { where.not(package_id: nil) }
+  scope :without_package, -> { where(package_id: nil) }
 end
