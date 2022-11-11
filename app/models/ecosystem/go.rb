@@ -99,7 +99,7 @@ module Ecosystem
               package_name: dep[:name],
               requirements: dep[:requirement],
               kind: dep[:type],
-              ecosystem: "Go",
+              ecosystem: self.class.name.demodulize.downcase,
             }
           end
       else
