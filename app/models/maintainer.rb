@@ -1,5 +1,6 @@
 class Maintainer < ApplicationRecord
   belongs_to :registry
+  counter_culture :registry
   has_many :maintainerships, dependent: :delete_all
   has_many :packages, through: :maintainerships
 
