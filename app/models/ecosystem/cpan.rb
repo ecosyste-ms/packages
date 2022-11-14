@@ -56,6 +56,7 @@ module Ecosystem
         description: package["abstract"],
         licenses: package.fetch("license", []).join(","),
         repository_url: repo_fallback(package.fetch("resources", {}).fetch("repository", {})["web"], package.fetch("resources", {})["homepage"]),
+        keywords_array: package.fetch("metadata", {})["keywords"],
         metadata:{
           author: package['author']
         }

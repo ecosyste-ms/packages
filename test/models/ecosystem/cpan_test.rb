@@ -77,6 +77,7 @@ class CpanTest < ActiveSupport::TestCase
       :description=>"Debian Package Manager Perl modules", 
       :licenses=>"gpl_2", 
       :repository_url=>"https://git.dpkg.org/cgit/dpkg/dpkg.git",
+      :keywords_array=>["dpkg", "debian", "perl"],
       :metadata=>{
         :author=>"GUILLEM"
       }
