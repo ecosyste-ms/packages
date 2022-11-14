@@ -51,7 +51,7 @@ class Package < ApplicationRecord
   end
 
   def update_dependent_package_ids
-    Dependency.where(package_id: nil, ecosystem: registry.ecosystem, package_name: name).update_all(package_id: id)
+    Dependency.where(package_id: nil, ecosystem: registry.ecosystem, package_name: name).in_batches.update_all(package_id: id)
   end
 
   def update_dependent_packages_count
