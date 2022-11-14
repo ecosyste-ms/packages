@@ -91,5 +91,21 @@ module Ecosystem
         }
       end
     end
+
+    def maintainers_metadata(name)
+      pkg = get("https://fastapi.metacpan.org/v1/release/#{name}")
+      return unless pkg && pkg["author"].present?
+      author = get("https://fastapi.metacpan.org/author/#{pkg["author"]}")
+      return unless author 
+      [
+        {
+          uuid: author["pauseid"],
+          login: author["pauseid"],
+          name: author["name"],
+          email: Array(author["email"]).join(','),
+          url: author['website'].first
+        }
+      ]
+    end
   end
 end
