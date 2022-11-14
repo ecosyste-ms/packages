@@ -360,6 +360,7 @@ DEPENDENCIES
   rails (~> 7.0.4)
   rails-controller-testing
   redis (< 5)
+  rexml
   rswag-api
   rswag-ui
   sanitize-url

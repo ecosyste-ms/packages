@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require "xmlrpc/client"
 
 module Ecosystem
   class Pypi < Base
@@ -117,7 +118,7 @@ module Ecosystem
         package_name.gsub("_", "-"),
       ]
     end
-
+    
     def maintainers_metadata(name)
       server = XMLRPC::Client.new 'pypi.org', 'pypi', 80
       roles = server.call 'package_roles', name
