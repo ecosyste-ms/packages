@@ -57,5 +57,16 @@ module Ecosystem
     def versions_metadata(package)
       [] # unsupported
     end
+
+    def maintainers_metadata(name)
+      pkg = fetch_package_metadata(name)
+      return [] unless pkg
+      pkg["authors"].map do |email|
+        {
+          uuid: email,
+          email: email
+        }
+      end
+    end
   end
 end
