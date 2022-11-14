@@ -91,5 +91,16 @@ module Ecosystem
     rescue StandardError
       []
     end
+
+    def maintainers_metadata(name)
+      json = get_json("#{@registry_url}/data/packages/#{name}.json")
+      json["maintainers"].map do |m|
+        {
+          uuid: m,
+          login: m,
+          url: "https://github.com/#{m}",
+        }
+      end
+    end
   end
 end
