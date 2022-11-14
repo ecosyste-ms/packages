@@ -40,6 +40,13 @@ module Ecosystem
       end
     end
 
+    def check_status(package)
+      pkg = packages[package.name.downcase]
+      return "removed" if pkg.nil?
+      response = Typhoeus.head(pkg['url'])
+      "removed" if [400, 404, 410].include?(response.response_code)
+    end
+
     def versions_metadata(pkg_metadata)
       repo_json = get_json("https://repos.ecosyste.ms/api/v1/repositories/lookup?url=#{CGI.escape(pkg_metadata[:repository_url])}")
       return [] if repo_json.blank?
@@ -94,7 +101,7 @@ module Ecosystem
     end
 
     def load_bower_json(package)
-      return package unless package['url']
+      return package unless package && package['url']
       github_name_with_owner = GithubUrlParser.parse(package['url'])  # TODO this could be any host
       return package unless github_name_with_owner
       get_json("https://raw.githubusercontent.com/#{github_name_with_owner}/master/bower.json") rescue {}
