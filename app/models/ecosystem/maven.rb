@@ -26,7 +26,7 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      all_package_names.shuffle.first(100)
+      get_json("https://maven.libraries.io/mavenCentral/recent").sort_by{|h| Time.at(h['lastModified']/1000)}.reverse.map{|h| h["name"]}.uniq.first(100) rescue []
     end
 
     def fetch_package_metadata(name)
