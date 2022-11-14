@@ -102,5 +102,16 @@ module Ecosystem
 
       "https://github.com/#{match[1]}"
     end
+
+    def maintainers_metadata(name)
+      page = get_html("#{@registry_url}/package/#{name}/maintainers", headers: { "Accept" => "text/html" })
+      return [] if page.nil?
+      page.css('#content ul a').map do |a|
+        {
+          uuid: a.text,
+          login: a.text
+        }
+      end
+    end
   end
 end
