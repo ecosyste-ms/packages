@@ -53,7 +53,7 @@ module Ecosystem
         homepage: package[:properties].fetch("URL:", "").split(",").first,
         description: package[:html].css("h2").text.split(":")[1..-1].join(":").strip,
         licenses: package[:properties]["License:"],
-        repository_url: repo_fallback("", (package[:properties].fetch("URL:", "").split(",").first.presence || package[:properties]["BugReports:"])).to_s[0, 255],
+        repository_url: repo_fallback(package[:properties].fetch("URL:", "").split(",").first.presence, (package[:properties].fetch("URL:", "").split(",").last.presence || package[:properties]["BugReports:"])).to_s[0, 255],
         properties: package[:properties]
       }
     end
@@ -116,6 +116,20 @@ module Ecosystem
       `rm -rf /tmp/#{folder_name}` if folder_name.present?
       `rm -rf /tmp/#{tarball_name}` if tarball_name.present?
       []
+    end
+
+    def maintainers_metadata(name)
+      pkg = fetch_package_metadata(name)
+      maintainers = pkg[:properties].fetch("Maintainer:", "").split(",")
+      maintainers.map do |string|
+        name, email = string.split(' <')
+        email = email.gsub('>','').gsub(' at ', '@')
+        {
+          uuid: email,
+          name: name.strip,
+          email: email
+        }
+    end
     end
   end
 end
