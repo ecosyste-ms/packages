@@ -123,13 +123,14 @@ module Ecosystem
       maintainers = pkg[:properties].fetch("Maintainer:", "").split(",")
       maintainers.map do |string|
         name, email = string.split(' <')
+        next if email.nil?
         email = email.gsub('>','').gsub(' at ', '@')
         {
           uuid: email,
           name: name.strip,
           email: email
         }
-    end
+      end.compact
     end
   end
 end
