@@ -41,6 +41,8 @@ module Ecosystem
       latest_version_xml = download_pom(group_id, artifact_id, latest_version_number)
       return nil if latest_version_xml.nil?
       mapping_from_pom_xml(latest_version_xml, 0).merge({ name: name, versions: version_numbers })
+    rescue 
+      nil
     end
 
     def map_package_metadata(package)
