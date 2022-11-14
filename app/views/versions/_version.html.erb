@@ -14,10 +14,10 @@
         <%= link_to 'Documentation', version.documentation_url, target: :_blank %> - 
       <% end %>
       <% if version.download_url.present? %>
-        <%= link_to 'Download', version.download_url, target: :_blank %> -
+        <%= link_to 'Download', version.download_url, target: :_blank %>
       <% end %>
       <% if version.integrity.present? %>
-        Integrity: <span title="<%= version.integrity %>"><%= version.integrity.first(20) %>...</span> -
+        <span title="<%= version.integrity %>"><%= version.integrity.first(20) %>...</span>
       <% end %>
     </small>
   </div>
