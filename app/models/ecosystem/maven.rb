@@ -40,7 +40,7 @@ module Ecosystem
       latest_version_number = version_numbers.last if latest_version_number.blank?
       latest_version_xml = download_pom(group_id, artifact_id, latest_version_number)
       return nil if latest_version_xml.nil?
-      mapping_from_pom_xml(latest_version_xml, 0).merge({ name: name, versions: version_numbers })
+      mapping_from_pom_xml(latest_version_xml, 0).merge({ name: name, versions: version_numbers, namespace: group_id })
     rescue 
       nil
     end

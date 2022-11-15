@@ -82,6 +82,7 @@ class ClojarsTest < ActiveSupport::TestCase
     assert_equal package_metadata[:repository_url], "https://github.com/leonoel/missionary"
     assert_equal package_metadata[:downloads], 5990
     assert_equal package_metadata[:downloads_period], "total"
+    assert_equal package_metadata[:namespace], "missionary"
     assert_nil package_metadata[:keywords_array]
   end
 

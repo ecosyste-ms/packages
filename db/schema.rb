@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_11_14_112439) do
+ActiveRecord::Schema[7.0].define(version: 2022_11_15_092616) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -86,6 +86,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_14_112439) do
     t.string "downloads_period"
     t.integer "dependent_repos_count", default: 0
     t.json "rankings", default: {}
+    t.string "namespace"
     t.index "(((rankings ->> 'average'::text))::double precision)", name: "index_packages_on_rankings_average"
     t.index "registry_id, (((repo_metadata ->> 'forks_count'::text))::integer)", name: "index_packages_on_forks_count"
     t.index "registry_id, (((repo_metadata ->> 'stargazers_count'::text))::integer)", name: "index_packages_on_stargazers_count"
@@ -94,6 +95,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_14_112439) do
     t.index ["registry_id", "dependent_repos_count"], name: "index_packages_on_registry_id_and_dependent_repos_count"
     t.index ["registry_id", "downloads"], name: "index_packages_on_registry_id_and_downloads"
     t.index ["registry_id", "name"], name: "index_packages_on_registry_id_and_name", unique: true
+    t.index ["registry_id", "namespace"], name: "index_packages_on_registry_id_and_namespace"
   end
 
   create_table "registries", force: :cascade do |t|

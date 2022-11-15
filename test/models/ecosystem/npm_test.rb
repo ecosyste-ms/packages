@@ -85,6 +85,7 @@ class NpmTest < ActiveSupport::TestCase
     assert_equal package_metadata[:keywords_array], ["base-62", "encoder", "decoder"]
     assert_equal package_metadata[:downloads], 1076972
     assert_equal package_metadata[:downloads_period], "last-month"
+    assert_nil package_metadata[:namespace]
   end
 
   test 'versions_metadata' do

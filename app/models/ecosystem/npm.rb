@@ -77,10 +77,16 @@ module Ecosystem
         time: package["time"],
         downloads: downloads(package),
         downloads_period: "last-month",
+        namespace: namespace(package),
         metadata: {
           "funding" => latest_version["funding"],
         }
       }
+    end
+
+    def namespace(package)
+      return nil if package["_id"].split("/").length == 1
+      package["_id"].split("/").first.gsub('@', '')
     end
 
     def downloads(package)

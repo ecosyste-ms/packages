@@ -71,6 +71,7 @@ module Ecosystem
         versions: pkg_metadata['versions'],
         downloads: pkg_metadata["downloads"]['total'],
         downloads_period: 'total',
+        namespace: pkg_metadata["name"].split("/").first,
         metadata: {
           "funding" => latest_version["funding"],
         }

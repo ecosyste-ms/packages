@@ -79,6 +79,7 @@ class PackagistTest < ActiveSupport::TestCase
     assert_equal package_metadata[:keywords_array], ["log", "psr", "psr-3"]
     assert_equal package_metadata[:downloads], 566842099
     assert_equal package_metadata[:downloads_period], 'total'
+    assert_equal package_metadata[:namespace], 'psr'
   end
 
   test 'versions_metadata' do

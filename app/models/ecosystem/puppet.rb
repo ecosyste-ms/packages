@@ -37,7 +37,8 @@ module Ecosystem
         licenses: metadata["license"],
         releases: package['releases'],
         downloads: package['downloads'],
-        downloads_period: 'total'
+        downloads_period: 'total',
+        namespace: package['owner']['slug'],
       }
     end
 

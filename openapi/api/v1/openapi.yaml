@@ -576,6 +576,8 @@ components:
         keywords_array:
           type: array
           items: {}
+        namespace:
+          type: string
         versions_count:
           type: integer
         latest_release_published_at:

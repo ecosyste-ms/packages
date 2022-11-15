@@ -78,6 +78,7 @@ class MavenTest < ActiveSupport::TestCase
     assert_equal package_metadata[:licenses], "APL2"
     assert_equal package_metadata[:repository_url], "https://github.com/zio/zio-aws"
     assert_nil package_metadata[:keywords_array]
+    assert_equal package_metadata[:namespace], "dev.zio"
   end
 
   test 'versions_metadata' do

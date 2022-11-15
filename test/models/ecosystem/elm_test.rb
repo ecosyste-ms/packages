@@ -77,6 +77,7 @@ class ElmTest < ActiveSupport::TestCase
     assert_equal package_metadata[:licenses], "BSD-3-Clause"
     assert_equal package_metadata[:repository_url], "https://github.com/rtfeldman/count"
     assert_nil package_metadata[:keywords_array]
+    assert_equal package_metadata[:namespace], "rtfeldman"
   end
 
   test 'versions_metadata' do

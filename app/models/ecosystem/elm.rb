@@ -43,6 +43,7 @@ module Ecosystem
         description: package["summary"],
         licenses: package['license'],
         repository_url: "https://github.com/#{package['name']}",
+        namespace: package['name'].split('/')[0]
       }
     end
 

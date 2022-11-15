@@ -80,6 +80,7 @@ class PuppetTest < ActiveSupport::TestCase
     assert_equal package_metadata[:keywords_array], ["iptables", "fail2ban", "firewall", "firewalling"]
     assert_equal package_metadata[:downloads], 50321
     assert_equal package_metadata[:downloads_period], "total"
+    assert_equal package_metadata[:namespace], "puppet"
   end
 
   test 'versions_metadata' do
