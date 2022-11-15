@@ -28,11 +28,6 @@ class PackageTest < ActiveSupport::TestCase
     @package.update_details
   end
 
-  test 'update_details before_save' do
-    @package.expects(:update_details).returns(true)
-    @package.save
-  end
-
   test 'normalize_licenses' do
     @package.normalize_licenses
     assert_equal @package.normalized_licenses, ["MIT"]

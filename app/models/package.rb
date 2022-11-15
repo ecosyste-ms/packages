@@ -23,7 +23,6 @@ class Package < ApplicationRecord
 
   scope :with_funding, -> { where("length(metadata ->> 'funding') > 2 OR length(repo_metadata -> 'metadata' ->> 'funding') > 2 OR repo_metadata -> 'owner_record' -> 'metadata' ->> 'has_sponsors_listing' = 'true'") }
 
-  before_save  :update_details
   after_commit :update_repo_metadata_async, on: :create
 
   def self.sync_least_recent_async
@@ -91,6 +90,7 @@ class Package < ApplicationRecord
     normalize_licenses
     set_latest_release_published_at
     set_latest_release_number
+    save
   end
 
   def latest_version
