@@ -18,8 +18,8 @@
     <% if @version.integrity.present? %>
       <br>Integrity: <span title='<%= @version.integrity %>'><%= truncate(@version.integrity) %> -
     <% end %>
-    <br>Published: <%= time_ago_in_words @version.published_at %> ago
-    <br>Indexed: <%= time_ago_in_words @version.created_at %> ago 
+    <br>Published: <time datetime="<%= @version.published_at %>"><%= time_ago_in_words @version.published_at %> ago</time>
+    <br>Indexed: <time datetime="<%= @version.created_at %>"><%= time_ago_in_words @version.created_at %> ago</time>
     <% if @version.related_tag %>
       <br>Related tag:
       <% if @version.related_tag["html_url"] %>
