@@ -8,6 +8,10 @@ module Ecosystem
       "https://pkg.go.dev/#{package.name}#{"@#{version}" if version}#section-documentation"
     end
 
+    def check_status_url(package)
+      "#{@registry_url}/#{encode_for_proxy(package.name)}/@v/list"
+    end
+
     def install_command(package, version = nil)
       "go get #{package.name}#{"@#{version}" if version}"
     end
@@ -41,18 +45,15 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
-      # get_html will send back an empty string if response is not a 200
-      # a blank response means that the package was not found on pkg.go.dev site
-      # if it is not found on that site it should be considered an invalid package name
-      # although the go proxy may respond with data for this package name
-      doc_html = get_html("https://pkg.go.dev/#{name}")
+    def fetch_package_metadata(name)      
+      resp = request("https://pkg.go.dev/#{name}")
 
-      # send back nil if the response is blank
-      # base package manager handles if the package is not present
-      { name: name, html: doc_html, overview_html: doc_html } unless doc_html.text.blank?
-    rescue
-      false
+      if resp.success?
+        doc_html = Nokogiri::HTML(resp.body)
+        { name: name, html: doc_html, overview_html: doc_html }
+      else
+        { name: name, repository_url: UrlParser.try_all(name) }
+      end
     end
 
     def map_package_metadata(package)
