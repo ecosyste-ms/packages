@@ -68,7 +68,7 @@ module Ecosystem
           homepage: url,
         }
       else
-        { name: package[:name] }
+        { name: package[:name], repository_url: UrlParser.try_all(package[:name]) }
       end
     end
 
