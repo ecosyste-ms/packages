@@ -106,14 +106,18 @@ module Ecosystem
     end
 
     def versions_fallback(package)
-      # fallback to scraping the html page if the proxy doesn't respond
-      # this is slower but will work for all packages
-      doc_html = get_html("https://pkg.go.dev/#{package[:name]}?tab=versions")
-      doc_html.css(".Version-tag a").map do |link|
-        {
-          number: link.text,
-          published_at: get_version(package[:name], link.text).fetch('Time',nil)
-        }
+      resp = request("https://pkg.go.dev/#{package[:name]}?tab=versions")
+
+      if resp.success?
+        doc_html = Nokogiri::HTML(resp.body)
+        doc_html.css(".Version-tag a").map do |link|
+          {
+            number: link.text,
+            published_at: get_version(package[:name], link.text).fetch('Time',nil)
+          }
+        end
+      else
+        []
       end
     end
 
