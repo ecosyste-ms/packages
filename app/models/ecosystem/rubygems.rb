@@ -45,7 +45,7 @@ module Ecosystem
     end
 
     def map_package_metadata(pkg_metadata)
-      return false if pkg_metadata["name"].blank?
+      return false if pkg_metadata.blank? || pkg_metadata["name"].blank?
       {
         name: pkg_metadata["name"],
         description: pkg_metadata["info"],
