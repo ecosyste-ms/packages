@@ -46,6 +46,8 @@ module Ecosystem
 
     def fetch_package_metadata(name)
       get_json("#{@registry_url}/#{name.gsub('/', '%2F')}")
+    rescue
+      {}
     end
 
     def deprecation_info(name)
