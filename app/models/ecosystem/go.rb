@@ -73,13 +73,14 @@ module Ecosystem
     end
 
     def versions_metadata(package)
-      txt = get_raw("#{@registry_url}/#{encode_for_proxy(package[:name])}/@v/list")
+      url = "#{@registry_url}/#{encode_for_proxy(package[:name])}/@v/list"
+      txt = get_raw(url)
       versions = txt.split("\n")
 
       versions.map do |v|
         {
           number: v,
-          published_at: get_version(package[:name], v).fetch('Time')
+          published_at: get_version(package[:name], v).fetch('Time',nil)
         }
       end
     rescue StandardError
@@ -108,7 +109,7 @@ module Ecosystem
     end
 
     def get_version(package_name, version)
-      get_json("#{@registry_url}/#{encode_for_proxy(package_name)}/@v/#{version}.info")
+      get_json("#{@registry_url}/#{encode_for_proxy(package_name)}/@v/#{version}.info") rescue {}
     end
 
     # will convert a string with capital letters and replace with a "!" prepended to the lowercase letter
