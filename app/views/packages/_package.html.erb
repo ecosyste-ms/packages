@@ -46,7 +46,7 @@
         - <%= pluralize number_with_delimiter(package.dependent_repos_count), 'dependent repositories' %>
       <% end %>
 
-      <% if package.downloads %>
+      <% if package.downloads && package.downloads_period %>
         - <%= number_to_human(package.downloads).downcase %> downloads <%= download_period(package.downloads_period) %>
       <% end %>
 
