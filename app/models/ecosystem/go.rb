@@ -73,18 +73,34 @@ module Ecosystem
     end
 
     def versions_metadata(package)
-      url = "#{@registry_url}/#{encode_for_proxy(package[:name])}/@v/list"
-      txt = get_raw(url)
+      txt = get_raw("#{@registry_url}/#{encode_for_proxy(package[:name])}/@v/list")
       versions = txt.split("\n")
 
-      versions.map do |v|
-        {
-          number: v,
-          published_at: get_version(package[:name], v).fetch('Time',nil)
-        }
+      if versions.any?
+        versions.map do |v|
+          {
+            number: v,
+            published_at: get_version(package[:name], v).fetch('Time',nil)
+          }
+        end
+      else
+        versions_fallback(package)
       end
+
     rescue StandardError
       []
+    end
+
+    def versions_fallback(package)
+      # fallback to scraping the html page if the proxy doesn't respond
+      # this is slower but will work for all packages
+      doc_html = get_html("https://pkg.go.dev/#{package[:name]}?tab=versions")
+      doc_html.css(".Version-tag a").map do |link|
+        {
+          number: link.text,
+          published_at: get_version(package[:name], link.text).fetch('Time',nil)
+        }
+      end
     end
 
     def dependencies_metadata(name, version, _package)
