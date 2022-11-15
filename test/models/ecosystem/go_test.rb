@@ -45,7 +45,7 @@ class GoTest < ActiveSupport::TestCase
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "https://pkg.go.dev/github.com/aws/smithy-go"
+    assert_equal check_status_url, "https://proxy.golang.org/github.com/aws/smithy-go/@v/list"
   end
 
   test 'all_package_names' do
