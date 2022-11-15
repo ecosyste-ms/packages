@@ -541,6 +541,9 @@ components:
         packages_count:
           type: integer
           format: int64
+        maintainers_count:
+          type: integer
+          format: int64
         github:
           type: string
         metadata:
@@ -552,6 +555,8 @@ components:
           type: string
           format: date-time
         packages_url:
+          type: string
+        maintainers_url:
           type: string
     Package:
       type: object
@@ -612,6 +617,10 @@ components:
           type: integer
         rankings:
           type: object
+        maintainers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Maintainer'
     Version:
       type: object
       properties:
