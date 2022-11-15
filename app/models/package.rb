@@ -185,8 +185,8 @@ class Package < ApplicationRecord
   end
 
   def check_status
-    status = registry.ecosystem_instance.check_status(self)
-    update_columns(status: status, last_synced_at: Time.now) if status.present?
+    self.status = registry.ecosystem_instance.check_status(self)
+    update_columns(status: status, last_synced_at: Time.now) if status_changed? or status.present?
   end
 
   def check_status_async
