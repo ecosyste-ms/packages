@@ -87,8 +87,14 @@ module Ecosystem
     end
 
     def versions_metadata(package)
-      txt = get_raw("#{@registry_url}/#{encode_for_proxy(package[:name])}/@v/list")
-      versions = txt.split("\n")
+      resp = request("#{@registry_url}/#{encode_for_proxy(package[:name])}/@v/list")
+
+      if resp.success?
+        text = resp.body
+        versions = txt.split("\n")
+      else
+        versions = []
+      end
 
       if versions.any?
         versions.map do |v|
