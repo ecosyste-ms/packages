@@ -8,8 +8,16 @@ module Ecosystem
       "https://pkg.go.dev/#{package.name}#{"@#{version}" if version}#section-documentation"
     end
 
-    def check_status_url(package)
-      "#{@registry_url}/#{encode_for_proxy(package.name)}/@v/list"
+    def check_status(package)
+      url = "https://pkg.go.dev/#{package.name}"
+      response = Typhoeus.head(url)
+      if [400, 404, 410].include?(response.response_code)
+        proxy_url = "#{@registry_url}/#{encode_for_proxy(package.name)}/@v/list"
+        response = Typhoeus.get(proxy_url)
+        if [400, 404, 410].include?(response.response_code) || response.body.length.zero?
+          "removed"
+        end
+      end
     end
 
     def install_command(package, version = nil)
@@ -52,7 +60,12 @@ module Ecosystem
         doc_html = Nokogiri::HTML(resp.body)
         { name: name, html: doc_html, overview_html: doc_html }
       else
-        { name: name, repository_url: UrlParser.try_all(name) }
+        resp = request("#{@registry_url}/#{encode_for_proxy(name)}/@v/list")
+        if resp.success? && resp.body.length > 0
+          { name: name, repository_url: UrlParser.try_all(name) }
+        else
+          false
+        end
       end
     end
 

@@ -43,11 +43,6 @@ class GoTest < ActiveSupport::TestCase
     assert_equal install_command, 'go get github.com/aws/smithy-go@v1.11.1'
   end
 
-  test 'check_status_url' do
-    check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "https://proxy.golang.org/github.com/aws/smithy-go/@v/list"
-  end
-
   test 'all_package_names' do
     stub_request(:get, "https://index.golang.org/index")
       .to_return({ status: 200, body: file_fixture('go/index') })
