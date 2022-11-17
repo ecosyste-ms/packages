@@ -20,6 +20,7 @@ class Package < ApplicationRecord
   scope :with_repo_metadata, -> { where('length(repo_metadata::text) > 2') }
   scope :without_repo_metadata, -> { where('length(repo_metadata::text) = 2') }
   scope :with_rankings, -> { where('length(rankings::text) > 2') }
+  scope :without_rankings, -> { where('length(rankings::text) = 2') }
 
   scope :with_funding, -> { where("length(metadata ->> 'funding') > 2 OR length(repo_metadata -> 'metadata' ->> 'funding') > 2 OR repo_metadata -> 'owner_record' -> 'metadata' ->> 'has_sponsors_listing' = 'true'") }
 
