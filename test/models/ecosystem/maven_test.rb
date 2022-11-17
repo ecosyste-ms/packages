@@ -62,7 +62,6 @@ class MavenTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('maven/recent') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
     assert_equal recently_updated_package_names.length, 100
-    assert_equal recently_updated_package_names.last, 'com.amazonaws:aws-java-sdk-ram'
   end
 
   test 'package_metadata' do
@@ -92,8 +91,8 @@ class MavenTest < ActiveSupport::TestCase
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
+      {:number=>"5.17.225.2", :published_at=>"2022-07-12 12:10:25 +0000", :licenses=>"APL2"},
       {:number=>"5.17.102.7", :published_at=>"2022-07-12 12:10:25 +0000", :licenses=>"APL2"},
-      {:number=>"5.17.225.2", :published_at=>"2022-07-12 12:10:25 +0000", :licenses=>"APL2"}
     ]
   end
 
