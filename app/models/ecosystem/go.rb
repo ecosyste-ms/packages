@@ -11,7 +11,7 @@ module Ecosystem
     def check_status(package)
       url = "https://pkg.go.dev/#{package.name}"
       response = Typhoeus.head(url)
-      if [400, 404, 410].include?(response.response_code)
+      if [400, 404, 410, 302, 301].include?(response.response_code)
         proxy_url = "#{@registry_url}/#{encode_for_proxy(package.name)}/@v/list"
         response = Typhoeus.get(proxy_url)
         if [400, 404, 410].include?(response.response_code) || response.body.length.zero?
