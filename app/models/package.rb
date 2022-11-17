@@ -41,7 +41,7 @@ class Package < ApplicationRecord
     Package.active
             .where(downloads: nil)
             .where(ecosystem: ['cargo','clojars','hackage','hex','homebrew','julia','npm','nuget','packagist','puppet','rubygems','pypi'])
-            .limit(1000).each(&:sync_async)
+            .limit(1000).select('id').each(&:sync_async)
   end
 
   def self.sync_maintainers_async
@@ -50,12 +50,12 @@ class Package < ApplicationRecord
             .without_maintainerships
             .where(ecosystem: ['cargo','clojars','cocoapods','cpan','cran','elpa','hackage','hex','npm','nuget','packagist','pypi','rubygems','racket','spack'])
             .order('last_synced_at desc nulls last')
-            .limit(1000).each(&:sync_maintainers)
+            .limit(1000).select('id').each(&:sync_maintainers_async)
   end
 
   def self.update_rankings_async
     return if Sidekiq::Queue.new('default').size > 10_000
-    Package.active.without_rankings.order('last_synced_at desc nulls last').limit(1000).each(&:update_rankings_async)
+    Package.active.without_rankings.order('last_synced_at desc nulls last').limit(1000).select('id').each(&:update_rankings_async)
   end
 
   def to_param
