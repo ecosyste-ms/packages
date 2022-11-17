@@ -65,8 +65,9 @@ module Ecosystem
       }
     end
 
-    def versions_metadata(package)
-      package.fetch(:versions, []).map do |v|
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
+      # TODO backfill version data from repos service (similar to bower)
+      pkg_metadata.fetch(:versions, []).map do |v|
         {
           number: v,
         }

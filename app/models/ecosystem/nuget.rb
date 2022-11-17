@@ -109,21 +109,21 @@ module Ecosystem
       item["description"].blank? ? item["summary"] : item["description"]
     end
 
-    def versions_metadata(package)
-      package[:releases].map do |item|
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
+      pkg_metadata[:releases].map do |item|
         {
           number: item["catalogEntry"]["version"],
           published_at: item["catalogEntry"]["published"],
           metadata: {
-            downloads: version_downloads(package, item["catalogEntry"]["version"])
+            downloads: version_downloads(pkg_metadata, item["catalogEntry"]["version"])
           }
         }
       end
     end
 
-    def version_downloads(package, version)
-      return nil unless package[:download_stats]['data'].any?
-      package[:download_stats]['data'][0]['versions'].find{|v| v['version'] == version}.try(:fetch,'downloads')
+    def version_downloads(pkg_metadata, version)
+      return nil unless pkg_metadata[:download_stats]['data'].any?
+      pkg_metadata[:download_stats]['data'][0]['versions'].find{|v| v['version'] == version}.try(:fetch,'downloads')
     end
 
     def dependencies_metadata(_name, version, package)

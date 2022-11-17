@@ -64,9 +64,9 @@ module Ecosystem
       }
     end
 
-    def versions_metadata(package)
-      package[:releases].map do |version|
-        vers = get("#{@registry_url}/api/packages/#{package[:name]}/releases/#{version["version"]}")
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
+      pkg_metadata[:releases].reject{|v| existing_version_numbers.include?(v['version'])}.map do |version|
+        vers = get("#{@registry_url}/api/packages/#{pkg_metadata[:name]}/releases/#{version["version"]}")
         return nil if vers.blank?
         {
           number: version["version"],

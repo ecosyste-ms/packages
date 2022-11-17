@@ -63,8 +63,8 @@ module Ecosystem
       }
     end
 
-    def versions_metadata(package)
-      package[:versions].map do |v|
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
+      pkg_metadata[:versions].map do |v|
         {
           number: v["version"],
           integrity: "sha256-" + v['sha256'],

@@ -78,7 +78,7 @@ module Ecosystem
       }
     end
 
-    def versions_metadata(pkg_metadata)
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
       acceptable_versions(pkg_metadata[:versions]).map do |name, version|
         {
           number: version["version"],

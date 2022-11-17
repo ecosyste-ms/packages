@@ -54,7 +54,7 @@ module Ecosystem
       page.at('a:contains("Code")') || page.at('th:contains("Documentation")').parent.css('a').first
     end
 
-    def versions_metadata(package)
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
       [] # unsupported
     end
 

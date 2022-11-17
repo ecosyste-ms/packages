@@ -47,7 +47,7 @@ module Ecosystem
       "removed" if [400, 404, 410].include?(response.response_code)
     end
 
-    def versions_metadata(pkg_metadata)
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
       repo_json = get_json("https://repos.ecosyste.ms/api/v1/repositories/lookup?url=#{CGI.escape(pkg_metadata[:repository_url])}")
       return [] if repo_json.blank?
       tags_json = get_json("https://repos.ecosyste.ms/api/v1/hosts/#{repo_json['host']['name']}/repositories/#{repo_json['full_name']}/tags")

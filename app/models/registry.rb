@@ -91,7 +91,6 @@ class Registry < ApplicationRecord
     package_metadata = ecosystem_instance.package_metadata(name)
     return false unless package_metadata
     package_metadata[:ecosystem] = ecosystem.downcase
-    versions_metadata = ecosystem_instance.versions_metadata(package_metadata)
 
     package = packages.find_or_initialize_by(name: package_metadata[:name])
     if package.new_record?
@@ -104,6 +103,8 @@ class Registry < ApplicationRecord
 
     new_versions = []
     existing_version_numbers = package.versions.pluck('number')
+
+    versions_metadata = ecosystem_instance.versions_metadata(package_metadata, existing_version_numbers)
 
     versions_metadata.each do |version|
       new_versions << version.merge(package_id: package.id, created_at: Time.now, updated_at: Time.now) unless existing_version_numbers.find { |v| v == version[:number] }

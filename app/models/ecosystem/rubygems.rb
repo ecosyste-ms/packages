@@ -60,7 +60,7 @@ module Ecosystem
       }
     end
 
-    def versions_metadata(pkg_metadata)
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
       json = get_json("#{@registry_url}/api/v1/versions/#{pkg_metadata[:name]}.json")
       json.map do |v|
         number = v["platform"] == 'ruby' ? v["number"] : "#{v["number"]}-#{v["platform"]}"

@@ -51,11 +51,11 @@ module Ecosystem
       }
     end
 
-    def versions_metadata(package)
-      fields = extract_fields(package[:page])
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
+      fields = extract_fields(pkg_metadata[:page])
       filename = fields['Latest'].split(',')[0]
       date = fields['Latest'].split(', ')[1]
-      version = filename.gsub("#{package[:name]}-",'').gsub('.tar','')
+      version = filename.gsub("#{pkg_metadata[:name]}-",'').gsub('.tar','')
       [{ number: version, published_at: date }]
     end
 

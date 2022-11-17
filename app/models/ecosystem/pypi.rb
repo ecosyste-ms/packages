@@ -68,7 +68,7 @@ module Ecosystem
       }
     end
 
-    def versions_metadata(pkg_metadata)
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
       pkg_metadata[:releases].reject { |_k, v| v == [] }.map do |k, v|
         {
           number: k,

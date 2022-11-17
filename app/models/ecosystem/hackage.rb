@@ -53,9 +53,9 @@ module Ecosystem
       }
     end
 
-    def versions_metadata(package)
-      versions = find_attribute(package[:page], "Versions")
-      versions = find_attribute(package[:page], "Version") if versions.nil?
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
+      versions = find_attribute(pkg_metadata[:page], "Versions")
+      versions = find_attribute(pkg_metadata[:page], "Version") if versions.nil?
       versions.delete("(info)").split(",").map(&:strip).map do |v|
         {
           number: v,

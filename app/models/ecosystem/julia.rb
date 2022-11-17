@@ -99,7 +99,7 @@ module Ecosystem
       nil
     end
 
-    def versions_metadata(pkg_metadata)
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
       begin
         repo_json = get_json("https://repos.ecosyste.ms/api/v1/repositories/lookup?url=#{CGI.escape(pkg_metadata[:repository_url])}")
         tags_json = get_json("https://repos.ecosyste.ms/api/v1/hosts/#{repo_json['host']['name']}/repositories/#{repo_json['full_name']}/tags")

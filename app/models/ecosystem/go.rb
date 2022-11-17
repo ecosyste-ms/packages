@@ -86,8 +86,8 @@ module Ecosystem
       end
     end
 
-    def versions_metadata(package)
-      resp = request("#{@registry_url}/#{encode_for_proxy(package[:name])}/@v/list")
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
+      resp = request("#{@registry_url}/#{encode_for_proxy(pkg_metadata[:name])}/@v/list")
 
       if resp.success?
         text = resp.body
@@ -97,31 +97,32 @@ module Ecosystem
       end
 
       if versions.any?
-        versions.sort.reverse.first(50).map do |v|
+        versions.reject{|v| existing_version_numbers.include?(v)}.sort.reverse.first(50).map do |v|
           {
             number: v,
-            published_at: get_version(package[:name], v).fetch('Time',nil)
+            published_at: get_version(pkg_metadata[:name], v).fetch('Time',nil)
           }
         end
       else
-        versions_fallback(package)
+        versions_fallback(pkg_metadata, existing_version_numbers)
       end
 
     rescue StandardError
       []
     end
 
-    def versions_fallback(package)
+    def versions_fallback(package, existing_version_numbers = [])
       resp = request("https://pkg.go.dev/#{package[:name]}?tab=versions")
 
       if resp.success?
         doc_html = Nokogiri::HTML(resp.body)
-        doc_html.css(".Version-tag a").map do |link|
+        doc_html.css(".Version-tag a").first(50).map do |link|
+          next if existing_version_numbers.include?(link.text)
           {
             number: link.text,
             published_at: get_version(package[:name], link.text).fetch('Time',nil)
           }
-        end
+        end.compact
       else
         []
       end

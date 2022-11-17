@@ -48,8 +48,8 @@ module Ecosystem
       }
     end
 
-    def versions_metadata(package)
-      stable = package[:versions]["stable"]
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
+      stable = pkg_metadata[:versions]["stable"]
       return [] if stable.blank?
 
       [

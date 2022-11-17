@@ -53,7 +53,7 @@ module Ecosystem
       }
     end
 
-    def versions_metadata(pkg_metadata)
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
       pkg_metadata[:versions].map do |v|
         {
           number: v['number'],

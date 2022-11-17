@@ -50,8 +50,8 @@ module Ecosystem
       package
     end
 
-    def versions_metadata(pkg_metadata)
-      pkg_metadata[:versions]
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
+      pkg_metadata[:versions].reject{|v| existing_version_numbers.include?(v)}
         .map do |version|
           pom = get_pom(*pkg_metadata[:name].split(':', 2), version)
           next if pom.nil?

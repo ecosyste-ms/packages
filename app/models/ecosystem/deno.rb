@@ -57,10 +57,10 @@ module Ecosystem
       package
     end
 
-    def versions_metadata(package)
-      package[:versions].map do |version|
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
+      pkg_metadata[:versions].reject{|v| existing_version_numbers.include?(v)}.map do |version|
         begin
-          ver = get("https://cdn.deno.land/#{package[:name]}/versions/#{CGI.escape(version)}/meta/meta.json")
+          ver = get("https://cdn.deno.land/#{pkg_metadata[:name]}/versions/#{CGI.escape(version)}/meta/meta.json")
           {
             number: version,
             published_at: ver['uploaded_at'],

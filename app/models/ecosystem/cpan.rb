@@ -63,8 +63,8 @@ module Ecosystem
       }
     end
 
-    def versions_metadata(package)
-      versions = get("https://fastapi.metacpan.org/v1/release/_search?q=distribution:#{package[:name]}&size=5000")["hits"]["hits"]
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
+      versions = get("https://fastapi.metacpan.org/v1/release/_search?q=distribution:#{pkg_metadata[:name]}&size=5000")["hits"]["hits"]
       versions.map do |version|
         {
           number: version["_source"]["version"],

@@ -62,8 +62,8 @@ module Ecosystem
       get_json("https://clojars.org/api/artifacts/#{name}").dig("downloads")
     end
 
-    def versions_metadata(pkg_metadata)
-      pkg_metadata[:versions]
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
+      pkg_metadata[:versions].reject{|v| existing_version_numbers.include?(v)}
         .map do |version|
           group_id, artifact_id = *pkg_metadata[:name].split('/', 2)
           artifact_id = group_id if artifact_id.blank?

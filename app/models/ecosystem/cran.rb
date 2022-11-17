@@ -58,15 +58,15 @@ module Ecosystem
       }
     end
 
-    def versions_metadata(package)
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
       [{
-        number: package[:properties]["Version:"],
-        published_at: package[:properties]["Published:"],
-      }] + find_old_versions(package)
+        number: pkg_metadata[:properties]["Version:"],
+        published_at: pkg_metadata[:properties]["Published:"],
+      }] + find_old_versions(pkg_metadata)
     end
 
-    def find_old_versions(package)
-      archive_page = get_html("https://cran.r-project.org/src/contrib/Archive/#{package[:name]}/")
+    def find_old_versions(pkg_metadata)
+      archive_page = get_html("https://cran.r-project.org/src/contrib/Archive/#{pkg_metadata[:name]}/")
       trs = archive_page.css("table").css("tr").select do |tr|
         tds = tr.css("td")
         tds[1]&.text&.match(/tar\.gz$/)

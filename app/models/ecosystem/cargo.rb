@@ -67,8 +67,8 @@ module Ecosystem
       }
     end
 
-    def versions_metadata(package)
-      package[:versions].map do |version|
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
+      pkg_metadata[:versions].map do |version|
         {
           number: version["num"],
           published_at: version["created_at"],

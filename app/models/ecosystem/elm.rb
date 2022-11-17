@@ -47,8 +47,8 @@ module Ecosystem
       }
     end
 
-    def versions_metadata(package)
-      get("https://package.elm-lang.org/packages/#{package[:name]}/releases.json")
+    def versions_metadata(pkg_metadata, existing_version_numbers = [])
+      get("https://package.elm-lang.org/packages/#{pkg_metadata[:name]}/releases.json")
         .map do |version, timestamp|
           {
             number: version,
