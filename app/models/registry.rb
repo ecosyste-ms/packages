@@ -138,14 +138,11 @@ class Registry < ApplicationRecord
       end
     end
 
-    updates = {last_synced_at: Time.zone.now}
-    updates[:versions_count] = all_versions.length if all_versions
-    package.assign_attributes(updates)
-    if package.save
-      package.update_details
-      package.update_dependent_packages_count
-      package.sync_maintainers_async
-    end
+    package.update(versions_count: package.versions.count, last_synced_at: Time.zone.now)
+    package.update_details
+    package.update_dependent_packages_count
+    package.sync_maintainers_async
+
     # package.update_integrities_async
     return package
   end
