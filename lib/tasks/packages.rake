@@ -57,4 +57,9 @@ namespace :packages do
   task sync_maintainers: :environment do
     Package.sync_maintainers_async
   end
+
+  desc 'update rankings'
+  task update_rankings: :environment do
+    Package.update_rankings_async
+  end
 end

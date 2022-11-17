@@ -53,6 +53,11 @@ class Package < ApplicationRecord
             .limit(1000).each(&:sync_maintainers)
   end
 
+  def self.update_rankings_async
+    return if Sidekiq::Queue.new('default').size > 10_000
+    Package.active.without_rankings.order('last_synced_at desc nulls last').limit(1000).each(&:update_rankings_async)
+  end
+
   def to_param
     name
   end
@@ -336,6 +341,10 @@ class Package < ApplicationRecord
     new_rankings = load_rankings
     return if new_rankings.nil?
     update_column(:rankings, new_rankings) if rankings != new_rankings
+  end
+
+  def update_rankings_async
+    UpdateRankingsWorker.perform_async(id)
   end
 
   def funding_links
