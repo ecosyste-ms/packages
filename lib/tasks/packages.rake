@@ -52,4 +52,9 @@ namespace :packages do
   task update_funded_packages_count: :environment do
     Registry.update_funded_packages_count
   end
+
+  desc 'sync maintainers'
+  task sync_maintainers: :environment do
+    Package.sync_maintainers_async
+  end
 end

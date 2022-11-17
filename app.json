@@ -23,6 +23,10 @@
     {
       "command": "bundle exec rake packages:update_funded_packages_count",
       "schedule": "40 * * * *"
+    },
+    {
+      "command": "bundle exec rake packages:sync_maintainers_async",
+      "schedule": "*/30 * * * *"
     }
   ]
 }

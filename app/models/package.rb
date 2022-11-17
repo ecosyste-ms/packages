@@ -22,6 +22,8 @@ class Package < ApplicationRecord
   scope :with_rankings, -> { where('length(rankings::text) > 2') }
   scope :without_rankings, -> { where('length(rankings::text) = 2') }
 
+  scope :without_maintainerships, -> { includes(:maintainerships).where(maintainerships: {package_id: nil}) }
+
   scope :with_funding, -> { where("length(metadata ->> 'funding') > 2 OR length(repo_metadata -> 'metadata' ->> 'funding') > 2 OR repo_metadata -> 'owner_record' -> 'metadata' ->> 'has_sponsors_listing' = 'true'") }
 
   after_commit :update_repo_metadata_async, on: :create
@@ -38,8 +40,17 @@ class Package < ApplicationRecord
     return if Sidekiq::Queue.new('default').size > 10_000
     Package.active
             .where(downloads: nil)
-            .where(ecosystem: ['cargo','hackage','hex','homebrew','julia','npm','nuget','packagist','puppet','rubygems','pypi'])
+            .where(ecosystem: ['cargo','clojars','hackage','hex','homebrew','julia','npm','nuget','packagist','puppet','rubygems','pypi'])
             .limit(1000).each(&:sync_async)
+  end
+
+  def self.sync_maintainers_async
+    return if Sidekiq::Queue.new('default').size > 10_000
+    Package.active
+            .without_maintainerships
+            .where(ecosystem: ['cargo','clojars','cocoapods','cpan','cran','elpa','hackage','hex','npm','nuget','packagist','pypi','rubygems','racket','spack'])
+            .order('last_synced_at desc nulls last')
+            .limit(1000).each(&:sync_maintainers)
   end
 
   def to_param
