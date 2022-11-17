@@ -97,7 +97,7 @@ module Ecosystem
       end
 
       if versions.any?
-        versions.map do |v|
+        versions.sort.reverse.first(50).map do |v|
           {
             number: v,
             published_at: get_version(package[:name], v).fetch('Time',nil)
