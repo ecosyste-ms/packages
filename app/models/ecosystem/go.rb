@@ -91,7 +91,7 @@ module Ecosystem
 
       if resp.success?
         text = resp.body
-        versions = txt.split("\n")
+        versions = text.split("\n")
       else
         versions = []
       end
