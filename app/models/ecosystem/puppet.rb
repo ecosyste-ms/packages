@@ -43,7 +43,7 @@ module Ecosystem
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
-      pkg_metadata[:releases].reject{|v| existing_version_numbers.include?(v['version'])}.map do |release|
+      pkg_metadata[:releases].reject{|v| existing_version_numbers.include?(v['version'])}.sort_by{|v| v['version'] }.reverse.first(50).map do |release|
         version = get_json("#{@registry_url}/v3/releases/#{pkg_metadata[:name]}-#{release["version"]}")
         integrity = version['file_sha256'] ? 'sha256-' + version['file_sha256'] : nil        
         {

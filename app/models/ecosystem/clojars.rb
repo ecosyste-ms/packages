@@ -63,7 +63,7 @@ module Ecosystem
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
-      pkg_metadata[:versions].reject{|v| existing_version_numbers.include?(v)}
+      pkg_metadata[:versions].reject{|v| existing_version_numbers.include?(v)}.sort.reverse.first(50)
         .map do |version|
           group_id, artifact_id = *pkg_metadata[:name].split('/', 2)
           artifact_id = group_id if artifact_id.blank?

@@ -100,8 +100,8 @@ class ClojarsTest < ActiveSupport::TestCase
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
+      {:number=>"b.26", :published_at=>'2022-01-11 14:34:47 +0000', :licenses=>"Eclipse Public License"},
       {:number=>"b.25", :published_at=>'2021-12-24 08:31:43 +0000', :licenses=>"Eclipse Public License"},
-      {:number=>"b.26", :published_at=>'2022-01-11 14:34:47 +0000', :licenses=>"Eclipse Public License"}
   ]
   end
 
