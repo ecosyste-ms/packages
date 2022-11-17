@@ -26,11 +26,11 @@
     },
     {
       "command": "bundle exec rake packages:sync_maintainers_async",
-      "schedule": "*/30 * * * *"
+      "schedule": "*/20 * * * *"
     },
     {
       "command": "bundle exec rake packages:update_rankings_async",
-      "schedule": "*/20 * * * *"
+      "schedule": "*/5 * * * *"
     }
   ]
 }
