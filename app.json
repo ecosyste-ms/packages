@@ -6,7 +6,7 @@
     },
     {
       "command": "bundle exec rake packages:sync_least_recent",
-      "schedule": "*/15 * * * *"
+      "schedule": "*/5 * * * *"
     },
     {
       "command": "bundle exec rake packages:update_repo_metadata_async",
