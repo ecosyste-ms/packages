@@ -95,7 +95,7 @@ class Registry < ApplicationRecord
      # clean up incorrectly named package records
     if package_metadata[:name] != name 
       # example: request 'aracnid_utils' from pypi but get 'aracnid-utils' back
-      package.find_by_name(name).destroy 
+      packages.find_by_name(name).destroy 
     end
 
     package = packages.find_or_initialize_by(name: package_metadata[:name])
