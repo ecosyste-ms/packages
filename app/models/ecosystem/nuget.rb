@@ -124,8 +124,10 @@ module Ecosystem
     end
 
     def version_downloads(pkg_metadata, version)
-      return nil unless pkg_metadata[:download_stats]['data'].any?
+      return nil unless pkg_metadata[:download_stats] && pkg_metadata[:download_stats]['data'].present?
       pkg_metadata[:download_stats]['data'][0]['versions'].find{|v| v['version'] == version}.try(:fetch,'downloads')
+    rescue
+      nil
     end
 
     def dependencies_metadata(_name, version, package)
