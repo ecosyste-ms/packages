@@ -103,7 +103,7 @@ module Ecosystem
           login: user["login"],
           url: user["url"],
         }
-      end
+      end.uniq_by{|m| m[:login]}
     rescue StandardError
       []
     end
