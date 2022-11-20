@@ -46,10 +46,9 @@ module Ecosystem
     end
 
     def map_package_metadata(package)
-      p package
       return false if package["info"].nil?
       {
-        name: package["info"]["name"],
+        name: package["info"]["name"].downcase,
         description: package["info"]["summary"],
         homepage: (package["info"]["home_page"].presence || package.dig("info", "project_urls", "Homepage").presence || package.dig("info", "project_urls", "Home")),
         keywords_array: Array.wrap(package["info"]["keywords"].try(:split, /[\s.,]+/)),
