@@ -92,7 +92,14 @@ class Registry < ApplicationRecord
     return false unless package_metadata
     package_metadata[:ecosystem] = ecosystem.downcase
 
+     # clean up incorrectly named package records
+    if package_metadata[:name] != name 
+      # example: request 'aracnid_utils' from pypi but get 'aracnid-utils' back
+      package.find_by_name(name).destroy 
+    end
+
     package = packages.find_or_initialize_by(name: package_metadata[:name])
+
     if package.new_record?
       package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page, :time, :download_stats))
       package.save! if package.changed?
