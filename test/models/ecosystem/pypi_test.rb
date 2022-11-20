@@ -53,7 +53,7 @@ class PypiTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('pypi/index.html') })
     all_package_names = @ecosystem.all_package_names
     assert_equal all_package_names.length, 364372
-    assert_equal all_package_names.last, 'zzzZZZzzz'
+    assert_equal all_package_names.last, 'zzzzzzzzz'
   end
 
   test 'recently_updated_package_names' do
@@ -63,7 +63,7 @@ class PypiTest < ActiveSupport::TestCase
     .to_return({ status: 200, body: file_fixture('pypi/packages.xml') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
     assert_equal recently_updated_package_names.length, 114
-    assert_equal recently_updated_package_names.last, 'Lgy'
+    assert_equal recently_updated_package_names.last, 'lgy'
   end
 
   test 'package_metadata' do
