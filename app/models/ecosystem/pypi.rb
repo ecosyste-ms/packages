@@ -26,7 +26,7 @@ module Ecosystem
 
     def all_package_names
       index = Nokogiri::HTML(get_raw("#{@registry_url}/simple/"))
-      index.css("a").map(&:text)
+      index.css("a").map(&:text).map(&:downcase)
     rescue
       []
     end
@@ -36,7 +36,7 @@ module Ecosystem
       updated = SimpleRSS.parse(get_raw(u)).items.map(&:title)
       u = "#{@registry_url}/rss/packages.xml"
       new_packages = SimpleRSS.parse(get_raw(u)).items.map(&:title)
-      (updated.map { |t| t.split(" ").first } + new_packages.map { |t| t.split(" ").first }).uniq
+      (updated.map { |t| t.split(" ").first } + new_packages.map { |t| t.split(" ").first }).map(&:downcase).uniq
     rescue
       []
     end
