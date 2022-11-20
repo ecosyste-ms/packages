@@ -64,6 +64,8 @@ module Ecosystem
 
     def download_stats(name)
       get_json("https://azuresearch-usnc.nuget.org/query?q=packageid:#{name.downcase}")
+    rescue
+      {}
     end
 
     def get_releases(name)

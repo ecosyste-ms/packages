@@ -43,11 +43,10 @@ module Ecosystem
 
     def fetch_package_metadata(name)
       get("#{@registry_url}/pypi/#{name}/json")
-    rescue StandardError
-      {}
     end
 
     def map_package_metadata(package)
+      p package
       return false if package["info"].nil?
       {
         name: package["info"]["name"],
@@ -94,8 +93,6 @@ module Ecosystem
           ecosystem: self.class.name.demodulize.downcase,
         }
       end
-    rescue
-      []
     end
 
     def downloads(package)
