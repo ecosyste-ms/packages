@@ -9,7 +9,7 @@ module Ecosystem
     def check_status(package)
       return "removed" if package.metadata['slug'].blank?
       url = check_status_url(package)
-      response = Typhoeus.head(url)
+      response = Typhoeus.head(url, followlocation: true)
       "removed" if [400, 404, 410].include?(response.response_code)
     end
 

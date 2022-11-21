@@ -43,7 +43,7 @@ module Ecosystem
     def check_status(package)
       pkg = packages[package.name.downcase]
       return "removed" if pkg.nil?
-      response = Typhoeus.head(pkg['url'])
+      response = Typhoeus.head(pkg['url'], followlocation: true)
       "removed" if [400, 404, 410].include?(response.response_code)
     end
 
