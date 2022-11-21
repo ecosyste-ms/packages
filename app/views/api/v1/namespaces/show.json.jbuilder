@@ -1,0 +1,1 @@
+json.partial! 'api/v1/namespaces/namespace', namespace: [@namespace, @packages_count]

@@ -171,6 +171,112 @@ paths:
             type: string
           required: true
           description: login or uuid of maintainer
+        - name: page
+          in: query
+          description: pagination page number 
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return 
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Package'
+  /registries/{registryName}/namespaces:
+    get:
+      summary: get a list of namespaces from a registry
+      operationId: getRegistryNamespaces
+      parameters:
+        - in: path
+          name: registryName
+          schema:
+            type: string
+          required: true
+          description: name of registry
+        - name: page
+          in: query
+          description: pagination page number 
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return 
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Namespace'
+  /registries/{registryName}/namespaces/{namespaceName}:
+    get:
+      summary: get a namespace by name
+      operationId: getRegistryNamespace
+      parameters:
+        - in: path
+          name: registryName
+          schema:
+            type: string
+          required: true
+          description: name of registry
+        - in: path
+          name: namespaceName
+          schema:
+            type: string
+          required: true
+          description: name of namespace
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Namespace'
+  /registries/{registryName}/namespaces/{namespaceName}/packages:
+    get:
+      summary: get packages for a namespace by login or UUID
+      operationId: getRegistryNamespacePackages
+      parameters:
+        - in: path
+          name: registryName
+          schema:
+            type: string
+          required: true
+          description: name of registry
+        - in: path
+          name: namespaceName
+          schema:
+            type: string
+          required: true
+          description: lname of namespace
+        - name: page
+          in: query
+          description: pagination page number 
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return 
+          required: false
+          schema:
+            type: integer
       responses:
         200:
           description: OK
@@ -750,4 +856,15 @@ components:
           format: date-time
         packages_count:
           type: integer
+        packages_url:
+          type: string
+    Namespace:
+      type: object
+      properties:
+        name:
+          type: string
+        packages_count:
+          type: integer
+        packages_url:
+          type: string
         

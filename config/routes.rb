@@ -21,6 +21,12 @@ Rails.application.routes.draw do
           end
         end
 
+        resources :namespaces, only: [:index, :show], constraints: { id: /.*/ } do
+          member do
+            get :packages
+          end
+        end
+
         resources :packages, constraints: { id: /.*/ }, only: [:index, :show] do 
           resources :versions, only: [:index, :show], constraints: { id: /.*/ }
           member do
