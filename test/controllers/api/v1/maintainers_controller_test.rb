@@ -4,7 +4,7 @@ class ApiV1MaintainerControllerTest < ActionDispatch::IntegrationTest
   setup do
     @registry = Registry.create(name: 'crates.io', url: 'https://crates.io', ecosystem: 'cargo')
     @maintainer = @registry.maintainers.create(uuid: "1", login: 'rand', name: 'random', email: 'ran@d.om')
-    @package = @registry.packages.create(name: 'rand', version: '0.1.0', published_at: Time.now)
+    @package = @registry.packages.create(name: 'rand', ecosystem: @registry.ecosystem)
     @version = @package.versions.create(number: '0.1.0', published_at: Time.now)
     @package.maintainers << @maintainer
   end
