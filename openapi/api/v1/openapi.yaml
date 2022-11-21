@@ -153,7 +153,33 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Package'
+                $ref: '#/components/schemas/Maintainer'
+  /registries/{registryName}/maintainers/{MaintainerLoginOrUUID}/packages:
+    get:
+      summary: get packages for a maintainer by login or UUID
+      operationId: getRegistryMaintainerPackages
+      parameters:
+        - in: path
+          name: registryName
+          schema:
+            type: string
+          required: true
+          description: name of registry
+        - in: path
+          name: MaintainerLoginOrUUID
+          schema:
+            type: string
+          required: true
+          description: login or uuid of maintainer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Package'
   /registries/{registryName}/packages:
     get:
       summary: get a list of packages from a registry
