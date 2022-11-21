@@ -1,7 +1,7 @@
 class NamespacesController < ApplicationController
   def index
     @registry = Registry.find_by!(name: params[:registry_id])
-    @pagy, @namespaces = pagy_array(@registry.packages.where.not(namespace: nil).group(:namespace).order('COUNT(id)').count.to_a)
+    @pagy, @namespaces = pagy_array(@registry.packages.where.not(namespace: nil).group(:namespace).order('COUNT(id) desc').count.to_a)
   end
 
   def show
