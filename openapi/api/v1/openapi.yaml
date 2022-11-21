@@ -20,6 +20,8 @@ paths:
     get:
       summary: list registies
       operationId: getRegistries
+      tags:
+        - registries
       parameters:
         - name: page
           in: query
@@ -46,6 +48,8 @@ paths:
     get:
       summary: get a registry by name
       operationId: getRegistry
+      tags:
+        - registries
       parameters:
         - in: path
           name: registryName
@@ -76,6 +80,8 @@ paths:
     get:
       summary: get a list of maintainers from a registry
       operationId: getRegistryMaintainers
+      tags:
+        - maintainers
       parameters:
         - in: path
           name: registryName
@@ -134,6 +140,8 @@ paths:
     get:
       summary: get a maintainer by login or UUID
       operationId: getRegistryMaintainer
+      tags:
+        - maintainers
       parameters:
         - in: path
           name: registryName
@@ -158,6 +166,8 @@ paths:
     get:
       summary: get packages for a maintainer by login or UUID
       operationId: getRegistryMaintainerPackages
+      tags:
+        - maintainers
       parameters:
         - in: path
           name: registryName
@@ -196,6 +206,8 @@ paths:
     get:
       summary: get a list of namespaces from a registry
       operationId: getRegistryNamespaces
+      tags:
+        - namespaces
       parameters:
         - in: path
           name: registryName
@@ -228,6 +240,8 @@ paths:
     get:
       summary: get a namespace by name
       operationId: getRegistryNamespace
+      tags:
+        - namespaces
       parameters:
         - in: path
           name: registryName
@@ -252,6 +266,8 @@ paths:
     get:
       summary: get packages for a namespace by login or UUID
       operationId: getRegistryNamespacePackages
+      tags:
+        - namespaces
       parameters:
         - in: path
           name: registryName
@@ -290,6 +306,8 @@ paths:
     get:
       summary: get a list of packages from a registry
       operationId: getRegistryPackages
+      tags:
+        - packages
       parameters:
         - in: path
           name: registryName
@@ -348,6 +366,8 @@ paths:
     get:
       summary: get a list of package names from a registry
       operationId: getRegistryPackageNames
+      tags:
+        - packages
       parameters:
         - in: path
           name: registryName
@@ -406,6 +426,8 @@ paths:
     get:
       summary: get a list of recently published versions from a registry
       operationId: getRegistryRecentVersions
+      tags:
+        - packages
       parameters:
         - in: path
           name: registryName
@@ -471,6 +493,8 @@ paths:
     get:
       summary: get a package by name
       operationId: getRegistryPackage
+      tags:
+        - packages
       parameters:
         - in: path
           name: registryName
@@ -495,6 +519,8 @@ paths:
     get:
       summary: get a list of packages that depend on a package
       operationId: getRegistryPackageDependentPackages
+      tags:
+        - packages
       parameters:
         - in: path
           name: registryName
@@ -560,6 +586,8 @@ paths:
     get:
       summary: get a list of versions for a package
       operationId: getRegistryPackageVersions
+      tags:
+        - packages
       parameters:
         - in: path
           name: registryName
@@ -631,6 +659,8 @@ paths:
     get:
       summary: get a version of a package
       operationId: getRegistryPackageVersion
+      tags:
+        - packages
       parameters:
         - in: path
           name: registryName
