@@ -48,9 +48,9 @@ namespace :packages do
     Package.sync_download_counts_async
   end
 
-  desc 'update_funded_packages_count'
-  task update_funded_packages_count: :environment do
-    Registry.update_funded_packages_count
+  desc 'update_extra_counts'
+  task update_extra_counts: :environment do
+    Registry.update_extra_counts
   end
 
   desc 'sync maintainers'

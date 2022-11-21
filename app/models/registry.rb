@@ -7,8 +7,8 @@ class Registry < ApplicationRecord
   has_many :versions, through: :packages
   has_many :maintainers
 
-  def self.update_funded_packages_count
-    all.each(&:update_funded_packages_count)
+  def self.update_extra_counts
+    all.each(&:update_extra_counts)
   end
 
   def self.sync_all_recently_updated_packages_async
@@ -177,8 +177,9 @@ class Registry < ApplicationRecord
     packages.where("(repo_metadata ->> '#{json_field}')::text::integer > ?", package.repo_metadata[json_field]).count.to_f / packages_count * 100
   end
 
-  def update_funded_packages_count
-    metadata['funded_packages_count'] = fetch_funded_packages_count
+  def update_extra_counts
+    self.namespaces_count = packages.where.not(namespace: nil).distinct.count(:namespace)
+    self.metadata['funded_packages_count'] = fetch_funded_packages_count
     save
   end
 

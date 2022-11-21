@@ -1,15 +1,11 @@
 <div class="container-sm">
-  <h2>
-    <%= @registry.name %> packages
-  </h2>
+  <h1 class='mb-3'>
+    <%= @registry.name %> namespaces
+  </h1>
 
-  <div class='my-3'>
-    <%= line_chart recent_versions_data_registry_packages_path(@registry.name), thousands: "," %>
-  </div>
-
-  <ul class="nav nav-tabs my-3">
+    <ul class="nav nav-tabs my-3">
     <li class="nav-item">
-      <a class="nav-link active" aria-current="page">
+      <a class="nav-link" href="<%= registry_packages_path(@registry) %>">
         Packages
         <span class="badge bg-secondary rounded-pill">
           <%= number_with_delimiter @registry.packages_count %>
@@ -28,7 +24,7 @@
     <% end %>
     <% if @registry.namespaces_count > 0 %>
       <li class="nav-item">
-        <a class="nav-link" href="<%= registry_namespaces_path(@registry) %>">
+        <a class="nav-link active" aria-current="page">
           Namespaces
           <span class="badge bg-secondary rounded-pill">
             <%= number_with_delimiter @registry.namespaces_count %>
@@ -36,9 +32,8 @@
         </a>
       </li>
     <% end %>
-    <%= render 'sort' %>
   </ul>
 
-  <%= render @packages %>
+  <%= render collection: @namespaces, partial: 'namespace' %>
   <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
 </div>

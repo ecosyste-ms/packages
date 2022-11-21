@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_11_15_092616) do
+ActiveRecord::Schema[7.0].define(version: 2022_11_21_145134) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -109,6 +109,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_15_092616) do
     t.string "github"
     t.json "metadata", default: {}
     t.integer "maintainers_count", default: 0
+    t.integer "namespaces_count", default: 0
   end
 
   create_table "versions", force: :cascade do |t|

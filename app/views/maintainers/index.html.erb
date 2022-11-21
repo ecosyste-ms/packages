@@ -22,6 +22,16 @@
         </a>
       </li>
     <% end %>
+    <% if @registry.namespaces_count > 0 %>
+      <li class="nav-item">
+        <a class="nav-link" href="<%= registry_namespaces_path(@registry) %>">
+          Namespaces
+          <span class="badge bg-secondary rounded-pill">
+            <%= number_with_delimiter @registry.namespaces_count %>
+          </span>
+        </a>
+      </li>
+    <% end %>
   </ul>
 
   <%= render @maintainers %>

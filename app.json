@@ -21,7 +21,7 @@
       "schedule": "0 0 * * *"
     },
     {
-      "command": "bundle exec rake packages:update_funded_packages_count",
+      "command": "bundle exec rake packages:update_extra_counts",
       "schedule": "40 * * * *"
     },
     {

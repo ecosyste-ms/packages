@@ -1,0 +1,11 @@
+
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title">
+      <%= link_to namespace[0], registry_namespace_path(@registry.name, namespace[0]) %>
+    </h5>
+    <small class='text-muted'>
+      <%= pluralize number_with_delimiter(namespace[1]), 'package' %>
+    </small>
+  </div>
+</div>

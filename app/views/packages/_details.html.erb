@@ -65,7 +65,11 @@
     <% end %>
     <% if @package.latest_release_published_at %>
         <br><span title="<%= @package.latest_release_published_at %>">Latest release: <%= time_ago_in_words @package.latest_release_published_at %> ago</span>
-      <% end %>
+    <% end %>
+
+    <% if @package.namespace.present? %>  
+      <br/>Namespace: <%= link_to @package.namespace, registry_namespace_path(@registry.name, @package.namespace) %>
+    <% end %>
 
     <% if @package.dependent_packages_count > 0 %>  
       <br/>Dependent packages: <%= number_with_delimiter(@package.dependent_packages_count) %>

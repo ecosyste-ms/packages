@@ -38,6 +38,7 @@ Rails.application.routes.draw do
 
   resources :registries, constraints: { id: /[^\/]+/  }, only: [:index, :show], :defaults => {:format => :html} do
     resources :maintainers, only: [:index, :show], constraints: { id: /.*/ }
+    resources :namespaces, only: [:index, :show], constraints: { id: /.*/ }
 
     resources :packages, constraints: { id: /.*/ }, only: [:index, :show] do 
       resources :versions, only: [:index, :show], constraints: { id: /.*/ }
