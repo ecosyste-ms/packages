@@ -157,8 +157,9 @@ module Ecosystem
       Nokogiri::XML(get_raw(url, options))
     end
 
-    def get_json(url)
-      get(url, headers: { "Accept" => "application/json" })
+    def get_json(url, options = {})
+      options.deep_merge!(headers: { "Accept" => "application/json" })
+      get(url, options)
     end
   end
 end

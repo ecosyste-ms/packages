@@ -20,6 +20,9 @@ module Ecosystem
     end
 
     def recently_updated_package_names
+      json = get_json("https://hub.docker.com/api/content/v1/products/search/?sort=updated_at&order=desc&page_size=100", headers: {"Search-Version" => "v3"})
+      json['summaries'].map{|s| s['slug'] }
+    rescue
       []
     end
 
