@@ -54,6 +54,8 @@ module Ecosystem
         description: package["description"],
         repository_url: load_repository_url(package_name),
         namespace: package["namespace"],
+        downloads: package["pull_count"],
+        downloads_period: "total",
       }
     end
 
