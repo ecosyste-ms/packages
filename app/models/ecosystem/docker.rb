@@ -19,11 +19,15 @@ module Ecosystem
       get_json("https://hub.docker.com/v2/repositories/#{name}/")
     end
 
+    def recently_updated_package_names
+      []
+    end
+
     def org_package_names(name)
       page = 1
       images = []
       while page < 100
-        r = get("https://hub.docker.com/v2/repositories/#{name}/?page=#{page}")
+        r = get("https://hub.docker.com/v2/repositories/#{name}/?page=#{page}&page_size=100")
         break if r['results'].nil? || r['results'] == []
 
         images += r['results']
@@ -34,7 +38,7 @@ module Ecosystem
     end
 
     def all_package_names
-      official_packages = org_package_names(name)
+      official_packages = org_package_names('library')
       community_packages = get_json("https://repos.ecosyste.ms/api/v1/package_names/docker")
       (official_packages + community_packages).uniq
     end
@@ -54,7 +58,7 @@ module Ecosystem
       page = 1
       tags = []
       while page < 10
-        r = get("https://hub.docker.com/v2/repositories/#{pkg_metadata[:name]}/tags?page=#{page}")
+        r = get("https://hub.docker.com/v2/repositories/#{pkg_metadata[:name]}/tags?page=#{page}&page_size=100")
         break if r['results'].nil? || r['results'] == []
 
         tags += r['results']
