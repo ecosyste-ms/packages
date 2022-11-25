@@ -15,6 +15,10 @@ module Ecosystem
       "docker pull #{package.name}" + (version ? ":#{version}" : "")
     end
 
+    def check_status_url(package)
+      "https://hub.docker.com/v2/repositories/#{package.name}"
+    end
+
     def fetch_package_metadata(name)
       get_json("https://hub.docker.com/v2/repositories/#{name}/")
     end
