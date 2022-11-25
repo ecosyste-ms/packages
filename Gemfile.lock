@@ -295,7 +295,7 @@ GEM
     toml-rb (2.2.0)
       citrus (~> 3.0, > 3.0)
     tomlrb (2.0.3)
-    treetop (1.6.11)
+    treetop (1.6.12)
       polyglot (~> 0.3)
     typhoeus (1.4.0)
       ethon (>= 0.9.0)
