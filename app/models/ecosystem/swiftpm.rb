@@ -43,13 +43,6 @@ module Ecosystem
       end
     end
 
-    def check_status(package)
-      pkg = packages[package.name.downcase]
-      return "removed" if pkg.nil?
-      response = Typhoeus.head(pkg['url'], followlocation: true)
-      "removed" if [400, 404, 410].include?(response.response_code)
-    end
-
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       return [] unless pkg_metadata[:tags_url]
       tags_json = get_json(pkg_metadata[:tags_url])
