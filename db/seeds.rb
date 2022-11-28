@@ -27,6 +27,7 @@ default_registries = [
   {name: 'anaconda.org', url: 'https://anaconda.org', ecosystem: 'conda', github: 'Anaconda', metadata: {'kind' => 'anaconda', 'key' => 'Main', 'api' => 'https://repo.ananconda.com'}},
   {name: 'conda-forge.org', url: 'https://conda-forge.org', ecosystem: 'conda', github: 'conda-forge', metadata: {'kind' => 'conda-forge', 'key' => 'CondaForge', 'api' => 'https://conda.anaconda.org'}},
   {name: 'hub.docker.com', url: 'https://hub.docker.com', ecosystem: 'docker', github: 'docker', metadata: {api_url: 'https://registry-1.docker.io'}},
+  {name: 'swiftpackageindex.com', url: 'https://swiftpackageindex.com', ecosystem: 'swiftpm', github: 'SwiftPackageIndex'},
 ]
 
 default_registries.each do |registry|

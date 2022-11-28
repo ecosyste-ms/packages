@@ -24,7 +24,7 @@ gem "hiredis"
 gem "redis", '< 5', require: ["redis", "redis/connection/hiredis"]
 gem "sidekiq", '<7'
 gem "sidekiq-unique-jobs"
-gem "bibliothecary"
+gem "bibliothecary", github: "ecosyste-ms/bibliothecary", branch: "main"
 gem "pagy"
 gem "pghero"
 gem "pg_query"
