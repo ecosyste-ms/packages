@@ -78,7 +78,8 @@ module Ecosystem
         keywords_array: package['topics'],
         homepage: package["homepage"],
         description: description(package["description"]),
-        tags_url: package["tags_url"]
+        tags_url: package["tags_url"],
+        namespace: package['owner']
       }
     end
 

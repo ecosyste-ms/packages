@@ -73,7 +73,8 @@ class SwiftpmTest < ActiveSupport::TestCase
       :licenses=>"mpl-2.0", :keywords_array=>["fastly", "swift", "wasm"],
       :homepage=>"https://compute-runtime.swift.cloud/documentation/compute/",
       :description=>"Swift runtime for Fastly Compute@Edge",
-      :tags_url=>"http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/swift-cloud%2FCompute/tags"
+      :tags_url=>"http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/swift-cloud%2FCompute/tags",
+      :namespace=>"swift-cloud"
     }
   end
 
