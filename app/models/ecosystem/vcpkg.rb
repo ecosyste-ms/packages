@@ -34,7 +34,7 @@ module Ecosystem
       return false unless package.present?
       {
         name: package["Name"],
-        description: package["Description"],
+        description: Array(package["Description"]).join(' '),
         homepage: package["Homepage"],
         repository_url: repo_fallback("", package["Homepage"]),
         licenses: package['License'],
