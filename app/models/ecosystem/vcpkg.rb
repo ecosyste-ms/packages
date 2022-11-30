@@ -70,7 +70,7 @@ module Ecosystem
         end
         {
           package_name: name,
-          requirement: requirement,
+          requirements: requirement,
           kind: "runtime",
           ecosystem: self.class.name.demodulize.downcase,
         }
