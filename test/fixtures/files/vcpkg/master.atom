@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xml:lang="en-US">
+  <id>tag:github.com,2008:/microsoft/vcpkg/commits/master</id>
+  <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commits/master"/>
+  <link type="application/atom+xml" rel="self" href="https://github.com/microsoft/vcpkg/commits/master.atom"/>
+  <title>Recent Commits to vcpkg:master</title>
+  <updated>2022-11-30T00:56:37Z</updated>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/266e4910c6c6a2fe1b20a1bdb5cec4e16f190f01</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/266e4910c6c6a2fe1b20a1bdb5cec4e16f190f01"/>
+    <title>
+        [vcpkg] Lower the version of PowerShell to v7.2.7 (#28058)
+    </title>
+    <updated>2022-11-30T00:56:37Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/38240633?s=30&amp;v=4"/>
+    <author>
+      <name>Cheney-W</name>
+      <uri>https://github.com/Cheney-W</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[vcpkg] Lower the version of PowerShell to v7.2.7 (#28058)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/eaf5e9023dee2e97aec87bebaa39a16b28c310b8</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/eaf5e9023dee2e97aec87bebaa39a16b28c310b8"/>
+    <title>
+        [fastio] Add fastio port file (#27813)
+    </title>
+    <updated>2022-11-29T21:10:37Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/20025591?s=30&amp;v=4"/>
+    <author>
+      <name>YexuanXiao</name>
+      <uri>https://github.com/YexuanXiao</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[fastio] Add fastio port file (#27813)
+
+* [fastio] Add fastio port file
+
+* Changes to be committed:
+	modified:   ports/fastio/portfile.cmake
+	modified:   ports/fastio/vcpkg.json
+
+* Changes to be committed:
+	modified:   versions/baseline.json
+
+* add /versions/f-/fastio.json&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/6d6910d8cb7331b0dc35b38ce663f2aa6a4663f4</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/6d6910d8cb7331b0dc35b38ce663f2aa6a4663f4"/>
+    <title>
+        [poco] Update and improve patches. (#27999)
+    </title>
+    <updated>2022-11-29T20:08:08Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/65999885?s=30&amp;v=4"/>
+    <author>
+      <name>FrankXie05</name>
+      <uri>https://github.com/FrankXie05</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[poco] Update and improve patches. (#27999)
+
+* [poco] Update and improve patches.
+
+* update version
+
+* update patch
+
+* vdb&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/1de5f73060164e7ef91dae0b1c0937769f60d0d2</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/1de5f73060164e7ef91dae0b1c0937769f60d0d2"/>
+    <title>
+        [libffi] update to 3.4.4 (#27985)
+    </title>
+    <updated>2022-11-29T20:05:22Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/15081176?s=30&amp;v=4"/>
+    <author>
+      <name>MSP-Greg</name>
+      <uri>https://github.com/MSP-Greg</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[libffi] update to 3.4.4 (#27985)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/85f97d4f8924d2ad84f69b10f0a2882dd6ce58d9</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/85f97d4f8924d2ad84f69b10f0a2882dd6ce58d9"/>
+    <title>
+        [daw-json-link] update to v3.10.0 and dependency (#28053)
+    </title>
+    <updated>2022-11-29T20:02:25Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/63675417?s=30&amp;v=4"/>
+    <author>
+      <name>JonLiu1993</name>
+      <uri>https://github.com/JonLiu1993</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[daw-json-link] update to v3.10.0 and dependency (#28053)
+
+* [daw-json-link] update to v3.10.0 and dependency
+
+* udpate evrsion&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/be736ae191e0ce83c526e40c5fdd024614152e4f</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/be736ae191e0ce83c526e40c5fdd024614152e4f"/>
+    <title>
+        [joltphysics] Add usage (#28050)
+    </title>
+    <updated>2022-11-29T19:54:18Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/95600143?s=30&amp;v=4"/>
+    <author>
+      <name>Adela0814</name>
+      <uri>https://github.com/Adela0814</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[joltphysics] Add usage (#28050)
+
+* add usage
+
+* revert
+
+* add usage&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/163a45ad4836675c825750efdbb50c1d1c8685ce</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/163a45ad4836675c825750efdbb50c1d1c8685ce"/>
+    <title>
+        [uwebsockets] update to v20.31.0 (#28049)
+    </title>
+    <updated>2022-11-29T19:51:14Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/110024546?s=30&amp;v=4"/>
+    <author>
+      <name>MonicaLiu0311</name>
+      <uri>https://github.com/MonicaLiu0311</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[uwebsockets] update to v20.31.0 (#28049)
+
+* update uwebsockets
+
+* update version
+
+Co-authored-by: Monica &amp;lt;v-liumonica@microsoft.com&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/603b9e839a57208409b7dcad608ffb8f722bc25f</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/603b9e839a57208409b7dcad608ffb8f722bc25f"/>
+    <title>
+        [libssh] works on arm (#28031)
+    </title>
+    <updated>2022-11-29T19:40:36Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/41973254?s=30&amp;v=4"/>
+    <author>
+      <name>autoantwort</name>
+      <uri>https://github.com/autoantwort</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[libssh] works on arm (#28031)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/11e021f9f8c23465743bf3dd4f3a71773fcd78e4</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/11e021f9f8c23465743bf3dd4f3a71773fcd78e4"/>
+    <title>
+        [vcpkg] Add support of -static-md to Visual Studio UI (#28045)
+    </title>
+    <updated>2022-11-29T19:38:53Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/78134229?s=30&amp;v=4"/>
+    <author>
+      <name>sbrajchuk</name>
+      <uri>https://github.com/sbrajchuk</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[vcpkg] Add support of -static-md to Visual Studio UI (#28045)
+
+* Add support of -static-md to UI
+
+* Remove redundant comparison
+
+* Fix typo
+
+* Check if &amp;#39;Use Static Libraries&amp;#39; is selected&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/1885879b334ec9268397132876612d17faea4a59</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/1885879b334ec9268397132876612d17faea4a59"/>
+    <title>
+        update cmake to 3.25.0 (#28012)
+    </title>
+    <updated>2022-11-29T19:35:54Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/30894796?s=30&amp;v=4"/>
+    <author>
+      <name>Neumann-A</name>
+      <uri>https://github.com/Neumann-A</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;update cmake to 3.25.0 (#28012)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/4e368f63904b784e19401e08cbc15ca8f06eb92a</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/4e368f63904b784e19401e08cbc15ca8f06eb92a"/>
+    <title>
+        [arrow] add GCS feature (#27990)
+    </title>
+    <updated>2022-11-29T00:13:26Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1981613?s=30&amp;v=4"/>
+    <author>
+      <name>Thysinner</name>
+      <uri>https://github.com/Thysinner</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[arrow] add GCS feature (#27990)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/c9c5bc2a6857dff961e3ad37fdcd9471ed7ea214</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/c9c5bc2a6857dff961e3ad37fdcd9471ed7ea214"/>
+    <title>
+        [vili] Create a new port (#27839)
+    </title>
+    <updated>2022-11-29T00:11:11Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/54642193?s=30&amp;v=4"/>
+    <author>
+      <name>nfarid</name>
+      <uri>https://github.com/nfarid</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[vili] Create a new port (#27839)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/2c26c9aff16e9aae16282686c2447fbaac135f83</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/2c26c9aff16e9aae16282686c2447fbaac135f83"/>
+    <title>
+        [imgui] Update to 1.89.1 (#27838)
+    </title>
+    <updated>2022-11-28T23:46:08Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/9922416?s=30&amp;v=4"/>
+    <author>
+      <name>RT222</name>
+      <uri>https://github.com/RT222</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[imgui] Update to 1.89.1 (#27838)
+
+* [imgui] Update to 1.89
+
+* [imgui] Update version files
+
+* [imgui] Update to 1.89.1
+
+* [imgui] Update version files
+
+* [ogre] Fix build failure on imgui 1.89
+
+* [ogre] Update version files
+
+* [imgui-sfml] Fix build failure on imgui 1.89
+
+* [imgui-sfml] Update version files
+
+* [milerius-sfml-imgui] Fix build failure on imgui 1.89
+
+* [milerius-sfml-imgui] Update version files
+
+* [imgui] Modernize port
+
+* [imgui] Update version files
+
+* bump port version
+
+* version
+
+* version... again
+
+Co-authored-by: Javier Matos Denizac &amp;lt;javier.matosd@gmail.com&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/ab310f1df8988bbfbdae9e701d6ae05ee48f772a</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/ab310f1df8988bbfbdae9e701d6ae05ee48f772a"/>
+    <title>
+        Add libcorrect (#28032)
+    </title>
+    <updated>2022-11-28T20:36:48Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/836839?s=30&amp;v=4"/>
+    <author>
+      <name>netheril96</name>
+      <uri>https://github.com/netheril96</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Add libcorrect (#28032)&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/4eaa3d2118fb129b156e3b73571ca3ecccab1441</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/4eaa3d2118fb129b156e3b73571ca3ecccab1441"/>
+    <title>
+        [gstreamer] Update to version 1.20.4 and rework (#27790)
+    </title>
+    <updated>2022-11-28T20:09:25Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/375720?s=30&amp;v=4"/>
+    <author>
+      <name>Sharpe49</name>
+      <uri>https://github.com/Sharpe49</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[gstreamer] Update to version 1.20.4 and rework (#27790)
+
+* Update to GStreamer v1.20.3
+
+* Fixed gst-plugins-bad * Made optional dependences features * Added webrtc feature
+
+* webrtc dependency fixes
+
+Set meson option &amp;#39;gst_debug&amp;#39; to true for both debug and release configurations
+Enabled dtls and srtp plugins
+Fixed srtp plugin
+
+* [gstreamer] Changed version to 1.20.4
+
+* [gstreamer] Reworked port file
+
+* [gst-rtsp-server] Updated to version 1.20.4
+
+* [opencv4] Update GStreamer dependency
+
+* [qtmultimedia] Update GStreamer dependency
+
+* [qtmultimedia] Enabled AVFoundation (part of the Apple Frameworks)
+
+* [qtbase] Fix PCRE2 static linking for GLib
+
+* Added versions
+
+Co-authored-by: Gerard Ryan &amp;lt;gerard.ryan@immersaview.com&amp;gt;
+Co-authored-by: David Ely &amp;lt;david.ely@immersaview.com&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/d7bc6fd368dbc1b17c831344144c2d20bd02738a</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/d7bc6fd368dbc1b17c831344144c2d20bd02738a"/>
+    <title>
+        [catch2] Update to 3.2.0 (#28013)
+    </title>
+    <updated>2022-11-28T19:14:07Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/9922416?s=30&amp;v=4"/>
+    <author>
+      <name>RT222</name>
+      <uri>https://github.com/RT222</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[catch2] Update to 3.2.0 (#28013)
+
+* [catch2] Update to 3.2.0
+
+* [catch2] Update version files&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/3f414324108295b0d73a70f295ec199fc7bece57</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/3f414324108295b0d73a70f295ec199fc7bece57"/>
+    <title>
+        [sdl2] Bump to 2.26.0 (#27947)
+    </title>
+    <updated>2022-11-28T19:12:32Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/50808272?s=30&amp;v=4"/>
+    <author>
+      <name>FtZPetruska</name>
+      <uri>https://github.com/FtZPetruska</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[sdl2] Bump to 2.26.0 (#27947)
+
+* Bump to 2.26.0.
+
+* Add missing include for Wayland builds.
+
+* Update version history
+
+* Make `wayland` option control support altogether.
+
+- Instead of building with/without shared support. Control whether SDL
+is built with or without Wayland. See #27947.
+- Removes the need for the new patch.
+
+* Update version history.
+
+* Fix pkg-config targets.
+
+* install copyright with `vcpkg_install_copyright`.
+
+* Update version history.
+
+* Remove unecessary patch.
+
+* Update version history.
+
+* Fix UWP pc file.
+
+* Update version history.&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/1796ce2e96bb9356ac750d9edacc92df45339bd4</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/1796ce2e96bb9356ac750d9edacc92df45339bd4"/>
+    <title>
+        [baseline][libssh] Update to latest commit (#27973)
+    </title>
+    <updated>2022-11-28T19:06:31Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/94091114?s=30&amp;v=4"/>
+    <author>
+      <name>LilyWangLL</name>
+      <uri>https://github.com/LilyWangLL</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[baseline][libssh] Update to latest commit (#27973)
+
+* [baseline][libssh] Update to latest commit
+
+* x-add-version
+
+* update version
+
+* update version
+
+* x-add-version
+
+* Update libssh.json
+
+* Update latest commit
+
+* x-add-version
+
+* add FETCH_REF
+
+* x-add-version&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/a5fd603ae3d154f29b09ed44e2b2af36ba94c2ef</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/a5fd603ae3d154f29b09ed44e2b2af36ba94c2ef"/>
+    <title>
+        [baseline][ogre] Disable `find_package(QT)` (#27979)
+    </title>
+    <updated>2022-11-28T19:03:21Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/13567791?s=30&amp;v=4"/>
+    <author>
+      <name>dg0yt</name>
+      <uri>https://github.com/dg0yt</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[baseline][ogre] Disable `find_package(QT)` (#27979)
+
+* Disable find_package(QT)
+
+* Pull qtbase into ogre CI run
+
+* Silence warnings&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/300f6a2160986e7ab8722c2f5d3b7ed85a1870d9</id>
+    <link type="text/html" rel="alternate" href="https://github.com/microsoft/vcpkg/commit/300f6a2160986e7ab8722c2f5d3b7ed85a1870d9"/>
+    <title>
+        [folly]: fix lz4 Snappy deps (#27998)
+    </title>
+    <updated>2022-11-28T18:57:37Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/3423893?s=30&amp;v=4"/>
+    <author>
+      <name>jiayuehua</name>
+      <uri>https://github.com/jiayuehua</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;[folly]: fix lz4 Snappy deps (#27998)&lt;/pre&gt;
+    </content>
+  </entry>
+</feed>
