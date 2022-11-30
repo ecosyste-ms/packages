@@ -59,9 +59,18 @@ module Ecosystem
 
       mapped_package[:dependencies].map do |dependency|
         name = dependency.is_a?(Hash) ? dependency['name'] : dependency
+        if dependency.is_a?(Hash)
+          if dependency['version>=']
+            requirement = ">=#{dependency['version>=']}"
+          else
+            requirement = dependency['version'] || dependency['version-semver'] || dependency['version-date'] || dependency['version-string'] || '*'
+          end
+        else
+          requirement = '*'
+        end
         {
           package_name: name,
-          requirements: "*",
+          requirement: requirement,
           kind: "runtime",
           ecosystem: self.class.name.demodulize.downcase,
         }
