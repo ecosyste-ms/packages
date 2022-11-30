@@ -57,9 +57,11 @@ class SwiftpmTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
+    stub_request(:get, "https://github.com/SwiftPackageIndex/PackageList/commits/main.atom")
+    .to_return({ status: 200, body: file_fixture('swiftpm/main.atom') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 0
-    assert_nil recently_updated_package_names.last
+    assert_equal recently_updated_package_names.length, 6
+    assert_equal recently_updated_package_names.last, 'MediaPicker'
   end
   
   test 'package_metadata' do

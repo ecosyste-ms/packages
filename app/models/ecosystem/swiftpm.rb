@@ -28,6 +28,10 @@ module Ecosystem
     end
 
     def recently_updated_package_names
+      u = "https://github.com/SwiftPackageIndex/PackageList/commits/main.atom"
+      titles = SimpleRSS.parse(get_raw(u)).items.map(&:title)
+      titles.map { |t| t.match(/^Add (\w)/) && t.match(/^Add (.+)/)[1] }.uniq.compact
+    rescue
       []
     end
 

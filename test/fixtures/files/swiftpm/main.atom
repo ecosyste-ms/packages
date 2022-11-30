@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xml:lang="en-US">
+  <id>tag:github.com,2008:/SwiftPackageIndex/PackageList/commits/main</id>
+  <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commits/main"/>
+  <link type="application/atom+xml" rel="self" href="https://github.com/SwiftPackageIndex/PackageList/commits/main.atom"/>
+  <title>Recent Commits to PackageList:main</title>
+  <updated>2022-11-30T07:06:07Z</updated>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/cabddf2ee6e8d072d31c27219257a76cdfa9d547</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/cabddf2ee6e8d072d31c27219257a76cdfa9d547"/>
+    <title>
+        Merge pull request #3141 from SwiftPackageIndex/spi-auto-3140
+    </title>
+    <updated>2022-11-30T07:06:07Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/65520?s=30&amp;v=4"/>
+    <author>
+      <name>finestructure</name>
+      <uri>https://github.com/finestructure</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Merge pull request #3141 from SwiftPackageIndex/spi-auto-3140
+
+Add &amp;lt;Package&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/504338ff45f664df5685f6d0f8d355e19733f2f4</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/504338ff45f664df5685f6d0f8d355e19733f2f4"/>
+    <title>
+        Add &lt;Package&gt;
+    </title>
+    <updated>2022-11-30T07:04:20Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/15272998?s=30&amp;v=4"/>
+    <author>
+      <name>nathantannar4</name>
+      <uri>https://github.com/nathantannar4</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Add &amp;lt;Package&amp;gt;&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/256d8807a89b3111dec4e74cb1616263f7d19d9f</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/256d8807a89b3111dec4e74cb1616263f7d19d9f"/>
+    <title>
+        Merge pull request #3137 from SwiftPackageIndex/spi-auto-3135
+    </title>
+    <updated>2022-11-30T06:58:26Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/65520?s=30&amp;v=4"/>
+    <author>
+      <name>finestructure</name>
+      <uri>https://github.com/finestructure</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Merge pull request #3137 from SwiftPackageIndex/spi-auto-3135&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/fe58e29278545f95023ef1e441c3072ad3b26042</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/fe58e29278545f95023ef1e441c3072ad3b26042"/>
+    <title>
+        Merge branch &#39;main&#39; into spi-auto-3135
+    </title>
+    <updated>2022-11-30T06:57:30Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/65520?s=30&amp;v=4"/>
+    <author>
+      <name>finestructure</name>
+      <uri>https://github.com/finestructure</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Merge branch &amp;#39;main&amp;#39; into spi-auto-3135&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/0afd383ff30bc680c83e7e2da04c8666ff9216ca</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/0afd383ff30bc680c83e7e2da04c8666ff9216ca"/>
+    <title>
+        Merge pull request #3139 from SwiftPackageIndex/spi-auto-3138
+    </title>
+    <updated>2022-11-29T22:31:58Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/65520?s=30&amp;v=4"/>
+    <author>
+      <name>finestructure</name>
+      <uri>https://github.com/finestructure</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Merge pull request #3139 from SwiftPackageIndex/spi-auto-3138&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/d9652f0989521f52e61c82afa08f8144b42e294b</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/d9652f0989521f52e61c82afa08f8144b42e294b"/>
+    <title>
+        Merge branch &#39;main&#39; into spi-auto-3138
+    </title>
+    <updated>2022-11-29T22:31:09Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/65520?s=30&amp;v=4"/>
+    <author>
+      <name>finestructure</name>
+      <uri>https://github.com/finestructure</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Merge branch &amp;#39;main&amp;#39; into spi-auto-3138&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/b6943a3014c1d388dee7faead4056395c54898c5</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/b6943a3014c1d388dee7faead4056395c54898c5"/>
+    <title>
+        Merge pull request #3136 from SwiftPackageIndex/spi-auto-3134
+    </title>
+    <updated>2022-11-29T22:29:50Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/65520?s=30&amp;v=4"/>
+    <author>
+      <name>finestructure</name>
+      <uri>https://github.com/finestructure</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Merge pull request #3136 from SwiftPackageIndex/spi-auto-3134&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/b4ea76ab7064b2888a606e8bbbd00b035a78d816</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/b4ea76ab7064b2888a606e8bbbd00b035a78d816"/>
+    <title>
+        Add FlyoverKit
+    </title>
+    <updated>2022-11-29T22:08:37Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/11733014?s=30&amp;v=4"/>
+    <author>
+      <name>SvenTiigi</name>
+      <uri>https://github.com/SvenTiigi</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Add FlyoverKit&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/2d7b179e710485cca36445c64f73ead5a2908c0f</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/2d7b179e710485cca36445c64f73ead5a2908c0f"/>
+    <title>
+        Add tannerdsilva/QuickLMDB
+    </title>
+    <updated>2022-11-29T22:07:38Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1372214?s=30&amp;v=4"/>
+    <author>
+      <name>tannerdsilva</name>
+      <uri>https://github.com/tannerdsilva</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Add tannerdsilva/QuickLMDB&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/1c8207650983b7dacdd7794de827523116994337</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/1c8207650983b7dacdd7794de827523116994337"/>
+    <title>
+        Remove tannerdsilva/RapidLMDB
+    </title>
+    <updated>2022-11-29T22:07:00Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/1372214?s=30&amp;v=4"/>
+    <author>
+      <name>tannerdsilva</name>
+      <uri>https://github.com/tannerdsilva</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Remove tannerdsilva/RapidLMDB&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/c41545fd9a7c77cc6ac3af5e3c33d10ccb23ed8e</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/c41545fd9a7c77cc6ac3af5e3c33d10ccb23ed8e"/>
+    <title>
+        Merge pull request #3133 from SwiftPackageIndex/spi-auto-3132
+    </title>
+    <updated>2022-11-29T19:49:44Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/5180?s=30&amp;v=4"/>
+    <author>
+      <name>daveverwer</name>
+      <uri>https://github.com/daveverwer</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Merge pull request #3133 from SwiftPackageIndex/spi-auto-3132
+
+Add token-text-view&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/3ccd22e7fc0854fe3943906292b1ce16db1e55bd</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/3ccd22e7fc0854fe3943906292b1ce16db1e55bd"/>
+    <title>
+        Add token-text-view
+    </title>
+    <updated>2022-11-29T19:45:47Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/5180?s=30&amp;v=4"/>
+    <author>
+      <name>daveverwer</name>
+      <uri>https://github.com/daveverwer</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Add token-text-view&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/d79a50cdb232939b0ee6645f3f646475c8b021b9</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/d79a50cdb232939b0ee6645f3f646475c8b021b9"/>
+    <title>
+        Merge pull request #3131 from SwiftPackageIndex/spi-auto-3130
+    </title>
+    <updated>2022-11-29T17:47:22Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/5180?s=30&amp;v=4"/>
+    <author>
+      <name>daveverwer</name>
+      <uri>https://github.com/daveverwer</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Merge pull request #3131 from SwiftPackageIndex/spi-auto-3130
+
+Add MainThreadPropertyAccessor&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/3f9832900ff2b0408ff9ddea6667becb7603cc09</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/3f9832900ff2b0408ff9ddea6667becb7603cc09"/>
+    <title>
+        Add MainThreadPropertyAccessor
+    </title>
+    <updated>2022-11-29T17:31:37Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/765592?s=30&amp;v=4"/>
+    <author>
+      <name>theisegeberg</name>
+      <uri>https://github.com/theisegeberg</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Add MainThreadPropertyAccessor&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/ce8bde361b138f72ef95389b80eab4fcd8629868</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/ce8bde361b138f72ef95389b80eab4fcd8629868"/>
+    <title>
+        Merge pull request #3129 from SwiftPackageIndex/spi-auto-3128
+    </title>
+    <updated>2022-11-28T16:46:13Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/65520?s=30&amp;v=4"/>
+    <author>
+      <name>finestructure</name>
+      <uri>https://github.com/finestructure</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Merge pull request #3129 from SwiftPackageIndex/spi-auto-3128
+
+Add VanMoofKit&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/b296b10530eeb02647738059ea9b04b4bf3b719e</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/b296b10530eeb02647738059ea9b04b4bf3b719e"/>
+    <title>
+        Add VanMoofKit
+    </title>
+    <updated>2022-11-28T16:44:28Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/11733014?s=30&amp;v=4"/>
+    <author>
+      <name>SvenTiigi</name>
+      <uri>https://github.com/SvenTiigi</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Add VanMoofKit&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/c6095d4d3d1de40974196a13434ceea82036c751</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/c6095d4d3d1de40974196a13434ceea82036c751"/>
+    <title>
+        Merge pull request #3127 from SwiftPackageIndex/create-pull-request/p…
+    </title>
+    <updated>2022-11-28T08:28:36Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/65520?s=30&amp;v=4"/>
+    <author>
+      <name>finestructure</name>
+      <uri>https://github.com/finestructure</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Merge pull request #3127 from SwiftPackageIndex/create-pull-request/patch
+
+[Nightly] Updated Packages&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/1f7a06d9df7c24081fcca5e62c97001a1b210cb4</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/1f7a06d9df7c24081fcca5e62c97001a1b210cb4"/>
+    <title>
+        Updated Packages
+    </title>
+    <updated>2022-11-28T08:27:49Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/65520?s=30&amp;v=4"/>
+    <author>
+      <name>finestructure</name>
+      <uri>https://github.com/finestructure</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Updated Packages&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/f069c0ed498961be1203062c3566b1259241f46f</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/f069c0ed498961be1203062c3566b1259241f46f"/>
+    <title>
+        Merge pull request #3126 from SwiftPackageIndex/spi-auto-3125
+    </title>
+    <updated>2022-11-28T07:46:58Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/65520?s=30&amp;v=4"/>
+    <author>
+      <name>finestructure</name>
+      <uri>https://github.com/finestructure</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Merge pull request #3126 from SwiftPackageIndex/spi-auto-3125
+
+Add MediaPicker&lt;/pre&gt;
+    </content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/589b7f4e60880d7e015cd927649e2db55b20086e</id>
+    <link type="text/html" rel="alternate" href="https://github.com/SwiftPackageIndex/PackageList/commit/589b7f4e60880d7e015cd927649e2db55b20086e"/>
+    <title>
+        Add MediaPicker
+    </title>
+    <updated>2022-11-28T07:44:32Z</updated>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/65520?s=30&amp;v=4"/>
+    <author>
+      <name>finestructure</name>
+      <uri>https://github.com/finestructure</uri>
+    </author>
+    <content type="html">
+      &lt;pre style=&#39;white-space:pre-wrap;width:81ex&#39;&gt;Add MediaPicker&lt;/pre&gt;
+    </content>
+  </entry>
+</feed>
