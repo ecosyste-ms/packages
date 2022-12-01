@@ -148,15 +148,21 @@ module Ecosystem
     end
 
     def get(url, options = {})
-      Oj.load(get_raw(url, options))
+      resp = get_raw(url, options)
+      return nil unless resp
+      Oj.load(resp)
     end
     
     def get_html(url, options = {})
-      Nokogiri::HTML(get_raw(url, options))
+      resp = get_raw(url, options)
+      return nil unless resp
+      Nokogiri::HTML(resp)
     end
 
     def get_xml(url, options = {})
-      Nokogiri::XML(get_raw(url, options))
+      resp = get_raw(url, options)
+      return nil unless resp
+      Nokogiri::XML(resp)
     end
 
     def get_json(url, options = {})
