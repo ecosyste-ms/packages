@@ -67,6 +67,7 @@ module Ecosystem
 
     def find_old_versions(pkg_metadata)
       archive_page = get_html("https://cran.r-project.org/src/contrib/Archive/#{pkg_metadata[:name]}/")
+      return [] if archive_page.nil?
       trs = archive_page.css("table").css("tr").select do |tr|
         tds = tr.css("td")
         tds[1]&.text&.match(/tar\.gz$/)

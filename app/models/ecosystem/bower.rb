@@ -89,7 +89,7 @@ module Ecosystem
       github_name_with_owner = GithubUrlParser.parse(package[:repository_url]) # TODO this could be any host
       return [] unless github_name_with_owner
       deps = get_json("https://raw.githubusercontent.com/#{github_name_with_owner}/#{version}/bower.json")
-
+      return [] unless deps.present?
       map_dependencies(deps["dependencies"], "runtime") + map_dependencies(deps["devDependencies"], "development")
     rescue StandardError
       []
@@ -105,7 +105,8 @@ module Ecosystem
       return package unless package && package['url']
       github_name_with_owner = GithubUrlParser.parse(package['url'])  # TODO this could be any host
       return package unless github_name_with_owner
-      get_json("https://raw.githubusercontent.com/#{github_name_with_owner}/master/bower.json") rescue {}
+      json = get_json("https://raw.githubusercontent.com/#{github_name_with_owner}/master/bower.json") rescue {}
+      return {} unless deps.present?
     end
   end
 end

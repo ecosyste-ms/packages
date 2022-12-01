@@ -28,7 +28,7 @@ module Ecosystem
       packages = []
       loop do
         r = get("#{@registry_url}/api/v1/crates?page=#{page}&per_page=100")["crates"]
-        break if r == []
+        break if r.blank? || r == []
 
         packages += r
         page += 1
@@ -40,6 +40,7 @@ module Ecosystem
 
     def recently_updated_package_names
       json = get("#{@registry_url}/api/v1/summary")
+      return [] if json.blank?
       updated_names = json["just_updated"].map { |c| c["name"] }
       new_names = json["new_crates"].map { |c| c["name"] }
       (updated_names + new_names).uniq
@@ -96,6 +97,7 @@ module Ecosystem
 
     def maintainers_metadata(name)
       json = get_json("#{@registry_url}/api/v1/crates/#{name}/owner_user")
+      return [] if json.blank?
       json['users'].map do |user|
         {
           uuid: user["id"],

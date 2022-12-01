@@ -51,7 +51,7 @@ module Ecosystem
     end
 
     def map_package_metadata(package)
-      return nil unless package["name"]
+      return nil unless package && package["name"]
       package_name = "#{package["namespace"]}/#{package["name"]}"
       {
         name: package_name,
@@ -68,7 +68,7 @@ module Ecosystem
       tags = []
       while page < 10
         r = get("https://hub.docker.com/v2/repositories/#{pkg_metadata[:name]}/tags?page=#{page}&page_size=100")
-        break if r['results'].nil? || r['results'] == []
+        break if r.blank? || r['results'].nil? || r['results'] == []
 
         tags += r['results']
         break if r['next'].nil?
@@ -88,7 +88,7 @@ module Ecosystem
     def load_repository_url(name)
       return 'https://github.com/docker-library/official-images' if name.start_with?('library/')
       json = get("https://hub.docker.com/api/build/v1/source/?image=#{name}")
-      return unless json['objects']
+      return unless json && json['objects']
       o = json['objects'].first
       return unless o
       return unless o['provider'] == 'Github'
