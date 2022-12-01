@@ -46,7 +46,7 @@ module Ecosystem
     end
 
     def map_package_metadata(package)
-      return false if package["info"].nil?
+      return false if package || package["info"].nil?
       {
         name: package["info"]["name"].downcase,
         description: package["info"]["summary"],
