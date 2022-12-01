@@ -29,6 +29,7 @@ default_registries = [
   {name: 'hub.docker.com', url: 'https://hub.docker.com', ecosystem: 'docker', github: 'docker', metadata: {api_url: 'https://registry-1.docker.io'}},
   {name: 'swiftpackageindex.com', url: 'https://swiftpackageindex.com', ecosystem: 'swiftpm', github: 'SwiftPackageIndex'},
   {name: 'vcpkg.io', url: 'https://vcpkg.io', ecosystem: 'vcpkg', github: 'vcpkg'},
+  {name: "carthage", url: "https://github.com/Carthage/Carthage", ecosystem: "carthage", github: "Carthage"},
 ]
 
 default_registries.each do |registry|

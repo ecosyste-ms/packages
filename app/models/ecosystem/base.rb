@@ -130,7 +130,9 @@ module Ecosystem
     private
 
     def get_raw(url, options = {})
-      request(url, options).body
+      resp = request(url, options)
+      return nil unless resp.success?
+      resp.body
     end
 
     def request(url, options = {})

@@ -1,0 +1,2 @@
+github "antitypical/Result" ~> 4.1
+github "ReactiveCocoa/ReactiveSwift" ~> 5.0
