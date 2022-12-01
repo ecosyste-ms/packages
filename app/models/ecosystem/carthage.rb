@@ -15,8 +15,7 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      # TODO sort carthage package names in repos service by last_updated
-      []
+      get_json("https://repos.ecosyste.ms/api/v1/package_names/carthage").first(20)
     end
 
     def download_url(package, version = nil)

@@ -10,12 +10,12 @@ class CarthageTest < ActiveSupport::TestCase
 
   test 'registry_url' do
     registry_url = @ecosystem.registry_url(@package)
-    assert_equal registry_url, "https://github.com/Carthage/ReactiveTask"
+    assert_nil registry_url
   end
 
   test 'registry_url with version' do
     registry_url = @ecosystem.registry_url(@package, '0.16.0')
-    assert_equal registry_url, "https://github.com/Carthage/ReactiveTask"
+    assert_nil registry_url
   end
 
   test 'download_url' do
@@ -57,11 +57,11 @@ class CarthageTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
-    # stub_request(:get, "https://github.com/SwiftPackageIndex/PackageList/commits/main.atom")
-    # .to_return({ status: 200, body: file_fixture('carthage/main.atom') })
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/package_names/carthage")
+      .to_return({ status: 200, body: file_fixture('carthage/carthage') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 0
-    # assert_equal recently_updated_package_names.last, 'MediaPicker'
+    assert_equal recently_updated_package_names.length, 20
+    assert_equal recently_updated_package_names.last, '52inc/Pulley'
   end
   
   test 'package_metadata' do
