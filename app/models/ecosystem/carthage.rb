@@ -16,6 +16,8 @@ module Ecosystem
 
     def recently_updated_package_names
       get_json("https://repos.ecosyste.ms/api/v1/package_names/carthage").first(20)
+    rescue
+      []
     end
 
     def download_url(package, version = nil)
@@ -71,7 +73,7 @@ module Ecosystem
       return [] unless package[:repository_url]
       github_name_with_owner = GithubUrlParser.parse(package[:repository_url]) 
       return [] unless github_name_with_owner
-      deps = get_raw("https://raw.githubusercontent.com/#{github_name_with_owner}/#{version}/Cartfile")
+      deps = get_raw_no_exception("https://raw.githubusercontent.com/#{github_name_with_owner}/#{version}/Cartfile")
       return [] unless deps.present?
       Bibliothecary::Parsers::Carthage.parse_cartfile(deps).map do |dep|
         {

@@ -129,10 +129,14 @@ module Ecosystem
 
     private
 
-    def get_raw(url, options = {})
+    def get_raw_no_exception(url, options = {})
       resp = request(url, options)
       return nil unless resp.success?
       resp.body
+    end
+
+    def get_raw(url, options = {})
+      request(url, options).body
     end
 
     def request(url, options = {})
@@ -148,21 +152,15 @@ module Ecosystem
     end
 
     def get(url, options = {})
-      resp = get_raw(url, options)
-      return nil unless resp
-      Oj.load(resp)
+      Oj.load(get_raw(url, options))
     end
     
     def get_html(url, options = {})
-      resp = get_raw(url, options)
-      return nil unless resp
-      Nokogiri::HTML(resp)
+      Nokogiri::HTML(get_raw(url, options))
     end
 
     def get_xml(url, options = {})
-      resp = get_raw(url, options)
-      return nil unless resp
-      Nokogiri::XML(resp)
+      Nokogiri::XML(get_raw(url, options))
     end
 
     def get_json(url, options = {})
