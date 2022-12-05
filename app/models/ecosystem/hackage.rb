@@ -56,11 +56,14 @@ module Ecosystem
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
-      versions = find_attribute(pkg_metadata[:page], "Versions")
-      versions = find_attribute(pkg_metadata[:page], "Version") if versions.nil?
-      versions.delete("(info)").split(",").map(&:strip).map do |v|
+      rss = get_xml("#{@registry_url}/package/#{pkg_metadata[:name]}.rss")
+      rss.css('item').map do |item|
         {
-          number: v,
+          number: item.css('title').text.split(' ').first.split('-').last,
+          published_at: Time.parse(item.css('pubDate').text),
+          metadata: {
+            author: item.css('author').text,
+          }
         }
       end
     end

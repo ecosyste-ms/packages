@@ -1,0 +1,657 @@
+<rss version="2.0"><channel><title>blockfrost-client &#8211; new releases on Hackage</title><link>https://hackage.haskell.org/package/blockfrost-client</link><description>New releases of package &apos;blockfrost-client&apos; on Hackage.</description><docs>http://www.rssboard.org/rss-specification</docs><language>en</language><managingEditor>admin@hackage.haskell.org</managingEditor><webMaster>admin@hackage.haskell.org</webMaster><pubDate>Tue, 11 Oct 2022 05:27:03 UTC</pubDate><lastBuildDate>Tue, 11 Oct 2022 05:27:03 UTC</lastBuildDate><generator>rss-feed</generator><item><title>blockfrost-client-0.7.0.0 (blockfrost.io basic client)</title><link>https://hackage.haskell.org/package/blockfrost-client-0.7.0.0</link><guid isPermaLink="true">https://hackage.haskell.org/package/blockfrost-client-0.7.0.0</guid><pubDate>Tue, 11 Oct 2022 05:27:03 UTC</pubDate><description>&lt;dl&gt;&lt;dt&gt;Homepage&lt;/dt&gt;&lt;dd&gt;&lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell&quot;&gt;https://github.com/blockfrost/blockfrost-haskell&lt;/a&gt;&lt;/dd&gt;&lt;dt&gt;Author&lt;/dt&gt;&lt;dd&gt;blockfrost.io&lt;/dd&gt;&lt;dt&gt;Uploaded&lt;/dt&gt;&lt;dd&gt;by srk at 2022-10-11T05:27:03Z&lt;/dd&gt;&lt;dt&gt;Maintainer&lt;/dt&gt;&lt;dd&gt;srk@48.io&lt;/dd&gt;&lt;/dl&gt;&lt;hr /&gt;&lt;h1 id=&quot;version-0700-2022-10-11&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.6.0.0...v0.7.0.0&quot;&gt;0.7.0.0&lt;/a&gt; (2022-10-11)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Changes
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;listScript&lt;/code&gt; and &lt;code&gt;listScripts&amp;#39;&lt;/code&gt; now return &lt;code&gt;ScriptHashList&lt;/code&gt; newtype
+instead of &lt;code&gt;[ScriptHash]&lt;/code&gt; due to overlapping instance conflicts
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0600-2022-08-31&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.5.0.0...v0.6.0.0&quot;&gt;0.6.0.0&lt;/a&gt; (2022-08-31)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getScriptDatumCBOR&lt;/code&gt; query for &lt;code&gt;/scripts/datum/{datum-hash}/cbor&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0500-2022-06-06&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.4.0.1...v0.5.0.0&quot;&gt;0.5.0.0&lt;/a&gt; (2022-06-06)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Fix return types of &lt;code&gt;getEpochStakeByPool&lt;/code&gt; and &lt;code&gt;getEpochStakeByPool&amp;#39;&lt;/code&gt;
+from &lt;code&gt;StakeDistribution&lt;/code&gt; to &lt;code&gt;PoolStakeDistribution&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0401-2022-04-05&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.4.0.0...v0.4.0.1&quot;&gt;0.4.0.1&lt;/a&gt; (2022-04-05)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Allow servant &lt;code&gt;0.19&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0400-2022-03-09&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.3.1.0...v0.4.0.0&quot;&gt;0.4.0.0&lt;/a&gt; (2022-03-09)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Build with &lt;code&gt;blockfrost-api 0.4&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0310-2022-02-17&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.3.0.0...v0.3.1.0&quot;&gt;0.3.1.0&lt;/a&gt; (2022-02-17)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getBlockAffectedAddresses&lt;/code&gt; for &lt;code&gt;/blocks/${hash_or_number}/addresses&lt;/code&gt; endpoint (Affected addresses in a block)
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0300-2022-02-07&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.2.1.0...v0.3.0.0&quot;&gt;0.3.0.0&lt;/a&gt; (2022-02-07)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Changes&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Client functions switched to tagless variants using &lt;code&gt;MonadBlockfrost&lt;/code&gt; allowing to use custom base monad
+for client functions.  Provided instances for &lt;code&gt;BlockfrostClient&lt;/code&gt;, &lt;code&gt;IO&lt;/code&gt; and &lt;code&gt;ClientM&lt;/code&gt;.
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Additions&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Export &lt;code&gt;getTxRedeemers&lt;/code&gt; from &lt;code&gt;Blockfrost.Client&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0210-2021-11-15&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.2.0.0...v0.2.1.0&quot;&gt;0.2.1.0&lt;/a&gt; (2021-11-15)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getAccountAssociatedAddresses&lt;/code&gt; query for &lt;code&gt;/accounts/{stake_address}/addresses&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getAccountAssociatedAssets&lt;/code&gt; query for &lt;code&gt;/accounts/{stake_address}/addresses/assets&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0200-2021-10-29&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.1.0.0...v0.2.0.0&quot;&gt;0.2.0.0&lt;/a&gt; (2021-10-29)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Alonzo additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getTxRedeemers&lt;/code&gt; for &lt;code&gt;/txs/${hash}/redeemers&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;listScripts&lt;/code&gt; for &lt;code&gt;/scripts&lt;/code&gt; endpoint, principled &lt;code&gt;listScripts&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScript&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptRedeemers&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/redeemers&lt;/code&gt; endpoint, principled &lt;code&gt;getScriptRedeemers&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getAddressUtxosAsset&lt;/code&gt; for &lt;code&gt;/addresses/${address}/utxos/${asset}&lt;/code&gt;, principled &lt;code&gt;getAddressUtxosAsset&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptDatum&lt;/code&gt; for &lt;code&gt;/scripts/datum/${datum_hash}&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptJSON&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/json&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptCBOR&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/cbor&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0100-2021-09-14&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/initial...v0.1.0.0&quot;&gt;0.1.0.0&lt;/a&gt; (2021-09-14)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Added &lt;code&gt;allPages&lt;/code&gt;, re-exported couple more pagination helpers
+&lt;/li&gt;
+&lt;li&gt;Initial release
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;p&gt;&lt;code&gt;blockfrost-client&lt;/code&gt; uses &lt;a href=&quot;https://pvp.haskell.org&quot;&gt;PVP Versioning&lt;/a&gt;.&lt;/p&gt;
+</description><author>srk</author></item><item><title>blockfrost-client-0.6.0.0 (blockfrost.io basic client)</title><link>https://hackage.haskell.org/package/blockfrost-client-0.6.0.0</link><guid isPermaLink="true">https://hackage.haskell.org/package/blockfrost-client-0.6.0.0</guid><pubDate>Wed, 31 Aug 2022 16:48:50 UTC</pubDate><description>&lt;dl&gt;&lt;dt&gt;Homepage&lt;/dt&gt;&lt;dd&gt;&lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell&quot;&gt;https://github.com/blockfrost/blockfrost-haskell&lt;/a&gt;&lt;/dd&gt;&lt;dt&gt;Author&lt;/dt&gt;&lt;dd&gt;blockfrost.io&lt;/dd&gt;&lt;dt&gt;Uploaded&lt;/dt&gt;&lt;dd&gt;by srk at 2022-08-31T16:48:50Z&lt;/dd&gt;&lt;dt&gt;Maintainer&lt;/dt&gt;&lt;dd&gt;srk@48.io&lt;/dd&gt;&lt;/dl&gt;&lt;hr /&gt;&lt;h1 id=&quot;version-0600-2022-08-31&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.5.0.0...v0.6.0.0&quot;&gt;0.6.0.0&lt;/a&gt; (2022-08-31)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getScriptDatumCBOR&lt;/code&gt; query for &lt;code&gt;/scripts/datum/{datum-hash}/cbor&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0500-2022-06-06&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.4.0.1...v0.5.0.0&quot;&gt;0.5.0.0&lt;/a&gt; (2022-06-06)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Fix return types of &lt;code&gt;getEpochStakeByPool&lt;/code&gt; and &lt;code&gt;getEpochStakeByPool&amp;#39;&lt;/code&gt;
+from &lt;code&gt;StakeDistribution&lt;/code&gt; to &lt;code&gt;PoolStakeDistribution&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0401-2022-04-05&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.4.0.0...v0.4.0.1&quot;&gt;0.4.0.1&lt;/a&gt; (2022-04-05)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Allow servant &lt;code&gt;0.19&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0400-2022-03-09&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.3.1.0...v0.4.0.0&quot;&gt;0.4.0.0&lt;/a&gt; (2022-03-09)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Build with &lt;code&gt;blockfrost-api 0.4&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0310-2022-02-17&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.3.0.0...v0.3.1.0&quot;&gt;0.3.1.0&lt;/a&gt; (2022-02-17)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getBlockAffectedAddresses&lt;/code&gt; for &lt;code&gt;/blocks/${hash_or_number}/addresses&lt;/code&gt; endpoint (Affected addresses in a block)
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0300-2022-02-07&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.2.1.0...v0.3.0.0&quot;&gt;0.3.0.0&lt;/a&gt; (2022-02-07)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Changes&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Client functions switched to tagless variants using &lt;code&gt;MonadBlockfrost&lt;/code&gt; allowing to use custom base monad
+for client functions.  Provided instances for &lt;code&gt;BlockfrostClient&lt;/code&gt;, &lt;code&gt;IO&lt;/code&gt; and &lt;code&gt;ClientM&lt;/code&gt;.
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Additions&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Export &lt;code&gt;getTxRedeemers&lt;/code&gt; from &lt;code&gt;Blockfrost.Client&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0210-2021-11-15&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.2.0.0...v0.2.1.0&quot;&gt;0.2.1.0&lt;/a&gt; (2021-11-15)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getAccountAssociatedAddresses&lt;/code&gt; query for &lt;code&gt;/accounts/{stake_address}/addresses&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getAccountAssociatedAssets&lt;/code&gt; query for &lt;code&gt;/accounts/{stake_address}/addresses/assets&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0200-2021-10-29&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.1.0.0...v0.2.0.0&quot;&gt;0.2.0.0&lt;/a&gt; (2021-10-29)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Alonzo additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getTxRedeemers&lt;/code&gt; for &lt;code&gt;/txs/${hash}/redeemers&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;listScripts&lt;/code&gt; for &lt;code&gt;/scripts&lt;/code&gt; endpoint, principled &lt;code&gt;listScripts&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScript&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptRedeemers&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/redeemers&lt;/code&gt; endpoint, principled &lt;code&gt;getScriptRedeemers&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getAddressUtxosAsset&lt;/code&gt; for &lt;code&gt;/addresses/${address}/utxos/${asset}&lt;/code&gt;, principled &lt;code&gt;getAddressUtxosAsset&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptDatum&lt;/code&gt; for &lt;code&gt;/scripts/datum/${datum_hash}&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptJSON&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/json&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptCBOR&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/cbor&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0100-2021-09-14&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/initial...v0.1.0.0&quot;&gt;0.1.0.0&lt;/a&gt; (2021-09-14)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Added &lt;code&gt;allPages&lt;/code&gt;, re-exported couple more pagination helpers
+&lt;/li&gt;
+&lt;li&gt;Initial release
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;p&gt;&lt;code&gt;blockfrost-client&lt;/code&gt; uses &lt;a href=&quot;https://pvp.haskell.org&quot;&gt;PVP Versioning&lt;/a&gt;.&lt;/p&gt;
+</description><author>srk</author></item><item><title>blockfrost-client-0.5.0.0 (blockfrost.io basic client)</title><link>https://hackage.haskell.org/package/blockfrost-client-0.5.0.0</link><guid isPermaLink="true">https://hackage.haskell.org/package/blockfrost-client-0.5.0.0</guid><pubDate>Mon,  6 Jun 2022 09:39:24 UTC</pubDate><description>&lt;dl&gt;&lt;dt&gt;Homepage&lt;/dt&gt;&lt;dd&gt;&lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell&quot;&gt;https://github.com/blockfrost/blockfrost-haskell&lt;/a&gt;&lt;/dd&gt;&lt;dt&gt;Author&lt;/dt&gt;&lt;dd&gt;blockfrost.io&lt;/dd&gt;&lt;dt&gt;Uploaded&lt;/dt&gt;&lt;dd&gt;by srk at 2022-06-06T09:39:24Z&lt;/dd&gt;&lt;dt&gt;Maintainer&lt;/dt&gt;&lt;dd&gt;srk@48.io&lt;/dd&gt;&lt;/dl&gt;&lt;hr /&gt;&lt;h1 id=&quot;version-0500-2022-06-06&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.4.0.1...v0.5.0.0&quot;&gt;0.5.0.0&lt;/a&gt; (2022-06-06)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Fix return types of &lt;code&gt;getEpochStakeByPool&lt;/code&gt; and &lt;code&gt;getEpochStakeByPool&amp;#39;&lt;/code&gt;
+from &lt;code&gt;StakeDistribution&lt;/code&gt; to &lt;code&gt;PoolStakeDistribution&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0401-2022-04-05&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.4.0.0...v0.4.0.1&quot;&gt;0.4.0.1&lt;/a&gt; (2022-04-05)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Allow servant &lt;code&gt;0.19&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0400-2022-03-09&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.3.1.0...v0.4.0.0&quot;&gt;0.4.0.0&lt;/a&gt; (2022-03-09)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Build with &lt;code&gt;blockfrost-api 0.4&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0310-2022-02-17&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.3.0.0...v0.3.1.0&quot;&gt;0.3.1.0&lt;/a&gt; (2022-02-17)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getBlockAffectedAddresses&lt;/code&gt; for &lt;code&gt;/blocks/${hash_or_number}/addresses&lt;/code&gt; endpoint (Affected addresses in a block)
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0300-2022-02-07&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.2.1.0...v0.3.0.0&quot;&gt;0.3.0.0&lt;/a&gt; (2022-02-07)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Changes&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Client functions switched to tagless variants using &lt;code&gt;MonadBlockfrost&lt;/code&gt; allowing to use custom base monad
+for client functions.  Provided instances for &lt;code&gt;BlockfrostClient&lt;/code&gt;, &lt;code&gt;IO&lt;/code&gt; and &lt;code&gt;ClientM&lt;/code&gt;.
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Additions&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Export &lt;code&gt;getTxRedeemers&lt;/code&gt; from &lt;code&gt;Blockfrost.Client&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0210-2021-11-15&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.2.0.0...v0.2.1.0&quot;&gt;0.2.1.0&lt;/a&gt; (2021-11-15)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getAccountAssociatedAddresses&lt;/code&gt; query for &lt;code&gt;/accounts/{stake_address}/addresses&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getAccountAssociatedAssets&lt;/code&gt; query for &lt;code&gt;/accounts/{stake_address}/addresses/assets&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0200-2021-10-29&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.1.0.0...v0.2.0.0&quot;&gt;0.2.0.0&lt;/a&gt; (2021-10-29)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Alonzo additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getTxRedeemers&lt;/code&gt; for &lt;code&gt;/txs/${hash}/redeemers&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;listScripts&lt;/code&gt; for &lt;code&gt;/scripts&lt;/code&gt; endpoint, principled &lt;code&gt;listScripts&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScript&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptRedeemers&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/redeemers&lt;/code&gt; endpoint, principled &lt;code&gt;getScriptRedeemers&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getAddressUtxosAsset&lt;/code&gt; for &lt;code&gt;/addresses/${address}/utxos/${asset}&lt;/code&gt;, principled &lt;code&gt;getAddressUtxosAsset&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptDatum&lt;/code&gt; for &lt;code&gt;/scripts/datum/${datum_hash}&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptJSON&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/json&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptCBOR&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/cbor&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0100-2021-09-14&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/initial...v0.1.0.0&quot;&gt;0.1.0.0&lt;/a&gt; (2021-09-14)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Added &lt;code&gt;allPages&lt;/code&gt;, re-exported couple more pagination helpers
+&lt;/li&gt;
+&lt;li&gt;Initial release
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;p&gt;&lt;code&gt;blockfrost-client&lt;/code&gt; uses &lt;a href=&quot;https://pvp.haskell.org&quot;&gt;PVP Versioning&lt;/a&gt;.&lt;/p&gt;
+</description><author>srk</author></item><item><title>blockfrost-client-0.4.0.1 (blockfrost.io basic client)</title><link>https://hackage.haskell.org/package/blockfrost-client-0.4.0.1</link><guid isPermaLink="true">https://hackage.haskell.org/package/blockfrost-client-0.4.0.1</guid><pubDate>Tue,  5 Apr 2022 13:37:46 UTC</pubDate><description>&lt;dl&gt;&lt;dt&gt;Homepage&lt;/dt&gt;&lt;dd&gt;&lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell&quot;&gt;https://github.com/blockfrost/blockfrost-haskell&lt;/a&gt;&lt;/dd&gt;&lt;dt&gt;Author&lt;/dt&gt;&lt;dd&gt;blockfrost.io&lt;/dd&gt;&lt;dt&gt;Uploaded&lt;/dt&gt;&lt;dd&gt;by srk at 2022-04-05T13:37:46Z&lt;/dd&gt;&lt;dt&gt;Maintainer&lt;/dt&gt;&lt;dd&gt;srk@48.io&lt;/dd&gt;&lt;/dl&gt;&lt;hr /&gt;&lt;h1 id=&quot;version-0401-2022-04-05&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.4.0.0...v0.4.0.1&quot;&gt;0.4.0.1&lt;/a&gt; (2022-04-05)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Allow servant &lt;code&gt;0.19&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0400-2022-03-09&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.3.1.0...v0.4.0.0&quot;&gt;0.4.0.0&lt;/a&gt; (2022-03-09)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Build with &lt;code&gt;blockfrost-api 0.4&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0310-2022-02-17&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.3.0.0...v0.3.1.0&quot;&gt;0.3.1.0&lt;/a&gt; (2022-02-17)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getBlockAffectedAddresses&lt;/code&gt; for &lt;code&gt;/blocks/${hash_or_number}/addresses&lt;/code&gt; endpoint (Affected addresses in a block)
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0300-2022-02-07&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.2.1.0...v0.3.0.0&quot;&gt;0.3.0.0&lt;/a&gt; (2022-02-07)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Changes&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Client functions switched to tagless variants using &lt;code&gt;MonadBlockfrost&lt;/code&gt; allowing to use custom base monad
+for client functions.  Provided instances for &lt;code&gt;BlockfrostClient&lt;/code&gt;, &lt;code&gt;IO&lt;/code&gt; and &lt;code&gt;ClientM&lt;/code&gt;.
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Additions&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Export &lt;code&gt;getTxRedeemers&lt;/code&gt; from &lt;code&gt;Blockfrost.Client&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0210-2021-11-15&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.2.0.0...v0.2.1.0&quot;&gt;0.2.1.0&lt;/a&gt; (2021-11-15)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getAccountAssociatedAddresses&lt;/code&gt; query for &lt;code&gt;/accounts/{stake_address}/addresses&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getAccountAssociatedAssets&lt;/code&gt; query for &lt;code&gt;/accounts/{stake_address}/addresses/assets&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0200-2021-10-29&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.1.0.0...v0.2.0.0&quot;&gt;0.2.0.0&lt;/a&gt; (2021-10-29)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Alonzo additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getTxRedeemers&lt;/code&gt; for &lt;code&gt;/txs/${hash}/redeemers&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;listScripts&lt;/code&gt; for &lt;code&gt;/scripts&lt;/code&gt; endpoint, principled &lt;code&gt;listScripts&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScript&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptRedeemers&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/redeemers&lt;/code&gt; endpoint, principled &lt;code&gt;getScriptRedeemers&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getAddressUtxosAsset&lt;/code&gt; for &lt;code&gt;/addresses/${address}/utxos/${asset}&lt;/code&gt;, principled &lt;code&gt;getAddressUtxosAsset&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptDatum&lt;/code&gt; for &lt;code&gt;/scripts/datum/${datum_hash}&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptJSON&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/json&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptCBOR&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/cbor&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0100-2021-09-14&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/initial...v0.1.0.0&quot;&gt;0.1.0.0&lt;/a&gt; (2021-09-14)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Added &lt;code&gt;allPages&lt;/code&gt;, re-exported couple more pagination helpers
+&lt;/li&gt;
+&lt;li&gt;Initial release
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;p&gt;&lt;code&gt;blockfrost-client&lt;/code&gt; uses &lt;a href=&quot;https://pvp.haskell.org&quot;&gt;PVP Versioning&lt;/a&gt;.&lt;/p&gt;
+</description><author>srk</author></item><item><title>blockfrost-client-0.4.0.0 (blockfrost.io basic client)</title><link>https://hackage.haskell.org/package/blockfrost-client-0.4.0.0</link><guid isPermaLink="true">https://hackage.haskell.org/package/blockfrost-client-0.4.0.0</guid><pubDate>Wed,  9 Mar 2022 13:44:08 UTC</pubDate><description>&lt;dl&gt;&lt;dt&gt;Homepage&lt;/dt&gt;&lt;dd&gt;&lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell&quot;&gt;https://github.com/blockfrost/blockfrost-haskell&lt;/a&gt;&lt;/dd&gt;&lt;dt&gt;Author&lt;/dt&gt;&lt;dd&gt;blockfrost.io&lt;/dd&gt;&lt;dt&gt;Uploaded&lt;/dt&gt;&lt;dd&gt;by srk at 2022-03-09T13:44:08Z&lt;/dd&gt;&lt;dt&gt;Maintainer&lt;/dt&gt;&lt;dd&gt;srk@48.io&lt;/dd&gt;&lt;/dl&gt;&lt;hr /&gt;&lt;h1 id=&quot;version-0400-2022-03-09&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.3.1.0...v0.4.0.0&quot;&gt;0.4.0.0&lt;/a&gt; (2022-03-09)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Build with &lt;code&gt;blockfrost-api 0.4&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0310-2022-02-17&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.3.0.0...v0.3.1.0&quot;&gt;0.3.1.0&lt;/a&gt; (2022-02-17)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getBlockAffectedAddresses&lt;/code&gt; for &lt;code&gt;/blocks/${hash_or_number}/addresses&lt;/code&gt; endpoint (Affected addresses in a block)
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0300-2022-02-07&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.2.1.0...v0.3.0.0&quot;&gt;0.3.0.0&lt;/a&gt; (2022-02-07)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Changes&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Client functions switched to tagless variants using &lt;code&gt;MonadBlockfrost&lt;/code&gt; allowing to use custom base monad
+for client functions.  Provided instances for &lt;code&gt;BlockfrostClient&lt;/code&gt;, &lt;code&gt;IO&lt;/code&gt; and &lt;code&gt;ClientM&lt;/code&gt;.
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Additions&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Export &lt;code&gt;getTxRedeemers&lt;/code&gt; from &lt;code&gt;Blockfrost.Client&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0210-2021-11-15&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.2.0.0...v0.2.1.0&quot;&gt;0.2.1.0&lt;/a&gt; (2021-11-15)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getAccountAssociatedAddresses&lt;/code&gt; query for &lt;code&gt;/accounts/{stake_address}/addresses&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getAccountAssociatedAssets&lt;/code&gt; query for &lt;code&gt;/accounts/{stake_address}/addresses/assets&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0200-2021-10-29&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.1.0.0...v0.2.0.0&quot;&gt;0.2.0.0&lt;/a&gt; (2021-10-29)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Alonzo additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getTxRedeemers&lt;/code&gt; for &lt;code&gt;/txs/${hash}/redeemers&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;listScripts&lt;/code&gt; for &lt;code&gt;/scripts&lt;/code&gt; endpoint, principled &lt;code&gt;listScripts&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScript&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptRedeemers&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/redeemers&lt;/code&gt; endpoint, principled &lt;code&gt;getScriptRedeemers&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getAddressUtxosAsset&lt;/code&gt; for &lt;code&gt;/addresses/${address}/utxos/${asset}&lt;/code&gt;, principled &lt;code&gt;getAddressUtxosAsset&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptDatum&lt;/code&gt; for &lt;code&gt;/scripts/datum/${datum_hash}&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptJSON&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/json&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptCBOR&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/cbor&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0100-2021-09-14&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/initial...v0.1.0.0&quot;&gt;0.1.0.0&lt;/a&gt; (2021-09-14)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Added &lt;code&gt;allPages&lt;/code&gt;, re-exported couple more pagination helpers
+&lt;/li&gt;
+&lt;li&gt;Initial release
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;p&gt;&lt;code&gt;blockfrost-client&lt;/code&gt; uses &lt;a href=&quot;https://pvp.haskell.org&quot;&gt;PVP Versioning&lt;/a&gt;.&lt;/p&gt;
+</description><author>srk</author></item><item><title>blockfrost-client-0.3.1.0 (blockfrost.io basic client)</title><link>https://hackage.haskell.org/package/blockfrost-client-0.3.1.0</link><guid isPermaLink="true">https://hackage.haskell.org/package/blockfrost-client-0.3.1.0</guid><pubDate>Thu, 17 Feb 2022 13:31:46 UTC</pubDate><description>&lt;dl&gt;&lt;dt&gt;Homepage&lt;/dt&gt;&lt;dd&gt;&lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell&quot;&gt;https://github.com/blockfrost/blockfrost-haskell&lt;/a&gt;&lt;/dd&gt;&lt;dt&gt;Author&lt;/dt&gt;&lt;dd&gt;blockfrost.io&lt;/dd&gt;&lt;dt&gt;Uploaded&lt;/dt&gt;&lt;dd&gt;by srk at 2022-02-17T13:31:46Z&lt;/dd&gt;&lt;dt&gt;Maintainer&lt;/dt&gt;&lt;dd&gt;srk@48.io&lt;/dd&gt;&lt;/dl&gt;&lt;hr /&gt;&lt;h1 id=&quot;version-0310-2022-02-17&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.3.0.0...v0.3.1.0&quot;&gt;0.3.1.0&lt;/a&gt; (2022-02-17)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getBlockAffectedAddresses&lt;/code&gt; for &lt;code&gt;/blocks/${hash_or_number}/addresses&lt;/code&gt; endpoint (Affected addresses in a block)
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0300-2022-02-07&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.2.1.0...v0.3.0.0&quot;&gt;0.3.0.0&lt;/a&gt; (2022-02-07)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Changes&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Client functions switched to tagless variants using &lt;code&gt;MonadBlockfrost&lt;/code&gt; allowing to use custom base monad
+for client functions.  Provided instances for &lt;code&gt;BlockfrostClient&lt;/code&gt;, &lt;code&gt;IO&lt;/code&gt; and &lt;code&gt;ClientM&lt;/code&gt;.
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Additions&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Export &lt;code&gt;getTxRedeemers&lt;/code&gt; from &lt;code&gt;Blockfrost.Client&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0210-2021-11-15&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.2.0.0...v0.2.1.0&quot;&gt;0.2.1.0&lt;/a&gt; (2021-11-15)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getAccountAssociatedAddresses&lt;/code&gt; query for &lt;code&gt;/accounts/{stake_address}/addresses&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getAccountAssociatedAssets&lt;/code&gt; query for &lt;code&gt;/accounts/{stake_address}/addresses/assets&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0200-2021-10-29&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.1.0.0...v0.2.0.0&quot;&gt;0.2.0.0&lt;/a&gt; (2021-10-29)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Alonzo additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getTxRedeemers&lt;/code&gt; for &lt;code&gt;/txs/${hash}/redeemers&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;listScripts&lt;/code&gt; for &lt;code&gt;/scripts&lt;/code&gt; endpoint, principled &lt;code&gt;listScripts&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScript&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptRedeemers&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/redeemers&lt;/code&gt; endpoint, principled &lt;code&gt;getScriptRedeemers&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getAddressUtxosAsset&lt;/code&gt; for &lt;code&gt;/addresses/${address}/utxos/${asset}&lt;/code&gt;, principled &lt;code&gt;getAddressUtxosAsset&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptDatum&lt;/code&gt; for &lt;code&gt;/scripts/datum/${datum_hash}&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptJSON&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/json&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptCBOR&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/cbor&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0100-2021-09-14&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/initial...v0.1.0.0&quot;&gt;0.1.0.0&lt;/a&gt; (2021-09-14)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Added &lt;code&gt;allPages&lt;/code&gt;, re-exported couple more pagination helpers
+&lt;/li&gt;
+&lt;li&gt;Initial release
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;p&gt;&lt;code&gt;blockfrost-client&lt;/code&gt; uses &lt;a href=&quot;https://pvp.haskell.org&quot;&gt;PVP Versioning&lt;/a&gt;.&lt;/p&gt;
+</description><author>srk</author></item><item><title>blockfrost-client-0.3.0.0 (blockfrost.io basic client)</title><link>https://hackage.haskell.org/package/blockfrost-client-0.3.0.0</link><guid isPermaLink="true">https://hackage.haskell.org/package/blockfrost-client-0.3.0.0</guid><pubDate>Mon,  7 Feb 2022 10:45:13 UTC</pubDate><description>&lt;dl&gt;&lt;dt&gt;Homepage&lt;/dt&gt;&lt;dd&gt;&lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell&quot;&gt;https://github.com/blockfrost/blockfrost-haskell&lt;/a&gt;&lt;/dd&gt;&lt;dt&gt;Author&lt;/dt&gt;&lt;dd&gt;blockfrost.io&lt;/dd&gt;&lt;dt&gt;Uploaded&lt;/dt&gt;&lt;dd&gt;by srk at 2022-02-07T10:45:13Z&lt;/dd&gt;&lt;dt&gt;Maintainer&lt;/dt&gt;&lt;dd&gt;srk@48.io&lt;/dd&gt;&lt;/dl&gt;&lt;hr /&gt;&lt;h1 id=&quot;version-0300-2022-02-07&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.2.1.0...v0.3.0.0&quot;&gt;0.3.0.0&lt;/a&gt; (2022-02-07)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Changes&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Client functions switched to tagless variants using &lt;code&gt;MonadBlockfrost&lt;/code&gt; allowing to use custom base monad
+for client functions.  Provided instances for &lt;code&gt;BlockfrostClient&lt;/code&gt;, &lt;code&gt;IO&lt;/code&gt; and &lt;code&gt;ClientM&lt;/code&gt;.
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Additions&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Export &lt;code&gt;getTxRedeemers&lt;/code&gt; from &lt;code&gt;Blockfrost.Client&lt;/code&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0210-2021-11-15&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.2.0.0...v0.2.1.0&quot;&gt;0.2.1.0&lt;/a&gt; (2021-11-15)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getAccountAssociatedAddresses&lt;/code&gt; query for &lt;code&gt;/accounts/{stake_address}/addresses&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getAccountAssociatedAssets&lt;/code&gt; query for &lt;code&gt;/accounts/{stake_address}/addresses/assets&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0200-2021-10-29&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.1.0.0...v0.2.0.0&quot;&gt;0.2.0.0&lt;/a&gt; (2021-10-29)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Alonzo additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getTxRedeemers&lt;/code&gt; for &lt;code&gt;/txs/${hash}/redeemers&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;listScripts&lt;/code&gt; for &lt;code&gt;/scripts&lt;/code&gt; endpoint, principled &lt;code&gt;listScripts&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScript&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptRedeemers&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/redeemers&lt;/code&gt; endpoint, principled &lt;code&gt;getScriptRedeemers&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getAddressUtxosAsset&lt;/code&gt; for &lt;code&gt;/addresses/${address}/utxos/${asset}&lt;/code&gt;, principled &lt;code&gt;getAddressUtxosAsset&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptDatum&lt;/code&gt; for &lt;code&gt;/scripts/datum/${datum_hash}&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptJSON&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/json&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptCBOR&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/cbor&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0100-2021-09-14&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/initial...v0.1.0.0&quot;&gt;0.1.0.0&lt;/a&gt; (2021-09-14)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Added &lt;code&gt;allPages&lt;/code&gt;, re-exported couple more pagination helpers
+&lt;/li&gt;
+&lt;li&gt;Initial release
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;p&gt;&lt;code&gt;blockfrost-client&lt;/code&gt; uses &lt;a href=&quot;https://pvp.haskell.org&quot;&gt;PVP Versioning&lt;/a&gt;.&lt;/p&gt;
+</description><author>srk</author></item><item><title>blockfrost-client-0.2.1.0 (blockfrost.io basic client)</title><link>https://hackage.haskell.org/package/blockfrost-client-0.2.1.0</link><guid isPermaLink="true">https://hackage.haskell.org/package/blockfrost-client-0.2.1.0</guid><pubDate>Mon, 15 Nov 2021 12:19:04 UTC</pubDate><description>&lt;dl&gt;&lt;dt&gt;Homepage&lt;/dt&gt;&lt;dd&gt;&lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell&quot;&gt;https://github.com/blockfrost/blockfrost-haskell&lt;/a&gt;&lt;/dd&gt;&lt;dt&gt;Author&lt;/dt&gt;&lt;dd&gt;blockfrost.io&lt;/dd&gt;&lt;dt&gt;Uploaded&lt;/dt&gt;&lt;dd&gt;by srk at 2021-11-15T12:19:04Z&lt;/dd&gt;&lt;dt&gt;Maintainer&lt;/dt&gt;&lt;dd&gt;srk@48.io&lt;/dd&gt;&lt;/dl&gt;&lt;hr /&gt;&lt;h1 id=&quot;version-0210-2021-11-15&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.2.0.0...v0.2.1.0&quot;&gt;0.2.1.0&lt;/a&gt; (2021-11-15)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getAccountAssociatedAddresses&lt;/code&gt; query for &lt;code&gt;/accounts/{stake_address}/addresses&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getAccountAssociatedAssets&lt;/code&gt; query for &lt;code&gt;/accounts/{stake_address}/addresses/assets&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0200-2021-10-29&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.1.0.0...v0.2.0.0&quot;&gt;0.2.0.0&lt;/a&gt; (2021-10-29)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Alonzo additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getTxRedeemers&lt;/code&gt; for &lt;code&gt;/txs/${hash}/redeemers&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;listScripts&lt;/code&gt; for &lt;code&gt;/scripts&lt;/code&gt; endpoint, principled &lt;code&gt;listScripts&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScript&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptRedeemers&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/redeemers&lt;/code&gt; endpoint, principled &lt;code&gt;getScriptRedeemers&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getAddressUtxosAsset&lt;/code&gt; for &lt;code&gt;/addresses/${address}/utxos/${asset}&lt;/code&gt;, principled &lt;code&gt;getAddressUtxosAsset&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptDatum&lt;/code&gt; for &lt;code&gt;/scripts/datum/${datum_hash}&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptJSON&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/json&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptCBOR&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/cbor&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0100-2021-09-14&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/initial...v0.1.0.0&quot;&gt;0.1.0.0&lt;/a&gt; (2021-09-14)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Added &lt;code&gt;allPages&lt;/code&gt;, re-exported couple more pagination helpers
+&lt;/li&gt;
+&lt;li&gt;Initial release
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;p&gt;&lt;code&gt;blockfrost-client&lt;/code&gt; uses &lt;a href=&quot;https://pvp.haskell.org&quot;&gt;PVP Versioning&lt;/a&gt;.&lt;/p&gt;
+</description><author>srk</author></item><item><title>blockfrost-client-0.2.0.0 (blockfrost.io basic client)</title><link>https://hackage.haskell.org/package/blockfrost-client-0.2.0.0</link><guid isPermaLink="true">https://hackage.haskell.org/package/blockfrost-client-0.2.0.0</guid><pubDate>Fri, 29 Oct 2021 12:15:41 UTC</pubDate><description>&lt;dl&gt;&lt;dt&gt;Homepage&lt;/dt&gt;&lt;dd&gt;&lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell&quot;&gt;https://github.com/blockfrost/blockfrost-haskell&lt;/a&gt;&lt;/dd&gt;&lt;dt&gt;Author&lt;/dt&gt;&lt;dd&gt;blockfrost.io&lt;/dd&gt;&lt;dt&gt;Uploaded&lt;/dt&gt;&lt;dd&gt;by srk at 2021-10-29T12:15:41Z&lt;/dd&gt;&lt;dt&gt;Maintainer&lt;/dt&gt;&lt;dd&gt;srk@48.io&lt;/dd&gt;&lt;/dl&gt;&lt;hr /&gt;&lt;h1 id=&quot;version-0200-2021-10-29&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/v0.1.0.0...v0.2.0.0&quot;&gt;0.2.0.0&lt;/a&gt; (2021-10-29)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Alonzo additions
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;getTxRedeemers&lt;/code&gt; for &lt;code&gt;/txs/${hash}/redeemers&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;listScripts&lt;/code&gt; for &lt;code&gt;/scripts&lt;/code&gt; endpoint, principled &lt;code&gt;listScripts&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScript&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptRedeemers&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/redeemers&lt;/code&gt; endpoint, principled &lt;code&gt;getScriptRedeemers&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getAddressUtxosAsset&lt;/code&gt; for &lt;code&gt;/addresses/${address}/utxos/${asset}&lt;/code&gt;, principled &lt;code&gt;getAddressUtxosAsset&amp;#39;&lt;/code&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptDatum&lt;/code&gt; for &lt;code&gt;/scripts/datum/${datum_hash}&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptJSON&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/json&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;getScriptCBOR&lt;/code&gt; for &lt;code&gt;/scripts/${script_hash}/cbor&lt;/code&gt; endpoint
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;version-0100-2021-09-14&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/initial...v0.1.0.0&quot;&gt;0.1.0.0&lt;/a&gt; (2021-09-14)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Added &lt;code&gt;allPages&lt;/code&gt;, re-exported couple more pagination helpers
+&lt;/li&gt;
+&lt;li&gt;Initial release
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;p&gt;&lt;code&gt;blockfrost-client&lt;/code&gt; uses &lt;a href=&quot;https://pvp.haskell.org&quot;&gt;PVP Versioning&lt;/a&gt;.&lt;/p&gt;
+</description><author>srk</author></item><item><title>blockfrost-client-0.1.0.0 (blockfrost.io basic client)</title><link>https://hackage.haskell.org/package/blockfrost-client-0.1.0.0</link><guid isPermaLink="true">https://hackage.haskell.org/package/blockfrost-client-0.1.0.0</guid><pubDate>Tue, 14 Sep 2021 12:23:58 UTC</pubDate><description>&lt;dl&gt;&lt;dt&gt;Homepage&lt;/dt&gt;&lt;dd&gt;&lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell&quot;&gt;https://github.com/blockfrost/blockfrost-haskell&lt;/a&gt;&lt;/dd&gt;&lt;dt&gt;Author&lt;/dt&gt;&lt;dd&gt;blockfrost.io&lt;/dd&gt;&lt;dt&gt;Uploaded&lt;/dt&gt;&lt;dd&gt;by srk at 2021-09-14T12:23:58Z&lt;/dd&gt;&lt;dt&gt;Maintainer&lt;/dt&gt;&lt;dd&gt;srk@48.io&lt;/dd&gt;&lt;/dl&gt;&lt;hr /&gt;&lt;h1 id=&quot;version-0100-2021-09-14&quot;&gt;Version &lt;a href=&quot;https://github.com/blockfrost/blockfrost-haskell/compare/initial...0.1.0.0&quot;&gt;0.1.0.0&lt;/a&gt; (2021-09-14)&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Added &lt;code&gt;allPages&lt;/code&gt;, re-exported couple more pagination helpers
+&lt;/li&gt;
+&lt;li&gt;Initial release
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;p&gt;&lt;code&gt;blockfrost-client&lt;/code&gt; uses &lt;a href=&quot;https://pvp.haskell.org&quot;&gt;PVP Versioning&lt;/a&gt;.&lt;/p&gt;
+</description><author>srk</author></item></channel></rss>
