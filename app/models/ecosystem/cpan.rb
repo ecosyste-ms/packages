@@ -61,13 +61,17 @@ module Ecosystem
         keywords_array: package.fetch("metadata", {})["keywords"],
         metadata:{
           author: package['author']
-        }
+        },
+        versions: fetch_version_metadata(package["distribution"])
       }
     end
 
+    def fetch_version_metadata(name)
+      get("https://fastapi.metacpan.org/v1/release/_search?q=distribution:#{name}&size=5000")["hits"]["hits"]
+    end
+
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
-      versions = get("https://fastapi.metacpan.org/v1/release/_search?q=distribution:#{pkg_metadata[:name]}&size=5000")["hits"]["hits"]
-      versions.map do |version|
+      pkg_metadata[:versions].reject{|v| existing_version_numbers.include?(v["_source"]["version"]) }.map do |version|
         {
           number: version["_source"]["version"],
           published_at: version["_source"]["date"],
@@ -81,8 +85,8 @@ module Ecosystem
       []
     end
 
-    def dependencies_metadata(name, version, _package)
-      versions = get("https://fastapi.metacpan.org/v1/release/_search?q=distribution:#{name}&size=5000")["hits"]["hits"]
+    def dependencies_metadata(name, version, pkg_metadata)
+      versions = pkg_metadata[:versions]
       version_data = versions.find { |v| v["_source"]["version"] == version }
       version_data["_source"]["dependency"].select { |dep| dep["relationship"] == "requires" }.map do |dep|
         {

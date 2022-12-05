@@ -69,19 +69,17 @@ class CpanTest < ActiveSupport::TestCase
   test 'package_metadata' do
     stub_request(:get, "https://fastapi.metacpan.org/v1/release/Dpkg")
       .to_return({ status: 200, body: file_fixture('cpan/Dpkg') })
+    stub_request(:get, "https://fastapi.metacpan.org/v1/release/_search?q=distribution:Dpkg&size=5000")
+      .to_return({ status: 200, body: file_fixture('cpan/_search?q=distribution:Dpkg&size=5000') })
     package_metadata = @ecosystem.package_metadata('Dpkg')
 
-    assert_equal package_metadata, {
-      :name=>"Dpkg", 
-      :homepage=>"https://wiki.debian.org/Teams/Dpkg", 
-      :description=>"Debian Package Manager Perl modules", 
-      :licenses=>"gpl_2", 
-      :repository_url=>"https://git.dpkg.org/cgit/dpkg/dpkg.git",
-      :keywords_array=>["dpkg", "debian", "perl"],
-      :metadata=>{
-        :author=>"GUILLEM"
-      }
-    }
+    assert_equal package_metadata[:name], 'Dpkg'
+    assert_equal package_metadata[:homepage], 'https://wiki.debian.org/Teams/Dpkg'
+    assert_equal package_metadata[:description], 'Debian Package Manager Perl modules'
+    assert_equal package_metadata[:licenses], 'gpl_2'
+    assert_equal package_metadata[:repository_url], 'https://git.dpkg.org/cgit/dpkg/dpkg.git'
+    assert_equal package_metadata[:keywords_array], ['dpkg', 'debian', 'perl']
+    assert_equal package_metadata[:metadata][:author], 'GUILLEM'
   end
 
   test 'versions_metadata' do
@@ -184,9 +182,12 @@ class CpanTest < ActiveSupport::TestCase
   end
 
   test 'dependencies_metadata' do
+    stub_request(:get, "https://fastapi.metacpan.org/v1/release/Dpkg")
+      .to_return({ status: 200, body: file_fixture('cpan/Dpkg') })
     stub_request(:get, "https://fastapi.metacpan.org/v1/release/_search?q=distribution:Dpkg&size=5000")
       .to_return({ status: 200, body: file_fixture('cpan/_search?q=distribution:Dpkg&size=5000') })
-    dependencies_metadata = @ecosystem.dependencies_metadata('Dpkg', 'v1.21.5', nil)
+    package_metadata = @ecosystem.package_metadata('Dpkg')
+    dependencies_metadata = @ecosystem.dependencies_metadata('Dpkg', 'v1.21.5', package_metadata)
     
     assert_equal dependencies_metadata, [
       {:package_name=>"Test-More", :requirements=>"0", :kind=>"test", :ecosystem=>"cpan"},
