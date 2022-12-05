@@ -14,6 +14,12 @@ namespace :packages do
     Package.sync_least_recent_async
   end
 
+  desc 'sync least recently synced top 1% packages'
+  task sync_least_recent_top: :environment do
+    Package.sync_least_recent_top_async
+  end
+
+
   desc 'check package statuses'
   task check_statuses: :environment do
     Package.check_statuses_async
