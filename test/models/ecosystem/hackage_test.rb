@@ -88,16 +88,16 @@ class HackageTest < ActiveSupport::TestCase
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
-      {:number=>"0.7.0.0", :published_at=>2022-10-11 05:27:03 UTC, :metadata=>{:author=>"srk"}},
-      {:number=>"0.6.0.0", :published_at=>2022-08-31 16:48:50 UTC, :metadata=>{:author=>"srk"}},
-      {:number=>"0.5.0.0", :published_at=>2022-06-06 09:39:24 UTC, :metadata=>{:author=>"srk"}},
-      {:number=>"0.4.0.1", :published_at=>2022-04-05 13:37:46 UTC, :metadata=>{:author=>"srk"}},
-      {:number=>"0.4.0.0", :published_at=>2022-03-09 13:44:08 UTC, :metadata=>{:author=>"srk"}},
-      {:number=>"0.3.1.0", :published_at=>2022-02-17 13:31:46 UTC, :metadata=>{:author=>"srk"}},
-      {:number=>"0.3.0.0", :published_at=>2022-02-07 10:45:13 UTC, :metadata=>{:author=>"srk"}},
-      {:number=>"0.2.1.0", :published_at=>2021-11-15 12:19:04 UTC, :metadata=>{:author=>"srk"}},
-      {:number=>"0.2.0.0", :published_at=>2021-10-29 12:15:41 UTC, :metadata=>{:author=>"srk"}},
-      {:number=>"0.1.0.0", :published_at=>2021-09-14 12:23:58 UTC, :metadata=>{:author=>"srk"}}
+      {:number=>"0.7.0.0", :published_at=>'2022-10-11 05:27:03 UTC', :metadata=>{:author=>"srk"}},
+      {:number=>"0.6.0.0", :published_at=>'2022-08-31 16:48:50 UTC', :metadata=>{:author=>"srk"}},
+      {:number=>"0.5.0.0", :published_at=>'2022-06-06 09:39:24 UTC', :metadata=>{:author=>"srk"}},
+      {:number=>"0.4.0.1", :published_at=>'2022-04-05 13:37:46 UTC', :metadata=>{:author=>"srk"}},
+      {:number=>"0.4.0.0", :published_at=>'2022-03-09 13:44:08 UTC', :metadata=>{:author=>"srk"}},
+      {:number=>"0.3.1.0", :published_at=>'2022-02-17 13:31:46 UTC', :metadata=>{:author=>"srk"}},
+      {:number=>"0.3.0.0", :published_at=>'2022-02-07 10:45:13 UTC', :metadata=>{:author=>"srk"}},
+      {:number=>"0.2.1.0", :published_at=>'2021-11-15 12:19:04 UTC', :metadata=>{:author=>"srk"}},
+      {:number=>"0.2.0.0", :published_at=>'2021-10-29 12:15:41 UTC', :metadata=>{:author=>"srk"}},
+      {:number=>"0.1.0.0", :published_at=>'2021-09-14 12:23:58 UTC', :metadata=>{:author=>"srk"}}
     ]
   end
 
