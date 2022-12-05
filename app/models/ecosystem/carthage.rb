@@ -34,6 +34,8 @@ module Ecosystem
 
     def all_package_names
       get_json("https://repos.ecosyste.ms/api/v1/package_names/carthage")
+    rescue
+      []
     end
 
     def map_package_metadata(package)

@@ -21,6 +21,8 @@ module Ecosystem
 
     def fetch_package_metadata(name)
       get_json("https://hub.docker.com/v2/repositories/#{name}/")
+    rescue
+      {}
     end
 
     def recently_updated_package_names
@@ -48,6 +50,8 @@ module Ecosystem
       official_packages = org_package_names('library')
       community_packages = get_json("https://repos.ecosyste.ms/api/v1/package_names/docker")
       (official_packages + community_packages).uniq
+    rescue
+      []
     end
 
     def map_package_metadata(package)

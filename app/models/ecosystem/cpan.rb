@@ -46,6 +46,8 @@ module Ecosystem
 
     def fetch_package_metadata(name)
       get("https://fastapi.metacpan.org/v1/release/#{name}")
+    rescue
+      {}
     end
 
     def map_package_metadata(package)

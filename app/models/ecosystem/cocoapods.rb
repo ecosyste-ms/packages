@@ -52,7 +52,7 @@ module Ecosystem
 
       json["version_numbers"] = versions
       return json
-    rescue Oj::ParseError
+    rescue
       false
     end
 

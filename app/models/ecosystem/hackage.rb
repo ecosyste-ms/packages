@@ -36,6 +36,8 @@ module Ecosystem
         name: name,
         page: page
       }
+    rescue
+      nil
     end
 
     def map_package_metadata(package)

@@ -30,6 +30,8 @@ module Ecosystem
 
     def all_package_data
       get_json("https://pkgs.racket-lang.org/pkgs-all.json.gz")
+    rescue
+      {}
     end
 
     def install_command(package, version = nil)

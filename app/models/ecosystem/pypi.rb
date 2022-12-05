@@ -43,6 +43,8 @@ module Ecosystem
 
     def fetch_package_metadata(name)
       get("#{@registry_url}/pypi/#{name}/json")
+    rescue
+      {}
     end
 
     def map_package_metadata(package)

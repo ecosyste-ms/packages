@@ -44,6 +44,8 @@ module Ecosystem
       end
 
       { name: name, html: html, properties: properties }
+    rescue
+      nil
     end
 
     def map_package_metadata(package)
