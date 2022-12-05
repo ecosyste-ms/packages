@@ -6,6 +6,18 @@ module Ecosystem
       "#{@registry_url}/pods/#{package.name}"
     end
 
+    def download_url(package, version = nil)
+      if version.present?
+        version.metadata["download_url"]
+      else
+        return nil if package.repository_url.blank?
+        return nil unless package.repository_url.include?('/github.com/')
+        full_name = package.repository_url.gsub('https://github.com/', '').gsub('.git', '')
+        
+        "https://codeload.github.com/#{full_name}/tar.gz/refs/heads/master"
+      end
+    end
+
     def documentation_url(package, version = nil)
       "https://cocoadocs.org/docsets/#{package.name}/#{version}"
     end
@@ -69,11 +81,26 @@ module Ecosystem
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
-      # TODO backfill version data from repos service (similar to bower)
+      json = get_json("https://repos.ecosyste.ms/api/v1/repositories/lookup?url=#{pkg_metadata[:repository_url]}")
+      tags_json = get_json(json['tags_url']) if json && json['tags_url']
+      tags_json ||= []
       pkg_metadata.fetch(:versions, []).map do |v|
-        {
-          number: v,
-        }
+        tag = tags_json.find { |t| t['name'] == v } || {}
+        if tag
+          {
+            number: v,
+            published_at: tag['published_at'],
+            metadata: {
+              sha: tag['sha'],
+              download_url: tag['download_url']
+            }
+          }
+        else 
+          {
+            number: v
+          }
+        end
+
       end
     end
 

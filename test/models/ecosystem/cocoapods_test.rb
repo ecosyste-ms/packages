@@ -5,7 +5,7 @@ class CocoapodsTest < ActiveSupport::TestCase
     @registry = Registry.new(name: 'Cocoapod.org', url: 'https://cocoapods.org', ecosystem: 'cocoapods')
     @ecosystem = Ecosystem::Cocoapods.new(@registry)
     @package = Package.new(ecosystem: 'cocoapods', name: 'Foo')
-    @version = @package.versions.build(number: '0.8.5')
+    @version = @package.versions.build({:number=>"1.0.7", :published_at=>"2019-01-01T11:52:18.000Z", :metadata=>{:sha=>"fc91bdd33fa5019c4b9a0d0bbe359816872cd89c", :download_url=>"https://codeload.github.com/deepesh259nitk/mixedFramework/tar.gz/1.0.7"}})
   end
 
   test 'registry_url' do
@@ -20,7 +20,7 @@ class CocoapodsTest < ActiveSupport::TestCase
 
   test 'download_url' do
     download_url = @ecosystem.download_url(@package, @version)
-    assert_nil download_url
+    assert_equal download_url, "https://codeload.github.com/deepesh259nitk/mixedFramework/tar.gz/1.0.7"
   end
 
   test 'documentation_url' do
@@ -30,7 +30,7 @@ class CocoapodsTest < ActiveSupport::TestCase
 
   test 'documentation_url with version' do
     documentation_url = @ecosystem.documentation_url(@package, @version.number)
-    assert_equal documentation_url, "https://cocoadocs.org/docsets/Foo/0.8.5"
+    assert_equal documentation_url, "https://cocoadocs.org/docsets/Foo/1.0.7"
   end
 
   test 'install_command' do
@@ -85,10 +85,21 @@ class CocoapodsTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('cocoapods/all_pods_versions_1_3_5.txt') })
     stub_request(:get, "https://cdn.cocoapods.org/Specs/1/3/5/Foo/1.1.3/Foo.podspec.json")
       .to_return({ status: 200, body: file_fixture('cocoapods/Foo.podspec.json') })
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/deepesh259nitk/mixedFramework")
+      .to_return({ status: 200, body: file_fixture('cocoapods/lookup?url=https:%2F%2Fgithub.com%2Fdeepesh259nitk%2FmixedFramework') })
+    stub_request(:get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/deepesh259nitk%2FmixedFramework/tags")
+      .to_return({ status: 200, body: file_fixture('cocoapods/tags') })
     package_metadata = @ecosystem.package_metadata('Foo')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
-    assert_equal versions_metadata, [{:number=>"1.0.7"}, {:number=>"1.0.9"}, {:number=>"1.1.0"}, {:number=>"1.1.1"}, {:number=>"1.1.2"}, {:number=>"1.1.3"}]
+    assert_equal versions_metadata, [
+      {:number=>"1.0.7", :published_at=>"2019-01-01T11:52:18.000Z", :metadata=>{:sha=>"fc91bdd33fa5019c4b9a0d0bbe359816872cd89c", :download_url=>"https://codeload.github.com/deepesh259nitk/mixedFramework/tar.gz/1.0.7"}},
+      {:number=>"1.0.9", :published_at=>"2019-01-01T16:11:06.000Z", :metadata=>{:sha=>"a5aea9dcf72c45296f1020d8891a7c362b49c569", :download_url=>"https://codeload.github.com/deepesh259nitk/mixedFramework/tar.gz/1.0.9"}},
+      {:number=>"1.1.0", :published_at=>"2019-01-01T16:56:44.000Z", :metadata=>{:sha=>"1ab67a89f60dae5b56f134b08d0192c17ebdf8f4", :download_url=>"https://codeload.github.com/deepesh259nitk/mixedFramework/tar.gz/1.1.0"}},
+      {:number=>"1.1.1", :published_at=>"2019-01-01T17:02:22.000Z", :metadata=>{:sha=>"1c6ba692e25c75932968a9552286cba67bd21b41", :download_url=>"https://codeload.github.com/deepesh259nitk/mixedFramework/tar.gz/1.1.1"}},
+      {:number=>"1.1.2", :published_at=>"2019-01-01T21:06:08.000Z", :metadata=>{:sha=>"1b330eee5aa6ce9077334d3c1ef7f08400ae953e", :download_url=>"https://codeload.github.com/deepesh259nitk/mixedFramework/tar.gz/1.1.2"}},
+      {:number=>"1.1.3", :published_at=>"2019-01-01T21:09:03.000Z", :metadata=>{:sha=>"aff76a1365d68a6ef10bcf647a29c53c414c9f2a", :download_url=>"https://codeload.github.com/deepesh259nitk/mixedFramework/tar.gz/1.1.3"}}
+    ]
   end
 
   test 'dependencies_metadata' do
