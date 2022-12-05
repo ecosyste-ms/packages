@@ -24,7 +24,7 @@ module Ecosystem
     end
 
     def all_packages
-      @all_packages ||= get_json("https://conda.ecosyste.ms/#{@registry.metadata['key']}/")
+      get_json("https://conda.ecosyste.ms/#{@registry.metadata['key']}/")
     end
 
     def recently_updated_package_names
