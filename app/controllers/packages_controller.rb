@@ -21,13 +21,15 @@ class PackagesController < ApplicationController
 
   def show
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = @registry.packages.find_by_name!(params[:id])
+    @package = @registry.packages.find_by_name(params[:id])
+    @package = @registry.packages.find_by_name!(params[:id].downcase) if @package.nil?
     @pagy, @versions = pagy_countless(@package.versions.order('published_at DESC, created_at DESC'))
   end
 
   def dependent_packages
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = @registry.packages.find_by_name!(params[:id])
+    @package = @registry.packages.find_by_name(params[:id])
+    @package = @registry.packages.find_by_name!(params[:id].downcase) if @package.nil?
 
     scope = @package.dependent_packages
     if params[:sort].present? || params[:order].present?
@@ -44,7 +46,8 @@ class PackagesController < ApplicationController
 
   def maintainers
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = @registry.packages.find_by_name!(params[:id])
+    @package = @registry.packages.find_by_name(params[:id])
+    @package = @registry.packages.find_by_name!(params[:id].downcase) if @package.nil?
     @pagy, @maintainers = pagy_countless(@package.maintainers)
   end
 end

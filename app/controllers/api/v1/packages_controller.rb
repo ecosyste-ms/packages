@@ -38,7 +38,8 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
 
   def show
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = @registry.packages.find_by_name!(params[:id])
+    @package = @registry.packages.find_by_name(params[:id])
+    @package = @registry.packages.find_by_name!(params[:id].downcase) if @package.nil?
   end
 
   def dependent_packages
