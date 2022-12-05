@@ -1,6 +1,6 @@
 class InfrastructureController < ApplicationController
   def index
-    @scope = Package.includes(:registry).active.top.order(Arel.sql("(rankings->>'average')::text::float").asc).limit(10_000)
+    @scope = Package.includes(:registry).active.top(1.05).order(Arel.sql("(rankings->>'average')::text::float").asc).limit(10_000)
 
     @all_registries = Registry.all
     @registry_ids = @scope.pluck(:registry_id).tally

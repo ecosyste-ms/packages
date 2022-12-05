@@ -22,7 +22,7 @@ class Package < ApplicationRecord
   scope :without_repo_metadata, -> { where('length(repo_metadata::text) = 2') }
   scope :with_rankings, -> { where('length(rankings::text) > 2') }
   scope :without_rankings, -> { where('length(rankings::text) = 2') }
-  scope :top, -> { where("(rankings->>'average')::text::float < 1.05") }
+  scope :top, -> (percent = 1) { where("(rankings->>'average')::text::float < ?", percent) }
 
   scope :without_maintainerships, -> { includes(:maintainerships).where(maintainerships: {package_id: nil}) }
 
@@ -35,7 +35,7 @@ class Package < ApplicationRecord
   end
 
   def self.sync_least_recent_top_async
-    Package.active.order('last_synced_at asc nulls first').top.limit(5000).each(&:sync_async)
+    Package.active.order('last_synced_at asc nulls first').top(2).limit(5000).each(&:sync_async)
   end
 
   def self.check_statuses_async
