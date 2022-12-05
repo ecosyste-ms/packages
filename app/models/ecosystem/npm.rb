@@ -119,7 +119,7 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       # npm license fields are supposed to be SPDX expressions now https://docs.npmjs.com/files/package.json#license
-      pkg_metadata[:versions].map do |k, v|
+      pkg_metadata[:versions].reject{|k,v| existing_version_numbers.include?(k) }.map do |k, v|
         license = v.fetch("license", nil)
         license = licenses(v) unless license.is_a?(String)
         {
