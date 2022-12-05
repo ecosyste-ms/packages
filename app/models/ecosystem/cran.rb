@@ -123,6 +123,7 @@ module Ecosystem
 
     def maintainers_metadata(name)
       pkg = fetch_package_metadata(name)
+      return [] unless pkg
       maintainers = pkg[:properties].fetch("Maintainer:", "").split(",")
       maintainers.map do |string|
         name, email = string.split(' <')
