@@ -22,6 +22,7 @@ class Package < ApplicationRecord
   scope :without_repo_metadata, -> { where('length(repo_metadata::text) = 2') }
   scope :with_rankings, -> { where('length(rankings::text) > 2') }
   scope :without_rankings, -> { where('length(rankings::text) = 2') }
+  scope :top, -> { where("(rankings->>'average')::text::float < 1.05") }
 
   scope :without_maintainerships, -> { includes(:maintainerships).where(maintainerships: {package_id: nil}) }
 
