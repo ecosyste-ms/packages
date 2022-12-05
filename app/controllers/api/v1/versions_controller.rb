@@ -19,7 +19,7 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = @registry.packages.find_by_name(params[:package_id])
     @package = @registry.packages.find_by_name!(params[:package_id].downcase) if @package.nil?
-    @version = @package.versions.find_by_number(params[:id])
+    @version = @package.versions.find_by_number!(params[:id])
   end
 
   def recent
