@@ -46,7 +46,7 @@ class Package < ApplicationRecord
     return if Sidekiq::Queue.new('default').size > 10_000
     Package.active
             .where(downloads: nil)
-            .where(ecosystem: ['cargo','clojars','hackage','hex','homebrew','julia','npm','nuget','packagist','puppet','rubygems','pypi'])
+            .where(ecosystem: ['cargo','clojars','docker','hackage','hex','homebrew','julia','npm','nuget','packagist','puppet','rubygems','pypi'])
             .limit(1000).select('id').each(&:sync_async)
   end
 
