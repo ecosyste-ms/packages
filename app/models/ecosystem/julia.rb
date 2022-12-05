@@ -70,6 +70,7 @@ module Ecosystem
       return false unless package['metadata']['docslink']
       slug = package['metadata']['docslink'].split('/')[2]
       json = get_json("#{@registry_url}/docs/#{package['name']}/#{slug}/pkg.json")
+      json = {} if json.nil?
       {
         name: package['name'],
         description: package['metadata']['description'],
@@ -114,7 +115,7 @@ module Ecosystem
         }
         
         if tags_json.any?
-          tag = tags_json.find{|t| t['name'].downcase.delete_prefix('v') == v}
+          tag = tags_json.find{|t| t['name'].to_s.downcase.delete_prefix('v') == v}
           if tag
             hash[:published_at] = tag['published_at']
             hash[:metadata] = {
