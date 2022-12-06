@@ -139,7 +139,7 @@ module Ecosystem
           .map do |dep|
             {
               package_name: dep[:name],
-              requirements: dep[:requirement],
+              requirements: dep[:requirement].try(:delete, "\u0000"),
               kind: dep[:type],
               ecosystem: self.class.name.demodulize.downcase,
             }
