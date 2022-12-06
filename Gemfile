@@ -47,6 +47,7 @@ gem 'addressable'
 gem 'google-protobuf', '3.21.9'
 gem "xmlrpc"
 gem 'rexml'
+gem 'appsignal'
 
 group :development, :test do
   gem "debug", platforms: %i[ mri mingw x64_mingw ]
