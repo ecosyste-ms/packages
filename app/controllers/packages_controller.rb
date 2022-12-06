@@ -33,7 +33,7 @@ class PackagesController < ApplicationController
     @package = @registry.packages.find_by_name(params[:id])
     @package = @registry.packages.find_by_name!(params[:id].downcase) if @package.nil?
 
-    scope = @package.dependent_packages
+    scope = @package.dependent_packages.includes(:registry)
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'latest_release_published_at'
       order = params[:order] || 'desc'
