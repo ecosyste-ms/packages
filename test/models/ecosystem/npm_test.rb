@@ -86,6 +86,7 @@ class NpmTest < ActiveSupport::TestCase
     assert_equal package_metadata[:downloads], 1076972
     assert_equal package_metadata[:downloads_period], "last-month"
     assert_nil package_metadata[:namespace]
+    assert_equal package_metadata[:metadata], {"funding"=>nil, "dist-tags"=>{"latest"=>"2.0.1"}}
   end
 
   test 'versions_metadata' do
