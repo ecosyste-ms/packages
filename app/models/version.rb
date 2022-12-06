@@ -11,6 +11,10 @@ class Version < ApplicationRecord
   scope :published_after, ->(published_at) { where('published_at > ?', published_at) }
   scope :updated_after, ->(updated_at) { where('updated_at > ?', updated_at) }
 
+  def to_param
+    number
+  end
+
   def download_url
     package.registry.ecosystem_instance.download_url(package, self)
   end

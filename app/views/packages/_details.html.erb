@@ -60,6 +60,9 @@
     <% if link = @package.documentation_url %>
       - <%= link_to 'Documentation', link %>
     <% end %>
+
+    - <%= link_to 'JSON', api_v1_registry_package_url(@registry, @package)%>
+
     <% if @package.status %>
       <br/>Status: <%= @package.status %>
     <% end %>
