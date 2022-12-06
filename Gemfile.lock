@@ -133,6 +133,9 @@ GEM
     faraday-net_http (3.0.2)
     faraday-retry (2.0.0)
       faraday (~> 2.0)
+    faraday-typhoeus (1.0.0)
+      faraday (~> 2.0)
+      typhoeus (~> 1.4)
     ffi (1.15.5)
     fuzzy_match (2.1.0)
     globalid (1.0.0)
@@ -353,6 +356,7 @@ DEPENDENCIES
   faraday-follow_redirects
   faraday-gzip
   faraday-retry
+  faraday-typhoeus
   google-protobuf (= 3.21.9)
   groupdate
   hiredis
