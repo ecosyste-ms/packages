@@ -20,7 +20,7 @@ class CargoTest < ActiveSupport::TestCase
 
   test 'download_url' do
     download_url = @ecosystem.download_url(@package, @version)
-    assert_equal download_url, 'https://crates.io/api/v1/crates/rand/0.8.5/download'
+    assert_equal download_url, 'https://static.crates.io/crates/rand/rand-0.8.5.crate'
   end
 
   test 'documentation_url' do

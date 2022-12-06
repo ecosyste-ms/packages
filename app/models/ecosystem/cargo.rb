@@ -12,7 +12,7 @@ module Ecosystem
 
     def download_url(package, version)
       return nil unless version.present?
-      "#{@registry_url}/api/v1/crates/#{package.name}/#{version}/download"
+      "https://static.crates.io/crates/#{package.name}/#{package.name}-#{version}.crate"
     end
 
     def documentation_url(package, version = nil)
