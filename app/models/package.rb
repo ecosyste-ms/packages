@@ -245,13 +245,16 @@ class Package < ApplicationRecord
   def fetch_repo_metadata
     return if repository_or_homepage_url.blank?
 
-    conn = Faraday.new('https://repos.ecosyste.ms') do |f|
-      f.request :json
-      f.request :retry
-      f.response :json
+    connection = Faraday.new 'https://repos.ecosyste.ms' do |builder|
+      builder.use Faraday::FollowRedirects::Middleware
+      builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
+      builder.response :json
+      builder.request :json
+      builder.request :instrumentation
+      builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
     end
     
-    response = conn.get('/api/v1/repositories/lookup', url: repository_or_homepage_url)
+    response = connection.get('/api/v1/repositories/lookup', url: repository_or_homepage_url)
     return nil unless response.success?
     return response.body
   rescue
@@ -262,13 +265,16 @@ class Package < ApplicationRecord
     return if repository_or_homepage_url.blank?
     return if repo_metadata['host'].blank?
 
-    conn = Faraday.new('https://repos.ecosyste.ms') do |f|
-      f.request :json
-      f.request :retry
-      f.response :json
+    connection = Faraday.new 'https://repos.ecosyste.ms' do |builder|
+      builder.use Faraday::FollowRedirects::Middleware
+      builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
+      builder.response :json
+      builder.request :json
+      builder.request :instrumentation
+      builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
     end
 
-    response = conn.get("/api/v1/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}/tags")
+    response = connection.get("/api/v1/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}/tags")
     return nil unless response.success?
     return response.body
   rescue
@@ -279,13 +285,16 @@ class Package < ApplicationRecord
     return if repository_or_homepage_url.blank?
     return if repo_metadata['host'].blank?
 
-    conn = Faraday.new('https://repos.ecosyste.ms') do |f|
-      f.request :json
-      f.request :retry
-      f.response :json
+    connection = Faraday.new 'https://repos.ecosyste.ms' do |builder|
+      builder.use Faraday::FollowRedirects::Middleware
+      builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
+      builder.response :json
+      builder.request :json
+      builder.request :instrumentation
+      builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
     end
 
-    response = conn.get("/api/v1/hosts/#{repo_metadata['host']['name']}/owners/#{repo_metadata['owner']}")
+    response = connection.get("/api/v1/hosts/#{repo_metadata['host']['name']}/owners/#{repo_metadata['owner']}")
     
     return nil unless response.success?
     return response.body
@@ -304,13 +313,16 @@ class Package < ApplicationRecord
   end
 
   def fetch_dependent_repos_count
-    conn = Faraday.new('https://repos.ecosyste.ms') do |f|
-      f.request :json
-      f.request :retry
-      f.response :json
+    connection = Faraday.new 'https://repos.ecosyste.ms' do |builder|
+      builder.use Faraday::FollowRedirects::Middleware
+      builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
+      builder.response :json
+      builder.request :json
+      builder.request :instrumentation
+      builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
     end
 
-    response = conn.get("/api/v1/usage/#{ecosystem}/#{to_param}?per_page=1")
+    response = connection.get("/api/v1/usage/#{ecosystem}/#{to_param}?per_page=1")
     return nil unless response.success?
     return response.body
   rescue

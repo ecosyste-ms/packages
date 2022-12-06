@@ -142,7 +142,6 @@ module Ecosystem
     def request(url, options = {})
       connection = Faraday.new url.strip, options do |builder|
         builder.use Faraday::FollowRedirects::Middleware
-        # builder.request :gzip
         builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
 
         builder.request :instrumentation
