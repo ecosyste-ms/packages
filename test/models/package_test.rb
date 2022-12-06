@@ -54,4 +54,8 @@ class PackageTest < ActiveSupport::TestCase
   test 'documentation_url' do
     assert_equal @package.documentation_url, "http://www.rubydoc.info/gems/foo/"
   end
+
+  test 'purl' do
+    assert_equal @package.purl, "pkg:gem/foo"
+  end
 end

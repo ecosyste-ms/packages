@@ -49,6 +49,18 @@ class PuppetTest < ActiveSupport::TestCase
     assert_equal check_status_url, "https://forge.puppet.com/modules/puppet/fail2ban"
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:puppet/puppet/fail2ban'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:puppet/puppet/fail2ban@4.1.0'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://forge.puppet.com/v3/modules?limit=100&offset=0")
       .to_return({ status: 200, body: file_fixture('puppet/modules?limit=100&offset=0') })

@@ -43,6 +43,18 @@ class SpackTest < ActiveSupport::TestCase
     assert_equal install_command, 'spack install 3proxy@0.8.13'
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:spack/3proxy'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:spack/3proxy@0.8.13'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://packages.spack.io/data/repology.json")
       .to_return({ status: 200, body: file_fixture('spack/repology.json') })

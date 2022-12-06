@@ -54,6 +54,18 @@ class NpmTest < ActiveSupport::TestCase
     assert_equal check_status_url, "https://registry.npmjs.org/base62"
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:npm/base62'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:npm/base62@2.0.1'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://raw.githubusercontent.com/nice-registry/all-the-package-names/master/names.json")
       .to_return({ status: 200, body: file_fixture('npm/names.json') })

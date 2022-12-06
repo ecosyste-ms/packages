@@ -52,6 +52,18 @@ class CondaTest < ActiveSupport::TestCase
     assert_equal check_status_url, "https://conda.ecosyste.ms/package/aiofiles"
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:conda/aiofiles'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:conda/aiofiles@22.1.0'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://conda.ecosyste.ms/Main/")
       .to_return({ status: 200, body: file_fixture('conda/index.html') })

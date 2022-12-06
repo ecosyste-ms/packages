@@ -27,10 +27,6 @@ module Ecosystem
       return "unpublished" if json && json["versions"].blank?
     end
 
-    def formatted_name
-      "npm"
-    end
-
     def all_package_names
       get("https://raw.githubusercontent.com/nice-registry/all-the-package-names/master/names.json")
     rescue

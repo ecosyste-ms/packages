@@ -109,6 +109,10 @@ class Package < ApplicationRecord
     File.basename(download_url)
   end
 
+  def purl
+    registry.purl(self)
+  end
+
   def update_details
     normalize_licenses
     set_latest_release_published_at

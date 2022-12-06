@@ -48,6 +48,7 @@ gem "xmlrpc"
 gem 'rexml'
 gem 'appsignal'
 gem 'faraday-typhoeus'
+gem 'packageurl-ruby'
 
 group :development, :test do
   gem "debug", platforms: %i[ mri mingw x64_mingw ]

@@ -43,6 +43,18 @@ class GoTest < ActiveSupport::TestCase
     assert_equal install_command, 'go get github.com/aws/smithy-go@v1.11.1'
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:golang/github.com%2Faws%2Fsmithy-go'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:golang/github.com%2Faws%2Fsmithy-go@v1.11.1'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://index.golang.org/index")
       .to_return({ status: 200, body: file_fixture('go/index') })

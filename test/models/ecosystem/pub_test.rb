@@ -48,6 +48,18 @@ class PubTest < ActiveSupport::TestCase
     assert_equal check_status_url, "https://pub.dev/packages/bloc"
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:pub/bloc'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:pub/bloc@8.0.3'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://pub.dev/api/package-names")
       .to_return({ status: 200, body: file_fixture('pub/package-names') })

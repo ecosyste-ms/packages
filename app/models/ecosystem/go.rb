@@ -1,5 +1,20 @@
 module Ecosystem
   class Go < Base
+
+    def purl_type
+      'golang'
+    end
+
+    def purl(package, version = nil)
+      PackageURL.new(
+        type: purl_type,
+        namespace: nil,
+        name: encode_for_proxy(package.name),
+        version: version.try(:number).try(:encode,'iso-8859-1')
+      ).to_s
+    end
+
+
     def registry_url(package, version = nil)
       "https://pkg.go.dev/#{package.name}#{"@#{version}" if version}"
     end

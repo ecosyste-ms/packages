@@ -19,6 +19,8 @@
     <% if @version.integrity.present? %>
       <br>Integrity: <span title='<%= @version.integrity %>'><%= truncate(@version.integrity) %> -
     <% end %>
+    <br>
+    <%= link_to 'purl', 'https://github.com/package-url/purl-spec', target: :_blank %>: <code><%= @version.purl %></code>
     <br>Published: <time datetime="<%= @version.published_at %>"><%= time_ago_in_words @version.published_at %> ago</time>
     <br>Indexed: <time datetime="<%= @version.created_at %>"><%= time_ago_in_words @version.created_at %> ago</time>
     <% if @version.related_tag %>

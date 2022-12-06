@@ -63,6 +63,9 @@
 
     - <%= link_to 'JSON', api_v1_registry_package_url(@registry, @package)%>
 
+    <br>
+    <%= link_to 'purl', 'https://github.com/package-url/purl-spec', target: :_blank %>: <code><%= @package.purl %></code>
+
     <% if @package.status %>
       <br/>Status: <%= @package.status %>
     <% end %>

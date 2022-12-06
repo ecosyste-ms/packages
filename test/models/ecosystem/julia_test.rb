@@ -48,6 +48,18 @@ class JuliaTest < ActiveSupport::TestCase
     assert_equal check_status_url, "https://juliahub.com/docs/Inequality/xDAp7/pkg.json"
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:julia/Inequality'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:julia/Inequality@0.0.4'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://juliahub.com/app/packages/info")
       .to_return({ status: 200, body: file_fixture('julia/info') })

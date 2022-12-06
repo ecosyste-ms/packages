@@ -43,6 +43,18 @@ class VcpkgTest < ActiveSupport::TestCase
     assert_equal install_command, ".\vcpkg install zziplib"
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:vcpkg/zziplib'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:vcpkg/zziplib@1.26.8'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://vcpkg.io/output.json")
       .to_return({ status: 200, body: file_fixture('vcpkg/output.json') })

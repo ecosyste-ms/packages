@@ -2,6 +2,11 @@
 
 module Ecosystem
   class Homebrew < Base
+
+    def purl_type
+      'brew'
+    end
+
     def registry_url(package, _version = nil)
       "https://formulae.brew.sh/formula/#{package.name}"
     end

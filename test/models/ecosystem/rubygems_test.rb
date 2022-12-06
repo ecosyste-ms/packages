@@ -43,6 +43,18 @@ class RubygemsTest < ActiveSupport::TestCase
     assert_equal install_command, 'gem install nokogiri -s https://rubygems.org -v 1.13.6'
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:gem/nokogiri'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:gem/nokogiri@1.13.6'
+    assert PackageURL.parse(purl)
+  end
+
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
     assert_equal check_status_url, "https://rubygems.org/api/v1/versions/nokogiri.json"

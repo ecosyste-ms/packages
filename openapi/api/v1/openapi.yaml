@@ -781,6 +781,8 @@ components:
           type: integer
         rankings:
           type: object
+        purl:
+          type: string
         maintainers:
           type: array
           items:
@@ -814,6 +816,8 @@ components:
           updated_at:
             type: string
             format: date-time
+          purl:
+            type: string
           dependencies:
             type: array
             items:
@@ -847,6 +851,8 @@ components:
         updated_at:
           type: string
           format: date-time
+        purl:
+          type: string
         package:
           type: object
           $ref: '#/components/schemas/Package'

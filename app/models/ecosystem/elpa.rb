@@ -2,6 +2,10 @@
 
 module Ecosystem
   class Elpa < Base
+    def purl_type
+      'melpa'
+    end
+
     def registry_url(package, version = nil)
       "#{@registry_url}/#{package.name}.html"
     end

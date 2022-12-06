@@ -48,6 +48,18 @@ class HexTest < ActiveSupport::TestCase
     assert_equal check_status_url, "https://hex.pm/packages/rand/"
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:hex/rand'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:hex/rand@0.8.5'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://hex.pm/api/packages?page=1")
       .to_return({ status: 200, body: file_fixture('hex/packages-1') })

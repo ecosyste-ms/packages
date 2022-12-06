@@ -5,6 +5,7 @@ class RacketTest < ActiveSupport::TestCase
     @registry = Registry.create(name: 'Racket', url: 'http://pkgs.racket-lang.org', ecosystem: 'racket')
     @ecosystem = Ecosystem::Racket.new(@registry)
     @package = @registry.packages.create(ecosystem: 'racket', name: '4chdl', repository_url: "https://github.com/winny-/4chdl")
+    @version = @package.versions.create(number: '1.0.0', :metadata=>{:download_url=>"https://codeload.github.com/winny-/4chdl/tar.gz/refs/heads/master"})
   end
 
   test 'registry_url' do
@@ -45,6 +46,18 @@ class RacketTest < ActiveSupport::TestCase
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
     assert_equal check_status_url, "http://pkgs.racket-lang.org/package/4chdl"
+  end
+
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:racket/4chdl'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:racket/4chdl@1.0.0'
+    assert PackageURL.parse(purl)
   end
 
   test 'all_package_names' do

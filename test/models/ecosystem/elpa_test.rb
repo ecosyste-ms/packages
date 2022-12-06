@@ -48,6 +48,18 @@ class ElpaTest < ActiveSupport::TestCase
     assert_equal check_status_url, 'https://elpa.nongnu.org/nongnu/ample-theme.html'
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:melpa/ample-theme'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:melpa/ample-theme@0.3.0'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://elpa.nongnu.org/nongnu")
       .to_return({ status: 200, body: file_fixture('elpa/index.html') })

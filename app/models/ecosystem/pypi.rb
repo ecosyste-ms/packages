@@ -3,6 +3,17 @@ require "xmlrpc/client"
 
 module Ecosystem
   class Pypi < Base
+
+    def purl(package, version = nil)
+      PackageURL.new(
+        type: purl_type,
+        namespace: nil,
+        name: package.name.downcase.gsub('_', '-'),
+        version: version.try(:number).try(:encode,'iso-8859-1')
+      ).to_s
+    end
+
+
     def registry_url(package, version = nil)
       "#{@registry_url}/project/#{package.name}/#{version}"
     end
@@ -18,10 +29,6 @@ module Ecosystem
     def download_url(_package, version)
       return nil unless version.present?
       version.metadata['download_url']
-    end
-
-    def formatted_name
-      "PyPI"
     end
 
     def all_package_names

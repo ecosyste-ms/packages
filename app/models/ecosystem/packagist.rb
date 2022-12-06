@@ -2,6 +2,21 @@
 
 module Ecosystem
   class Packagist < Base
+
+    def purl_type
+      "composer"
+    end
+
+    def purl(package, version = nil)
+      PackageURL.new(
+        type: purl_type,
+        namespace: package.name.split('/').first,
+        name: package.name.split('/').last,
+        version: version.try(:number).try(:encode,'iso-8859-1')
+      ).to_s
+    end
+
+
     def registry_url(package, version = nil)
       "#{@registry_url}/packages/#{package.name}##{version}"
     end

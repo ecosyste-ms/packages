@@ -48,6 +48,18 @@ class CargoTest < ActiveSupport::TestCase
     assert_equal check_status_url, "https://crates.io/api/v1/crates/rand"
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:cargo/rand'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:cargo/rand@0.8.5'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://crates.io/api/v1/crates?page=1&per_page=100")
       .to_return({ status: 200, body: file_fixture('cargo/crates') })

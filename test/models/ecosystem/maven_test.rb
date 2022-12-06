@@ -49,6 +49,18 @@ class MavenTest < ActiveSupport::TestCase
     assert_equal check_status_url, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/"
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:maven/dev.zio/zio-aws-autoscaling_3'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:maven/dev.zio/zio-aws-autoscaling_3@5.17.224.2'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://repo1.maven.org/maven2/archetype-catalog.xml")
       .to_return({ status: 200, body: file_fixture('maven/archetype-catalog.xml') })

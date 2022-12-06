@@ -143,6 +143,10 @@ class Version < ApplicationRecord
     end
   end
 
+  def purl
+    package.registry.ecosystem_instance.purl(package, self)
+  end
+
   def digest_url
     "https://digest.ecosyste.ms/digest?url=#{CGI.escape(download_url)}&encoding=hex&algorithm=sha256" # TODO encoding and algorithm should come from ecosystem_instance
   end

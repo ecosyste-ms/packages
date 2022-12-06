@@ -48,6 +48,18 @@ class CocoapodsTest < ActiveSupport::TestCase
     assert_equal check_status_url, "https://cocoapods.org/pods/Foo"
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:cocoapods/Foo'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:cocoapods/Foo@1.0.7'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://cdn.cocoapods.org/all_pods.txt")
       .to_return({ status: 200, body: file_fixture('cocoapods/all_pods.txt') })

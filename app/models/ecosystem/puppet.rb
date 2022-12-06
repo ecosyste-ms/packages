@@ -2,6 +2,16 @@
 
 module Ecosystem
   class Puppet < Base
+
+    def purl(package, version = nil)
+      PackageURL.new(
+        type: purl_type,
+        namespace: package.name.split('-').first,
+        name: package.name.split('-').last,
+        version: version.try(:number).try(:encode,'iso-8859-1')
+      ).to_s
+    end
+
     def all_package_names
       offset = 0
       packages = []

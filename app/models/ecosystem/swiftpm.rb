@@ -1,6 +1,20 @@
 # frozen_string_literal: true
 module Ecosystem
   class Swiftpm < Base
+
+    def purl_type
+      'swift'
+    end
+
+    def purl(package, version = nil)
+      PackageURL.new(
+        type: purl_type,
+        namespace: package.name.split('/')[0..1].join('/'),
+        name: package.name.split('/').last,
+        version: version.try(:number).try(:encode,'iso-8859-1')
+      ).to_s
+    end
+
     def all_package_names
       get_json("https://raw.githubusercontent.com/SwiftPackageIndex/PackageList/main/packages.json").map do |url|
         url.gsub(/^https?:\/\//, '').gsub(/\.git$/,'')

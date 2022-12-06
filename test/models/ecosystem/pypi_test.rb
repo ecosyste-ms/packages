@@ -48,6 +48,18 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal check_status_url, "https://pypi.org/project/urllib3/"
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:pypi/urllib3'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:pypi/urllib3@1.26.8'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://pypi.org/simple/")
       .to_return({ status: 200, body: file_fixture('pypi/index.html') })

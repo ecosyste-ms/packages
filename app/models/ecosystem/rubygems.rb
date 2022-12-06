@@ -2,6 +2,11 @@
 
 module Ecosystem
   class Rubygems < Base
+
+    def purl_type
+      'gem'
+    end
+
     def registry_url(package, version = nil)
       "#{@registry_url}/gems/#{package.name}" + (version ? "/versions/#{version}" : "")
     end

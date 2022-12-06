@@ -48,6 +48,18 @@ class NugetTest < ActiveSupport::TestCase
     assert_equal check_status_url, "https://www.nuget.org/packages/ogcapi.net.sqlserver/"
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:nuget/ogcapi.net.sqlserver'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:nuget/ogcapi.net.sqlserver@0.3.1'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://api.nuget.org/v3/catalog0/index.json")
       .to_return({ status: 200, body: file_fixture('nuget/index.json') })

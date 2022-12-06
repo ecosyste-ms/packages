@@ -48,6 +48,18 @@ class CpanTest < ActiveSupport::TestCase
     assert_equal check_status_url, "https://metacpan.org/dist/Dpkg"
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:cpan/Dpkg'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:cpan/Dpkg@1.21.5'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://fastapi.metacpan.org/v1/release/_search?fields=distribution&q=status:latest&scroll=1m&size=5000")
       .to_return({ status: 200, body: file_fixture('cpan/_search?fields=distribution&q=status:latest&scroll=1m&size=5000') })

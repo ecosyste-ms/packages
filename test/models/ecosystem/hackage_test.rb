@@ -48,6 +48,18 @@ class HackageTest < ActiveSupport::TestCase
     assert_equal check_status_url, "http://hackage.haskell.org/package/blockfrost-client"
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:hackage/blockfrost-client'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:hackage/blockfrost-client@0.4.0.1'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "http://hackage.haskell.org/packages/names")
       .to_return({ status: 200, body: file_fixture('hackage/names') })

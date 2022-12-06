@@ -361,6 +361,7 @@ DEPENDENCIES
   nokogiri
   oj
   ox
+  packageurl-ruby
   pagy
   pg (~> 1.4)
   pg_query

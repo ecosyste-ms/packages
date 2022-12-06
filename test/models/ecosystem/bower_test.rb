@@ -48,6 +48,18 @@ class BowerTest < ActiveSupport::TestCase
     assert_nil check_status_url
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:bower/bower-angular'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:bower/bower-angular@1.0.0'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://registry.bower.io/packages")
       .to_return({ status: 200, body: file_fixture('bower/packages') })

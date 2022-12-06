@@ -127,6 +127,19 @@ module Ecosystem
       []
     end
 
+    def purl(package, version = nil)
+      PackageURL.new(
+        type: purl_type,
+        namespace: nil,
+        name: package.name.encode('iso-8859-1'),
+        version: version.try(:number).try(:encode,'iso-8859-1')
+      ).to_s
+    end
+
+    def purl_type
+      self.class.name.demodulize.downcase
+    end
+
     private
 
     def get_raw_no_exception(url, options = {})

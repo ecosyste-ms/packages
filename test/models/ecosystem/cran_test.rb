@@ -48,6 +48,18 @@ class CranTest < ActiveSupport::TestCase
     assert_equal check_status_url, "https://cran.r-project.org/package=pack"
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:cran/pack'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:cran/pack@0.1-1'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://cran.r-project.org/web/packages/available_packages_by_date.html")
       .to_return({ status: 200, body: file_fixture('cran/available_packages_by_date.html') })

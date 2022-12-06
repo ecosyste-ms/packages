@@ -167,6 +167,10 @@ class Registry < ApplicationRecord
     Ecosystem::Base.find(ecosystem)
   end
 
+  def purl(package, version = nil)
+    ecosystem_instance.purl(package, version)
+  end
+
   def top_percentage_for(package, field)
     return nil if package.send(field).nil?
     Rails.cache.fetch("top_percentage_for/#{id}/#{field}/#{package.send(field)}", expires_in: 1.day) do

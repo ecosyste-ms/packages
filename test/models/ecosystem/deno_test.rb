@@ -48,6 +48,18 @@ class DenoTest < ActiveSupport::TestCase
     assert_equal check_status_url,  "https://deno.land/x/deno_es"
   end
 
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:deno/deno_es'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:deno/deno_es@v0.4.2'
+    assert PackageURL.parse(purl)
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://api.deno.land/modules?page=1&limit=100&sort=oldest")
       .to_return({ status: 200, body: file_fixture('deno/modules?page=1&limit=100&sort=oldest') })

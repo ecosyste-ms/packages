@@ -1,6 +1,16 @@
 module Ecosystem
   class Maven < Base
 
+    def purl(package, version = nil)
+      group_id, artifact_id = *package.name.split(':', 2)
+      PackageURL.new(
+        type: purl_type,
+        namespace: group_id,
+        name: artifact_id,
+        version: version.try(:number).try(:encode,'iso-8859-1')
+      ).to_s
+    end
+
     def download_url(package, version)
       return nil unless version.present?
       group_id, artifact_id = *package.name.split(':', 2)
