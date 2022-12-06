@@ -64,7 +64,10 @@ module Ecosystem
         repository_url: repo_fallback(package["crate"]["repository"], package["crate"]["homepage"]),
         versions: package["versions"],
         downloads: package["crate"]["downloads"],
-        downloads_period: 'total'
+        downloads_period: 'total',
+        metadata: {
+          categories: package["crate"]["categories"],
+        }
       }
     end
 
@@ -73,6 +76,7 @@ module Ecosystem
         {
           number: version["num"],
           published_at: version["created_at"],
+          status: (version['yanked'] ? 'yanked' : nil),
           metadata: {
             downloads: version["downloads"],
           }

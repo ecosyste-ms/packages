@@ -79,6 +79,7 @@ class CargoTest < ActiveSupport::TestCase
     assert_equal package_metadata[:keywords_array], ["env", "variables"]
     assert_equal package_metadata[:downloads], 10
     assert_equal package_metadata[:downloads_period], 'total'
+    assert_equal package_metadata[:metadata], {:categories=>["command-line-interface", "filesystem", "parsing", "config"]}
   end
 
   test 'versions_metadata' do
@@ -88,9 +89,9 @@ class CargoTest < ActiveSupport::TestCase
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
-      {:number=>"0.1.0", :published_at=>"2022-03-24T16:19:57.595451+00:00",metadata: {:downloads=>3}},
-      {:number=>"0.1.0-dev.2", :published_at=>"2022-03-24T16:08:54.337646+00:00", metadata:{:downloads=>3}},
-      {:number=>"0.1.0-dev.1", :published_at=>"2022-03-24T15:58:36.858899+00:00", metadata: {:downloads=>4}}
+      {:number=>"0.1.0", :published_at=>"2022-03-24T16:19:57.595451+00:00",:status=>nil,metadata: {:downloads=>3}},
+      {:number=>"0.1.0-dev.2", :published_at=>"2022-03-24T16:08:54.337646+00:00",:status=>nil,metadata:{:downloads=>3}},
+      {:number=>"0.1.0-dev.1", :published_at=>"2022-03-24T15:58:36.858899+00:00",:status=>nil,metadata: {:downloads=>4}}
     ]
   end
 
