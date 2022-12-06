@@ -11,7 +11,7 @@ class ApiV1RegistriesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_template 'registries/index', file: 'registries/index.json.jbuilder'
     
-    actual_response = JSON.parse(@response.body)
+    actual_response = Oj.load(@response.body)
 
     assert_equal actual_response.length, 1
   end
@@ -21,7 +21,7 @@ class ApiV1RegistriesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_template 'registries/show', file: 'registries/show.json.jbuilder'
     
-    actual_response = JSON.parse(@response.body)
+    actual_response = Oj.load(@response.body)
 
     assert_equal actual_response["name"], 'crates.io'
   end

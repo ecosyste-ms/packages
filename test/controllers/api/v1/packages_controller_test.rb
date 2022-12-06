@@ -11,7 +11,7 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_template 'packages/index', file: 'packages/index.json.jbuilder'
     
-    actual_response = JSON.parse(@response.body)
+    actual_response = Oj.load(@response.body)
 
     assert_equal actual_response.length, 1
   end
@@ -20,7 +20,7 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     get package_names_api_v1_registry_path(id: @registry.name)
     assert_response :success
     
-    actual_response = JSON.parse(@response.body)
+    actual_response = Oj.load(@response.body)
 
     assert_equal actual_response.length, 1
     assert_equal actual_response.first, @package.name
@@ -31,7 +31,7 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_template 'packages/show', file: 'packages/show.json.jbuilder'
     
-    actual_response = JSON.parse(@response.body)
+    actual_response = Oj.load(@response.body)
 
     assert_equal actual_response["name"], @package.name
     assert_equal actual_response['metadata'], {"foo"=>"bar"}

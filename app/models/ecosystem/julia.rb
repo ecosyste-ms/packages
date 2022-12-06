@@ -94,7 +94,7 @@ module Ecosystem
         'Content-Type': 'application/json'
       }
       body = Faraday.post("https://juliahub.com/v1/graphql", {"operationName":"PackageStats","variables":{"name":package['name']},"query":"query PackageStats($name: String!) {\n  packageStats: packagestats(where: {package: {name: {_eq: $name}}}) {\n users\n    }\n}\n"}.to_json, headers).body
-      json = JSON.parse(body)
+      json = Oj.load(body)
       json['data']['packageStats'].first['users'] rescue nil
     rescue
       nil

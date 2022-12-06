@@ -12,7 +12,7 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_template 'versions/index', file: 'packages/versions.json.jbuilder'
     
-    actual_response = JSON.parse(@response.body)
+    actual_response = Oj.load(@response.body)
 
     assert_equal actual_response.length, 1
   end
@@ -22,7 +22,7 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_template 'versions/show', file: 'versions/show.json.jbuilder'
     
-    actual_response = JSON.parse(@response.body)
+    actual_response = Oj.load(@response.body)
 
     assert_equal actual_response['number'], "1.0.0"
     assert_equal actual_response['metadata'], {"foo"=>"bar"}
@@ -33,7 +33,7 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_template 'versions/recent', file: 'versions/recent.json.jbuilder'
 
-    actual_response = JSON.parse(@response.body)
+    actual_response = Oj.load(@response.body)
 
     first_version = actual_response.first
 

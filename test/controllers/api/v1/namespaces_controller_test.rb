@@ -13,7 +13,7 @@ class ApiV1NamespacesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_template 'namespaces/index', file: 'namespaces/index.json.jbuilder'
     
-    actual_response = JSON.parse(@response.body)
+    actual_response = Oj.load(@response.body)
 
     assert_equal actual_response.length, 1
   end
@@ -23,7 +23,7 @@ class ApiV1NamespacesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_template 'namespaces/show', file: 'namespaces/show.json.jbuilder'
     
-    actual_response = JSON.parse(@response.body)
+    actual_response = Oj.load(@response.body)
 
     assert_equal actual_response["name"], @namespace
   end
@@ -33,7 +33,7 @@ class ApiV1NamespacesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_template 'namespaces/packages', file: 'namespaces/packages.json.jbuilder'
     
-    actual_response = JSON.parse(@response.body)
+    actual_response = Oj.load(@response.body)
 
     assert_equal actual_response[0]["name"], @package.name
   end

@@ -14,7 +14,7 @@ class ApiV1MaintainerControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_template 'maintainers/index', file: 'maintainers/index.json.jbuilder'
     
-    actual_response = JSON.parse(@response.body)
+    actual_response = Oj.load(@response.body)
 
     assert_equal actual_response.length, 1
   end
@@ -24,7 +24,7 @@ class ApiV1MaintainerControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_template 'maintainers/show', file: 'maintainers/show.json.jbuilder'
     
-    actual_response = JSON.parse(@response.body)
+    actual_response = Oj.load(@response.body)
 
     assert_equal actual_response["name"], @maintainer.name
     assert_equal actual_response["login"], @maintainer.login
@@ -35,7 +35,7 @@ class ApiV1MaintainerControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_template 'maintainers/packages', file: 'maintainers/packages.json.jbuilder'
     
-    actual_response = JSON.parse(@response.body)
+    actual_response = Oj.load(@response.body)
 
     assert_equal actual_response[0]["name"], @package.name
   end

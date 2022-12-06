@@ -31,12 +31,12 @@ module Ecosystem
 
     def all_package_names
       names = []
-      pkgs = get_raw("https://index.golang.org/index").split("\n").map{|row| JSON.parse(row)}
+      pkgs = get_raw("https://index.golang.org/index").split("\n").map{|row| Oj.load(row)}
       names += pkgs.map{|j| j['Path' ]}
       since = pkgs.last['Timestamp']
 
       while 
-        pkgs = get_raw("https://index.golang.org/index?since=#{since}").split("\n").map{|row| JSON.parse(row)}
+        pkgs = get_raw("https://index.golang.org/index?since=#{since}").split("\n").map{|row| Oj.load(row)}
         break if pkgs.last['Timestamp'] == since
         since = pkgs.last['Timestamp']
         names += pkgs.map{|j| j['Path' ]}
@@ -48,7 +48,7 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      get_raw("https://index.golang.org/index?since=#{Time.now.utc.beginning_of_day.to_fs(:iso8601)}").split("\n").map{|row| JSON.parse(row)['Path']}.uniq
+      get_raw("https://index.golang.org/index?since=#{Time.now.utc.beginning_of_day.to_fs(:iso8601)}").split("\n").map{|row| Oj.load(row)['Path']}.uniq
     rescue
       []
     end
