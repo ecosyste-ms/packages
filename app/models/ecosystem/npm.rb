@@ -82,6 +82,7 @@ module Ecosystem
         namespace: namespace(package),
         metadata: {
           "funding" => latest_version["funding"],
+          "dist-tags" => package["dist-tags"],
         }
       }
     end
