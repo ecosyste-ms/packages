@@ -39,7 +39,15 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
   def show
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = @registry.packages.find_by_name(params[:id])
-    @package = @registry.packages.find_by_name!(params[:id].downcase) if @package.nil?
+    if @package.nil?
+      # TODO: This is a temporary fix for pypi packages with underscores in their name
+      # should redirect to the correct package name
+      if @registry.ecosystem == 'pypi'
+        @package = @registry.packages.find_by_name!(params[:id].downcase.gsub('_', '-'))
+      else
+        @package = @registry.packages.find_by_name!(params[:id].downcase)
+      end
+    end
   end
 
   def dependent_packages
