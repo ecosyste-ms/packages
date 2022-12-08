@@ -203,7 +203,7 @@ GEM
       activerecord (>= 6)
     polyglot (0.3.5)
     popper_js (2.11.6)
-    public_suffix (5.0.0)
+    public_suffix (5.0.1)
     puma (6.0.0)
       nio4r (~> 2.0)
     racc (1.6.1)
