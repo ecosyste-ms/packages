@@ -114,6 +114,7 @@ GEM
     crack (0.4.5)
       rexml
     crass (1.0.6)
+    date (3.3.0)
     deb_control (0.0.1)
     debug (1.7.0)
       irb (>= 1.5.0)
@@ -173,11 +174,12 @@ GEM
     mocha (2.0.2)
       ruby2_keywords (>= 0.0.5)
     msgpack (1.6.0)
-    net-imap (0.3.1)
+    net-imap (0.3.2)
+      date
       net-protocol
     net-pop (0.1.2)
       net-protocol
-    net-protocol (0.2.0)
+    net-protocol (0.2.1)
       timeout
     net-smtp (0.3.3)
       net-protocol
