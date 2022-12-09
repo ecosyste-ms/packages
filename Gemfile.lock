@@ -137,8 +137,8 @@ GEM
     fuzzy_match (2.1.0)
     globalid (1.0.0)
       activesupport (>= 5.0)
-    google-protobuf (3.21.9)
-    google-protobuf (3.21.9-x86_64-linux)
+    google-protobuf (3.21.11)
+    google-protobuf (3.21.11-x86_64-linux)
     groupdate (6.1.0)
       activesupport (>= 5.2)
     hashdiff (1.0.1)
@@ -352,7 +352,7 @@ DEPENDENCIES
   faraday-follow_redirects
   faraday-retry
   faraday-typhoeus
-  google-protobuf (= 3.21.9)
+  google-protobuf (= 3.21.11)
   groupdate
   hiredis
   jbuilder
