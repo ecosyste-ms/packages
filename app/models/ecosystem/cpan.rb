@@ -112,6 +112,8 @@ module Ecosystem
           url: author['website'].first
         }
       ]
+    rescue
+      []
     end
   end
 end
