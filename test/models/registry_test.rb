@@ -57,7 +57,7 @@ class RegistryTest < ActiveSupport::TestCase
   end
   
   test 'sync_recently_updated_packages' do
-    @registry.expects(:recently_updated_package_names).returns(['foo', 'bar', 'baz'])
+    @registry.expects(:recently_updated_package_names_excluding_recently_synced).returns(['foo', 'bar', 'baz'])
     @registry.expects(:sync_packages).with(['foo', 'bar', 'baz'])
     @registry.sync_recently_updated_packages
   end
@@ -75,7 +75,7 @@ class RegistryTest < ActiveSupport::TestCase
   end
   
   test 'sync_recently_updated_packages_async' do
-    @registry.expects(:recently_updated_package_names).returns(['foo', 'bar', 'baz'])
+    @registry.expects(:recently_updated_package_names_excluding_recently_synced).returns(['foo', 'bar', 'baz'])
     @registry.expects(:sync_packages_async).with(['foo', 'bar', 'baz'])
     @registry.sync_recently_updated_packages_async
   end
