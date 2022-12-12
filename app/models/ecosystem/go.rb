@@ -82,6 +82,8 @@ module Ecosystem
           false
         end
       end
+    rescue
+      false
     end
 
     def map_package_metadata(package)
