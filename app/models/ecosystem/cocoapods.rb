@@ -100,8 +100,9 @@ module Ecosystem
             number: v
           }
         end
-
       end
+    rescue
+      []
     end
 
     def dependencies_metadata(name, version, _package)
