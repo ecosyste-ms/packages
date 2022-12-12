@@ -109,7 +109,7 @@ module Ecosystem
           login: user["login"],
           url: user["url"],
         }
-      end.uniq{|m| m[:login]}
+      end.uniq{|m| m[:login]}.uniq{|m| m[:uuid]}
     rescue StandardError
       []
     end
