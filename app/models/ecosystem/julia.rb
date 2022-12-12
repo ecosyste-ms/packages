@@ -69,7 +69,7 @@ module Ecosystem
       return false unless package
       return false unless package['metadata']['docslink']
       slug = package['metadata']['docslink'].split('/')[2]
-      json = get_json("#{@registry_url}/docs/#{package['name']}/#{slug}/pkg.json")
+      json = get_json("#{@registry_url}/docs/#{package['name']}/#{slug}/pkg.json") rescue nil
       json = {} if json.nil?
       {
         name: package['name'],
