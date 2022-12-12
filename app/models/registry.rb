@@ -39,6 +39,12 @@ class Registry < ApplicationRecord
     ecosystem_instance.recently_updated_package_names.first(100)
   end
 
+  def recently_updated_package_names_excluding_recently_synced
+    existing_packages = packages.where(name: recently_updated_package_names)
+    missing_names = recently_updated_package_names - existing_packages.map(&:name) 
+    existing_packages.where("last_synced_at < ?", 10.minutes.ago).pluck(:name) + missing_names
+  end
+
   def existing_package_names
     packages.pluck(:name)
   end
@@ -56,7 +62,7 @@ class Registry < ApplicationRecord
   end
 
   def sync_recently_updated_packages
-    sync_packages(recently_updated_package_names)
+    sync_packages(recently_updated_package_names_excluding_recently_synced)
   end
 
   def sync_all_packages_async
@@ -68,7 +74,7 @@ class Registry < ApplicationRecord
   end
 
   def sync_recently_updated_packages_async
-    sync_packages_async(recently_updated_package_names)
+    sync_packages_async(recently_updated_package_names_excluding_recently_synced)
   end
 
   def sync_packages(package_names)
