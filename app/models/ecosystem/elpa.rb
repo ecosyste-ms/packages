@@ -35,6 +35,8 @@ module Ecosystem
         name: name,
         page: page
       }
+    rescue
+      {}
     end
 
     def extract_fields(page)
