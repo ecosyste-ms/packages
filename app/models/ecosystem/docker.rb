@@ -87,6 +87,8 @@ module Ecosystem
           }
         }
       end.compact
+    rescue 
+      []
     end
 
     def load_repository_url(name)
