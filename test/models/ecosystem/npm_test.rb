@@ -75,11 +75,11 @@ class NpmTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
-    stub_request(:get, "https://registry.npmjs.org/-/rss?descending=true&limit=50")
-      .to_return({ status: 200, body: file_fixture('npm/new-rss') })
+    stub_request(:get, "https://npm.ecosyste.ms/recent")
+      .to_return({ status: 200, body: file_fixture('npm/recent') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 45
-    assert_equal recently_updated_package_names.last, '@trafilea/afrodita-components'
+    assert_equal recently_updated_package_names.length, 3698
+    assert_equal recently_updated_package_names.last, '@deephaven/prettier-config'
   end
 
   test 'package_metadata' do
