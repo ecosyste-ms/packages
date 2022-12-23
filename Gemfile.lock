@@ -196,8 +196,7 @@ GEM
     oj (3.13.23)
     ox (2.14.11)
     packageurl-ruby (0.1.0)
-    pagy (5.10.1)
-      activesupport
+    pagy (6.0.0)
     pg (1.4.5)
     pg_query (2.2.0)
       google-protobuf (>= 3.19.2)
