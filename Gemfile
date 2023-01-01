@@ -15,7 +15,7 @@ gem "counter_culture"
 gem "faraday"
 gem "faraday-retry"
 gem "faraday-follow_redirects"
-gem "nokogiri"
+gem "nokogiri", "1.14.0.rc1"
 gem "oj"
 gem "ox"
 gem "simple-rss"
@@ -43,7 +43,7 @@ gem "chartkick"
 gem "groupdate"
 gem 'jquery-rails'
 gem 'addressable'
-gem 'google-protobuf', '3.21.12'
+gem 'google-protobuf'
 gem "xmlrpc"
 gem 'rexml'
 gem 'appsignal'
