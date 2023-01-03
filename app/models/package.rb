@@ -375,7 +375,8 @@ class Package < ApplicationRecord
 
   def package_funding_links
     return [] if metadata["funding"].blank?
-    Array(metadata["funding"]).map{|f| f.is_a?(Hash) ? f['url'] : f }
+    funding_array = metadata["funding"].is_a?(Array) ? metadata["funding"] : [metadata["funding"]] 
+    funding_array.map{|f| f.is_a?(Hash) ? f['url'] : f }
   end
 
   def owner_funding_links

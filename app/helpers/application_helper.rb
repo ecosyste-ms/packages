@@ -3,6 +3,7 @@ module ApplicationHelper
   include SanitizeUrl
 
   def sanitize_user_url(url)
+    return unless url && url.is_a?(String)
     return unless url =~ /\A#{URI::regexp}\z/
     sanitize_url(url, :schemes => ['http', 'https'])
   end
