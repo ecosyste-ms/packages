@@ -2,7 +2,7 @@
   <h1 class='mb-3'>Funding</h1>
 
   <p class='lead'>
-    We've detected <%= number_with_delimiter @registries.sum{|r| r.metadata['funded_packages_count'] } %> packages (<%= (@registries.sum{|r| r.metadata['funded_packages_count'] }/@registries.sum{|r| r.packages_count}.to_f*100).round(2) %>%) have declared a way to fund their development via a funding platform. 
+    We've detected <%= number_with_delimiter @registries.sum{|r| r.funded_packages_count } %> packages (<%= (@registries.sum{|r| r.funded_packages_count }/@registries.sum{|r| r.packages_count}.to_f*100).round(2) %>%) have declared a way to fund their development via a funding platform. 
     Funded packages are detected via a funding url on their registry or via a funding.yml file in their repository or the owner of the repository is part of GitHub Sponsors.
   <p>
 
@@ -18,7 +18,7 @@
             </h5>
           
             <p class="card-subtitle mb-2 text-muted">
-              <%= pluralize number_with_delimiter(registry.metadata['funded_packages_count']), 'funded package' %>
+              <%= pluralize number_with_delimiter(registry.funded_packages_count), 'funded package' %>
               (<%= registry.funded_packages_percentage.round(2) %>%)
             </p>
           </div>

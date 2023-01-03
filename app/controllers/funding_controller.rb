@@ -1,6 +1,6 @@
 class FundingController < ApplicationController
   def index
-    @registries = Registry.all.sort_by{|r| -r.metadata['funded_packages_count'] }
+    @registries = Registry.all.sort_by{|r| -r.funded_packages_count }
   end
 
   def show

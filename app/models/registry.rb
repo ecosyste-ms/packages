@@ -205,9 +205,13 @@ class Registry < ApplicationRecord
     count
   end
 
+  def funded_packages_count
+    metadata['funded_packages_count'] || 0
+  end
+
   def funded_packages_percentage
     return 0 if packages_count.zero?
-    metadata['funded_packages_count'].to_f / packages_count * 100
+    funded_packages_count.to_f / packages_count * 100
   end
 
   def sync_maintainers(package)
