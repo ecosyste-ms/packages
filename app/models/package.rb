@@ -31,11 +31,11 @@ class Package < ApplicationRecord
   after_commit :update_repo_metadata_async, on: :create
 
   def self.sync_least_recent_async
-    Package.active.order('last_synced_at asc nulls first').limit(5000).each(&:sync_async)
+    Package.active.order('last_synced_at asc nulls first').limit(10_000).each(&:sync_async)
   end
 
   def self.sync_least_recent_top_async
-    Package.active.order('last_synced_at asc nulls first').top(2).where('last_synced_at < ?', 12.hours.ago).limit(5000).each(&:sync_async)
+    Package.active.order('last_synced_at asc nulls first').top(2).where('last_synced_at < ?', 12.hours.ago).limit(10_000).each(&:sync_async)
   end
 
   def self.check_statuses_async
