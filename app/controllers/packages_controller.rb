@@ -16,7 +16,7 @@ class PackagesController < ApplicationController
   def recent_versions_data
     @registry = Registry.find_by_name!(params[:registry_id])
     @recent_versions = Rails.cache.fetch("registry_recent_versions_data:#{@registry.id}", expires_in: 1.day) do
-      @registry.versions.where('published_at > ?', 2.month.ago.beginning_of_day).where('published_at < ?', 1.day.ago.end_of_day).group_by_day(:published_at).count
+      @registry.versions.where('published_at > ?', 1.month.ago.beginning_of_day).where('published_at < ?', 1.day.ago.end_of_day).group_by_day(:published_at).count
     end
     render json: @recent_versions
   end
