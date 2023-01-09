@@ -199,7 +199,7 @@ GEM
     pg (1.4.5)
     pg_query (2.2.0)
       google-protobuf (>= 3.19.2)
-    pghero (3.0.1)
+    pghero (3.1.0)
       activerecord (>= 6)
     polyglot (0.3.5)
     popper_js (2.11.6)
