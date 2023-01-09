@@ -14,7 +14,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       scope = scope.order('latest_release_published_at DESC')
     end
 
-    @pagy, @packages = pagy_countless(scope)
+    @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
   end
 
   def names

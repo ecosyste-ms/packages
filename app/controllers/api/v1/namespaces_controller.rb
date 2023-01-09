@@ -13,6 +13,6 @@ class Api::V1::NamespacesController < Api::V1::ApplicationController
   def packages
     @registry = Registry.find_by_name!(params[:registry_id])
     @namespace = params[:id]
-    @pagy, @packages = pagy(@registry.packages.namespace(@namespace).order('latest_release_published_at DESC'))
+    @pagy, @packages = pagy(@registry.packages.includes(:registry,{maintainers: :registry}).namespace(@namespace).order('latest_release_published_at DESC'))
   end
 end
