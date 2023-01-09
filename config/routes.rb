@@ -14,6 +14,13 @@ Rails.application.routes.draw do
 
   namespace :api, :defaults => {:format => :json} do
     namespace :v1 do
+
+      resources :packages, only: [:lookup] do
+        collection do
+          get :lookup, to: 'packages#lookup'
+        end
+      end
+
       resources :registries, constraints: { id: /[^\/]+/  }, only: [:index, :show] do
         resources :maintainers, only: [:index, :show], constraints: { id: /.*/ } do
           member do

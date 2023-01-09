@@ -17,6 +17,16 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
   end
 
+  def lookup
+    if params[:repository_url].present?
+      scope = Package.where(repository_url: params[:repository_url])
+    else
+      scope = Package.where(name: params[:name], ecosystem: params[:ecosystem])
+    end
+
+    @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
+  end
+
   def names
     @registry = Registry.find_by_name!(params[:id])
     scope = @registry.packages
