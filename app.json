@@ -1,6 +1,10 @@
 {
   "cron": [
     {
+      "command": "bundle exec rake packages:sync_recent_npm",
+      "schedule": "* * * * *"
+    },
+    {
       "command": "bundle exec rake packages:sync_recent",
       "schedule": "*/5 * * * *"
     },

@@ -4,6 +4,12 @@ namespace :packages do
     Registry.sync_all_recently_updated_packages_async
   end
 
+  desc 'sync recently updated npm packages'
+  task sync_recent_npm: :environment do
+    r = Registry.find_by(ecosystem: 'npm')
+    r.sync_recently_updated_packages_async
+  end
+
   desc 'sync all packages'
   task sync_all: :environment do
     Registry.sync_all_packages
