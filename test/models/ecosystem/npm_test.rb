@@ -77,9 +77,11 @@ class NpmTest < ActiveSupport::TestCase
   test 'recently_updated_package_names' do
     stub_request(:get, "https://npm.ecosyste.ms/recent")
       .to_return({ status: 200, body: file_fixture('npm/recent') })
+    stub_request(:get, "https://registry.npmjs.org/-/rss?descending=true&limit=50")
+      .to_return({ status: 200, body: file_fixture('npm/new-rss') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 3698
-    assert_equal recently_updated_package_names.last, '@deephaven/prettier-config'
+    assert_equal recently_updated_package_names.length, 250
+    assert_equal recently_updated_package_names.last, 'test-raydium-sdk-v2'
   end
 
   test 'package_metadata' do

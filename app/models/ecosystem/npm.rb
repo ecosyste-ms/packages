@@ -34,7 +34,10 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      get_json("https://npm.ecosyste.ms/recent")
+      u = "#{@registry_url}/-/rss?descending=true&limit=50"
+      rss_names = SimpleRSS.parse(get_raw(u)).items.map(&:title).uniq
+      recent_names = get_json("https://npm.ecosyste.ms/recent").first(200)
+      (rss_names + recent_names).uniq
     rescue
       []
     end
