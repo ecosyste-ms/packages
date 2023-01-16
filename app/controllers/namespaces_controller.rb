@@ -7,6 +7,6 @@ class NamespacesController < ApplicationController
   def show
     @registry = Registry.find_by!(name: params[:registry_id])
     @namespace = params[:id]
-    @pagy, @packages = pagy(@registry.packages.namespace(@namespace).order('latest_release_published_at DESC'))
+    @pagy, @packages = pagy(@registry.packages.namespace(@namespace).order('id DESC'))
   end
 end
