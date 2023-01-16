@@ -80,4 +80,15 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
 
     @pagy, @packages = pagy_countless(scope)
   end
+
+  def ping
+    @registry = Registry.find_by_name!(params[:registry_id])
+    @package = @registry.packages.find_by_name(params[:id])
+    if @package
+      @package.sync_async
+    else
+      @registry.sync_package_async(params[:id])
+    end
+    render json: { message: 'pong' }
+  end
 end
