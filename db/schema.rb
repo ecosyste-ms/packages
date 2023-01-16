@@ -10,9 +10,31 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_11_21_145134) do
+ActiveRecord::Schema[7.0].define(version: 2023_01_16_172049) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "advisories", force: :cascade do |t|
+    t.bigint "source_id", null: false
+    t.string "uuid"
+    t.string "url"
+    t.string "title"
+    t.text "description"
+    t.string "origin"
+    t.string "severity"
+    t.datetime "published_at"
+    t.datetime "withdrawn_at"
+    t.string "classification"
+    t.float "cvss_score"
+    t.string "cvss_vector"
+    t.string "references", default: [], array: true
+    t.string "source_kind"
+    t.string "identifiers", default: [], array: true
+    t.json "packages", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["source_id"], name: "index_advisories_on_source_id"
+  end
 
   create_table "dependencies", force: :cascade do |t|
     t.integer "package_id"
@@ -96,6 +118,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_21_145134) do
     t.index ["registry_id", "downloads"], name: "index_packages_on_registry_id_and_downloads"
     t.index ["registry_id", "name"], name: "index_packages_on_registry_id_and_name", unique: true
     t.index ["registry_id", "namespace"], name: "index_packages_on_registry_id_and_namespace"
+    t.index ["repository_url"], name: "index_packages_on_repository_url"
   end
 
   create_table "registries", force: :cascade do |t|
@@ -112,6 +135,16 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_21_145134) do
     t.integer "namespaces_count", default: 0
   end
 
+  create_table "sources", force: :cascade do |t|
+    t.string "name"
+    t.string "kind"
+    t.string "url"
+    t.integer "advisories_count", default: 0
+    t.json "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "versions", force: :cascade do |t|
     t.integer "package_id"
     t.string "number"
@@ -126,4 +159,5 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_21_145134) do
     t.index ["published_at"], name: "index_versions_on_published_at"
   end
 
+  add_foreign_key "advisories", "sources"
 end
