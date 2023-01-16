@@ -117,7 +117,7 @@ class Package < ApplicationRecord
     normalize_licenses
     set_latest_release_published_at
     set_latest_release_number
-    save
+    save if changed?
   end
 
   def latest_version
