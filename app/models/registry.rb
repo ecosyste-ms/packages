@@ -106,13 +106,13 @@ class Registry < ApplicationRecord
 
     package = packages.find_or_initialize_by(name: package_metadata[:name])
 
-    if package.new_record?
-      package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page, :time, :download_stats, :tags_url))
-      package.save! if package.changed?
-    else
-      attrs = package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page, :time, :download_stats, :tags_url)
-      package.update!(attrs)
-    end
+    package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page, :time, :download_stats, :tags_url))
+
+    update_repo_metadata_after_save = package.changed?
+
+    package.save!
+
+    package.update_repo_metadata if update_repo_metadata_after_save
 
     new_versions = []
     existing_version_numbers = package.versions.pluck('number')

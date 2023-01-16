@@ -28,8 +28,6 @@ class Package < ApplicationRecord
 
   scope :with_funding, -> { where("length(metadata ->> 'funding') > 2 OR length(repo_metadata -> 'metadata' ->> 'funding') > 2 OR repo_metadata -> 'owner_record' -> 'metadata' ->> 'has_sponsors_listing' = 'true'") }
 
-  after_commit :update_repo_metadata_async, on: :create
-
   def self.sync_least_recent_async
     Package.active.order('last_synced_at asc nulls first').limit(10_000).each(&:sync_async)
   end
@@ -244,6 +242,15 @@ class Package < ApplicationRecord
       update_columns(repo_metadata: repo_metadata)
     end
     update_columns(repo_metadata_updated_at: Time.now)
+  end
+
+  def ping_repo
+    return if repository_or_homepage_url.blank?
+    if repo_metadata.blank?
+      # lookup
+    else
+      # ping
+    end
   end
 
   def fetch_repo_metadata
