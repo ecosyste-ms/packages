@@ -101,6 +101,8 @@ class RegistryTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('rubygems/0.3.0.json') })
     stub_request(:get, "https://rubygems.org/api/v2/rubygems/rubystats/versions/0.2.6.json")
       .to_return({ status: 200, body: file_fixture('rubygems/0.2.6.json') })
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/phillbaker/rubystats")
+      .to_return({ status: 200, body: file_fixture('rubygems/lookup?url=https:%2F%2Fgithub.com%2Fphillbaker%2Frubystats') })
 
     package = @registry.sync_package('rubystats')
     package.reload
