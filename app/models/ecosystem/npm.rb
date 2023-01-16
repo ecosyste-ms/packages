@@ -25,6 +25,7 @@ module Ecosystem
       return "removed" if [400, 404, 410].include?(response.response_code)
       json = Oj.load(response.body)
       return "unpublished" if json && json["versions"].blank?
+      return "deprecated" if json && json["versions"].values.all? { |v| v["deprecated"] }
     end
 
     def all_package_names
@@ -125,7 +126,10 @@ module Ecosystem
           number: k,
           published_at: pkg_metadata.fetch(:time, {}).fetch(k, nil),
           licenses: license,
-          integrity: integrity(v)
+          integrity: integrity(v),
+          metadata: {
+            deprecated: v["deprecated"],
+          }
         }
       end
     end
