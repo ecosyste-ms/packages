@@ -323,6 +323,23 @@ class Package < ApplicationRecord
     UpdateDependentReposCountWorker.perform_async(id)
   end
 
+  def fetch_dependent_repos(page = 1)
+    connection = Faraday.new 'https://repos.ecosyste.ms' do |builder|
+      builder.use Faraday::FollowRedirects::Middleware
+      builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
+      builder.response :json
+      builder.request :json
+      builder.request :instrumentation
+      builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
+    end
+
+    response = connection.get("/api/v1/usage/#{ecosystem}/#{to_param}/dependencies?per_page=1000&page=#{page}")
+    return nil unless response.success?
+    return response.body
+  rescue
+    nil
+  end
+
   def fetch_dependent_repos_count
     connection = Faraday.new 'https://repos.ecosyste.ms' do |builder|
       builder.use Faraday::FollowRedirects::Middleware
@@ -340,9 +357,25 @@ class Package < ApplicationRecord
     nil
   end
 
+  def update_dependent_repos_count_recursive
+    repo_names = Set.new
+    page = 1
+    loop do
+      json = fetch_dependent_repos(page)
+      break if json.blank?
+      repo_names.merge json.map{|r| r['repository']['full_name'] }
+      break if json.size < 1000
+      page += 1
+    end
+
+    update_columns(dependent_repos_count: repo_names.length)
+    update_rankings
+  end
+
   def update_dependent_repos_count
     json = fetch_dependent_repos_count
     return if json.blank?
+    return unless json.is_a?(Hash)
 
     update_columns(dependent_repos_count: json['dependents_count'])
     update_rankings
