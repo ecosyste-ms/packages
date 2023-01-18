@@ -35,12 +35,18 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      u = "#{@registry_url}/-/rss?descending=true&limit=50"
-      rss_names = SimpleRSS.parse(get_raw(u)).items.map(&:title).uniq
-      recent_names = get_json("https://npm.ecosyste.ms/recent").first(200)
+      begin
+        u = "#{@registry_url}/-/rss?descending=true&limit=50"
+        rss_names = SimpleRSS.parse(get_raw(u)).items.map(&:title).uniq
+      rescue
+        rss_names = []
+      end
+      begin
+        recent_names = get_json("https://npm.ecosyste.ms/recent").first(200)
+      rescue
+        recent_names = []
+      end
       (rss_names + recent_names).uniq
-    rescue
-      []
     end
 
     def fetch_package_metadata(name)
