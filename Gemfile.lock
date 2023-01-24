@@ -106,7 +106,7 @@ GEM
     citrus (3.0.2)
     commander (4.6.0)
       highline (~> 2.0.0)
-    concurrent-ruby (1.1.10)
+    concurrent-ruby (1.2.0)
     connection_pool (2.3.0)
     counter_culture (3.3.0)
       activerecord (>= 4.2)
