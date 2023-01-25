@@ -75,7 +75,7 @@ class Package < ApplicationRecord
   end
 
   def update_dependent_packages_count
-    update_columns(dependent_packages_count: Dependency.where(package_id: id).joins(version: :package).count('distinct(packages.id)'))
+    update(dependent_packages_count: Dependency.where(package_id: id).joins(version: :package).count('distinct(packages.id)'))
   end
 
   def dependent_package_ids
@@ -211,7 +211,7 @@ class Package < ApplicationRecord
 
   def check_status
     self.status = registry.ecosystem_instance.check_status(self)
-    update_columns(status: status, last_synced_at: Time.now) if status_changed? or status.present?
+    update(status: status, last_synced_at: Time.now) if status_changed? or status.present?
   end
 
   def check_status_async
@@ -239,9 +239,9 @@ class Package < ApplicationRecord
       owner = fetch_owner
       repo_metadata.merge!({'owner_record' => owner}) if owner
       repo_metadata.merge!({'tags' => tags}) if tags
-      update_columns(repo_metadata: repo_metadata)
+      update(repo_metadata: repo_metadata)
     end
-    update_columns(repo_metadata_updated_at: Time.now)
+    update(repo_metadata_updated_at: Time.now)
   end
 
   def ping_repo
@@ -368,7 +368,7 @@ class Package < ApplicationRecord
       page += 1
     end
 
-    update_columns(dependent_repos_count: repo_names.length)
+    update(dependent_repos_count: repo_names.length)
     update_rankings
   end
 
@@ -377,7 +377,7 @@ class Package < ApplicationRecord
     return if json.blank?
     return unless json.is_a?(Hash)
 
-    update_columns(dependent_repos_count: json['dependents_count'])
+    update(dependent_repos_count: json['dependents_count'])
     update_rankings
   end
 
@@ -402,7 +402,7 @@ class Package < ApplicationRecord
   def update_rankings
     new_rankings = load_rankings
     return if new_rankings.nil?
-    update_column(:rankings, new_rankings) if rankings != new_rankings
+    update(:rankings, new_rankings) if rankings != new_rankings
   end
 
   def update_rankings_async
