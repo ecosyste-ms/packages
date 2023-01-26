@@ -25,6 +25,6 @@ class Api::V1::MaintainersController < Api::V1::ApplicationController
   def packages
     @registry = Registry.find_by_name!(params[:registry_id])
     @maintainer = @registry.maintainers.find_by_login(params[:id]) || @registry.maintainers.find_by_uuid!(params[:id])
-    @pagy, @packages = pagy(@maintainer.packages.includes(:registry,{maintainers: :registry}).order('id DESC'))
+    @pagy, @packages = pagy(@maintainer.packages.includes(:registry,{maintainers: :registry}))
   end
 end

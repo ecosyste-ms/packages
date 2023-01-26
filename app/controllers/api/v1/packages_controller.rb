@@ -10,8 +10,6 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       order = params[:order] || 'desc,desc'
       sort_options = sort.split(',').zip(order.split(',')).to_h
       scope = scope.order(sort_options)
-    else
-      scope = scope.order('id DESC')
     end
 
     @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
@@ -38,8 +36,6 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       order = params[:order] || 'desc,desc'
       sort_options = sort.split(',').zip(order.split(',')).to_h
       scope = scope.order(sort_options)
-    else
-      scope = scope.order('id DESC')
     end
 
     @pagy, @packages = pagy_countless(scope, max_items: 10000)
@@ -74,8 +70,6 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       order = params[:order] || 'desc,desc'
       sort_options = sort.split(',').zip(order.split(',')).to_h
       scope = scope.order(sort_options)
-    else
-      scope = scope.order('id DESC')
     end
 
     @pagy, @packages = pagy_countless(scope)
