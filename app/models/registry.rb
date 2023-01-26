@@ -255,7 +255,7 @@ class Registry < ApplicationRecord
     @existing_package_names = existing_package_names
     namespaces.each do |namespace|
       names = ecosystem_instance.namespace_package_names(namespace)
-      missing_names = @existing_package_names - names
+      missing_names = names - @existing_package_names
       puts "Syncing #{missing_names.count} missing packages for #{namespace}"
       sync_packages_async(missing_names)
     end
