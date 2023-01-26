@@ -404,7 +404,7 @@ class Package < ApplicationRecord
   def update_rankings
     new_rankings = load_rankings
     return if new_rankings.nil?
-    update(:rankings, new_rankings) if rankings != new_rankings
+    update(rankings: new_rankings) if rankings != new_rankings
   end
 
   def update_rankings_async
