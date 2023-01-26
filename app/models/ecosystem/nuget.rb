@@ -15,6 +15,10 @@ module Ecosystem
       "Install-Package #{package.name}" + (version ? " -Version #{version}" : "")
     end
 
+    def check_status_url(package)
+      "https://api.nuget.org/v3/registration3/#{package.name.downcase}/index.json"
+    end
+
     def check_status(package)
       url = check_status_url(package)
       response = Typhoeus.get(url)
