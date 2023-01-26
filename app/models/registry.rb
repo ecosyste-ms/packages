@@ -246,4 +246,18 @@ class Registry < ApplicationRecord
 
     package.maintainers.reload.each(&:update_packages_count)
   end
+
+  def namespaces
+    packages.active.distinct.pluck(:namespace).compact
+  end
+
+  def sync_missing_namespace_packages
+    @existing_package_names = existing_package_names
+    namespaces.each do |namespace|
+      names = ecosystem_instance.namespace_package_names(namespace)
+      missing_names = @existing_package_names - names
+      puts "Syncing #{missing_names.count} missing packages for #{namespace}"
+      sync_packages_async(missing_names)
+    end
+  end 
 end

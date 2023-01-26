@@ -35,6 +35,14 @@ module Ecosystem
       end.uniq
     end
 
+    def namespace_package_names(namespace)
+      get_html("#{@registry_url}/#{namespace.gsub(".", "/")}/").css("a").map do |a|
+        next if a.text == "../"
+        next if a.text[-1] != "/"
+        namespace + ":" + a.text.gsub('/', '')
+      end.compact
+    end
+
     def recently_updated_package_names
       get_json("https://maven.libraries.io/mavenCentral/recent").sort_by{|h| Time.at(h['lastModified']/1000)}.reverse.map{|h| h["name"]}.uniq.first(100) rescue []
     end

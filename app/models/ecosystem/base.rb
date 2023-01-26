@@ -140,6 +140,10 @@ module Ecosystem
       self.class.name.demodulize.downcase
     end
 
+    def namespace_package_names(namespace)
+      []
+    end
+
     private
 
     def get_raw_no_exception(url, options = {})
