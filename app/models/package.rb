@@ -28,6 +28,8 @@ class Package < ApplicationRecord
 
   scope :with_funding, -> { where("length(metadata ->> 'funding') > 2 OR length(repo_metadata -> 'metadata' ->> 'funding') > 2 OR repo_metadata -> 'owner_record' -> 'metadata' ->> 'has_sponsors_listing' = 'true'") }
 
+  after_create :update_rankings_async
+
   def self.sync_least_recent_async
     Package.active.order('last_synced_at asc nulls first').limit(10_000).each(&:sync_async)
   end
