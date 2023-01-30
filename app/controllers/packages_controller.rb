@@ -3,7 +3,7 @@ class PackagesController < ApplicationController
     @registry = Registry.find_by_name!(params[:registry_id])
     scope = @registry.packages
     
-    sort = params[:sort].presence || 'id'
+    sort = params[:sort].presence || 'updated_at'
     if params[:order] == 'asc'
       scope = scope.order(Arel.sql(sort).asc.nulls_last)
     else
@@ -51,7 +51,7 @@ class PackagesController < ApplicationController
 
     scope = @package.dependent_packages.includes(:registry)
     if params[:sort].present? || params[:order].present?
-      sort = params[:sort] || 'id'
+      sort = params[:sort] || 'updated_at'
       order = params[:order] || 'desc'
       sort_options = sort.split(',').zip(order.split(',')).to_h
       scope = scope.order(sort_options)
