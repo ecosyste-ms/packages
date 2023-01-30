@@ -31,7 +31,10 @@ module Ecosystem
         data = get("https://registry.bower.io/packages")
 
         data.each do |hash|
-          packages[hash['name'].downcase] = hash.slice('name', 'url')
+          packages[hash['name'].downcase] = {
+            "name" => hash['name'].downcase,
+            "url" => hash['url'],
+          }
         end
 
         packages
@@ -75,7 +78,7 @@ module Ecosystem
       bower_json = load_bower_json(package) || package
       return if bower_json.nil?
       {
-        name: package["name"],
+        name: package["name"].downcase,
         repository_url: repo_fallback(package["url"], nil),
         licenses: bower_json['license'],
         keywords_array: bower_json['keywords'],
