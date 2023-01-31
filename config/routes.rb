@@ -50,6 +50,8 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :ecosystems, only: [:index, :show], constraints: { id: /.*/ }
+
   resources :registries, constraints: { id: /[^\/]+/  }, only: [:index, :show], :defaults => {:format => :html} do
     resources :maintainers, only: [:index, :show], constraints: { id: /.*/ }
     resources :namespaces, only: [:index, :show], constraints: { id: /.*/ }

@@ -5,5 +5,33 @@
     <%= line_chart recent_versions_data_path, thousands: "," %>
   </div>
 
-  <%= render @registries %>
+  <% @registries.group_by(&:ecosystem).each do |ecosystem, registries| %>
+    <% if registries.length > 1 && registries.all?{|r| r.version.present? } %>
+      <% registry = registries.first %>
+      <div class="card mb-3 registry d-flex" id="registry_<%= registry.id %>">
+        <div class="card-body pb-1">
+          <div class="d-flex">
+            
+            <div class="flex-grow-1 ms-3 text-break">
+              <h5 class='card-title'>
+                <%= link_to ecosystem, ecosystem_path(ecosystem) %>
+              </h5>
+
+              <p class="card-subtitle mb-2 text-muted">
+                <% registries.each do |reg| %>
+                  <%= link_to reg.version, registry_packages_path(reg.name) %>: <%= number_with_delimiter reg.packages_count %> packages <br/>
+                <% end %>
+              </p>
+            </div>
+            <div class="flex-shrink-0">
+              <img src="https://github.com/<%= registry.github %>.png" class="rounded" height='40' width='40' onerror="this.style.display='none'">
+            </div>  
+          </div>
+        </div>
+      </div>
+
+    <% else %>
+      <%= render registries %>
+    <% end %>
+  <% end %>
 </div>

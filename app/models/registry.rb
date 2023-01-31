@@ -27,6 +27,14 @@ class Registry < ApplicationRecord
     name
   end
 
+  def to_s
+    if version.present?
+      "#{ecosystem} #{version}"
+    else
+      name
+    end
+  end
+
   def versions_count
     packages.sum(:versions_count)
   end

@@ -2,44 +2,44 @@
     <div class="text-end float-end">
     <% if @package.rankings.present? && @package.rankings['average'] && @package.rankings['average'] < 10.05 %>
       <span class='badge bg-secondary'>
-        Top <%= [@package.rankings['average'].round(1), 0.1].max %>% on <%= @package.registry.name %>
+        Top <%= [@package.rankings['average'].round(1), 0.1].max %>% on <%= @package.registry %>
       </span><br>
     <% end %>
 
     <% if @package.downloads && @package.downloads > 0 && @package.rankings.present? && @package.rankings['downloads'] && @package.rankings['downloads'] < 10.05 %>
       <span class='badge bg-secondary'>
-        Top <%= [@package.rankings['downloads'].round(1), 0.1].max %>% downloads on <%= @package.registry.name %>
+        Top <%= [@package.rankings['downloads'].round(1), 0.1].max %>% downloads on <%= @package.registry %>
       </span><br>
     <% end %>
 
     <% if @package.dependent_packages_count && @package.dependent_packages_count > 0 && @package.rankings.present? && @package.rankings['dependent_packages_count'] && @package.rankings['dependent_packages_count'] < 10.05 %>
       <span class='badge bg-secondary'>
-        Top <%= [@package.rankings['dependent_packages_count'].round(1), 0.1].max %>% dependent packages on <%= @package.registry.name %>
+        Top <%= [@package.rankings['dependent_packages_count'].round(1), 0.1].max %>% dependent packages on <%= @package.registry %>
       </span><br>
     <% end %>
 
     <% if @package.dependent_repos_count && @package.dependent_repos_count > 0 && @package.rankings.present? && @package.rankings['dependent_repos_count'] && @package.rankings['dependent_repos_count'] < 10.05 %>
       <span class='badge bg-secondary'>
-        Top <%= [@package.rankings['dependent_repos_count'].round(1), 0.1].max %>% dependent repos on <%= @package.registry.name %>
+        Top <%= [@package.rankings['dependent_repos_count'].round(1), 0.1].max %>% dependent repos on <%= @package.registry %>
       </span><br>
     <% end %>
 
     <% if @package.rankings.present? && @package.rankings['stargazers_count'] &&  @package.repo_metadata['stargazers_count'] && @package.repo_metadata['stargazers_count'] > 0 && @package.rankings['stargazers_count'] < 10.05 %>
       <span class='badge bg-secondary'>
-        Top <%= [@package.rankings['stargazers_count'].round(1), 0.1].max %>% stars on <%= @package.registry.name %>
+        Top <%= [@package.rankings['stargazers_count'].round(1), 0.1].max %>% stars on <%= @package.registry %>
       </span><br>
     <% end %>
 
     <% if @package.rankings.present? && @package.rankings['forks_count'] && @package.repo_metadata['forks_count'] && @package.repo_metadata['forks_count'] > 0 && @package.rankings['forks_count'] < 10.05 %>
       <span class='badge bg-secondary'>
-        Top <%= [@package.rankings['forks_count'].round(1), 0.1].max %>% forks on <%= @package.registry.name %>
+        Top <%= [@package.rankings['forks_count'].round(1), 0.1].max %>% forks on <%= @package.registry %>
       </span><br>
     <% end %>
     </div>
   <%end %>
 
   <h2>
-    <%= link_to @registry.name, registry_packages_path(@registry.name) %> : <%= @package.name %>
+    <%= link_to @registry, registry_packages_path(@registry.name) %> : <%= @package.name %>
   </h2>
 
   <p>

@@ -1,10 +1,10 @@
 <div class="container-sm">
   <h1 class='mb-3'>
-    <%= link_to 'Funding', funding_path %>: <%= @registry.name %>
+    <%= link_to 'Funding', funding_path %>: <%= @registry %>
   </h1>
 
   <p class='lead'>
-    We've detected <%= pluralize number_with_delimiter(@registry.metadata['funded_packages_count']), 'package' %> (<%= (@registry.metadata['funded_packages_count']/@registry.packages_count.to_f*100).round(2) %>%) <%= @registry.metadata['funded_packages_count'] == 1 ? 'has' : 'have' %> declared a way to fund their development via a funding platform on <%= @registry.name %>. Funded packages are detected via a funding url in from their registry or via a funding.yml file in their repository.
+    We've detected <%= pluralize number_with_delimiter(@registry.metadata['funded_packages_count']), 'package' %> (<%= (@registry.metadata['funded_packages_count']/@registry.packages_count.to_f*100).round(2) %>%) <%= @registry.metadata['funded_packages_count'] == 1 ? 'has' : 'have' %> declared a way to fund their development via a funding platform on <%= @registry %>. Funded packages are detected via a funding url in from their registry or via a funding.yml file in their repository.
   <p>
 
   <%= render @packages %>

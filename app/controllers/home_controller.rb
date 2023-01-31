@@ -1,6 +1,6 @@
 class HomeController < ApplicationController
   def index
-    @registries = Registry.order('packages_count desc').all
+    @registries = Registry.order('packages_count desc, name desc').all
   end
 
   def recent_versions_data

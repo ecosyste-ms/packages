@@ -2,7 +2,7 @@
   <div class="card-body">
     <% if package.rankings.present? && package.rankings['average'] < 10.05 %>
       <span class='badge bg-secondary float-end'>
-        Top <%= [package.rankings['average'].round(1), 0.1].max %>% on <%= package.registry.name %>
+        Top <%= [package.rankings['average'].round(1), 0.1].max %>% on <%= package.registry %>
       </span>
     <% end %>
 

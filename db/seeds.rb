@@ -31,10 +31,57 @@ default_registries = [
   {name: 'vcpkg.io', url: 'https://vcpkg.io', ecosystem: 'vcpkg', github: 'vcpkg', default: true},
   {name: "carthage", url: "https://github.com/Carthage/Carthage", ecosystem: "carthage", github: "Carthage", default: true},
   {name: 'github actions', url: 'https://github.com/marketplace/actions/', ecosystem: 'actions', github: 'actions', default: true},
+  {name: 'pkg.adelielinux.org', url: "https://pkg.adelielinux.org/current", ecosystem: "adelie", github: "AdelieLinux", default: true, metadata: {repos: ['system', 'user']}},
 ]
 
-default_registries.each do |registry|
-  data = registry.merge()
+default_registries.each do |data|
+  r = Registry.find_or_initialize_by(url: data[:url])
+  r.assign_attributes(data)
+  r.save
+end
+
+alpine_registries = []
+# TODO automate version list from https://dl-cdn.alpinelinux.org/alpine/
+alpine_versions = ['edge', 'v3.17','v3.16','v3.15','v3.14','v3.13','v3.12', 'v3.11', 'v3.10', 'v3.9', 'v3.8', 'v3.7', 'v3.6', 'v3.5', 'v3.4', 'v3.3']
+
+alpine_versions.each do |version|
+  repos = ['main', 'community']
+  repos << 'testing' if version == 'edge'
+  alpine_registries << {
+    name: "alpine-#{version}", 
+    url: "https://pkgs.alpinelinux.org/packages?branch=#{version}", 
+    ecosystem: 'alpine', 
+    github: 'alpinelinux', 
+    default: false,
+    version: version,
+    metadata: {
+      repos: repos
+    }
+  }
+end
+
+alpine_registries.each do |data|
+  r = Registry.find_or_initialize_by(url: data[:url])
+  r.assign_attributes(data)
+  r.save
+end
+
+postmarketos_registries = []
+# TODO automate version list from http://mirror.postmarketos.org/postmarketos/
+postmarketos_versions = ['master', 'v22.12', 'v22.06', 'v21.12', 'v21.06', 'v21.03', 'v20.05']
+
+postmarketos_versions.each do |version|
+  postmarketos_registries << {
+    name: "postmarketos-#{version}", 
+    url: "https://pkgs.postmarketos.org/packages?branch=#{version}", 
+    ecosystem: 'postmarketos', 
+    github: 'postmarketos', 
+    default: false,
+    version: version
+  }
+end
+
+postmarketos_registries.each do |data|
   r = Registry.find_or_initialize_by(url: data[:url])
   r.assign_attributes(data)
   r.save
