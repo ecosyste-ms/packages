@@ -5,6 +5,8 @@
     <%= line_chart recent_versions_data_path, thousands: "," %>
   </div>
 
+  <h4 class='mb-3'>Total packages indexed: <%= number_with_delimiter @registries.sum(&:packages_count) %></h4>
+
   <% @registries.group_by(&:ecosystem).each do |ecosystem, registries| %>
     <% if registries.length > 1 && registries.all?{|r| r.version.present? } %>
       <% registry = registries.first %>

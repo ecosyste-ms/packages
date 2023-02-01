@@ -2,5 +2,8 @@
   <h1 class='mb-3'>
     <%= params[:id]%> registries
   </h1>
+
+  <h4 class='mb-3'>Total packages indexed: <%= number_with_delimiter @registries.sum(&:packages_count) %></h4>
+  
   <%= render @registries %>
 </div>
