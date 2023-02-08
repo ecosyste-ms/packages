@@ -16,4 +16,12 @@ module ApplicationHelper
       "total"
     end
   end
+
+  def meta_description
+    @meta_description || "An open API service providing package, version and dependency metadata many open source software ecosystems and registries."
+  end
+
+  def meta_title
+    [@meta_title, "Ecosyste.ms: Packages"].compact.join(" | ")
+  end
 end

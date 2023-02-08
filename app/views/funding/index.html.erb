@@ -1,9 +1,12 @@
+<% @meta_description = "We've detected #{ number_with_delimiter @registries.sum{|r| r.funded_packages_count } } packages (#{ (@registries.sum{|r| r.funded_packages_count }/@registries.sum{|r| r.packages_count}.to_f*100).round(2) }%) have declared a way to fund their development via a funding platform. 
+    Funded packages are detected via a funding url on their registry or via a funding.yml file in their repository or the owner of the repository is part of GitHub Sponsors." %>
+<% @meta_title = "Funding in Open Source" %>
+
 <div class="container-sm">
-  <h1 class='mb-3'>Funding</h1>
+  <h1 class='mb-3'>Funding  in Open Source</h1>
 
   <p class='lead'>
-    We've detected <%= number_with_delimiter @registries.sum{|r| r.funded_packages_count } %> packages (<%= (@registries.sum{|r| r.funded_packages_count }/@registries.sum{|r| r.packages_count}.to_f*100).round(2) %>%) have declared a way to fund their development via a funding platform. 
-    Funded packages are detected via a funding url on their registry or via a funding.yml file in their repository or the owner of the repository is part of GitHub Sponsors.
+    <%= @meta_description %>%
   <p>
 
   <% @registries.each do |registry| %>
