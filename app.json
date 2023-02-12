@@ -35,6 +35,10 @@
     {
       "command": "bundle exec rake packages:update_rankings_async",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "command": "bundle exec rake sitemap:refresh",
+      "schedule": "30 * * * *"
     }
   ]
 }
