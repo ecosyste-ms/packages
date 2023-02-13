@@ -464,4 +464,9 @@ class Package < ApplicationRecord
   def sync_maintainers_async
     SyncMaintainersWorker.perform_async(id)
   end
+
+  def related_packages
+    return [] unless repository_url.present?
+    registry.packages.where(repository_url: repository_url).where.not(id: id)
+  end
 end

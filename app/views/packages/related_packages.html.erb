@@ -1,5 +1,4 @@
-<% @meta_title = "#{@package.name} maintainers | #{@registry.name}" %>
-
+<% @meta_title = "#{@package.name} related packages | #{@registry.name}" %>
 <div class="container-sm">
 
   <%= render 'details' %>
@@ -22,18 +21,20 @@
       </a>
     </li>
     <% maintainers_count = @package.maintainers.count %>
-    <li class="nav-item">
-      <a class="nav-link active" aria-current="page">
-        Maintainers
-        <span class="badge bg-secondary rounded-pill">
-          <%= number_with_delimiter maintainers_count %>
-        </span>
-      </a>
-    </li>
+    <% if maintainers_count > 0 %>
+      <li class="nav-item">
+        <a class="nav-link" href="<%= maintainers_registry_package_path(@registry, @package) %>">
+          Maintainers
+          <span class="badge bg-secondary rounded-pill">
+            <%= number_with_delimiter maintainers_count %>
+          </span>
+        </a>
+      </li>
+    <% end %>
     <% related_packages_count = @package.related_packages.count %>
     <% if related_packages_count > 0 %>
       <li class="nav-item">
-        <a class="nav-link" href="<%= related_packages_registry_package_path(@registry, @package) %>">
+        <a class="nav-link active" aria-current="page">
           Related Packages
           <span class="badge bg-secondary rounded-pill">
             <%= number_with_delimiter related_packages_count %>
@@ -41,9 +42,11 @@
         </a>
       </li>
     <% end %>
+    <%= render 'sort' %>
   </ul>
 
-  <%= render @maintainers %>
-  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
 
+  <%= render @related_packages %>
+  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
 </div>
+
