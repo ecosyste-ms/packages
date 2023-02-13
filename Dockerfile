@@ -4,12 +4,6 @@ ENV APP_ROOT /usr/src/app
 ENV DATABASE_PORT 5432
 WORKDIR $APP_ROOT
 
-# =============================================
-# System layer
-
-# Will invalidate cache as soon as the Gemfile changes
-COPY Gemfile Gemfile.lock $APP_ROOT/
-
 # * Setup system
 # * Install Ruby dependencies
 RUN apk add --update \
@@ -23,8 +17,12 @@ RUN apk add --update \
     libc6-compat \
  && rm -rf /var/cache/apk/* \
  && gem update --system \
- && gem install bundler foreman \
- && bundle config --global frozen 1 \
+ && gem install bundler foreman 
+
+# Will invalidate cache as soon as the Gemfile changes
+COPY Gemfile Gemfile.lock $APP_ROOT/
+
+RUN bundle config --global frozen 1 \
  && bundle config set without 'test' \
  && bundle install --jobs 2
 
@@ -33,6 +31,8 @@ RUN apk add --update \
 
 # Copy application code
 COPY . $APP_ROOT
+
+RUN bundle exec bootsnap precompile --gemfile app/ lib/
 
 # Precompile assets for a production environment.
 # This is done to include assets in production images on Dockerhub.
