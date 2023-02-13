@@ -15,9 +15,7 @@ RUN apk add --update \
     tzdata \
     curl-dev \
     libc6-compat \
- && rm -rf /var/cache/apk/* \
- && gem update --system \
- && gem install bundler foreman 
+ && rm -rf /var/cache/apk/* 
 
 # Will invalidate cache as soon as the Gemfile changes
 COPY Gemfile Gemfile.lock $APP_ROOT/
