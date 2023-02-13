@@ -29,6 +29,8 @@ class PackagesController < ApplicationController
       # should redirect to the correct package name
       if @registry.ecosystem == 'pypi'
         @package = @registry.packages.find_by_name!(params[:id].downcase.gsub('_', '-'))
+      elsif @registry.ecosystem == 'docker' && !params[:id].include?('/')
+        @package = @registry.packages.find_by_name!("library/#{params[:id]}")
       else
         @package = @registry.packages.find_by_name!(params[:id].downcase)
       end
@@ -44,6 +46,8 @@ class PackagesController < ApplicationController
       # should redirect to the correct package name
       if @registry.ecosystem == 'pypi'
         @package = @registry.packages.find_by_name!(params[:id].downcase.gsub('_', '-'))
+      elsif @registry.ecosystem == 'docker' && !params[:id].include?('/')
+        @package = @registry.packages.find_by_name!("library/#{params[:id]}")
       else
         @package = @registry.packages.find_by_name!(params[:id].downcase)
       end
@@ -70,6 +74,8 @@ class PackagesController < ApplicationController
       # should redirect to the correct package name
       if @registry.ecosystem == 'pypi'
         @package = @registry.packages.find_by_name!(params[:id].downcase.gsub('_', '-'))
+      elsif @registry.ecosystem == 'docker' && !params[:id].include?('/')
+        @package = @registry.packages.find_by_name!("library/#{params[:id]}")
       else
         @package = @registry.packages.find_by_name!(params[:id].downcase)
       end
@@ -85,6 +91,8 @@ class PackagesController < ApplicationController
       # should redirect to the correct package name
       if @registry.ecosystem == 'pypi'
         @package = @registry.packages.find_by_name!(params[:id].downcase.gsub('_', '-'))
+      elsif @registry.ecosystem == 'docker' && !params[:id].include?('/')
+        @package = @registry.packages.find_by_name!("library/#{params[:id]}")
       else
         @package = @registry.packages.find_by_name!(params[:id].downcase)
       end

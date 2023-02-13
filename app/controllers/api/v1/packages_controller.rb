@@ -19,6 +19,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     if params[:repository_url].present?
       scope = Package.where(repository_url: params[:repository_url])
     else
+      params[:name] = "library/#{params[:name]}" if params[:ecosystem] == 'docker' && !params[:name].include?('/')
       scope = Package.where(name: params[:name], ecosystem: params[:ecosystem])
     end
 
@@ -50,6 +51,8 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       # should redirect to the correct package name
       if @registry.ecosystem == 'pypi'
         @package = @registry.packages.find_by_name!(params[:id].downcase.gsub('_', '-'))
+      elsif @registry.ecosystem == 'docker' && !params[:id].include?('/')
+        @package = @registry.packages.find_by_name!("library/#{params[:id]}")
       else
         @package = @registry.packages.find_by_name!(params[:id].downcase)
       end
