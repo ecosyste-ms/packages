@@ -8,21 +8,33 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
-      json = get_json("https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/#{CGI.escape(name)}")
+      parts = name.split('/')
+      return nil if parts.length < 2
+      return nil unless parts[0].match?(/^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/) # valid github username
+      full_name = parts[0..1].join('/')
+      if parts.length > 2
+        path = parts[2..-1].join('/') 
+      else
+        path = nil
+      end
+
+      yaml_path = path.present? ? "#{path}/action" : "action"
+
+      json = get_json("https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/#{full_name}")
       return nil if json.nil?
       return nil if json['error'].present?
       
-      yaml = get_raw_no_exception("https://raw.githubusercontent.com/#{name}/#{json['default_branch']}/action.yml")
+      yaml = get_raw_no_exception("https://raw.githubusercontent.com/#{full_name}/#{json['default_branch']}/#{yaml_path}.yml")
 
       if yaml.blank?
-        yaml = get_raw_no_exception("https://raw.githubusercontent.com/#{name}/#{json['default_branch']}/action.yaml")
+        yaml = get_raw_no_exception("https://raw.githubusercontent.com/#{full_name}/#{json['default_branch']}/#{yaml_path}.yaml")
       end
       
       return nil unless yaml.present?
 
       yaml = YAML.safe_load(yaml)
 
-      json.merge('name' => name, 'repository_url' => "https://github.com/#{name}", 'yaml' => yaml)
+      json.merge('name' => name, 'repository_url' => "https://github.com/#{full_name}", 'yaml' => yaml, 'path' => path)
     rescue
       nil
     end
@@ -62,7 +74,7 @@ module Ecosystem
         homepage: package["homepage"],
         tags_url: package["tags_url"],
         namespace: package["owner"],
-        metadata: package['yaml'].merge('default_branch' => package['default_branch'])
+        metadata: package['yaml'].merge('default_branch' => package['default_branch'], 'path' => package['path'])
       }
     end
 
@@ -89,7 +101,14 @@ module Ecosystem
       return [] unless package[:repository_url]
       github_name_with_owner = GithubUrlParser.parse(package[:repository_url]) 
       return [] unless github_name_with_owner
-      deps = get_raw_no_exception("https://raw.githubusercontent.com/#{github_name_with_owner}/#{version}/action.yml")
+
+      if package[:metadata]['path'].present?
+        url = "https://raw.githubusercontent.com/#{github_name_with_owner}/#{version}/#{package[:metadata]['path']}/action.yml"
+      else
+        url = "https://raw.githubusercontent.com/#{github_name_with_owner}/#{version}/action.yml"
+      end
+
+      deps = get_raw_no_exception(url)
       return [] unless deps.present?
       Bibliothecary::Parsers::Actions.parse_manifest(deps).map do |dep|
         {

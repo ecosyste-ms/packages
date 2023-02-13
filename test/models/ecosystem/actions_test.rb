@@ -81,7 +81,7 @@ class ActionsTest < ActiveSupport::TestCase
       :homepage=>nil, 
       :tags_url=>"http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/getsentry%2Faction-git-diff-suggestions/tags", 
       :namespace=>"getsentry", 
-      :metadata=>{"name"=>"action-git-diff-suggestions", "description"=>"This GitHub Action will take the current git changes and apply them as GitHub code review suggestions", "author"=>"Sentry", "branding"=>{"icon"=>"book-open", "color"=>"purple"}, "inputs"=>{"github-token"=>{"description"=>"github token", "default"=>"${{ github.token }}"}, "message"=>{"description"=>"The message to prepend the review suggestion"}}, "runs"=>{"using"=>"node12", "main"=>"dist/index.js"}, "default_branch"=>"main"}}
+      :metadata=>{"name"=>"action-git-diff-suggestions", "description"=>"This GitHub Action will take the current git changes and apply them as GitHub code review suggestions", "author"=>"Sentry", "branding"=>{"icon"=>"book-open", "color"=>"purple"}, "inputs"=>{"github-token"=>{"description"=>"github token", "default"=>"${{ github.token }}"}, "message"=>{"description"=>"The message to prepend the review suggestion"}}, "runs"=>{"using"=>"node12", "main"=>"dist/index.js"}, "default_branch"=>"main","path"=>nil}}
   end
 
   test 'versions_metadata' do
