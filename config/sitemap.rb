@@ -21,16 +21,13 @@ SitemapGenerator::Sitemap.create do
     end
   end
 
-  Package.includes(:registry).active.top(1).order(Arel.sql("(rankings->>'average')::text::float").asc).limit(10_000).includes(:maintainers, :versions).find_each do |package|
+  Package.includes(:registry).active.top(1).limit(10_000).includes(:maintainers).find_each do |package|
     add registry_package_path(package.registry.name, package.name), lastmod: package.updated_at
     if package.dependent_packages_count > 0
       add dependent_packages_registry_package_path(package.registry.name, package.name), lastmod: package.updated_at
     end
     if package.maintainers.length > 0
       add maintainers_registry_package_path(package.registry.name, package.name), lastmod: package.updated_at
-    end
-    package.versions.limit(100).each do |version|
-      add registry_package_version_path(package.registry.name, package.name, version.number), lastmod: version.updated_at
     end
   end
 end
