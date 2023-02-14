@@ -117,6 +117,8 @@ GEM
     date (3.3.3)
     deb_control (0.0.1)
     debug (1.7.1)
+      irb (>= 1.5.0)
+      reline (>= 0.3.1)
     erubi (1.12.0)
     ethon (0.16.0)
       ffi (>= 1.15.0)
@@ -144,6 +146,9 @@ GEM
     hiredis (0.6.3)
     i18n (1.12.0)
       concurrent-ruby (~> 1.0)
+    io-console (0.6.0)
+    irb (1.6.2)
+      reline (>= 0.3.0)
     jbuilder (2.11.5)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
@@ -178,14 +183,14 @@ GEM
     net-smtp (0.3.3)
       net-protocol
     nio4r (2.5.8)
-    nokogiri (1.14.1)
+    nokogiri (1.14.2)
       mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
-    nokogiri (1.14.1-aarch64-linux)
+    nokogiri (1.14.2-aarch64-linux)
       racc (~> 1.4)
-    nokogiri (1.14.1-arm64-darwin)
+    nokogiri (1.14.2-arm64-darwin)
       racc (~> 1.4)
-    nokogiri (1.14.1-x86_64-linux)
+    nokogiri (1.14.2-x86_64-linux)
       racc (~> 1.4)
     oj (3.14.2)
     ox (2.14.14)
@@ -243,6 +248,8 @@ GEM
       zeitwerk (~> 2.5)
     rake (13.0.6)
     redis (4.8.1)
+    reline (0.3.2)
+      io-console (~> 0.5)
     rexml (3.2.5)
     rswag-api (2.8.0)
       railties (>= 3.1, < 7.1)
@@ -353,7 +360,7 @@ DEPENDENCIES
   jbuilder
   jquery-rails
   mocha
-  nokogiri (= 1.14.1)
+  nokogiri (= 1.14.2)
   oj
   ox
   packageurl-ruby
