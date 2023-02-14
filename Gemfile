@@ -37,7 +37,6 @@ gem "semantic"
 gem "semantic_range"
 gem "sanitize-url"
 gem "toml-rb"
-gem "bugsnag"
 gem "chartkick"
 gem "groupdate"
 gem 'jquery-rails'
