@@ -21,7 +21,7 @@ gem "ox"
 gem "simple-rss"
 gem "hiredis"
 gem "redis", '< 5', require: ["redis", "redis/connection/hiredis"]
-gem "sidekiq", '<7'
+gem "sidekiq", '<8'
 gem "sidekiq-unique-jobs"
 gem "bibliothecary", github: "ecosyste-ms/bibliothecary", branch: "main"
 gem "pagy"
