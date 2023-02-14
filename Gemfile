@@ -59,7 +59,8 @@ group :development do
 end
 
 group :test do
-  gem "shoulda"
+  gem "shoulda-matchers"
+  gem "shoulda-context"
   gem "webmock"
   gem "mocha"
   gem "rails-controller-testing"
