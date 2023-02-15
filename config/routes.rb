@@ -38,6 +38,7 @@ Rails.application.routes.draw do
           resources :versions, only: [:index, :show], constraints: { id: /.*/ }
           member do
             get :dependent_packages, to: 'packages#dependent_packages'
+            get :related_packages, to: 'packages#related_packages'
             get :ping, to: 'packages#ping'
           end
         end

@@ -45,7 +45,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
 
   def show
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = @registry.packages.find_by_name(params[:id])
+    @package = @registry.packages.includes({maintainers: :registry}).find_by_name(params[:id])
     if @package.nil?
       # TODO: This is a temporary fix for pypi packages with underscores in their name
       # should redirect to the correct package name
@@ -63,7 +63,26 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = @registry.packages.find_by_name!(params[:id])
 
-    scope = @package.dependent_packages
+    scope = @package.dependent_packages.includes(:registry, {maintainers: :registry})
+
+    scope = scope.created_after(params[:created_after]) if params[:created_after].present?
+    scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
+
+    if params[:sort].present? || params[:order].present?
+      sort = params[:sort] || 'updated_at'
+      order = params[:order] || 'desc,desc'
+      sort_options = sort.split(',').zip(order.split(',')).to_h
+      scope = scope.order(sort_options)
+    end
+
+    @pagy, @packages = pagy_countless(scope)
+  end
+
+  def related_packages
+        @registry = Registry.find_by_name!(params[:registry_id])
+    @package = @registry.packages.find_by_name!(params[:id])
+
+    scope = @package.related_packages.includes(:registry, {maintainers: :registry})
 
     scope = scope.created_after(params[:created_after]) if params[:created_after].present?
     scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
