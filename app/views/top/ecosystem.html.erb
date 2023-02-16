@@ -51,6 +51,11 @@
           </th>
           <td>
             <%= link_to package.name, registry_package_path(@registry, package.name) %>
+            <% if package.status.present? %>
+              <span class="badge bg-secondary">
+                <%= package.status %>
+              </span>
+            <% end %>
           </td>
           <% if @packages.any?{|p| p.downloads.present?} %>
             <td>
