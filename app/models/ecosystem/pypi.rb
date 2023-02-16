@@ -56,7 +56,7 @@ module Ecosystem
 
     def map_package_metadata(package)
       return false if package["info"].nil?
-      {
+      h = {
         name: package["info"]["name"].downcase,
         description: package["info"]["summary"],
         homepage: (package["info"]["home_page"].presence || package.dig("info", "project_urls", "Homepage").presence || package.dig("info", "project_urls", "Home")),
@@ -67,12 +67,15 @@ module Ecosystem
           package["info"]["home_page"].presence || package.dig("info", "project_urls", "Homepage").presence || package.dig("info", "project_urls", "Home"),
         ),
         releases: package['releases'],
-        downloads: downloads(package),
         downloads_period: 'last-month',
         metadata: {
           "funding" => package.dig("info", "project_urls", "Funding"),
         }
       }
+
+      downloads = downloads(package)
+      h[:downloads] = downloads if downloads.present?
+      h
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])

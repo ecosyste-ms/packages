@@ -73,7 +73,8 @@ module Ecosystem
       repo = repo[0] if repo.is_a?(Array)
       repo_url = repo.try(:fetch, "url", nil)
 
-      {
+      
+      h = {
         name: package["_id"],
         description: latest_version["description"].try(:delete, "\u0000"),
         homepage: package["homepage"],
@@ -82,7 +83,6 @@ module Ecosystem
         repository_url: repo_fallback(repo_url, package["homepage"]),
         versions: package["versions"],
         time: package["time"],
-        downloads: downloads(package),
         downloads_period: "last-month",
         namespace: namespace(package),
         metadata: {
@@ -90,6 +90,11 @@ module Ecosystem
           "dist-tags" => package["dist-tags"],
         }
       }
+
+      downloads = downloads(package)
+      h[:downloads] = downloads if downloads.present?
+
+      h
     end
 
     def namespace(package)
@@ -100,7 +105,7 @@ module Ecosystem
     def downloads(package)
       get_json("https://api.npmjs.org/downloads/point/last-month/#{package["_id"]}")['downloads']
     rescue
-      0
+      nil
     end
 
     def licenses(latest_version)
