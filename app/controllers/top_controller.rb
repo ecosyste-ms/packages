@@ -23,6 +23,6 @@ class TopController < ApplicationController
       @sort = Arel.sql("(rankings->>'average')::text::float").asc.nulls_last
     end
 
-    @packages = @registry.packages.includes(:maintainers).order(@sort).limit(200)
+    @packages = @registry.packages.where.not(versions_count: 0).where.not(status: 'removed').includes(:maintainers).order(@sort).limit(200)
   end
 end
