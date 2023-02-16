@@ -1,99 +1,101 @@
 <div class="container-sm">
   <h1 class='mb-3'><%= link_to 'Top Open Source Packages', top_path %> : <%= @registry.ecosystem %> </h1>
 
-  <table class='table table-striped'>
-    <thead class='sticky-top bg-white'>
-      <tr>
-        <th scope="col">#</th>
-        <th scope="col">package</th>
-        <% if @packages.any?{|p| p.downloads.present?} %>
-          <th scope="col">
-            <%= link_to 'Downloads', top_ecosystem_path(@registry.ecosystem, sort: 'downloads') %>
-          </th>
-        <% end %>
-        <% if @packages.any?{|p| p.dependent_packages_count > 0} %>
-          <th scope="col">
-            <%= link_to 'Dependent Packages', top_ecosystem_path(@registry.ecosystem, sort: 'dependent_packages_count') %>
-          </th>
-        <% end %>
-        <% if @packages.any?{|p| p.dependent_repos_count > 0} %>
-          <th scope="col">
-            <%= link_to 'Dependent Repositories', top_ecosystem_path(@registry.ecosystem, sort: 'dependent_repos_count') %>
-          </th>
-        <% end %>
-        <% if @packages.any?{|p| p.stars.present?} %>
-          <th scope="col">
-            <%= link_to 'Stars', top_ecosystem_path(@registry.ecosystem, sort: 'stars') %>
-          </th>
-        <% end %>
-        <% if @packages.any?{|p| p.forks.present?} %>
-          <th scope="col">
-            <%= link_to 'Forks', top_ecosystem_path(@registry.ecosystem, sort: 'forks') %>
-          </th>
-        <% end %>
-        <% if @packages.any?{|p| p.versions_count.present?} %>
-          <th scope="col">
-            <%= link_to 'Versions', top_ecosystem_path(@registry.ecosystem, sort: 'versions_count') %>
-          </th>
-        <% end %>
-        <% if @packages.any?{|p| p.maintainers.length > 0} %>
-          <th scope="col">
-            Maintainers
-          </th>
-        <% end %>
-      </tr>
-    </thead>
-    <tbody>
-      <% @packages.each_with_index do |package,index| %>
+  <div class="table-responsive">
+    <table class='table table-striped'>
+      <thead class='sticky-top bg-white'>
         <tr>
-          <th scope="row">
-            <%= index + 1%>
-          </th>
-          <td>
-            <%= link_to package.name, registry_package_path(@registry, package.name) %>
-            <% if package.status.present? %>
-              <span class="badge bg-secondary">
-                <%= package.status %>
-              </span>
-            <% end %>
-          </td>
+          <th scope="col">#</th>
+          <th scope="col">package</th>
           <% if @packages.any?{|p| p.downloads.present?} %>
-            <td>
-              <%= number_with_delimiter package.downloads %>
-            </td>
+            <th scope="col">
+              <%= link_to 'Downloads', top_ecosystem_path(@registry.ecosystem, sort: 'downloads') %>
+            </th>
           <% end %>
           <% if @packages.any?{|p| p.dependent_packages_count > 0} %>
-            <td>
-              <%= number_with_delimiter package.dependent_packages_count %>
-            </td>
+            <th scope="col">
+              <%= link_to 'Dependent Packages', top_ecosystem_path(@registry.ecosystem, sort: 'dependent_packages_count') %>
+            </th>
           <% end %>
           <% if @packages.any?{|p| p.dependent_repos_count > 0} %>
-            <td>
-              <%= number_with_delimiter package.dependent_repos_count %>
-            </td>
+            <th scope="col">
+              <%= link_to 'Dependent Repositories', top_ecosystem_path(@registry.ecosystem, sort: 'dependent_repos_count') %>
+            </th>
           <% end %>
           <% if @packages.any?{|p| p.stars.present?} %>
-            <td>
-              <%= number_with_delimiter package.stars %>
-            </td>
+            <th scope="col">
+              <%= link_to 'Stars', top_ecosystem_path(@registry.ecosystem, sort: 'stars') %>
+            </th>
           <% end %>
           <% if @packages.any?{|p| p.forks.present?} %>
-            <td>
-              <%= number_with_delimiter package.forks %>
-            </td>
+            <th scope="col">
+              <%= link_to 'Forks', top_ecosystem_path(@registry.ecosystem, sort: 'forks') %>
+            </th>
           <% end %>
           <% if @packages.any?{|p| p.versions_count.present?} %>
-            <td>
-              <%= number_with_delimiter package.versions_count %>
-            </td>
+            <th scope="col">
+              <%= link_to 'Versions', top_ecosystem_path(@registry.ecosystem, sort: 'versions_count') %>
+            </th>
           <% end %>
           <% if @packages.any?{|p| p.maintainers.length > 0} %>
-            <td>
-              <%= number_with_delimiter package.maintainers.length %>
-            </td>
+            <th scope="col">
+              Maintainers
+            </th>
           <% end %>
         </tr>
-      <% end %>
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        <% @packages.each_with_index do |package,index| %>
+          <tr>
+            <th scope="row">
+              <%= index + 1%>
+            </th>
+            <td>
+              <%= link_to package.name, registry_package_path(@registry, package.name) %>
+              <% if package.status.present? %>
+                <span class="badge bg-secondary">
+                  <%= package.status %>
+                </span>
+              <% end %>
+            </td>
+            <% if @packages.any?{|p| p.downloads.present?} %>
+              <td>
+                <%= number_with_delimiter package.downloads %>
+              </td>
+            <% end %>
+            <% if @packages.any?{|p| p.dependent_packages_count > 0} %>
+              <td>
+                <%= number_with_delimiter package.dependent_packages_count %>
+              </td>
+            <% end %>
+            <% if @packages.any?{|p| p.dependent_repos_count > 0} %>
+              <td>
+                <%= number_with_delimiter package.dependent_repos_count %>
+              </td>
+            <% end %>
+            <% if @packages.any?{|p| p.stars.present?} %>
+              <td>
+                <%= number_with_delimiter package.stars %>
+              </td>
+            <% end %>
+            <% if @packages.any?{|p| p.forks.present?} %>
+              <td>
+                <%= number_with_delimiter package.forks %>
+              </td>
+            <% end %>
+            <% if @packages.any?{|p| p.versions_count.present?} %>
+              <td>
+                <%= number_with_delimiter package.versions_count %>
+              </td>
+            <% end %>
+            <% if @packages.any?{|p| p.maintainers.length > 0} %>
+              <td>
+                <%= number_with_delimiter package.maintainers.length %>
+              </td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
 </div>
