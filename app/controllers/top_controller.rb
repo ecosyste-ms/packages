@@ -5,6 +5,24 @@ class TopController < ApplicationController
 
   def ecosystem
     @registry = Registry.find_by_ecosystem(params[:ecosystem])
-    @packages = @registry.packages.includes(:maintainers).order(Arel.sql("(rankings->>'average')::text::float").asc).limit(200)
+
+    case params[:sort]  
+    when 'downloads'
+      @sort = 'downloads desc nulls last' 
+    when 'dependent_packages_count'
+      @sort = 'dependent_packages_count desc nulls last'
+    when 'dependent_repos_count'
+      @sort = 'dependent_repos_count desc nulls last'
+    when 'stars'
+      @sort = Arel.sql("(repo_metadata ->> 'stargazers_count')::text::integer").desc.nulls_last
+    when 'forks'
+      @sort = Arel.sql("(repo_metadata ->> 'forks_count')::text::integer").desc.nulls_last
+    when 'versions_count'
+      @sort = 'versions_count desc nulls last'      
+    else
+      @sort = Arel.sql("(rankings->>'average')::text::float").asc.nulls_last
+    end
+
+    @packages = @registry.packages.includes(:maintainers).order(@sort).limit(200)
   end
 end

@@ -6,13 +6,41 @@
       <tr>
         <th scope="col">#</th>
         <th scope="col">package</th>
-        <th scope="col">Downloads</th>
-        <th scope="col">Dependent Packages</th>
-        <th scope="col">Dependent Repositories</th>
-        <th scope="col">Stars</th>
-        <th scope="col">Forks</th>
-        <th scope="col">Versions</th>
-        <th scope="col">Maintainers</th>
+        <% if @packages.any?{|p| p.downloads.present?} %>
+          <th scope="col">
+            <%= link_to 'Downloads', top_ecosystem_path(@registry.ecosystem, sort: 'downloads') %>
+          </th>
+        <% end %>
+        <% if @packages.any?{|p| p.dependent_packages_count.present?} %>
+          <th scope="col">
+            <%= link_to 'Dependent Packages', top_ecosystem_path(@registry.ecosystem, sort: 'dependent_packages_count') %>
+          </th>
+        <% end %>
+        <% if @packages.any?{|p| p.dependent_repos_count.present?} %>
+          <th scope="col">
+            <%= link_to 'Dependent Repositories', top_ecosystem_path(@registry.ecosystem, sort: 'dependent_repos_count') %>
+          </th>
+        <% end %>
+        <% if @packages.any?{|p| p.stars.present?} %>
+          <th scope="col">
+            <%= link_to 'Stars', top_ecosystem_path(@registry.ecosystem, sort: 'stars') %>
+          </th>
+        <% end %>
+        <% if @packages.any?{|p| p.forks.present?} %>
+          <th scope="col">
+            <%= link_to 'Forks', top_ecosystem_path(@registry.ecosystem, sort: 'forks') %>
+          </th>
+        <% end %>
+        <% if @packages.any?{|p| p.versions_count.present?} %>
+          <th scope="col">
+            <%= link_to 'Versions', top_ecosystem_path(@registry.ecosystem, sort: 'versions_count') %>
+          </th>
+        <% end %>
+        <% if @packages.any?{|p| p.maintainers.length > 0} %>
+          <th scope="col">
+            Maintainers
+          </th>
+        <% end %>
       </tr>
     </thead>
     <tbody>
@@ -24,27 +52,41 @@
           <td>
             <%= link_to package.name, registry_package_path(@registry, package.name) %>
           </td>
-          <td>
-            <%= number_with_delimiter package.downloads %>
-          </td>
-          <td>
-            <%= number_with_delimiter package.dependent_packages_count %>
-          </td>
-          <td>
-            <%= number_with_delimiter package.dependent_repos_count %>
-          </td>
-          <td>
-            <%= number_with_delimiter package.stars %>
-          </td>
-          <td>
-            <%= number_with_delimiter package.forks %>
-          </td>
-          <td>
-            <%= number_with_delimiter package.versions_count %>
-          </td>
-          <td>
-            <%= number_with_delimiter package.maintainers.length %>
-          </td>
+          <% if @packages.any?{|p| p.downloads.present?} %>
+            <td>
+              <%= number_with_delimiter package.downloads %>
+            </td>
+          <% end %>
+          <% if @packages.any?{|p| p.dependent_packages_count.present?} %>
+            <td>
+              <%= number_with_delimiter package.dependent_packages_count %>
+            </td>
+          <% end %>
+          <% if @packages.any?{|p| p.dependent_repos_count.present?} %>
+            <td>
+              <%= number_with_delimiter package.dependent_repos_count %>
+            </td>
+          <% end %>
+          <% if @packages.any?{|p| p.stars.present?} %>
+            <td>
+              <%= number_with_delimiter package.stars %>
+            </td>
+          <% end %>
+          <% if @packages.any?{|p| p.forks.present?} %>
+            <td>
+              <%= number_with_delimiter package.forks %>
+            </td>
+          <% end %>
+          <% if @packages.any?{|p| p.versions_count.present?} %>
+            <td>
+              <%= number_with_delimiter package.versions_count %>
+            </td>
+          <% end %>
+          <% if @packages.any?{|p| p.maintainers.length > 0} %>
+            <td>
+              <%= number_with_delimiter package.maintainers.length %>
+            </td>
+          <% end %>
         </tr>
       <% end %>
     </tbody>
