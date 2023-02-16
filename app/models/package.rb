@@ -268,8 +268,21 @@ class Package < ApplicationRecord
     end
     
     response = connection.get('/api/v1/repositories/lookup', url: repository_or_homepage_url)
-    return nil unless response.success?
-    return response.body
+
+    if response.success?
+      return response.body
+    else 
+      # check for renamed repos
+      resp = Faraday.head(repository_or_homepage_url)
+      if resp.status == 301
+        response = connection.get('/api/v1/repositories/lookup', url: resp.headers['location'])
+        if response.success?
+          return response.body
+        end
+      end
+    end
+    return nil
+    
   rescue
     nil
   end
