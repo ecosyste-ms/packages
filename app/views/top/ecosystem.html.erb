@@ -2,7 +2,7 @@
   <h1 class='mb-3'><%= link_to 'Top Open Source Packages', top_path %> : <%= @registry.ecosystem %> </h1>
 
   <table class='table table-striped'>
-    <thead>
+    <thead class='sticky-top bg-white'>
       <tr>
         <th scope="col">#</th>
         <th scope="col">package</th>
@@ -11,12 +11,12 @@
             <%= link_to 'Downloads', top_ecosystem_path(@registry.ecosystem, sort: 'downloads') %>
           </th>
         <% end %>
-        <% if @packages.any?{|p| p.dependent_packages_count.present?} %>
+        <% if @packages.any?{|p| p.dependent_packages_count > 0} %>
           <th scope="col">
             <%= link_to 'Dependent Packages', top_ecosystem_path(@registry.ecosystem, sort: 'dependent_packages_count') %>
           </th>
         <% end %>
-        <% if @packages.any?{|p| p.dependent_repos_count.present?} %>
+        <% if @packages.any?{|p| p.dependent_repos_count > 0} %>
           <th scope="col">
             <%= link_to 'Dependent Repositories', top_ecosystem_path(@registry.ecosystem, sort: 'dependent_repos_count') %>
           </th>
@@ -57,12 +57,12 @@
               <%= number_with_delimiter package.downloads %>
             </td>
           <% end %>
-          <% if @packages.any?{|p| p.dependent_packages_count.present?} %>
+          <% if @packages.any?{|p| p.dependent_packages_count > 0} %>
             <td>
               <%= number_with_delimiter package.dependent_packages_count %>
             </td>
           <% end %>
-          <% if @packages.any?{|p| p.dependent_repos_count.present?} %>
+          <% if @packages.any?{|p| p.dependent_repos_count > 0} %>
             <td>
               <%= number_with_delimiter package.dependent_repos_count %>
             </td>
