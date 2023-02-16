@@ -457,6 +457,14 @@ class Package < ApplicationRecord
     end.flatten.compact
   end
 
+  def stars
+    repo_metadata['stargazers_count'] if repo_metadata.present?
+  end
+
+  def forks
+    repo_metadata['forks_count'] if repo_metadata.present?
+  end
+
   def sync_maintainers
     registry.sync_maintainers(self)
   end

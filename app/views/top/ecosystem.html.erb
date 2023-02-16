@@ -1,0 +1,52 @@
+<div class="container-sm">
+  <h1 class='mb-3'><%= link_to 'Top Open Source Packages', top_path %> : <%= @registry.ecosystem %> </h1>
+
+  <table class='table table-striped'>
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">package</th>
+        <th scope="col">Downloads</th>
+        <th scope="col">Dependent Packages</th>
+        <th scope="col">Dependent Repositories</th>
+        <th scope="col">Stars</th>
+        <th scope="col">Forks</th>
+        <th scope="col">Versions</th>
+        <th scope="col">Maintainers</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @packages.each_with_index do |package,index| %>
+        <tr>
+          <th scope="row">
+            <%= index + 1%>
+          </th>
+          <td>
+            <%= link_to package.name, registry_package_path(@registry, package.name) %>
+          </td>
+          <td>
+            <%= number_with_delimiter package.downloads %>
+          </td>
+          <td>
+            <%= number_with_delimiter package.dependent_packages_count %>
+          </td>
+          <td>
+            <%= number_with_delimiter package.dependent_repos_count %>
+          </td>
+          <td>
+            <%= number_with_delimiter package.stars %>
+          </td>
+          <td>
+            <%= number_with_delimiter package.forks %>
+          </td>
+          <td>
+            <%= number_with_delimiter package.versions_count %>
+          </td>
+          <td>
+            <%= number_with_delimiter package.maintainers.length %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

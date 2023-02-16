@@ -51,6 +51,9 @@ Rails.application.routes.draw do
     end
   end
 
+  get :top, to: 'top#index'
+  get 'top/:ecosystem', to: 'top#ecosystem', as: :top_ecosystem
+
   resources :ecosystems, only: [:index, :show], constraints: { id: /.*/ }
 
   resources :registries, constraints: { id: /[^\/]+/  }, only: [:index, :show], :defaults => {:format => :html} do
