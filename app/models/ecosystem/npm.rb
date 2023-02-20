@@ -24,8 +24,13 @@ module Ecosystem
       response = Typhoeus.get(url)
       return "removed" if [400, 404, 410].include?(response.response_code)
       json = Oj.load(response.body)
-      return "unpublished" if json && json["versions"].blank?
-      return "deprecated" if json && json["versions"].values.reject{|v| Semantic::Version.new(v['version']).pre}.all? { |v| v["deprecated"] }
+
+      if json 
+        return "unpublished" if json["versions"].blank?
+        non_prerelease_versions = json["versions"].values.reject{|v| Semantic::Version.new(v['version']).pre}
+
+        return "deprecated" if non_prerelease_versions.length > 0 && non_prerelease_versions.all? { |v| v["deprecated"] }
+      end
     end
 
     def all_package_names
