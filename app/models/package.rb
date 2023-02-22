@@ -234,7 +234,10 @@ class Package < ApplicationRecord
   end
 
   def update_repo_metadata
-    return if repository_or_homepage_url.blank?
+    if repository_or_homepage_url.blank?
+      update(repo_metadata: nil)
+      return
+    end
     repo_metadata = fetch_repo_metadata
     if repo_metadata.present?
       tags = fetch_tags
@@ -528,10 +531,11 @@ class Package < ApplicationRecord
     response = Faraday.get(url)
     return nil unless response.success?
     packages = JSON.parse response.body
-    packages.each do |ecosystem, package_names|
-      Registry.where(ecosystem: ecosystem).each do |registry|
-        registry.packages.where(name: package_names).each do |package|
-          package.update_advisories_async
+    packages.each do |h|
+      Registry.where(ecosystem: h['ecosystem']).each do |registry|
+        puts "#{registry.name} #{h['package_name']}"
+        registry.packages.where(name: h['package_name']).each do |package|
+          package.update_advisories
         end
       end
     end
