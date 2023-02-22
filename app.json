@@ -39,6 +39,10 @@
     {
       "command": "bundle exec rake sitemap:refresh",
       "schedule": "30 * * * *"
+    },
+    {
+      "command": "bundle exec rake packages:update_advisories",
+      "schedule": "0 * * * *"
     }
   ]
 }

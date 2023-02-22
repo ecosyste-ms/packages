@@ -490,4 +490,50 @@ class Package < ApplicationRecord
     return [] unless repository_url.present?
     registry.packages.where(repository_url: repository_url).where.not(id: id)
   end
+
+  def fetch_advisories
+    url = "https://advisories.ecosyste.ms/api/v1/advisories?ecosystem=#{ecosystem}&package_name=#{to_param}"
+    response = Faraday.get(url)
+    return nil unless response.success?
+    return JSON.parse response.body
+  rescue
+    []
+  end
+
+  def update_advisories
+    advisories = fetch_advisories
+    return if advisories.blank?
+    update(advisories: advisories)
+  end
+
+  def update_advisories_async
+    UpdateAdvisoriesWorker.perform_async(id)
+  end
+
+  def self.update_advisories
+    url = "https://advisories.ecosyste.ms/api/v1/advisories?updated_after=#{1.day.ago.iso8601}"
+    response = Faraday.get(url)
+    return nil unless response.success?
+    advisories = JSON.parse response.body
+    pkgs = advisories.map{|a| a['packages'].map{|p| [p['ecosystem'],p['package_name']]} }.uniq
+    pkgs.each do |ecosystem, package_name|
+      Registry.where(ecosystem: ecosystem).each do |registry|
+        registry.packages.find_by_name(package_name).try(:update_advisories_async)
+      end
+    end
+  end
+
+  def self.update_all_advisories
+    url = "https://advisories.ecosyste.ms/api/v1/advisories/packages"
+    response = Faraday.get(url)
+    return nil unless response.success?
+    packages = JSON.parse response.body
+    packages.each do |ecosystem, package_names|
+      Registry.where(ecosystem: ecosystem).each do |registry|
+        registry.packages.where(name: package_names).each do |package|
+          package.update_advisories_async
+        end
+      end
+    end
+  end
 end

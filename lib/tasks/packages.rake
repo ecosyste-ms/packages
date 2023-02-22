@@ -73,4 +73,9 @@ namespace :packages do
   task update_rankings: :environment do
     Package.update_rankings_async
   end
+
+  desc 'update advisories'
+  task update_advisories: :environment do
+    Package.update_advisories
+  end
 end
