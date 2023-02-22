@@ -73,19 +73,14 @@ module Ecosystem
       return false unless package && package["versions"].present?
 
       latest_version = package["versions"].to_a.last[1]
-
-      repo = latest_version.fetch("repository", {})
-      repo = repo[0] if repo.is_a?(Array)
-      repo_url = repo.try(:fetch, "url", nil)
-
       
       h = {
         name: package["_id"],
         description: latest_version["description"].try(:delete, "\u0000"),
-        homepage: package["homepage"],
+        homepage: homepage(package),
         keywords_array: Array.wrap(latest_version.fetch("keywords", [])).flatten,
         licenses: licenses(latest_version),
-        repository_url: repo_fallback(repo_url, package["homepage"]),
+        repository_url: repository_url(package, latest_version),
         versions: package["versions"],
         time: package["time"],
         downloads_period: "last-month",
@@ -100,6 +95,21 @@ module Ecosystem
       h[:downloads] = downloads if downloads.present?
 
       h
+    end
+
+    def repository_url(package, latest_version)
+      repo = latest_version.fetch("repository", {})
+      repo = repo[0] if repo.is_a?(Array)
+      repo_url = repo.try(:fetch, "url", nil)
+
+      url = repo_fallback(repo_url, package["homepage"])
+      return nil if url == "https://github.com/npm/security-holder"
+      url
+    end
+
+    def homepage(package)
+      return nil if package["homepage"].starts_with?("https://github.com/npm/security-holder")
+      package["homepage"]
     end
 
     def namespace(package)
