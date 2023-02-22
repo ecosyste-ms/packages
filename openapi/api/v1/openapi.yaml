@@ -846,6 +846,10 @@ components:
           type: object
         purl:
           type: string
+        advisories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Advisory'
         versions_url:
           type: string
         dependent_packages_url:
@@ -971,5 +975,48 @@ components:
         packages_count:
           type: integer
         packages_url:
+          type: string
+    Advisory:
+      type: object
+      properties:
+        uuid:
+          type: string
+        url:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        origin:
+          type: string
+        severity:
+          type: string
+        published_at:
+          type: string
+        withdrawn_at:
+          type: string
+        classification:
+          type: string
+        cvss_score:
+          type: number
+        cvss_vector:
+          type: string
+        references:
+          type: array
+          items:
+            type: string
+        source_kind:
+          type: string
+        identifiers:
+          type: array
+          items:
+            type: string
+        packages:
+          type: array
+          items:
+            type: object
+        created_at:
+          type: string
+        updated_at:
           type: string
         
