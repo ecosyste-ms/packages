@@ -25,8 +25,8 @@
       <% end %>
     </h5>
 
-    <% if package.description.present? %>
-      <%= truncate package.description, :length => 100 %><br/>
+    <% if package.description_with_fallback.present? %>
+      <%= truncate package.description_with_fallback, :length => 100 %><br/>
     <% end %>
 
     <small class='text-muted'>

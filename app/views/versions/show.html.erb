@@ -4,7 +4,7 @@
   <h2><%= link_to @registry.name, registry_packages_path(@registry.name) %> : <%= link_to @package.name, registry_package_path(@registry.name, @package.name) %> : <%= @version.number %></h2>
 
   <p>
-    <%= @package.description %>
+    <%= @package.description_with_fallback %>
   </p>
 
   <p>

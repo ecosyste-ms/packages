@@ -5,7 +5,7 @@
       <%= link_to version.number, registry_package_version_path(registry_id: @registry.name, package_id: version.package.name, id: version.number) %>
     </h5>
 
-    <%= truncate version.package.description, :length => 100 %><br/>
+    <%= truncate version.package.description_with_fallback, :length => 100 %><br/>
     
     <small class='text-muted'>
       Published: <%= time_ago_in_words version.published_at %> ago

@@ -68,8 +68,8 @@ class Package < ApplicationRecord
     name
   end
 
-  def description
-    read_attribute(:description).presence || repo_metadata['description']
+  def description_with_fallback
+    read_attribute(:description).presence || repo_metadata && repo_metadata['description']
   end
 
   def update_dependent_package_ids
