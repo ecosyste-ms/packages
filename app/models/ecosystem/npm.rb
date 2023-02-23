@@ -103,12 +103,12 @@ module Ecosystem
       repo_url = repo.try(:fetch, "url", nil)
 
       url = repo_fallback(repo_url, package["homepage"])
-      return nil if url == "https://github.com/npm/security-holder"
+      return nil if ['https://github.com/npm/deprecate-holder',"https://github.com/npm/security-holder"].include?(url)
       url
     end
 
     def homepage(package)
-      return nil if package["homepage"] && package["homepage"].starts_with?("https://github.com/npm/security-holder")
+      return nil if package["homepage"] && (package["homepage"].starts_with?("https://github.com/npm/security-holder") || package["homepage"].starts_with?("https://github.com/npm/deprecate-holder"))
       package["homepage"]
     end
 
