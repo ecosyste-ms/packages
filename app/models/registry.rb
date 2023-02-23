@@ -236,6 +236,7 @@ class Registry < ApplicationRecord
       m.login = maintainer[:login]
       m.name = maintainer[:name]
       m.url = maintainer[:url]
+      m.role = maintainer[:role]
       m.save if m.changed?
       maintainer_records << m
     end
@@ -244,7 +245,7 @@ class Registry < ApplicationRecord
 
     new_maintainers = maintainer_records - existing_maintainers
     new_maintainers.each do |maintainer|
-      package.maintainerships.create(maintainer: maintainer)
+      package.maintainerships.create(maintainer: maintainer, role: maintainer.role)
     end
 
     removed_maintainers = existing_maintainers - maintainer_records

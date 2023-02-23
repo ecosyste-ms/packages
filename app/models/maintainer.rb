@@ -9,6 +9,8 @@ class Maintainer < ApplicationRecord
   scope :created_after, ->(created_at) { where('created_at > ?', created_at) }
   scope :updated_after, ->(updated_at) { where('updated_at > ?', updated_at) }
 
+  attr_accessor :role
+
   def to_param
     login.presence || uuid
   end
