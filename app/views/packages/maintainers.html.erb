@@ -21,12 +21,11 @@
         </span>
       </a>
     </li>
-    <% maintainers_count = @package.maintainers.count %>
     <li class="nav-item">
       <a class="nav-link active" aria-current="page">
         Maintainers
         <span class="badge bg-secondary rounded-pill">
-          <%= number_with_delimiter maintainers_count %>
+          <%= number_with_delimiter @package.maintainers_count %>
         </span>
       </a>
     </li>

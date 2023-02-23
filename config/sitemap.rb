@@ -26,7 +26,7 @@ SitemapGenerator::Sitemap.create do
     if package.dependent_packages_count > 0
       add dependent_packages_registry_package_path(package.registry.name, package.name), lastmod: package.updated_at
     end
-    if package.maintainers.length > 0
+    if package.maintainers_count > 0
       add maintainers_registry_package_path(package.registry.name, package.name), lastmod: package.updated_at
     end
     if package.related_packages.count > 0 

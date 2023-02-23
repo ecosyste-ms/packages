@@ -22,13 +22,12 @@
         </span>
       </a>
     </li>
-    <% maintainers_count = @package.maintainers.count %>
-    <% if maintainers_count > 0 %>
+    <% if @package.maintainers_count > 0 %>
       <li class="nav-item">
         <a class="nav-link" href="<%= maintainers_registry_package_path(@registry, @package) %>">
           Maintainers
           <span class="badge bg-secondary rounded-pill">
-            <%= number_with_delimiter maintainers_count %>
+            <%= number_with_delimiter @package.maintainers_count %>
           </span>
         </a>
       </li>

@@ -39,9 +39,9 @@
               <%= link_to 'Versions', top_ecosystem_path(@registry.ecosystem, sort: 'versions_count') %>
             </th>
           <% end %>
-          <% if @packages.any?{|p| p.maintainers.length > 0} %>
+          <% if @packages.any?{|p| p.maintainers_count > 0} %>
             <th scope="col">
-              Maintainers
+              <%= link_to 'Maintainers', top_ecosystem_path(@registry.ecosystem, sort: 'maintainers_count') %>
             </th>
           <% end %>
         </tr>
@@ -90,9 +90,9 @@
                 <%= number_with_delimiter package.versions_count %>
               </td>
             <% end %>
-            <% if @packages.any?{|p| p.maintainers.length > 0} %>
+            <% if @packages.any?{|p| p.maintainers_count > 0} %>
               <td>
-                <%= number_with_delimiter package.maintainers.length %>
+                <%= number_with_delimiter package.maintainers_count %>
               </td>
             <% end %>
           </tr>

@@ -252,7 +252,7 @@ class Registry < ApplicationRecord
       package.maintainerships.find { |rp| rp.maintainer == maintainer }.destroy
       maintainer.update_packages_count
     end
-
+    package.update_maintainers_count
     package.maintainers.reload.each(&:update_packages_count)
   end
 
