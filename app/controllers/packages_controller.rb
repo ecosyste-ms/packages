@@ -80,7 +80,7 @@ class PackagesController < ApplicationController
         @package = @registry.packages.find_by_name!(params[:id].downcase)
       end
     end
-    @pagy, @maintainers = pagy_countless(@package.maintainers)
+    @pagy, @maintainers = pagy_countless(@package.maintainerships.includes(maintainer: :registry))
   end
 
   def related_packages

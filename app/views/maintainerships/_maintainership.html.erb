@@ -1,0 +1,13 @@
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title">
+      <%= link_to maintainership.maintainer, registry_maintainer_path(maintainership.maintainer.registry.name, maintainership.maintainer) %>
+    </h5>
+    <% if maintainership.role.present? %>
+        <%= maintainership.role %><br/>
+    <% end %>
+    <small class='text-muted'>
+      <%= pluralize number_with_delimiter(maintainership.maintainer.packages_count), 'package' %>
+    </small>
+  </div>
+</div>
