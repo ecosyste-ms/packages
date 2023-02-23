@@ -139,6 +139,20 @@ module Ecosystem
         }
       end
     rescue StandardError
+      fallback_maintainers_metadata(name)
+    end
+
+    def fallback_maintainers_metadata(name)
+      url = "https://pypi.org/project/#{name}/"
+      page = Nokogiri::HTML(get_raw(url))
+      maintainers = page.css('.sidebar-section__maintainer a').map(&:text).map(&:strip)
+      maintainers.map do |maintainer|
+        {
+          uuid: maintainer,
+          login: maintainer
+        }
+      end
+    rescue StandardError
       []
     end
   end
