@@ -967,6 +967,9 @@ components:
           type: integer
         packages_url:
           type: string
+        role:
+          type: string
+          optional: true
     Namespace:
       type: object
       properties:

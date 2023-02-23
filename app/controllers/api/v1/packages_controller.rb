@@ -45,7 +45,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
 
   def show
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = @registry.packages.includes({maintainers: :registry}).find_by_name(params[:id])
+    @package = @registry.packages.includes(maintainerships: {maintainer: :registry}).find_by_name(params[:id])
     if @package.nil?
       # TODO: This is a temporary fix for pypi packages with underscores in their name
       # should redirect to the correct package name
@@ -79,7 +79,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
   end
 
   def related_packages
-        @registry = Registry.find_by_name!(params[:registry_id])
+    @registry = Registry.find_by_name!(params[:registry_id])
     @package = @registry.packages.find_by_name!(params[:id])
 
     scope = @package.related_packages.includes(:registry, {maintainers: :registry})

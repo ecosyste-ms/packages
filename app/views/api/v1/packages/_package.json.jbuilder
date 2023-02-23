@@ -4,4 +4,4 @@ json.versions_url api_v1_registry_package_versions_url(registry_id: package.regi
 json.dependent_packages_url dependent_packages_api_v1_registry_package_url(registry_id: package.registry.name, id: package.name)
 json.related_packages_url related_packages_api_v1_registry_package_url(registry_id: package.registry.name, id: package.name)
 
-json.maintainers package.maintainers, partial: 'api/v1/maintainers/maintainer', as: :maintainer
+json.maintainers package.maintainerships, partial: 'api/v1/maintainerships/maintainership', as: :maintainership
