@@ -1,0 +1,71 @@
+  <ul class="nav nav-tabs my-3">
+    <li class="nav-item">
+      <% if action_name == 'show' %>
+        <a class="nav-link active" aria-current="page">
+      <% else %>
+        <a class="nav-link" href="<%= registry_package_path(@registry, @package) %>">
+      <% end %>
+        Versions
+        <span class="badge bg-secondary rounded-pill">
+          <%= number_with_delimiter @package.versions_count %>
+        </span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <% if action_name == 'dependent_packages' %>
+        <a class="nav-link active" aria-current="page">
+      <% else %>
+        <a class="nav-link" href="<%= dependent_packages_registry_package_path(@registry, @package) %>">
+      <% end %>
+        Dependent Packages
+        <span class="badge bg-secondary rounded-pill">
+          <%= number_with_delimiter @package.dependent_packages_count %>
+        </span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <% if action_name == 'maintainers' %>
+        <a class="nav-link active" aria-current="page">
+      <% else %>
+        <a class="nav-link" href="<%= maintainers_registry_package_path(@registry, @package) %>">
+      <% end %>
+        Maintainers
+        <span class="badge bg-secondary rounded-pill">
+          <%= number_with_delimiter @package.maintainers_count %>
+        </span>
+      </a>
+    </li>
+    <% related_packages_count = @package.related_packages.count %>
+    <% if related_packages_count > 0 %>
+      <li class="nav-item">
+        <% if action_name == 'related_packages' %>
+          <a class="nav-link active" aria-current="page">
+        <% else %>
+          <a class="nav-link" href="<%= related_packages_registry_package_path(@registry, @package) %>">
+        <% end %>
+          Related Packages
+          <span class="badge bg-secondary rounded-pill">
+            <%= number_with_delimiter related_packages_count %>
+          </span>
+        </a>
+      </li>
+    <% end %>
+
+    <% if @package.advisories.length > 0 %>
+      <li class="nav-item">
+        <% if action_name == 'advisories' %>
+          <a class="nav-link active" aria-current="page">
+        <% else %>
+          <a class="nav-link" href="<%= advisories_registry_package_path(@registry, @package) %>">
+        <% end %>
+          Security Advisories
+          <span class="badge bg-secondary rounded-pill">
+            <%= number_with_delimiter @package.advisories.length %>
+          </span>
+        </a>
+      </li>
+    <% end %>
+    <% if ['dependent_packages', 'related_packages'].include? action_name %>
+      <%= render 'sort' %>
+    <% end %>
+  </ul>

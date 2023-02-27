@@ -5,45 +5,7 @@
 
   <%= render 'details' %>
 
-  <ul class="nav nav-tabs my-3">
-    <li class="nav-item">
-      <a class="nav-link active" aria-current="page">
-        Versions
-        <span class="badge bg-secondary rounded-pill">
-          <%= number_with_delimiter @package.versions_count %>
-        </span>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="<%= dependent_packages_registry_package_path(@registry, @package) %>">
-        Dependent Packages
-        <span class="badge bg-secondary rounded-pill">
-          <%= number_with_delimiter @package.dependent_packages_count %>
-        </span>
-      </a>
-    </li>
-    <% if @package.maintainers_count > 0 %>
-      <li class="nav-item">
-        <a class="nav-link" href="<%= maintainers_registry_package_path(@registry, @package) %>">
-          Maintainers
-          <span class="badge bg-secondary rounded-pill">
-            <%= number_with_delimiter @package.maintainers_count %>
-          </span>
-        </a>
-      </li>
-    <% end %>
-    <% related_packages_count = @package.related_packages.count %>
-    <% if related_packages_count > 0 %>
-      <li class="nav-item">
-        <a class="nav-link" href="<%= related_packages_registry_package_path(@registry, @package) %>">
-          Related Packages
-          <span class="badge bg-secondary rounded-pill">
-            <%= number_with_delimiter related_packages_count %>
-          </span>
-        </a>
-      </li>
-    <% end %>
-  </ul>
+  <%= render 'tabs' %>
 
   <% if @versions.any? %>
     <%= render @versions %>

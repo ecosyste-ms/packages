@@ -110,4 +110,20 @@ class PackagesController < ApplicationController
 
     @pagy, @related_packages = pagy_countless(scope)
   end
+
+  def advisories
+    @registry = Registry.find_by_name!(params[:registry_id])
+    @package = @registry.packages.find_by_name(params[:id])
+    if @package.nil?
+      # TODO: This is a temporary fix for pypi packages with underscores in their name
+      # should redirect to the correct package name
+      if @registry.ecosystem == 'pypi'
+        @package = @registry.packages.find_by_name!(params[:id].downcase.gsub('_', '-'))
+      elsif @registry.ecosystem == 'docker' && !params[:id].include?('/')
+        @package = @registry.packages.find_by_name!("library/#{params[:id]}")
+      else
+        @package = @registry.packages.find_by_name!(params[:id].downcase)
+      end
+    end
+  end
 end

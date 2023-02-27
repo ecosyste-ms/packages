@@ -24,4 +24,19 @@ module ApplicationHelper
   def meta_title
     [@meta_title, "Ecosyste.ms: Packages"].compact.join(" | ")
   end
+
+  def severity_class(severity)
+    case severity.downcase
+    when 'low'
+      'success'
+    when 'moderate'
+      'warning'
+    when 'high'
+      'danger'
+    when 'critical'
+      'dark'
+    else
+      'info'
+    end
+  end
 end

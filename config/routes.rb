@@ -69,6 +69,7 @@ Rails.application.routes.draw do
         get :dependent_packages, to: 'packages#dependent_packages'
         get :maintainers, to: 'packages#maintainers'
         get :related_packages, to: 'packages#related_packages'
+        get :advisories, to: 'packages#advisories'
       end
     end
 
