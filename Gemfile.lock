@@ -198,7 +198,7 @@ GEM
     polyglot (0.3.5)
     popper_js (2.11.6)
     public_suffix (5.0.1)
-    puma (6.1.0)
+    puma (6.1.1)
       nio4r (~> 2.0)
     racc (1.6.2)
     rack (2.2.6.2)
@@ -243,7 +243,7 @@ GEM
     rake (13.0.6)
     redis (5.0.6)
       redis-client (>= 0.9.0)
-    redis-client (0.12.2)
+    redis-client (0.13.0)
       connection_pool
     rexml (3.2.5)
     rswag-api (2.8.0)
