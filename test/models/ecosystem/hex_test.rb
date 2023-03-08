@@ -6,6 +6,7 @@ class HexTest < ActiveSupport::TestCase
     @ecosystem = Ecosystem::Hex.new(@registry)
     @package = Package.new(ecosystem: 'Hex', name: 'rand')
     @version = @package.versions.build(number: '0.8.5')
+    @maintainer = @registry.maintainers.build(login: 'foo')
   end
 
   test 'registry_url' do
@@ -129,5 +130,9 @@ class HexTest < ActiveSupport::TestCase
     assert_equal dependencies_metadata, [
       {:package_name=>"file_system", :requirements=>"~> 0.2", :kind=>"runtime", :optional=>false, :ecosystem=>"hex"}
     ]
+  end
+
+  test 'maintainer_url' do 
+    assert_equal @ecosystem.maintainer_url(@maintainer), 'https://hex.pm/users/foo'
   end
 end

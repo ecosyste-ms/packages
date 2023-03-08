@@ -198,5 +198,9 @@ module Ecosystem
     rescue StandardError
       []
     end
+
+    def maintainer_url(maintainer)
+      "https://www.nuget.org/profiles/#{maintainer.login}"
+    end
   end
 end

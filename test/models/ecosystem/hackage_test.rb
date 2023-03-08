@@ -2,25 +2,26 @@ require "test_helper"
 
 class HackageTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'Hackage.haskell.org', url: 'http://hackage.haskell.org', ecosystem: 'hackage')
+    @registry = Registry.new(name: 'Hackage.haskell.org', url: 'https://hackage.haskell.org', ecosystem: 'hackage')
     @ecosystem = Ecosystem::Hackage.new(@registry)
     @package = Package.new(ecosystem: 'hackage', name: 'blockfrost-client')
     @version = @package.versions.build(number: '0.4.0.1')
+    @maintainer = @registry.maintainers.build(login: 'foo')
   end
 
   test 'registry_url' do
     registry_url = @ecosystem.registry_url(@package)
-    assert_equal registry_url, 'http://hackage.haskell.org/package/blockfrost-client'
+    assert_equal registry_url, 'https://hackage.haskell.org/package/blockfrost-client'
   end
 
   test 'registry_url with version' do
     registry_url = @ecosystem.registry_url(@package, @version)
-    assert_equal registry_url, 'http://hackage.haskell.org/package/blockfrost-client-0.4.0.1'
+    assert_equal registry_url, 'https://hackage.haskell.org/package/blockfrost-client-0.4.0.1'
   end
 
   test 'download_url' do
     download_url = @ecosystem.download_url(@package, @version)
-    assert_equal download_url, 'http://hackage.haskell.org/package/blockfrost-client-0.4.0.1/blockfrost-client-0.4.0.1.tar.gz'
+    assert_equal download_url, 'https://hackage.haskell.org/package/blockfrost-client-0.4.0.1/blockfrost-client-0.4.0.1.tar.gz'
   end
 
   test 'documentation_url' do
@@ -45,7 +46,7 @@ class HackageTest < ActiveSupport::TestCase
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "http://hackage.haskell.org/package/blockfrost-client"
+    assert_equal check_status_url, "https://hackage.haskell.org/package/blockfrost-client"
   end
 
   test 'purl' do
@@ -61,7 +62,7 @@ class HackageTest < ActiveSupport::TestCase
   end
 
   test 'all_package_names' do
-    stub_request(:get, "http://hackage.haskell.org/packages/names")
+    stub_request(:get, "https://hackage.haskell.org/packages/names")
       .to_return({ status: 200, body: file_fixture('hackage/names') })
     all_package_names = @ecosystem.all_package_names
     assert_equal all_package_names.length, 16464
@@ -69,7 +70,7 @@ class HackageTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
-    stub_request(:get, "http://hackage.haskell.org/packages/recent.rss")
+    stub_request(:get, "https://hackage.haskell.org/packages/recent.rss")
       .to_return({ status: 200, body: file_fixture('hackage/recent.rss') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
     assert_equal recently_updated_package_names.length, 65
@@ -77,7 +78,7 @@ class HackageTest < ActiveSupport::TestCase
   end
 
   test 'package_metadata' do
-    stub_request(:get, "http://hackage.haskell.org/package/blockfrost-client")
+    stub_request(:get, "https://hackage.haskell.org/package/blockfrost-client")
       .to_return({ status: 200, body: file_fixture('hackage/blockfrost-client') })
     package_metadata = @ecosystem.package_metadata('blockfrost-client')
     
@@ -92,9 +93,9 @@ class HackageTest < ActiveSupport::TestCase
   end
 
   test 'versions_metadata' do
-    stub_request(:get, "http://hackage.haskell.org/package/blockfrost-client")
+    stub_request(:get, "https://hackage.haskell.org/package/blockfrost-client")
       .to_return({ status: 200, body: file_fixture('hackage/blockfrost-client') })
-    stub_request(:get, "http://hackage.haskell.org/package/blockfrost-client.rss")
+    stub_request(:get, "https://hackage.haskell.org/package/blockfrost-client.rss")
       .to_return({ status: 200, body: file_fixture('hackage/blockfrost-client.rss') })
     package_metadata = @ecosystem.package_metadata('blockfrost-client')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
@@ -114,7 +115,7 @@ class HackageTest < ActiveSupport::TestCase
   end
 
   test 'dependencies_metadata' do
-    stub_request(:get, "http://hackage.haskell.org/package/aeson-0.2.0.0")
+    stub_request(:get, "https://hackage.haskell.org/package/aeson-0.2.0.0")
       .to_return({ status: 200, body: file_fixture('hackage/aeson-0.2.0.0') })
     dependencies_metadata = @ecosystem.dependencies_metadata('aeson', '0.2.0.0', nil)
 
@@ -131,5 +132,9 @@ class HackageTest < ActiveSupport::TestCase
       {:package_name=>"text", :requirements=>">=0.11.0.2", :kind=>"runtime", :ecosystem=>"hackage"},
       {:package_name=>"time", :requirements=>"<1.5", :kind=>"runtime", :ecosystem=>"hackage"},
       {:package_name=>"vector", :requirements=>">=0.7", :kind=>"runtime", :ecosystem=>"hackage"}]
+  end
+
+  test 'maintainer_url' do 
+    assert_equal @ecosystem.maintainer_url(@maintainer), 'https://hackage.haskell.org/user/foo'
   end
 end

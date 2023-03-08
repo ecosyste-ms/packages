@@ -7,6 +7,7 @@ class ClojarsTest < ActiveSupport::TestCase
     @ecosystem = Ecosystem::Clojars.new(@registry)
     @package = Package.new(ecosystem: 'clojars', name: 'missionary')
     @version = @package.versions.build(number: 'b.26')
+    @maintainer = @registry.maintainers.build(login: 'foo')
   end
 
   test 'registry_url' do
@@ -129,5 +130,9 @@ class ClojarsTest < ActiveSupport::TestCase
       {:package_name=>"org.reactivestreams:reactive-streams", :requirements=>"1.0.3", :kind=>"runtime", :ecosystem=>"clojars"},
       {:package_name=>"cloroutine", :requirements=>"10", :kind=>"runtime", :ecosystem=>"clojars"}
     ]
+  end
+
+  test 'maintainer_url' do 
+    assert_equal @ecosystem.maintainer_url(@maintainer), "https://clojars.org/users/foo"
   end
 end

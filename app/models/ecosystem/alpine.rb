@@ -145,5 +145,9 @@ module Ecosystem
         url: "https://pkgs.alpinelinux.org/packages?maintainer=#{name}",
       }]
     end
+
+    def maintainer_url(maintainer)
+      "https://pkgs.alpinelinux.org/packages?maintainer=#{maintainer.name}"
+    end
   end
 end

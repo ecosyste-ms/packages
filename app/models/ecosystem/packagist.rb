@@ -131,5 +131,9 @@ module Ecosystem
     rescue StandardError
       []
     end
+
+    def maintainer_url(maintainer)
+      "https://packagist.org/users/#{maintainer.login}"
+    end
   end
 end

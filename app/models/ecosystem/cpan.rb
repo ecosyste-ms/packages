@@ -115,5 +115,9 @@ module Ecosystem
     rescue
       []
     end
+
+    def maintainer_url(maintainer)
+      "https://metacpan.org/author/#{maintainer.login}"
+    end
   end
 end

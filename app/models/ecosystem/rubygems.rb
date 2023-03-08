@@ -115,5 +115,9 @@ module Ecosystem
     rescue StandardError
       []
     end
+
+    def maintainer_url(maintainer)
+      "#{@registry_url}/profiles/#{maintainer.login}"
+    end
   end
 end

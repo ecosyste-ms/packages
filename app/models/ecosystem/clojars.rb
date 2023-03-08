@@ -223,5 +223,9 @@ module Ecosystem
     rescue StandardError
       []
     end
+
+    def maintainer_url(maintainer)
+      "https://clojars.org/users/#{maintainer.login}"
+    end
   end
 end

@@ -6,6 +6,7 @@ class RubygemsTest < ActiveSupport::TestCase
     @ecosystem = Ecosystem::Rubygems.new(@registry)
     @package = Package.new(ecosystem: 'rubygems', name: 'nokogiri')
     @version = @package.versions.build(number: '1.13.6')
+    @maintainer = @registry.maintainers.build(login: 'foo')
   end
 
   test 'registry_url' do
@@ -113,5 +114,9 @@ class RubygemsTest < ActiveSupport::TestCase
       {:package_name=>"hoe", :requirements=>">= 1.7.0", :kind=>"Development", :ecosystem=>"rubygems"},
       {:package_name=>"minitest", :requirements=>"< 5.0, >= 4.2", :kind=>"Development", :ecosystem=>"rubygems"}
     ]
+  end
+
+  test 'maintainer_url' do 
+    assert_equal @ecosystem.maintainer_url(@maintainer), 'https://rubygems.org/profiles/foo'
   end
 end

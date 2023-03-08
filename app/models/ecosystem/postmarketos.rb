@@ -137,5 +137,9 @@ module Ecosystem
         url: "https://pkgs.postmarketoslinux.org/packages?maintainer=#{name}",
       }]
     end
+    
+    def maintainer_url(maintainer)
+      "https://pkgs.postmarketoslinux.org/packages?maintainer=#{maintainer.name}"
+    end
   end
 end

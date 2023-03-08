@@ -6,6 +6,7 @@ class PypiTest < ActiveSupport::TestCase
     @ecosystem = Ecosystem::Pypi.new(@registry)
     @package = Package.new(ecosystem: 'pypi', name: 'urllib3')
     @version = @package.versions.build(number: '1.26.8', metadata: {download_url: 'https://files.pythonhosted.org/packages/8b/e1/40122572f57349365391b8955178d52cd42d2c1f767030cbd196883adee7/yiban-0.1.2.32-py3-none-any.whl'})
+    @maintainer = @registry.maintainers.build(login: 'foo')
   end
 
   test 'registry_url' do
@@ -145,5 +146,9 @@ class PypiTest < ActiveSupport::TestCase
       {:package_name=>"numpy", :requirements=>">=1.12.0", :kind=>"runtime", :ecosystem=>"pypi"},
       {:package_name=>"pandas", :requirements=>">=0.24.0", :kind=>"runtime", :ecosystem=>"pypi"}
     ]
+  end
+
+  test 'maintainer_url' do 
+    assert_equal @ecosystem.maintainer_url(@maintainer), 'https://pypi.org/user/foo/'
   end
 end

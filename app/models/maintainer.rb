@@ -22,4 +22,8 @@ class Maintainer < ApplicationRecord
   def update_packages_count 
     update(packages_count: packages.count)
   end
+
+  def html_url
+    registry.maintainer_url(self)
+  end
 end

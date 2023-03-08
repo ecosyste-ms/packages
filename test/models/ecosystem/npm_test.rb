@@ -6,6 +6,7 @@ class NpmTest < ActiveSupport::TestCase
     @ecosystem = Ecosystem::Npm.new(@registry)
     @package = Package.new(ecosystem: 'npm', name: 'base62')
     @version = @package.versions.build(number: '2.0.1')
+    @maintainer = @registry.maintainers.build(login: 'foo')
   end
 
   test 'registry_url' do
@@ -142,5 +143,9 @@ class NpmTest < ActiveSupport::TestCase
     assert_equal dependencies_metadata, [
       {:package_name=>"mocha", :requirements=>"~5.1.0", :kind=>"Development", :optional=>false, :ecosystem=>"npm"}
     ]
+  end
+
+  test 'maintainer_url' do 
+    assert_equal @ecosystem.maintainer_url(@maintainer), 'https://www.npmjs.com/~foo'
   end
 end

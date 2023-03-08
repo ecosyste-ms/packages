@@ -188,5 +188,9 @@ module Ecosystem
     rescue StandardError
       []
     end
+
+    def maintainer_url(maintainer)
+      "https://www.npmjs.com/~#{maintainer.login}"
+    end
   end
 end

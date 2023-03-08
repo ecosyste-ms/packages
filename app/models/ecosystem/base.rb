@@ -52,6 +52,10 @@ module Ecosystem
       nil
     end
 
+    def maintainer_url(_maintainer)
+      nil
+    end
+
     def check_status_url(package)
       registry_url(package)
     end

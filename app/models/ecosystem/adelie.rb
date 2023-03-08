@@ -137,5 +137,9 @@ module Ecosystem
         name: name
       }]
     end
+
+    def maintainer_url(maintainer)
+      "https://pkg.adelielinux.org/current/-/search?maintainer=#{maintainer.name}"
+    end
   end
 end

@@ -257,6 +257,10 @@ class Registry < ApplicationRecord
     package.maintainers.reload.each(&:update_packages_count)
   end
 
+  def maintainer_url(maintainer)
+    ecosystem_instance.maintainer_url(maintainer)
+  end
+
   def namespaces
     packages.active.distinct.pluck(:namespace).compact
   end

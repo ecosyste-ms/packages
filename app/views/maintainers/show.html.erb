@@ -2,7 +2,12 @@
 
 <div class="container-sm">
   <h1 class='mb-3'>
-    <%= link_to @registry.name, registry_maintainers_path %> maintainers: <%= @maintainer %>
+    <%= link_to @registry.name, registry_maintainers_path %> maintainers:
+    <% if @maintainer.html_url.present? %>
+      <%= link_to @maintainer, @maintainer.html_url, target: :_blank %>
+    <% else%>
+      <%= @maintainer %>
+    <% end %>
   </h1>
 
   <%= render @packages %>

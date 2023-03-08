@@ -155,5 +155,9 @@ module Ecosystem
     rescue StandardError
       []
     end
+
+    def maintainer_url(maintainer)
+      "https://pypi.org/user/#{maintainer.login}/"
+    end
   end
 end

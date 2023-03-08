@@ -6,6 +6,7 @@ class CpanTest < ActiveSupport::TestCase
     @ecosystem = Ecosystem::Cpan.new(@registry)
     @package = Package.new(ecosystem: 'cpan', name: 'Dpkg')
     @version = @package.versions.build(number: '1.21.5', :metadata=>{:download_url=>"https://cpan.metacpan.org/authors/id/G/GU/GUILLEM/Dpkg-1.21.5.tar.gz"})
+    @maintainer = @registry.maintainers.build(login: 'foo')
   end
 
   test 'registry_url' do
@@ -207,5 +208,9 @@ class CpanTest < ActiveSupport::TestCase
       {:package_name=>"Module-Build", :requirements=>"0.4004", :kind=>"configure", :ecosystem=>"cpan"},
       {:package_name=>"perl", :requirements=>"v5.28.1", :kind=>"runtime", :ecosystem=>"cpan"}
     ]
+  end
+
+  test 'maintainer_url' do 
+    assert_equal @ecosystem.maintainer_url(@maintainer), 'https://metacpan.org/author/foo'
   end
 end

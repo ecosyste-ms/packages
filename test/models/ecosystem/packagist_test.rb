@@ -6,6 +6,7 @@ class PackagistTest < ActiveSupport::TestCase
     @ecosystem = Ecosystem::Packagist.new(@registry)
     @package = Package.new(ecosystem: 'Packagist', name: 'psr/log')
     @version = @package.versions.build(number: '3.0.0', :metadata=>{:download_url=>"https://api.github.com/repos/php-fig/log/zipball/fe5ea303b0887d5caefd3d431c3e61ad47037001"})
+    @maintainer = @registry.maintainers.build(login: 'foo')
   end
 
   test 'registry_url' do
@@ -125,5 +126,9 @@ class PackagistTest < ActiveSupport::TestCase
       {:package_name=>"mockery/mockery", :requirements=>"~0.8", :kind=>"Development", :optional=>false, :ecosystem=>"packagist"},
       {:package_name=>"guzzlehttp/guzzle", :requirements=>"~5.0", :kind=>"Development", :optional=>false, :ecosystem=>"packagist"}
     ]
+  end
+
+  test 'maintainer_url' do 
+    assert_equal @ecosystem.maintainer_url(@maintainer), 'https://packagist.org/users/foo'
   end
 end

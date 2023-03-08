@@ -6,6 +6,7 @@ class CargoTest < ActiveSupport::TestCase
     @ecosystem = Ecosystem::Cargo.new(@registry)
     @package = Package.new(ecosystem: 'Cargo', name: 'rand')
     @version = @package.versions.build(number: '0.8.5')
+    @maintainer = @registry.maintainers.build(login: 'foo')
   end
 
   test 'registry_url' do
@@ -113,5 +114,9 @@ class CargoTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('parameters_lib', '0.1.0', nil)
     
     assert_equal dependencies_metadata, [{:package_name=>"regex", :requirements=>"^1.5.0", :kind=>"normal", :optional=>false, :ecosystem=>"cargo"}]
+  end
+
+  test 'maintainer_url' do 
+    assert_equal @ecosystem.maintainer_url(@maintainer), 'https://crates.io/users/foo'
   end
 end

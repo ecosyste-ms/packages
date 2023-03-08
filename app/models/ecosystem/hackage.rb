@@ -118,5 +118,9 @@ module Ecosystem
         }
       end
     end
+
+    def maintainer_url(maintainer)
+      "#{@registry_url}/user/#{maintainer.login}"
+    end
   end
 end

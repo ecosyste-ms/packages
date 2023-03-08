@@ -6,6 +6,7 @@ class NugetTest < ActiveSupport::TestCase
     @ecosystem = Ecosystem::Nuget.new(@registry)
     @package = Package.new(ecosystem: 'nuget', name: 'ogcapi.net.sqlserver')
     @version = @package.versions.build(number: '0.3.1')
+    @maintainer = @registry.maintainers.build(login: 'foo')
   end
 
   test 'registry_url' do
@@ -124,5 +125,9 @@ class NugetTest < ActiveSupport::TestCase
       {:package_name=>"Microsoft.Data.SqlClient", :requirements=>">= 3.0.1", :kind=>"runtime", :optional=>false, :ecosystem=>"nuget"},
       {:package_name=>"NetTopologySuite.IO.SqlServerBytes", :requirements=>">= 2.0.0", :kind=>"runtime", :optional=>false, :ecosystem=>"nuget"}
     ]
+  end
+
+  test 'maintainer_url' do 
+    assert_equal @ecosystem.maintainer_url(@maintainer), 'https://www.nuget.org/profiles/foo'
   end
 end
