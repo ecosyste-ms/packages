@@ -485,6 +485,15 @@ class Package < ApplicationRecord
     repo_metadata['forks_count'] if repo_metadata.present?
   end
 
+  def commit_stats
+    repo_metadata['commit_stats'] if repo_metadata.present?
+  end
+
+  def commits_url
+    return unless commit_stats.present?
+    "https://commits.ecosyste.ms/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}"
+  end
+
   def sync_maintainers
     registry.sync_maintainers(self)
   end

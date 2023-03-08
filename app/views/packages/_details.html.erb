@@ -97,15 +97,23 @@
       <br/>Forks: <%= number_with_delimiter(@package.forks) %> on <%= @package.repo_metadata.fetch('host',{})['name'] %>
     <% end %>
 
-    <% if @package.last_synced_at %>
-      <br/><span title="<%= @package.last_synced_at %>">Last synced: <%= time_ago_in_words @package.last_synced_at %> ago</span>
-    <% end %>
-
-    <% if @package.funding_links.any? %>
-      <br/>Funding links: <% @package.funding_links.each_with_index do |url,i| %><%= ', ' if i > 0 %><%= link_to(url, sanitize_user_url(url), target: :_blank) %><% end %>
+    <% if @package.commit_stats.present? %>
+      <br/>Total Commits: <%= @package.commit_stats['total_commits'] %>
+      <br/>Committers: <%= @package.commit_stats['total_committers'] %>
+      <br/>Average commits per author: <%= @package.commit_stats['mean_commits'].to_f.round(3) %>
+      <br/>Development Distribution Score (<a href='https://report.opensustain.tech/chapters/development-distribution-score.html' target="_blank">DDS</a>): <%= @package.commit_stats['dds'].to_f.round(3) %>
+      <br/>More commit stats: <%= link_to 'commits.ecosyste.ms', @package.commits_url, target: :_blank %>
     <% end %>
 
     <% if @package.repos_url %>
       <br/>See more repository details: <%= link_to 'repos.ecosyste.ms', @package.repos_url, target: :_blank %>
     <% end %>    
+
+    <% if @package.funding_links.any? %>
+      <br/>Funding links: <% @package.funding_links.each_with_index do |url,i| %><%= ', ' if i > 0 %><%= link_to(url, sanitize_user_url(url), target: :_blank) %><% end %>
+    <% end %>
+
+    <% if @package.last_synced_at %>
+      <br/><span title="<%= @package.last_synced_at %>">Last synced: <%= time_ago_in_words @package.last_synced_at %> ago</span>
+    <% end %>
   </p>
