@@ -45,4 +45,4 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 
 Code is licensed under [GNU Affero License](LICENSE) © 2022 [Andrew Nesbitt](https://github.com/andrew).
 
-Data from the API is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+Data from the API is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
