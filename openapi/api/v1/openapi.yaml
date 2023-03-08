@@ -8,8 +8,8 @@ info:
     url: https://ecosyste.ms 
   version: 1.0.0
   license:
-    name: CC-BY-SA-4.0
-    url: https://creativecommons.org/licenses/by-sa/4.0/
+    name: CC-BY-4.0
+    url: https://creativecommons.org/licenses/by/4.0/
 externalDocs:
   description: GitHub Repository
   url: https://github.com/ecosyste-ms/packages
@@ -966,6 +966,8 @@ components:
         packages_count:
           type: integer
         packages_url:
+          type: string
+        html_url:
           type: string
         role:
           type: string
