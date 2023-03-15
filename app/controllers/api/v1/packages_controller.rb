@@ -7,7 +7,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
 
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'
-      order = params[:order] || 'desc,desc'
+      order = params[:order] || 'desc'
       sort_options = sort.split(',').zip(order.split(',')).to_h
       scope = scope.order(sort_options)
     end
@@ -34,7 +34,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
 
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'
-      order = params[:order] || 'desc,desc'
+      order = params[:order] || 'desc'
       sort_options = sort.split(',').zip(order.split(',')).to_h
       scope = scope.order(sort_options)
     end
@@ -70,7 +70,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
 
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'
-      order = params[:order] || 'desc,desc'
+      order = params[:order] || 'desc'
       sort_options = sort.split(',').zip(order.split(',')).to_h
       scope = scope.order(sort_options)
     end
@@ -89,7 +89,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
 
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'
-      order = params[:order] || 'desc,desc'
+      order = params[:order] || 'desc'
       sort_options = sort.split(',').zip(order.split(',')).to_h
       scope = scope.order(sort_options)
     end
