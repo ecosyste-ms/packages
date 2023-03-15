@@ -379,21 +379,6 @@ class Package < ApplicationRecord
     nil
   end
 
-  def update_dependent_repos_count_recursive
-    repo_names = Set.new
-    page = 1
-    loop do
-      json = fetch_dependent_repos(page)
-      break if json.blank?
-      repo_names.merge json.map{|r| r['repository']['full_name'] }
-      break if json.size < 1000
-      page += 1
-    end
-
-    update(dependent_repos_count: repo_names.length)
-    update_rankings
-  end
-
   def update_dependent_repos_count
     json = fetch_dependent_repos_count
     return if json.blank?
