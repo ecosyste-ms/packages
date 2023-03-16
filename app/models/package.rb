@@ -291,7 +291,7 @@ class Package < ApplicationRecord
     return nil
     
   rescue
-    nil
+    {}
   end
 
   def fetch_tags
@@ -311,7 +311,7 @@ class Package < ApplicationRecord
     return nil unless response.success?
     return response.body
   rescue
-    nil
+    []
   end
 
   def fetch_owner
