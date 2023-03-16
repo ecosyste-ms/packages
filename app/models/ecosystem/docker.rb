@@ -32,7 +32,7 @@ module Ecosystem
       []
     end
 
-    def org_package_names(name)
+    def namespace_package_names(name)
       page = 1
       images = []
       while page < 100
@@ -47,7 +47,7 @@ module Ecosystem
     end
 
     def all_package_names
-      official_packages = org_package_names('library')
+      official_packages = namespace_package_names('library')
       community_packages = get_json("https://repos.ecosyste.ms/api/v1/package_names/docker")
       (official_packages + community_packages).uniq
     rescue
