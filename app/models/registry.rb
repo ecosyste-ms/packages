@@ -194,7 +194,7 @@ class Registry < ApplicationRecord
   end
 
   def top_percentage_for_json(package, json_field)
-    return nil if package.repo_metadata[json_field].nil?
+    return nil if package.repo_metadata.nil? || package.repo_metadata[json_field].nil?
     Rails.cache.fetch("top_percentage_for_json/#{id}/#{json_field}/#{package.repo_metadata[json_field]}", expires_in: 1.day) do
       packages.active.where("(repo_metadata ->> '#{json_field}')::text::integer > ?", package.repo_metadata[json_field]).count.to_f / packages_count * 100
     end
