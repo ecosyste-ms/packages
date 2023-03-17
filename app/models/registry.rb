@@ -262,16 +262,21 @@ class Registry < ApplicationRecord
   end
 
   def namespaces
-    packages.active.distinct.pluck(:namespace).compact
+    packages.where.not(namespace: nil).group(:namespace).order('COUNT(id) desc').count.to_a.map(&:first)
   end
 
   def sync_missing_namespace_packages
     @existing_package_names = existing_package_names
     namespaces.each do |namespace|
-      names = ecosystem_instance.namespace_package_names(namespace)
-      missing_names = names - @existing_package_names
-      puts "Syncing #{missing_names.count} missing packages for #{namespace}"
-      sync_packages_async(missing_names)
+      begin
+        sleep 1
+        names = ecosystem_instance.namespace_package_names(namespace)
+        missing_names = names - @existing_package_names
+        puts "Syncing #{missing_names.count} missing packages for #{namespace}"
+        sync_packages_async(missing_names)
+      rescue
+        puts "Error syncing missing packages for #{namespace}"
+      end
     end
   end 
 end
