@@ -26,4 +26,8 @@ class Maintainer < ApplicationRecord
   def html_url
     registry.maintainer_url(self)
   end
+
+  def namespaces
+    packages.where.not(namespace: nil).group(:namespace).order('COUNT(packages.id) desc').count.to_a
+  end
 end

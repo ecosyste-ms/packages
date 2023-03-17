@@ -57,8 +57,16 @@ Rails.application.routes.draw do
   resources :ecosystems, only: [:index, :show], constraints: { id: /.*/ }
 
   resources :registries, constraints: { id: /[^\/]+/  }, only: [:index, :show], :defaults => {:format => :html} do
-    resources :maintainers, only: [:index, :show], constraints: { id: /.*/ }
-    resources :namespaces, only: [:index, :show], constraints: { id: /.*/ }
+    resources :maintainers, only: [:index, :show], constraints: { id: /.*/ } do
+      member do
+        get :namespaces, to: 'maintainers#namespaces'
+      end
+    end
+    resources :namespaces, only: [:index, :show], constraints: { id: /.*/ } do
+      member do
+        get :maintainers, to: 'namespaces#maintainers'
+      end
+    end
 
     resources :packages, constraints: { id: /.*/ }, only: [:index, :show] do 
       resources :versions, only: [:index, :show], constraints: { id: /.*/ }

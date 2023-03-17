@@ -261,6 +261,11 @@ class Registry < ApplicationRecord
     ecosystem_instance.maintainer_url(maintainer)
   end
 
+  def namespace_maintainers(namespace)
+    # packages.where(namespace: namespace).map(&:maintainers).flatten.uniq
+    Maintainer.joins(:packages).where(packages: { namespace: namespace, registry_id: id }).distinct
+  end
+
   def namespaces
     packages.where.not(namespace: nil).group(:namespace).order('COUNT(id) desc').count.to_a.map(&:first)
   end

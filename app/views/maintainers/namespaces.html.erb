@@ -1,4 +1,4 @@
-<% @meta_title = "#{@maintainer} | #{@registry} maintainers" %>
+<% @meta_title = "#{@maintainer} namespaces | #{@registry} maintainers" %>
 
 <div class="container-sm">
   <h1 class='mb-3'>
@@ -12,7 +12,7 @@
 
   <ul class="nav nav-tabs my-3">
     <li class="nav-item">
-      <a class="nav-link active" aria-current="page">
+      <a class="nav-link" href="<%= registry_maintainer_path(@registry, @maintainer) %>">
         Packages
         <span class="badge bg-secondary rounded-pill">
           <%= number_with_delimiter @registry.packages_count %>
@@ -22,7 +22,7 @@
     <% namespaces_count = @maintainer.namespaces.length %>
     <% if namespaces_count > 0 %>
       <li class="nav-item">
-        <a class="nav-link" href="<%= namespaces_registry_maintainer_path(@registry, @maintainer) %>">
+        <a class="nav-link active" aria-current="page">
           Namespaces
           <span class="badge bg-secondary rounded-pill">
             <%= number_with_delimiter namespaces_count %>
@@ -30,9 +30,8 @@
         </a>
       </li>
     <% end %>
-    <%= render 'packages/sort' %>
   </ul>
 
-  <%= render @packages %>
+  <%= render collection: @namespaces, partial: 'namespaces/namespace' %>
   <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
 </div>
