@@ -10,7 +10,7 @@
       <a class="nav-link" href="<%= registry_namespace_path(@registry, @namespace) %>">
         Packages
         <span class="badge bg-secondary rounded-pill">
-          <%= number_with_delimiter @registry.packages_count %>
+          <%= number_with_delimiter @registry.packages.namespace(@namespace).count %>
         </span>
       </a>
     </li>
