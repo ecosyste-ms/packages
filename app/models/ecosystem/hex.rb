@@ -42,7 +42,7 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
-      get("#{@registry_url}/api/packages/#{name}")
+      get("#{@registry_url}/api/packages/#{name}", headers: {"Authorization" => REDIS.get("hex_api_key_#{@registry.id}")})
     rescue
       false
     end
@@ -95,7 +95,7 @@ module Ecosystem
     end
 
     def maintainers_metadata(name)
-      json = get_json("#{@registry_url}/api/packages/#{name}")
+      json = get("#{@registry_url}/api/packages/#{name}")
       json['owners'].map do |user|
         {
           uuid: user["username"],
