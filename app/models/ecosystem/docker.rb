@@ -20,6 +20,7 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
+      name = "library/#{name}" if name.split('/').length == 1
       get_json("https://hub.docker.com/v2/repositories/#{name}/")
     rescue
       {}
