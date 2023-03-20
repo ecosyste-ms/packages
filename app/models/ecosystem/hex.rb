@@ -23,7 +23,7 @@ module Ecosystem
       page = 1
       packages = []
       while page < 1000
-        r = get("#{@registry_url}/api/packages?page=#{page}")
+        r = get("#{@registry_url}/api/packages?page=#{page}", headers: {"Authorization" => REDIS.get("hex_api_key_#{@registry.id}")})
         break if r == []
 
         packages += r
@@ -35,8 +35,8 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      (get("#{@registry_url}/api/packages?sort=inserted_at").map { |package| package["name"] } +
-      get("#{@registry_url}/api/packages?sort=updated_at").map { |package| package["name"] }).uniq
+      (get("#{@registry_url}/api/packages?sort=inserted_at", headers: {"Authorization" => REDIS.get("hex_api_key_#{@registry.id}")}).map { |package| package["name"] } +
+      get("#{@registry_url}/api/packages?sort=updated_at", headers: {"Authorization" => REDIS.get("hex_api_key_#{@registry.id}")}).map { |package| package["name"] }).uniq
     rescue
       []
     end
@@ -80,7 +80,7 @@ module Ecosystem
     end
 
     def dependencies_metadata(name, version, _package)
-      deps = get("#{@registry_url}/api/packages/#{name}/releases/#{version}")["requirements"]
+      deps = get("#{@registry_url}/api/packages/#{name}/releases/#{version}", headers: {"Authorization" => REDIS.get("hex_api_key_#{@registry.id}")})["requirements"]
       return [] if deps.nil?
 
       deps.map do |k, v|
@@ -95,7 +95,7 @@ module Ecosystem
     end
 
     def maintainers_metadata(name)
-      json = get("#{@registry_url}/api/packages/#{name}")
+      json = get("#{@registry_url}/api/packages/#{name}", headers: {"Authorization" => REDIS.get("hex_api_key_#{@registry.id}")})
       json['owners'].map do |user|
         {
           uuid: user["username"],
