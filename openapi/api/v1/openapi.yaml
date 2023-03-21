@@ -755,6 +755,19 @@ paths:
 components:
   schemas:
     Registry:
+      required:
+        - name
+        - url
+        - ecosystem
+        - default
+        - packages_count
+        - maintainers_count
+        - github
+        - metadata
+        - created_at
+        - updated_at
+        - packages_url
+        - maintainers_url
       type: object
       properties:
         name:
@@ -786,6 +799,38 @@ components:
         maintainers_url:
           type: string
     Package:
+      required:
+        - name
+        - ecosystem
+        - description
+        - homepage
+        - licenses
+        - repository_url
+        - keywords_array
+        - namespace
+        - versions_count
+        - latest_release_published_at
+        - latest_release_number
+        - last_synced_at
+        - created_at
+        - updated_at
+        - registry_url
+        - documentation_url
+        - install_command
+        - metadata
+        - repo_metadata
+        - repo_metadata_updated_at
+        - dependent_packages_count
+        - downloads
+        - downloads_period
+        - dependent_repos_count
+        - rankings
+        - purl
+        - advisories
+        - versions_url
+        - dependent_packages_url
+        - related_packages_url
+        - maintainers
       type: object
       properties:
         name:
@@ -861,6 +906,21 @@ components:
           items:
             $ref: '#/components/schemas/Maintainer'
     Version:
+      required:
+        - number
+        - published_at
+        - licenses
+        - integrity
+        - status
+        - download_url
+        - registry_url
+        - documentation_url
+        - install_command
+        - metadata
+        - created_at
+        - updated_at
+        - purl
+        - dependencies
       type: object
       properties:
           number:
@@ -896,6 +956,22 @@ components:
             items:
               $ref: '#/components/schemas/Dependency'
     VersionWithPackage:
+      required:
+        - number
+        - published_at
+        - licenses
+        - integrity
+        - status
+        - download_url
+        - registry_url
+        - documentation_url
+        - install_command
+        - metadata
+        - created_at
+        - updated_at
+        - purl
+        - package
+        - dependencies
       type: object
       properties:
         number:
@@ -934,6 +1010,11 @@ components:
           items:
             $ref: '#/components/schemas/Dependency'
     Dependency:
+      required:
+        - package_name
+        - requirements
+        - kind
+        - optional
       type: object
       properties:
         package_name:
@@ -945,6 +1026,18 @@ components:
         optional:
           type: boolean
     Maintainer:
+      required:
+        - uuid
+        - login
+        - name
+        - email
+        - url
+        - created_at
+        - updated_at
+        - packages_count
+        - packages_url
+        - html_url
+        - role
       type: object
       properties:
         uuid:
@@ -971,8 +1064,12 @@ components:
           type: string
         role:
           type: string
-          optional: true
     Namespace:
+      required:
+        - uuid
+        - name
+        - packages_count
+        - packages_url
       type: object
       properties:
         name:
@@ -982,6 +1079,24 @@ components:
         packages_url:
           type: string
     Advisory:
+      required:
+        - uuid
+        - url
+        - title
+        - description
+        - origin
+        - severity
+        - published_at
+        - withdrawn_at
+        - classification
+        - cvss_score
+        - cvss_vector
+        - references
+        - source_kind
+        - identifiers
+        - packages
+        - created_at
+        - updated_at
       type: object
       properties:
         uuid:
