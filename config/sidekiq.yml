@@ -2,3 +2,4 @@
 :queues:
   - critical
   - default
+  - low
