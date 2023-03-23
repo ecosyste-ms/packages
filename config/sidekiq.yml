@@ -1,6 +1,6 @@
 ---
 :queues:
-  - critical
   - critial
+  - critical
   - default
   - low
