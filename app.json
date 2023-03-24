@@ -14,7 +14,7 @@
     },
     {
       "command": "bundle exec rake packages:update_repo_metadata_async",
-      "schedule": "*/10 * * * *"
+      "schedule": "*/15 * * * *"
     },
     {
       "command": "bundle exec rake packages:check_statuses",
@@ -26,7 +26,7 @@
     },
     {
       "command": "bundle exec rake packages:update_extra_counts",
-      "schedule": "40 * * * *"
+      "schedule": "0 0 * * * *"
     },
     {
       "command": "bundle exec rake packages:sync_maintainers_async",
@@ -34,7 +34,7 @@
     },
     {
       "command": "bundle exec rake packages:update_rankings_async",
-      "schedule": "*/5 * * * *"
+      "schedule": "*/30 * * * *"
     },
     {
       "command": "bundle exec rake sitemap:refresh",
