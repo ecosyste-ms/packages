@@ -2,19 +2,19 @@
   "cron": [
     {
       "command": "bundle exec rake packages:sync_recent",
-      "schedule": "*/5 * * * *"
-    },
-    {
-      "command": "bundle exec rake packages:sync_least_recent",
       "schedule": "*/10 * * * *"
     },
     {
+      "command": "bundle exec rake packages:sync_least_recent",
+      "schedule": "*/30 * * * *"
+    },
+    {
       "command": "bundle exec rake packages:sync_least_recent_top",
-      "schedule": "5,15,25,35,45,55 * * * *"
+      "schedule": "*/30 * * * *"
     },
     {
       "command": "bundle exec rake packages:update_repo_metadata_async",
-      "schedule": "*/5 * * * *"
+      "schedule": "*/10 * * * *"
     },
     {
       "command": "bundle exec rake packages:check_statuses",
@@ -30,7 +30,7 @@
     },
     {
       "command": "bundle exec rake packages:sync_maintainers_async",
-      "schedule": "*/20 * * * *"
+      "schedule": "*/30 * * * *"
     },
     {
       "command": "bundle exec rake packages:update_rankings_async",
@@ -38,7 +38,7 @@
     },
     {
       "command": "bundle exec rake sitemap:refresh",
-      "schedule": "30 * * * *"
+      "schedule": "0 0 * * *"
     },
     {
       "command": "bundle exec rake packages:update_advisories",
