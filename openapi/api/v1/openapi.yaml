@@ -786,8 +786,10 @@ components:
           format: int64
         github:
           type: string
+          nullable: true
         metadata:
           type: object
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -839,27 +841,36 @@ components:
           type: string
         description:
           type: string
+          nullable: true
         homepage:
           type: string
+          nullable: true
         licenses:
           type: string
+          nullable: true
         repository_url:
           type: string
+          nullable: true
         keywords_array:
           type: array
-          items: {}
+          items:
+            type: string
         namespace:
           type: string
+          nullable: true
         versions_count:
           type: integer
         latest_release_published_at:
           type: string
           format: date-time
+          nullable: true
         latest_release_number:
           type: string
+          nullable: true
         last_synced_at:
           type: string
           format: date-time
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -868,23 +879,30 @@ components:
           format: date-time
         registry_url:
           type: string
+          nullable: true
         documentation_url:
           type: string
+          nullable: true
         install_command:
           type: string
+          nullable: true
         metadata:
           type: object
+          nullable: true
         repo_metadata:
           type: object
+          nullable: true
         repo_metadata_updated_at:
           type: string
           format: date-time
+          nullable: true
         dependent_packages_count:
           type: integer
         downloads:
           type: integer
         downloads_period:
           type: string
+          nullable: true
         dependent_repos_count:
           type: integer
         rankings:
@@ -927,22 +945,31 @@ components:
             type: string
           published_at:
             type: string
+            nullable: true
           licenses:
             type: string
+            nullable: true
           integrity:
             type: string
+            nullable: true
           status:
             type: string
+            nullable: true
           download_url:
             type: string
+            nullable: true
           registry_url:
             type: string
+            nullable: true
           documentation_url:
             type: string
+            nullable: true
           install_command:
             type: string
+            nullable: true
           metadata:
             type: object
+            nullable: true
           created_at:
             type: string
             format: date-time
@@ -978,22 +1005,31 @@ components:
           type: string
         published_at:
           type: string
+          nullable: true
         licenses:
           type: string
+          nullable: true
         integrity:
           type: string
+          nullable: true
         status:
           type: string
+          nullable: true
         download_url:
           type: string
+          nullable: true
         registry_url:
           type: string
+          nullable: true
         documentation_url:
           type: string
+          nullable: true
         install_command:
           type: string
+          nullable: true
         metadata:
-            type: object
+          type: object
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -1021,10 +1057,13 @@ components:
           type: string
         requirements:
           type: string
+          nullable: true
         kind:
           type: string
+          nullable: true
         optional:
           type: boolean
+          nullable: true
     Maintainer:
       required:
         - uuid
@@ -1044,12 +1083,16 @@ components:
           type: string
         login:
           type: string
+          nullable: true
         name:
           type: string
+          nullable: true
         email:
           type: string
+          nullable: true
         url:
           type: string
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -1062,8 +1105,10 @@ components:
           type: string
         html_url:
           type: string
+          nullable: true
         role:
           type: string
+          nullable: true
     Namespace:
       required:
         - uuid
@@ -1103,34 +1148,47 @@ components:
           type: string
         url:
           type: string
+          nullable: true
         title:
           type: string
+          nullable: true
         description:
           type: string
+          nullable: true
         origin:
           type: string
+          nullable: true
         severity:
           type: string
+          nullable: true
         published_at:
           type: string
+          nullable: true
         withdrawn_at:
           type: string
+          nullable: true
         classification:
           type: string
+          nullable: true
         cvss_score:
           type: number
+          nullable: true
         cvss_vector:
           type: string
+          nullable: true
         references:
           type: array
           items:
             type: string
+            nullable: true
         source_kind:
           type: string
+          nullable: true
         identifiers:
           type: array
           items:
             type: string
+            nullable: true
         packages:
           type: array
           items:
