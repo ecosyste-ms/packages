@@ -26,7 +26,7 @@
     },
     {
       "command": "bundle exec rake packages:update_extra_counts",
-      "schedule": "0 0 * * * *"
+      "schedule": "0 0 * * *"
     },
     {
       "command": "bundle exec rake packages:sync_maintainers_async",
