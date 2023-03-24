@@ -105,13 +105,14 @@ GEM
     commander (4.6.0)
       highline (~> 2.0.0)
     concurrent-ruby (1.2.2)
-    connection_pool (2.3.0)
+    connection_pool (2.4.0)
     counter_culture (3.3.0)
       activerecord (>= 4.2)
       activesupport (>= 4.2)
     crack (0.4.5)
       rexml
     crass (1.0.6)
+    dalli (3.2.4)
     date (3.3.3)
     deb_control (0.0.1)
     debug (1.7.1)
@@ -348,6 +349,7 @@ DEPENDENCIES
   bootstrap
   chartkick
   counter_culture
+  dalli
   debug
   faraday
   faraday-follow_redirects
