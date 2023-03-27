@@ -79,6 +79,8 @@ class CranTest < ActiveSupport::TestCase
   test 'package_metadata' do
     stub_request(:get, "https://cran.r-project.org/web/packages/pack/index.html")
       .to_return({ status: 200, body: file_fixture('cran/index.html') })
+    stub_request(:get, "https://cranlogs.r-pkg.org/downloads/total/last-month/pack")
+      .to_return({ status: 200, body: file_fixture('cran/pack') })
     package_metadata = @ecosystem.package_metadata('pack')
     
     assert_equal package_metadata[:name], "pack"
@@ -92,8 +94,10 @@ class CranTest < ActiveSupport::TestCase
   test 'versions_metadata' do
     stub_request(:get, "https://cran.r-project.org/web/packages/pack/index.html")
       .to_return({ status: 200, body: file_fixture('cran/index.html') })
+    stub_request(:get, "https://cranlogs.r-pkg.org/downloads/total/last-month/pack")
+      .to_return({ status: 200, body: file_fixture('cran/pack') })
     stub_request(:get, "https://cran.r-project.org/src/contrib/Archive/pack/")
-    .to_return({ status: 200, body: file_fixture('cran/archives.html') })
+      .to_return({ status: 200, body: file_fixture('cran/archives.html') })
       
     package_metadata = @ecosystem.package_metadata('pack')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
