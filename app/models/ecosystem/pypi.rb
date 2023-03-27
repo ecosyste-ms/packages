@@ -70,6 +70,7 @@ module Ecosystem
         downloads_period: 'last-month',
         metadata: {
           "funding" => package.dig("info", "project_urls", "Funding"),
+          "classifiers" => package["info"]["classifiers"],
         }
       }
 
