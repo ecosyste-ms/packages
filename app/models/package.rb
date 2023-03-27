@@ -256,10 +256,33 @@ class Package < ApplicationRecord
   def ping_repo
     return if repository_or_homepage_url.blank?
     if repo_metadata.blank?
-      # lookup
+      fetch_repo_metadata
     else
-      # ping
+      connection = Faraday.new 'https://repos.ecosyste.ms' do |builder|
+        builder.use Faraday::FollowRedirects::Middleware
+        builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
+        builder.response :json
+        builder.request :json
+        builder.request :instrumentation
+        builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
+      end
+  
+      response = connection.get("/api/v1/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}/ping")
     end
+  rescue
+    nil
+  end
+
+  def ping_usage
+    connection = Faraday.new 'https://repos.ecosyste.ms' do |builder|
+      builder.use Faraday::FollowRedirects::Middleware
+      builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
+      builder.response :json
+      builder.request :json
+      builder.request :instrumentation
+      builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
+    end
+    connection.get("/api/v1/usage/#{ecosystem}/#{name}/ping")
   end
 
   def fetch_repo_metadata
