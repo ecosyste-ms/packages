@@ -6,6 +6,8 @@ class TopController < ApplicationController
   def ecosystem
     @registry = Registry.find_by_ecosystem(params[:ecosystem])
 
+    @scope = @registry.packages.where('versions_count > 0 and (status is null or status != ?)', 'removed')
+
     case params[:sort]  
     when 'downloads'
       @sort = 'downloads desc nulls last' 
@@ -21,10 +23,13 @@ class TopController < ApplicationController
       @sort = 'versions_count desc nulls last'      
     when 'maintainers_count'
       @sort = 'maintainers_count desc nulls last'
+    when 'latest_release_published_at'
+      @sort = 'latest_release_published_at desc nulls last'
+      @scope = @scope.top(1)
     else
       @sort = Arel.sql("(rankings->>'average')::text::float").asc.nulls_last
     end
 
-    @packages = @registry.packages.where('versions_count > 0 and (status is null or status != ?)', 'removed').order(@sort).limit(200)
+    @packages = @scope.order(@sort).limit(200)
   end
 end
