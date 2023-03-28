@@ -44,6 +44,11 @@
               <%= link_to 'Maintainers', top_ecosystem_path(@registry.ecosystem, sort: 'maintainers_count') %>
             </th>
           <% end %>
+          <% if @packages.any?{|p| p.latest_release_published_at.present? } %>
+            <th scope="col">
+              <%= link_to 'Latest Release', top_ecosystem_path(@registry.ecosystem, sort: 'latest_release_published_at') %>
+            </th>
+          <% end %>
         </tr>
       </thead>
       <tbody>
@@ -93,6 +98,11 @@
             <% if @packages.any?{|p| p.maintainers_count > 0} %>
               <td>
                 <%= number_with_delimiter package.maintainers_count %>
+              </td>
+            <% end %>
+            <% if @packages.any?{|p| p.latest_release_published_at.present? } %>
+              <td>
+                <span title="<%= package.latest_release_published_at %>"><%= time_ago_in_words package.latest_release_published_at %> ago</span>
               </td>
             <% end %>
           </tr>
