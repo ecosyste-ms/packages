@@ -121,6 +121,7 @@ class Package < ApplicationRecord
     normalize_licenses
     set_latest_release_published_at
     set_latest_release_number
+    set_first_release_published_at
     save if changed?
   end
 
@@ -134,6 +135,14 @@ class Package < ApplicationRecord
 
   def set_latest_release_number
     self.latest_release_number = latest_version.try(:number)
+  end
+
+  def first_version
+    versions.sort.last
+  end
+
+  def set_first_release_published_at
+    self.first_release_published_at = first_version.try(:published_at)
   end
 
   def normalize_licenses

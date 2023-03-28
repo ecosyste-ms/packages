@@ -811,6 +811,7 @@ components:
         - keywords_array
         - namespace
         - versions_count
+        - first_release_published_at
         - latest_release_published_at
         - latest_release_number
         - last_synced_at
@@ -860,6 +861,10 @@ components:
           nullable: true
         versions_count:
           type: integer
+        first_release_published_at:
+          type: string
+          format: date-time
+          nullable: true
         latest_release_published_at:
           type: string
           format: date-time
