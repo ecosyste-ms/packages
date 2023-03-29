@@ -115,7 +115,7 @@ GEM
     dalli (3.2.4)
     date (3.3.3)
     deb_control (0.0.1)
-    debug (1.7.1)
+    debug (1.7.2)
       irb (>= 1.5.0)
       reline (>= 0.3.1)
     erubi (1.12.0)
