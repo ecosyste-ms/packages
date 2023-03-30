@@ -149,7 +149,7 @@ class Package < ApplicationRecord
   end
 
   def combine_keywords_and_topics
-    self.keywords = ((keywords_array||[]) + topics_array).uniq.compact
+    self.keywords = ((keywords_array||[]) + topics_array).uniq.compact.reject(&:blank?)
   end
 
   def topics_array
