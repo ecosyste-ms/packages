@@ -203,6 +203,7 @@ class Registry < ApplicationRecord
   def update_extra_counts
     self.namespaces_count = packages.where.not(namespace: nil).distinct.count(:namespace)
     self.metadata['funded_packages_count'] = fetch_funded_packages_count
+    self.keywords_count = keywords.length
     save
   end
 
@@ -286,6 +287,8 @@ class Registry < ApplicationRecord
   end 
 
   def keywords
-    Package.connection.select_rows("select keywords, count (keywords) as keywords_count from (select id, registry_id, unnest(keywords_array) as keywords from packages where registry_id = #{id}) as foo group by keywords order by keywords_count desc, keywords asc;")
+    Rails.cache.fetch("registry_keywords/#{id}", expires_in: 1.day) do
+      Package.connection.select_rows("select keywords, count (keywords) as keywords_count from (select id, registry_id, unnest(keywords_array) as keywords from packages where registry_id = #{id}) as foo group by keywords order by keywords_count desc, keywords asc;")
+    end
   end
 end
