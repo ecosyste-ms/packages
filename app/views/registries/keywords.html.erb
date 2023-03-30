@@ -34,14 +34,16 @@
         </a>
       </li>
     <% end %>
-    <li class="nav-item">
-      <a class="nav-link active" aria-current="page">
-        Keywords
-        <span class="badge bg-secondary rounded-pill">
-          <%= number_with_delimiter @keywords.length %>
-        </span>
-      </a>
-    </li>
+    <% if @registry.keywords_count > 0 %>
+      <li class="nav-item">
+        <a class="nav-link active" aria-current="page">
+          Keywords
+          <span class="badge bg-secondary rounded-pill">
+            <%= number_with_delimiter @registry.keywords_count %>
+          </span>
+        </a>
+      </li>
+    <% end %>
   </ul>
 
   <div class="row">

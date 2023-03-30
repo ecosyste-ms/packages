@@ -44,6 +44,16 @@
         </a>
       </li>
     <% end %>
+    <% if @registry.keywords_count > 0 %>
+      <li class="nav-item">
+        <a class="nav-link" href="<%= keywords_registry_path(@registry) %>">
+          Keywords
+          <span class="badge bg-secondary rounded-pill">
+            <%= number_with_delimiter @registry.keywords_count %>
+          </span>
+        </a>
+      </li>
+    <% end %>
     <%= render 'sort' %>
   </ul>
 
