@@ -9,6 +9,7 @@ class RegistriesController < ApplicationController
 
   def keywords
     @registry = Registry.find_by_name!(params[:id])
-    @keywords = @registry.keywords
+    @scope = @registry.keywords
+    @pagy, @keywords = pagy_array(@scope)
   end
 end
