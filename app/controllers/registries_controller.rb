@@ -25,6 +25,6 @@ class RegistriesController < ApplicationController
     end
     
     @pagy, @packages = pagy_countless(scope)
-    @related_keywords = (scope.pluck(:keywords_array).flatten.uniq - [@keyword]).inject(Hash.new(0)) { |h, e| h[e] += 1; h }.sort_by { |_, v| -v }.first(100)
+    @related_keywords = (scope.pluck(:keywords_array).flatten - [@keyword]).inject(Hash.new(0)) { |h, e| h[e] += 1; h }.sort_by { |_, v| -v }.first(100)
   end
 end
