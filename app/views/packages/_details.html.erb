@@ -68,7 +68,6 @@
 
     <% if @package.keywords_array.reject(&:blank?).any? %>
       <br/> Keywords: <% @package.keywords_array.reject(&:blank?).uniq.each_with_index do |k, i| %><%= ', ' if i > 0 %><%= link_to k, registry_packages_path(@registry.name, keyword: k) %><% end %>
-
     <% end %>
 
     <% if @package.status %>
