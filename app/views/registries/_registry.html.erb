@@ -9,6 +9,15 @@
       
         <p class="card-subtitle mb-2 text-muted">
           <%= number_with_delimiter registry.packages_count %> packages
+          <% if registry.maintainers_count > 0 %>
+            <br/><%= number_with_delimiter registry.maintainers_count %> maintainers
+          <% end %>
+          <% if registry.namespaces_count > 0 %>
+            <br/><%= number_with_delimiter registry.namespaces_count %> namespaces
+          <% end %>
+          <% if registry.keywords_count > 0 %>
+            <br/><%= number_with_delimiter registry.keywords_count %> keywords
+          <% end %>
         </p>
       </div>
       <div class="flex-shrink-0">
