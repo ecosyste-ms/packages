@@ -60,7 +60,7 @@ module Ecosystem
         name: package["info"]["name"].downcase,
         description: package["info"]["summary"],
         homepage: (package["info"]["home_page"].presence || package.dig("info", "project_urls", "Homepage").presence || package.dig("info", "project_urls", "Home")),
-        keywords_array: Array.wrap(package["info"]["keywords"].try(:split, /[\s.,]+/)),
+        keywords_array: parse_keywords(package["info"]["keywords"]),
         licenses: licenses(package),
         repository_url: repo_fallback(
           package.dig("info", "project_urls", "Source").presence || package.dig("info", "project_urls", "Code").presence || package.dig("info", "project_urls", "Source Code").presence || package.dig("info", "project_urls", "Repository"),
@@ -77,6 +77,15 @@ module Ecosystem
       downloads = downloads(package)
       h[:downloads] = downloads if downloads.present?
       h
+    end
+
+    def parse_keywords(keywords)
+      return [] if keywords.blank?
+      if keywords.include?(",")
+        keywords.split(/\s*,\s*/)
+      else
+        keywords.split(/\s+/)
+      end
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
