@@ -24,7 +24,7 @@ class Package < ApplicationRecord
   scope :without_rankings, -> { where('length(rankings::text) = 2') }
   scope :top, -> (percent = 1) { where("(rankings->>'average')::text::float < ?", percent) }
 
-  scope :keyword, ->(keyword) { where("keywords_array @> ARRAY[?]::varchar[]", keyword) }
+  scope :keyword, ->(keyword) { where("keywords @> ARRAY[?]::varchar[]", keyword) }
 
   scope :without_maintainerships, -> { includes(:maintainerships).where(maintainerships: {package_id: nil}) }
 
