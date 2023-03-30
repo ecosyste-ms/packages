@@ -1,23 +1,13 @@
-<% @meta_title = "#{@registry} packages" %>
+<% @meta_title = "#{@registry} keywords" %>
 
 <div class="container-sm">
   <h2>
-    <%= @registry %>
-    <% if params[:keyword].present? %>
-    "<%= params[:keyword] %>"
-    <% end %>
-    packages 
+    <%= @registry %> keywords
   </h2>
-
-  <% unless params[:keyword].present? %>
-  <div class='my-3'>
-    <%= line_chart recent_versions_data_registry_packages_path(@registry.name), thousands: "," %>
-  </div>
-  <% end %>
 
   <ul class="nav nav-tabs my-3">
     <li class="nav-item">
-      <a class="nav-link active" aria-current="page">
+      <a class="nav-link" href="<%= registry_packages_path(@registry) %>">
         Packages
         <span class="badge bg-secondary rounded-pill">
           <%= number_with_delimiter @registry.packages_count %>
@@ -44,9 +34,29 @@
         </a>
       </li>
     <% end %>
-    <%= render 'sort' %>
+    <li class="nav-item">
+      <a class="nav-link active" aria-current="page">
+        Keywords
+        <span class="badge bg-secondary rounded-pill">
+          <%= number_with_delimiter @keywords.length %>
+        </span>
+      </a>
+    </li>
   </ul>
 
-  <%= render @packages %>
-  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+  <div class="row">
+    <% @keywords.each do |keyword, count| %>
+      <div class="col-md-4">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">
+              <%= link_to keyword, registry_packages_path(@registry.name, keyword: keyword) %>
+            </h5>
+            <p class="card-text">
+              <%= number_with_delimiter count %> packages
+            </p>
+          </div>
+        </div>
+      </div>
+    <% end %>
 </div>

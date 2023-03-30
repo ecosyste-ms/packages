@@ -2,6 +2,10 @@ class PackagesController < ApplicationController
   def index
     @registry = Registry.find_by_name!(params[:registry_id])
     scope = @registry.packages
+
+    if params[:keyword]
+      scope = scope.keyword(params[:keyword])
+    end
     
     sort = params[:sort].presence || 'updated_at'
     if params[:order] == 'asc'

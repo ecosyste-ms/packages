@@ -83,6 +83,7 @@ Rails.application.routes.draw do
 
     member do
       get :versions, to: 'versions#recent'
+      get :keywords, to: 'registries#keywords', as: :keywords
     end
   end
 

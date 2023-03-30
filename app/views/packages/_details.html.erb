@@ -66,6 +66,11 @@
     <br>
     <%= link_to 'purl', 'https://github.com/package-url/purl-spec', target: :_blank %>: <code><%= @package.purl %></code>
 
+    <% if @package.keywords_array.any? %>
+      <br/> Keywords: <% @package.keywords_array.each_with_index do |k, i| %><%= ', ' if i > 0 %><%= link_to k, registry_packages_path(@registry.name, keyword: k) %><% end %>
+
+    <% end %>
+
     <% if @package.status %>
       <br/>Status: <%= @package.status %>
     <% end %>

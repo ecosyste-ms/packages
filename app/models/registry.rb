@@ -284,4 +284,8 @@ class Registry < ApplicationRecord
       end
     end
   end 
+
+  def keywords
+    Package.connection.select_rows("select keywords, count (keywords) from (select id, registry_id, unnest(keywords_array) as keywords from packages where registry_id = #{id}) as foo group by keywords order by keywords asc;").to_h
+  end
 end
