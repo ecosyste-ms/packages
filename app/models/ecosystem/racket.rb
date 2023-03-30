@@ -48,7 +48,7 @@ module Ecosystem
         name: pkg["name"],
         repository_url: repo_fallback("", pkg["source"]),
         description: pkg['description'],
-        keywords_array: pkg['tags']
+        keywords_array: pkg['tags'].reject(&:blank?)
       }
     end
 

@@ -82,9 +82,9 @@ module Ecosystem
     def parse_keywords(keywords)
       return [] if keywords.blank?
       if keywords.include?(",")
-        keywords.split(/\s*,\s*/)
+        keywords.split(/\s*,\s*/).reject(&:blank?)
       else
-        keywords.split(/\s+/)
+        keywords.split(/\s+/).reject(&:blank?)
       end
     end
 

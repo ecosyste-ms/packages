@@ -93,7 +93,7 @@ class NugetTest < ActiveSupport::TestCase
     assert_equal package_metadata[:homepage], "https://github.com/sam-is/OgcApi.Net"
     assert_equal package_metadata[:licenses], "MIT"
     assert_equal package_metadata[:repository_url], ""
-    assert_equal package_metadata[:keywords_array], [""]
+    assert_equal package_metadata[:keywords_array], []
     assert_equal package_metadata[:downloads], 1331
     assert_equal package_metadata[:downloads_period], "total"
   end

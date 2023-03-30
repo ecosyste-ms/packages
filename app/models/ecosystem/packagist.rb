@@ -80,7 +80,7 @@ module Ecosystem
         name: pkg_metadata["name"],
         description: pkg_metadata["description"].try(:delete, "\u0000"),
         homepage: latest_version["homepage"],
-        keywords_array: Array.wrap(latest_version["keywords"]),
+        keywords_array: Array.wrap(latest_version["keywords"]).reject(&:blank?),
         licenses: Array.wrap(latest_version["license"]).join(","),
         repository_url: repo_fallback(latest_version["source"]&.fetch("url"), latest_version["homepage"]),
         versions: pkg_metadata['versions'],

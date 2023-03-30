@@ -78,7 +78,7 @@ module Ecosystem
         name: package["_id"],
         description: latest_version["description"].try(:delete, "\u0000"),
         homepage: homepage(package),
-        keywords_array: Array.wrap(latest_version.fetch("keywords", [])).flatten,
+        keywords_array: Array.wrap(latest_version.fetch("keywords", [])).flatten.reject(&:blank?),
         licenses: licenses(latest_version),
         repository_url: repository_url(package, latest_version),
         versions: package["versions"],

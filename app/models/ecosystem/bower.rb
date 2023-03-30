@@ -81,7 +81,7 @@ module Ecosystem
         name: package["name"].downcase,
         repository_url: repo_fallback(package["url"], nil),
         licenses: bower_json['license'],
-        keywords_array: bower_json['keywords'],
+        keywords_array: bower_json['keywords'].try(:reject, &:blank?),
         homepage: repo_fallback(nil, bower_json["homepage"]),
         description: description(bower_json["description"])
       }
