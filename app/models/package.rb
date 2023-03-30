@@ -124,6 +124,7 @@ class Package < ApplicationRecord
     set_latest_release_published_at
     set_latest_release_number
     set_first_release_published_at
+    combine_keywords_and_topics
     save if changed?
   end
 
@@ -145,6 +146,15 @@ class Package < ApplicationRecord
 
   def set_first_release_published_at
     self.first_release_published_at = first_version.try(:published_at)
+  end
+
+  def combine_keywords_and_topics
+    self.keywords = ((keywords_array||[]) + topics_array).uniq.compact
+  end
+
+  def topics_array
+    return [] unless repo_metadata.present?
+    repo_metadata['topics'] || []
   end
 
   def normalize_licenses

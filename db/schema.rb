@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_03_30_132353) do
+ActiveRecord::Schema[7.0].define(version: 2023_03_30_141457) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -86,7 +86,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_30_132353) do
     t.string "name"
     t.string "ecosystem"
     t.text "description"
-    t.text "keywords"
     t.string "homepage"
     t.string "licenses"
     t.string "repository_url"
@@ -112,6 +111,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_30_132353) do
     t.json "advisories", default: [], null: false
     t.integer "maintainers_count", default: 0
     t.datetime "first_release_published_at"
+    t.string "keywords", default: [], array: true
     t.index "(((rankings ->> 'average'::text))::double precision)", name: "index_packages_on_rankings_average"
     t.index "registry_id, (((repo_metadata ->> 'forks_count'::text))::integer)", name: "index_packages_on_forks_count"
     t.index "registry_id, (((repo_metadata ->> 'stargazers_count'::text))::integer)", name: "index_packages_on_stargazers_count"
