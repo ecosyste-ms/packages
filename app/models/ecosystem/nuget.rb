@@ -101,7 +101,7 @@ module Ecosystem
         name: package[:name],
         description: description(item),
         homepage: item["projectUrl"],
-        keywords_array: Array(item["tags"]),
+        keywords_array: Array(item["tags"]).reject(&:blank?),
         repository_url: repo_fallback("", item["packageUrl"]),
         releases: package[:releases],
         licenses: item["licenseExpression"],

@@ -48,6 +48,7 @@
 
   <div class="row">
     <% @keywords.each do |keyword, count| %>
+      <% next if keyword.blank? %>
       <div class="col-md-4">
         <div class="card mb-3">
           <div class="card-body">
