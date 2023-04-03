@@ -18,6 +18,11 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
   def lookup
     if params[:repository_url].present?
       scope = Package.where(repository_url: params[:repository_url])
+    elsif params[:purl].present?
+      purl = PackageURL.parse(params[:purl])
+      name = purl.name
+      ecosystem = purl.type # TODO map to our ecosystem names
+      scope = Package.where(name: name, ecosystem: ecosystem)
     else
       params[:name] = "library/#{params[:name]}" if params[:ecosystem] == 'docker' && !params[:name].include?('/')
       scope = Package.where(name: params[:name], ecosystem: params[:ecosystem])

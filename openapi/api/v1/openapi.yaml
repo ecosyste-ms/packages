@@ -16,6 +16,46 @@ externalDocs:
 servers:
 - url: https://packages.ecosyste.ms/api/v1
 paths:
+  /packages/lookup:
+    get:
+      summary: lookup a package by repository URL, purl or ecosystem and name
+      operationId: lookupPackage
+      tags:
+        - packages
+      parameters:
+        - name: repository_url
+          in: query
+          description: repository URL
+          required: false
+          schema:
+            type: string
+        - name: purl
+          in: query
+          description: package URL
+          required: false
+          schema:
+            type: string
+        - name: ecosystem
+          in: query
+          description: ecosystem name
+          required: false
+          schema:
+            type: string
+        - name: name
+          in: query
+          description: package name
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Package'
   /registries:
     get:
       summary: list registies
