@@ -32,6 +32,10 @@ class Package < ApplicationRecord
 
   after_create :update_rankings_async
 
+  def self.keywords
+    Package.connection.select_rows("select keywords, count (keywords) as keywords_count from (select id, unnest(keywords) as keywords from packages) as foo group by keywords order by keywords_count desc, keywords asc;")
+  end
+
   def self.sync_least_recent_async
     Package.active.order('last_synced_at asc nulls first').limit(10_000).each(&:sync_async)
   end

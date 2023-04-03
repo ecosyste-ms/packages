@@ -1,0 +1,33 @@
+<% @meta_title = "#{@keyword} | Keywords" %>
+
+<div class="container-sm">
+  <h2>
+    "<%= @keyword %>"
+    keyword
+  </h2>
+
+  <div class='row'>
+    <div class='col-md-8'>
+      <%= render @packages %>
+      <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+    </div>  
+    <div class='col-md-4'>
+      <div class="card">
+        <div class="card-header">
+          Related Keywords
+        </div>
+        <div class="list-group list-group-flush">
+          <% @related_keywords.each do |keyword, count| %>
+            <% next if keyword.blank? %>
+            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="<%= keyword_path(keyword) %>">
+              <%= keyword %>
+              <span class="badge bg-primary rounded-pill"><%= number_with_delimiter count%></span>
+            </a>
+          <% end %>
+        </ul>
+      </div>
+
+
+    </div>
+  </div>
+</div>

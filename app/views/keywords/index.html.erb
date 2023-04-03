@@ -1,0 +1,27 @@
+<% @meta_title = "Keywords" %>
+
+<div class="container-sm">
+  <h2>
+    Keywords
+  </h2>
+
+
+  <div class="row">
+    <% @keywords.each do |keyword, count| %>
+      <% next if keyword.blank? %>
+      <div class="col-md-4">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">
+              <%= link_to keyword, keyword_path(keyword) %>
+            </h5>
+            <p class="card-text">
+              <%= number_with_delimiter count %> packages
+            </p>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+</div>

@@ -88,6 +88,8 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :keywords, only: [:index, :show], constraints: { id: /.*/ }
+
   get :funding, to: 'funding#index'
   get 'funding/:id', to: 'funding#show', as: :funding_registry, constraints: { id: /[^\/]+/  }
 
