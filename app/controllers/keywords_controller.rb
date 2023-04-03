@@ -6,7 +6,7 @@ class KeywordsController < ApplicationController
   def show
     @keyword = params[:id]
 
-    scope = Package.includes(:registry).where('keywords @> ARRAY[?]::varchar[]', @keyword)
+    scope = Package.active.includes(:registry).where('keywords @> ARRAY[?]::varchar[]', @keyword)
     sort = params[:sort].presence || 'packages.updated_at'
     if params[:order] == 'asc'
       scope = scope.order(Arel.sql(sort).asc.nulls_last)
