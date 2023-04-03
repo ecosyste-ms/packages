@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_03_30_141457) do
+ActiveRecord::Schema[7.0].define(version: 2023_04_03_161631) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -115,6 +115,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_30_141457) do
     t.index "(((rankings ->> 'average'::text))::double precision)", name: "index_packages_on_rankings_average"
     t.index "registry_id, (((repo_metadata ->> 'forks_count'::text))::integer)", name: "index_packages_on_forks_count"
     t.index "registry_id, (((repo_metadata ->> 'stargazers_count'::text))::integer)", name: "index_packages_on_stargazers_count"
+    t.index ["keywords"], name: "index_packages_on_keywords", using: :gin
     t.index ["latest_release_published_at"], name: "index_packages_on_latest_release_published_at"
     t.index ["registry_id", "dependent_packages_count"], name: "index_packages_on_registry_id_and_dependent_packages_count"
     t.index ["registry_id", "dependent_repos_count"], name: "index_packages_on_registry_id_and_dependent_repos_count"
