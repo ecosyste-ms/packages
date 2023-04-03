@@ -1,7 +1,7 @@
 module Ecosystem
   class Go < Base
 
-    def purl_type
+    def self.purl_type
       'golang'
     end
 

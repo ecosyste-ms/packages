@@ -3,7 +3,7 @@
 module Ecosystem
   class Rubygems < Base
 
-    def purl_type
+    def self.purl_type
       'gem'
     end
 

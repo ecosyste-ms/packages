@@ -3,7 +3,7 @@
 module Ecosystem
   class Homebrew < Base
 
-    def purl_type
+    def self.purl_type
       'brew'
     end
 

@@ -2,7 +2,7 @@
 
 module Ecosystem
   class Elpa < Base
-    def purl_type
+    def self.purl_type
       'melpa'
     end
 

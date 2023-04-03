@@ -3,7 +3,7 @@
 module Ecosystem
   class Packagist < Base
 
-    def purl_type
+    def self.purl_type
       "composer"
     end
 

@@ -2,7 +2,7 @@
 module Ecosystem
   class Swiftpm < Base
 
-    def purl_type
+    def self.purl_type
       'swift'
     end
 

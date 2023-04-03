@@ -29,11 +29,15 @@ module Ecosystem
     end
 
     def self.find(ecosystem)
-      list.find { |p| p.formatted_name.downcase == ecosystem.downcase }
+      list.find { |p| p.lowercase_name == ecosystem.downcase }
     end
 
     def self.formatted_name
       to_s.demodulize
+    end
+
+    def self.lowercase_name
+      formatted_name.downcase
     end
 
     def registry_url(_package, _version = nil)
@@ -141,7 +145,15 @@ module Ecosystem
     end
 
     def purl_type
-      self.class.name.demodulize.downcase
+      self.class.purl_type
+    end
+
+    def self.purl_type
+      name.demodulize.downcase
+    end
+
+    def self.purl_type_to_ecosystem(purl_type)
+      list.find { |p| p.purl_type == purl_type }.try(:lowercase_name)
     end
 
     def namespace_package_names(namespace)
