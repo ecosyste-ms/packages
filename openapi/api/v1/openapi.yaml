@@ -56,6 +56,66 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Package'
+  /keywords:
+    get:
+      summary: list keywords
+      operationId: getKeywords
+      tags:
+        - keywords
+      parameters:
+        - name: page
+          in: query
+          description: pagination page number 
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return 
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Keyword'
+  /keywords/{keywordName}:
+    get:
+      summary: get a keyword by name
+      operationId: getKeyword
+      tags:
+        - keywords
+      parameters:
+        - in: path
+          name: keywordName
+          schema:
+            type: string
+          required: true
+          description: name of keyword
+        - name: page
+          in: query
+          description: pagination page number 
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return 
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeywordWithPackages'
   /registries:
     get:
       summary: list registies
@@ -1248,4 +1308,39 @@ components:
           type: string
         updated_at:
           type: string
-        
+    Keyword:
+      required:
+        - name
+        - packages_count
+        - packages_url
+      type: object
+      properties:
+        name:
+          type: string
+        packages_count:
+          type: integer
+        packages_url:
+          type: string
+    KeywordWithPackages:
+      required:
+        - name
+        - packages_count
+        - packages_url
+        - related_keywords
+        - packages
+      type: object
+      properties:
+        name:
+          type: string
+        packages_count:
+          type: integer
+        packages_url:
+          type: string
+        related_keywords:
+          type: array
+          items:
+            $ref: '#/components/schemas/Keyword'
+        packages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Package'
