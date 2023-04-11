@@ -194,7 +194,7 @@ GEM
     nokogiri (1.14.2-x86_64-linux)
       racc (~> 1.4)
     oj (3.14.3)
-    ox (2.14.14)
+    ox (2.14.15)
     packageurl-ruby (0.1.0)
     pagy (6.0.3)
     pg (1.4.6)
