@@ -1158,12 +1158,15 @@ components:
             $ref: '#/components/schemas/Dependency'
     Dependency:
       required:
+        - ecosystem
         - package_name
         - requirements
         - kind
         - optional
       type: object
       properties:
+        ecosystem:
+          type: string
         package_name:
           type: string
         requirements:
