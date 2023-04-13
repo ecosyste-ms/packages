@@ -32,6 +32,7 @@ function renderFileList(files, path) {
 }
 
 function renderFile(file){
+  console.log(file)
   $('#files-content').html('').show();
   $("<pre><code id='files-body'></code></pre>").appendTo( "#files-content" );
   $('#files-body').text(file.contents)
@@ -56,6 +57,14 @@ function renderFileHeader(basename, path){
       }
     })
   }
+}
+
+function renderReadme(data){
+  console.log(data)
+  $('#readme-header').text(data['name'])
+  $('#readme-content').html('').show();
+  $("<div id='readme-body'></div>").appendTo( "#readme-content" );
+  $('#readme-body').html(data.html)
 }
 
 $( document ).ready(function() {
@@ -87,6 +96,16 @@ $( document ).ready(function() {
         renderFileList(data, path)
       }
     }).fail(function() { $('#files-content').html('Error loading file').show(); });
+  }
+
+  if ($('#readme').length > 0) {
+    var download_url = $('#files').data('url');
+    var readme_url = "https://archives.ecosyste.ms/api/v1/archives/readme?url=" + download_url
+
+    $.getJSON(readme_url, function( data ) {
+        renderReadme(data)
+    }).fail(function() { $('#readme-content').html('Error loading readme').show(); });
+
   }
   
 });

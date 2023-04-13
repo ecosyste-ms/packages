@@ -62,7 +62,15 @@
       <ul id="files-list" class="list-group list-group-flush"></ul>
       <div id="files-content" class="card-body">Loading...</div>
     </div>
+  
+    <div class='card mt-3' id="readme" data-url="<%= @version.download_url %>">
+      <div id='readme-header' class="card-header">Readme</div>
+      <div id="readme-content" class="card-body">Loading...</div>
+    </div>
+  
   <% end %>
+
+
 
   <% if @version.dependencies.any? %>
       <div class="card my-3">
