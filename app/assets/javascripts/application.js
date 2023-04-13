@@ -60,7 +60,6 @@ function renderFileHeader(basename, path){
 }
 
 function renderReadme(data){
-  console.log(data)
   $('#readme-header').text(data['name'])
   $('#readme-content').html('').show();
   $("<div id='readme-body'></div>").appendTo( "#readme-content" );
