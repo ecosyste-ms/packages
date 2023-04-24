@@ -868,6 +868,7 @@ components:
         - updated_at
         - packages_url
         - maintainers_url
+        - icon_url
       type: object
       properties:
         name:
@@ -905,6 +906,8 @@ components:
         packages_url:
           type: string
         maintainers_url:
+          type: string
+        icon_url:
           type: string
     Package:
       required:
