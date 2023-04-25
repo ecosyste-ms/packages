@@ -6,10 +6,12 @@ module Ecosystem
     end
 
     def purl(package, version = nil)
+      namespace = encode_for_proxy package.name.split('/')[0..-2].join('/')
+      name = encode_for_proxy package.name.split('/').last
       PackageURL.new(
         type: purl_type,
-        namespace: nil,
-        name: encode_for_proxy(package.name),
+        namespace: namespace,
+        name: name,
         version: version.try(:number).try(:encode,'iso-8859-1')
       ).to_s
     end
@@ -97,6 +99,7 @@ module Ecosystem
           licenses: package[:html].css('*[data-test-id="UnitHeader-license"]').map(&:text).join(","),
           repository_url: url,
           homepage: url,
+          namespace: package[:name].split('/')[0..-2].join('/')
         }
       else
         { name: package[:name], repository_url: UrlParser.try_all(package[:name]) }

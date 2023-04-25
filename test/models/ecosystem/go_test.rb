@@ -45,13 +45,20 @@ class GoTest < ActiveSupport::TestCase
 
   test 'purl' do
     purl = @ecosystem.purl(@package)
-    assert_equal purl, 'pkg:golang/github.com%2Faws%2Fsmithy-go'
+    assert_equal purl, 'pkg:golang/github.com/aws/smithy-go'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'non-github purl' do
+    package = Package.new(ecosystem: 'Go', name: 'google.golang.org/genproto')
+    purl = @ecosystem.purl(package)
+    assert_equal purl, 'pkg:golang/google.golang.org/genproto'
     assert PackageURL.parse(purl)
   end
 
   test 'purl with version' do
     purl = @ecosystem.purl(@package, @version)
-    assert_equal purl, 'pkg:golang/github.com%2Faws%2Fsmithy-go@v1.11.1'
+    assert_equal purl, 'pkg:golang/github.com/aws/smithy-go@v1.11.1'
     assert PackageURL.parse(purl)
   end
 
@@ -88,6 +95,7 @@ generators."
     assert_equal package_metadata[:licenses], "Apache-2.0"
     assert_equal package_metadata[:repository_url], "https://github.com/aws/smithy-go"
     assert_nil package_metadata[:keywords_array]
+    assert_equal package_metadata[:namespace], "github.com/aws"
   end
 
   test 'versions_metadata' do
