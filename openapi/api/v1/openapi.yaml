@@ -916,6 +916,7 @@ components:
         - description
         - homepage
         - licenses
+        - normalized_licenses
         - repository_url
         - keywords_array
         - namespace
@@ -958,6 +959,10 @@ components:
         licenses:
           type: string
           nullable: true
+        normalized_licenses:
+          type: array
+          items:
+            type: string
         repository_url:
           type: string
           nullable: true
