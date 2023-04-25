@@ -70,6 +70,10 @@
       <br/> Keywords: <% @package.keywords.reject(&:blank?).uniq.each_with_index do |k, i| %><%= ', ' if i > 0 %><%= link_to k, keyword_registry_path(@registry.name, k) %><% end %>
     <% end %>
 
+    <% if @package.normalized_licenses %>
+      <br/>License: <%= @package.normalized_licenses.join(',') %>
+    <% end %>
+
     <% if @package.status %>
       <br/>Status: <%= @package.status %>
     <% end %>
