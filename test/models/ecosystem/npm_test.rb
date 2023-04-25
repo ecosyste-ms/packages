@@ -61,6 +61,13 @@ class NpmTest < ActiveSupport::TestCase
     assert PackageURL.parse(purl)
   end
 
+  test 'purl with namespace' do
+    @package = Package.new(ecosystem: 'npm', name: '@fudge-ai/browser', namespace: 'fudge-ai')
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:npm/%40fudge-ai/browser'
+    assert PackageURL.parse(purl)
+  end
+
   test 'purl with version' do
     purl = @ecosystem.purl(@package, @version)
     assert_equal purl, 'pkg:npm/base62@2.0.1'
