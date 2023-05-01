@@ -14,4 +14,8 @@ class Api::V1::ApplicationController < ApplicationController
 
     rate_limit_headers.each { |name, value| response.set_header(name, value) }
   end
+
+  def default_url_options(options = {})
+    Rails.env.production? ? { :protocol => "https" }.merge(options) : options
+  end
 end
