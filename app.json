@@ -14,7 +14,7 @@
     },
     {
       "command": "bundle exec rake packages:update_repo_metadata_async",
-      "schedule": "*/15 * * * *"
+      "schedule": "*/30 * * * *"
     },
     {
       "command": "bundle exec rake packages:check_statuses",
