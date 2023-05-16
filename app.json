@@ -43,6 +43,10 @@
     {
       "command": "bundle exec rake packages:update_advisories",
       "schedule": "0 * * * *"
+    },
+    {
+      "command": "bundle exec rake packages:update_docker_usages",
+      "schedule": "0 0 * * *"
     }
   ]
 }

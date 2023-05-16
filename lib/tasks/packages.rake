@@ -78,4 +78,9 @@ namespace :packages do
   task update_advisories: :environment do
     Package.update_advisories
   end
+
+  desc 'update docker usages'
+  task update_docker_usages: :environment do
+    Package.update_docker_usages
+  end
 end
