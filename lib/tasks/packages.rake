@@ -83,4 +83,23 @@ namespace :packages do
   task update_docker_usages: :environment do
     Package.update_docker_usages
   end
+
+  desc 'crawl github marketplace'
+  task crawl_github_marketplace: :environment do
+    registry = Registry.find_by(ecosystem: 'actions')
+    repo_names = registry.ecosystem_instance.crawl_marketplace
+    registry = Registry.find_by(ecosystem: 'actions')
+    repo_names.each do |repo_name|
+      registry.sync_package_async(repo_name)
+    end
+  end
+
+  desc 'crawl recently updated github marketplace'
+  task crawl_recently_updated_github_marketplace: :environment do
+    registry = Registry.find_by(ecosystem: 'actions')
+    repo_names = registry.ecosystem_instance.crawl_recent_marketplace
+    repo_names.each do |repo_name|
+      registry.sync_package_async(repo_name)
+    end
+  end
 end

@@ -121,5 +121,90 @@ module Ecosystem
     rescue StandardError
       []
     end
+
+    def crawl_marketplace_list(query, category, max_pages = 50)
+      slugs = Set.new
+      (1..max_pages).each do |page|
+        url = "https://github.com/marketplace?page=#{page}&type=actions" + (category ? "&category=#{category}" : "") + (query ? "&query=#{query}" : "")
+        response = Faraday.get(url)
+        doc = Nokogiri::HTML(response.body)
+        links = doc.css('.d-md-flex.flex-wrap.mb-4 a')
+        break if links.blank?
+        links.each do |link|
+          slugs << link['href']
+        end
+        sleep 1
+      end
+      slugs
+    end
+    
+    def crawl_marketplace_category(category)
+      slugs = Set.new 
+      ["created-desc", "created-asc", "popularity-desc", "popularity-asc"].each do |sort|
+        slugs.merge crawl_marketplace_list("sort%3A#{sort}", category)
+      end
+      slugs
+    end
+    
+    def crawl_marketplace
+      slugs = Set.new
+      fetch_marketplace_categories.each do |category|
+        slugs.merge crawl_marketplace_category(category)
+      end
+      slugs
+      convert_slugs_to_repos(slugs)
+    end
+
+    def crawl_recent_marketplace
+      slugs = Set.new
+      fetch_marketplace_categories.each do |category|
+        slugs.merge crawl_marketplace_list("sort%3Acreated-desc", category, 1)
+      end
+      slugs
+      convert_slugs_to_repos(slugs)
+    end
+
+    def fetch_marketplace_categories
+      url = "https://github.com/marketplace?query=sort%3Apopularity-asc&type=actions"
+      response = Faraday.get(url)
+      doc = Nokogiri::HTML(response.body)
+      categories = doc.css('.Link--muted.filter-item.py-2.mb-0').map { |link| link['href'] }
+    
+      category_slugs = categories.map do |category|
+        Rack::Utils.parse_nested_query(URI.parse(category).query)['category']
+      end.compact
+    
+      all_categories = Set.new
+    
+      category_slugs.each do |category_slug|
+        all_categories << category_slug
+        url = "https://github.com/marketplace?query=sort%3Apopularity-asc&type=actions&category=#{category_slug}"
+        response = Faraday.get(url)
+        doc = Nokogiri::HTML(response.body)
+        sub_categories = doc.css('.Link--muted.filter-item.py-1.mb-0').map { |link| link['href'] }
+        sub_categories_slugs = sub_categories.map do |category|
+          Rack::Utils.parse_nested_query(URI.parse(category).query)['category']
+        end.compact
+        all_categories.merge sub_categories_slugs
+        sleep 1
+      end
+      all_categories
+    end
+    
+    def convert_slugs_to_repos(slugs)
+      repo_names = Set.new
+    
+      slugs.each do |slug|
+        url = "https://github.com#{slug}"
+        response = Faraday.get(url)
+        next unless response.success?
+        doc = Nokogiri::HTML(response.body)
+        name = doc.css('.octicon-repo')[4].parent['href'].gsub('https://github.com/', '')
+        repo_names << name
+        sleep 1
+      end
+      repo_names
+    end
+    
   end
 end
