@@ -608,4 +608,34 @@ class Package < ApplicationRecord
     return if usage.blank?
     update(docker_dependents_count: usage['dependents_count'], docker_downloads_count: usage['downloads_count'])
   end
+
+  def self.update_docker_usages
+    url = 'https://docker.ecosyste.ms/api/v1/usage/'
+    response = Faraday.get(url)
+    return nil unless response.success?
+    ecosystems = JSON.parse response.body
+    ecosystems.each do |ecosystem|
+      ecosystem_name = Ecosystem::Base.purl_type_to_ecosystem ecosystem['name']
+      next if ecosystem_name.nil?
+      puts "Updating #{ecosystem_name} docker usages"
+      next_url = ecosystem['ecosystem_url']+'?per_page=1000'
+      while next_url.present?
+        puts next_url
+        response = Faraday.get(next_url)
+        next unless response.success?
+        pkgs = JSON.parse response.body
+        pkgs.each do |pkg|
+          Registry.where(ecosystem: ecosystem_name).each do |registry|
+            registry.packages.where(name: pkg['name']).each do |package|
+              package.update(docker_dependents_count: pkg['dependents_count'], docker_downloads_count: pkg['downloads_count'])
+            end
+          end
+        end
+        
+        next_url = response.headers['link'].split(',').find{|l| l.include?('rel="next"')}.try(:split, ';').try(:first).try(:gsub, /<|>/, '').try(:strip)
+      end
+    end
+  rescue
+    nil
+  end
 end
