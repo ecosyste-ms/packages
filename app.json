@@ -47,6 +47,10 @@
     {
       "command": "bundle exec rake packages:update_docker_usages",
       "schedule": "0 0 * * *"
+    },
+    {
+      "command": "bundle exec rake packages:crawl_recently_updated_github_marketplace",
+      "schedule": "0 */2 * * *"
     }
   ]
 }
