@@ -35,6 +35,12 @@
         Top <%= [@package.rankings['forks_count'].round(1), 0.1].max %>% forks on <%= @package.registry %>
       </span><br>
     <% end %>
+
+    <% if @package.rankings.present? && @package.rankings['docker_downloads_count'] && @package.docker_downloads_count && @package.docker_downloads_count > 0 && @package.rankings['docker_downloads_count'] < 10.05 %>
+      <span class='badge bg-secondary'>
+        Top <%= [@package.rankings['docker_downloads_count'].round(1), 0.1].max %>% docker downloads on <%= @package.registry %>
+      </span><br>
+    <% end %>
     </div>
   <%end %>
 

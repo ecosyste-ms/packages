@@ -443,6 +443,7 @@ class Package < ApplicationRecord
       dependent_packages_count: registry.top_percentage_for(self, :dependent_packages_count),
       stargazers_count: registry.top_percentage_for_json(self, 'stargazers_count'),
       forks_count: registry.top_percentage_for_json(self, 'forks_count'),
+      docker_downloads_count: registry.top_percentage_for(self, :docker_downloads_count)
     }
     if rankings.values.compact.any? && rankings.values.compact.any?{|v| v > 0 }
       rankings[:average] = rankings.values.compact.sum / rankings.values.compact.length.to_f
