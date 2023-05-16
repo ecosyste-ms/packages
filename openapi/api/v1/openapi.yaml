@@ -943,6 +943,9 @@ components:
         - versions_url
         - dependent_packages_url
         - related_packages_url
+        - docker_usage_url
+        - docker_dependents_count
+        - docker_downloads_count
         - maintainers
       type: object
       properties:
@@ -1038,6 +1041,12 @@ components:
           type: string
         related_packages_url:
           type: string
+        docker_usage_url:
+          type: string
+        docker_dependents_count:
+          type: integer
+        docker_downloads_count:
+          type: integer
         maintainers:
           type: array
           items:

@@ -586,4 +586,26 @@ class Package < ApplicationRecord
       end
     end
   end
+
+  def docker_usage_api_url
+    "https://docker.ecosyste.ms/api/v1/usage/#{ecosystem}/#{name}"
+  end
+
+  def docker_usage_url
+    "https://docker.ecosyste.ms/usage/#{ecosystem}/#{name}"
+  end
+
+  def fetch_docker_usage
+    response = Faraday.get(docker_usage_api_url)
+    return nil unless response.success?
+    return JSON.parse response.body
+  rescue
+    nil
+  end
+
+  def update_docker_usage
+    usage = fetch_docker_usage
+    return if usage.blank?
+    update(docker_dependents_count: usage['dependents_count'], docker_downloads_count: usage['downloads_count'])
+  end
 end

@@ -96,6 +96,7 @@
     <% if @package.dependent_repos_count > 0 %>
       <br/>Dependent repositories: <%= link_to number_with_delimiter(@package.dependent_repos_count), "https://repos.ecosyste.ms/usage/#{@package.ecosystem}/#{@package.name}", target: :_blank %>
     <% end %>
+    
 
     <% if @package.downloads && @package.downloads_period %>
       <br/>Downloads: <%= number_with_delimiter(@package.downloads) %> <%= download_period(@package.downloads_period) %>
@@ -107,6 +108,11 @@
 
     <% if @package.forks %>
       <br/>Forks: <%= number_with_delimiter(@package.forks) %> on <%= @package.repo_metadata.fetch('host',{})['name'] %>
+    <% end %>
+
+    <% if @package.docker_dependents_count %>
+      <br/>Docker dependents: <%= link_to number_with_delimiter(@package.docker_dependents_count), @package.docker_usage_url, target: :_blank %>
+      <br/>Docker downloads: <%= link_to number_with_delimiter(@package.docker_downloads_count), @package.docker_usage_url, target: :_blank %>
     <% end %>
 
     <% if @package.commit_stats.present? %>
