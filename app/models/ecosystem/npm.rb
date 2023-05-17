@@ -118,6 +118,7 @@ module Ecosystem
     end
 
     def homepage(package)
+      return nil if package["homepage"].blank? || package["homepage"] == ['']
       return nil if package["homepage"] && (package["homepage"].starts_with?("https://github.com/npm/security-holder") || package["homepage"].starts_with?("https://github.com/npm/deprecate-holder"))
       package["homepage"]
     end
