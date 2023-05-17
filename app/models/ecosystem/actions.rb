@@ -10,7 +10,7 @@ module Ecosystem
     def fetch_package_metadata(name)
       parts = name.split('/')
       return nil if parts.length < 2
-      return nil unless parts[0].match?(/^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/) # valid github username
+      return nil unless parts[0].match?(/^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i) # valid github username
       full_name = parts[0..1].join('/')
       if parts.length > 2
         path = parts[2..-1].join('/') 
