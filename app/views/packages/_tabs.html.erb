@@ -1,9 +1,20 @@
   <ul class="nav nav-tabs my-3">
+    <% if @package.download_url.present? %>
+      <li class="nav-item">
+        <% if action_name == 'show' %>
+          <a class="nav-link active" aria-current="page">
+        <% else %>
+          <a class="nav-link" href="<%= registry_package_path(@registry, @package) %>">
+        <% end %>
+          Readme
+        </a>
+      </li>
+    <% end %>
     <li class="nav-item">
-      <% if action_name == 'show' %>
+      <% if @package.download_url.blank? || action_name == 'index' %>
         <a class="nav-link active" aria-current="page">
       <% else %>
-        <a class="nav-link" href="<%= registry_package_path(@registry, @package) %>">
+        <a class="nav-link" href="<%= registry_package_versions_path(@registry, @package) %>">
       <% end %>
         Versions
         <span class="badge bg-secondary rounded-pill">
