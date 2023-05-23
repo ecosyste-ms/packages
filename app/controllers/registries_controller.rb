@@ -17,11 +17,15 @@ class RegistriesController < ApplicationController
     @registry = Registry.find_by_name!(params[:id])
     @keyword = params[:keyword]
     scope = @registry.packages.where('keywords @> ARRAY[?]::varchar[]', @keyword)
-    sort = params[:sort].presence || 'updated_at'
-    if params[:order] == 'asc'
-      scope = scope.order(Arel.sql(sort).asc.nulls_last)
+    if params[:sort].present? || params[:order].present?
+      sort = params[:sort].presence || 'updated_at'
+      if params[:order] == 'asc'
+        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+      else
+        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+      end
     else
-      scope = scope.order(Arel.sql(sort).desc.nulls_last)
+      scope = scope.order('updated_at desc')
     end
     
     @pagy, @packages = pagy_countless(scope)
