@@ -7,11 +7,15 @@ class PackagesController < ApplicationController
       scope = scope.keyword(params[:keyword])
     end
     
-    sort = params[:sort].presence || 'updated_at'
-    if params[:order] == 'asc'
-      scope = scope.order(Arel.sql(sort).asc.nulls_last)
+    if params[:sort].present? || params[:order].present?
+      sort = params[:sort].presence || 'updated_at'
+      if params[:order] == 'asc'
+        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+      else
+        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+      end
     else
-      scope = scope.order(Arel.sql(sort).desc.nulls_last)
+      scope = scope.order('updated_at DESC')
     end
     
     @pagy, @packages = pagy_countless(scope)
