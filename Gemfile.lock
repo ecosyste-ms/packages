@@ -145,7 +145,7 @@ GEM
       activesupport (>= 5.2)
     hashdiff (1.0.1)
     highline (2.0.3)
-    i18n (1.13.0)
+    i18n (1.14.0)
       concurrent-ruby (~> 1.0)
     io-console (0.6.0)
     irb (1.6.4)
