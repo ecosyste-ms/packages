@@ -5,4 +5,22 @@ namespace :exports do
     bucket_name = ENV['BUCKET_NAME'] || 'ecosystems-data'
     Export.create!(date: date, bucket_name: bucket_name, packages_count: Package.count)
   end
+
+  desc 'Export keywords data'
+  task keywords: :environment do
+    # list all packages with keywords
+    packages = Package.where.not(keywords: [])
+    # create a CSV file
+    csv = CSV.generate do |csv|
+      csv << %w[id ecosystem name description keywords]
+      packages.find_each do |package|
+        next unless package.description_with_fallback.present?
+        description = package.description_with_fallback.gsub(/[\n\r]/, ' ')
+        csv << [package.id, package.ecosystem, package.name, description, package.keywords.join('|')]
+      end
+    end
+    
+    # output the CSV file to stdout
+    puts csv
+  end
 end

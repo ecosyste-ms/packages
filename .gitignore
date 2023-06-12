@@ -32,3 +32,6 @@
 /config/master.key
 
 .env
+
+# Ignore generated csv files
+*.csv
