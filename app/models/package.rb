@@ -389,6 +389,20 @@ class Package < ApplicationRecord
     "https://repos.ecosyste.ms/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name'].gsub('.', '%2E')}"
   end
 
+  def repos_api_url
+    return if repo_metadata.blank?
+    return if repo_metadata['host'].blank?
+    "https://repos.ecosyste.ms/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name'].gsub('.', '%2E')}"
+  end
+
+  def usage_url
+    "https://repos.ecosyste.ms/usage/#{ecosystem}/#{to_param}"
+  end
+
+  def dependent_repositories_url
+    "https://repos.ecosyste.ms/api/v1/usage/#{ecosystem}/#{to_param}/dependencies"
+  end
+
   def update_dependent_repos_count_async
     UpdateDependentReposCountWorker.perform_async(id)
   end

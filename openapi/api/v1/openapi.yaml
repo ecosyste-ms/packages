@@ -947,6 +947,8 @@ components:
         - docker_dependents_count
         - docker_downloads_count
         - maintainers
+        - usage_url
+        - dependent_repositories_url
       type: object
       properties:
         name:
@@ -1047,6 +1049,10 @@ components:
           type: integer
         docker_downloads_count:
           type: integer
+        usage_url:
+          type: string
+        dependent_repositories_url:
+          type: string
         maintainers:
           type: array
           items:
