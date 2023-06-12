@@ -653,4 +653,16 @@ class Package < ApplicationRecord
   rescue
     nil
   end
+
+  def fetch_readme
+    return if repo_metadata.blank?
+    return if repo_metadata['metadata']['files']['readme'].blank?
+    
+    url = 'https://archives.ecosyste.ms/api/v1/archives/readme?url='+download_url
+    response = Faraday.get(url)
+    return nil unless response.success?
+    json = JSON.parse response.body
+  rescue
+    nil
+  end
 end
