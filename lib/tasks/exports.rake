@@ -35,7 +35,7 @@ namespace :exports do
         readme = package.fetch_readme
         next unless readme.present? && readme['plain'].present?
         description = package.description_with_fallback.to_s.gsub(/[\n\r]/, ' ')
-        csv << [package.id, package.ecosystem, package.name, package.normalized_licenses, description, readme['plain'], package.keywords.join('|')]
+        csv << [package.id, package.ecosystem, package.name, package.normalized_licenses.join('|'), description, readme['plain'], package.keywords.join('|')]
       end
     end
     
