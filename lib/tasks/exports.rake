@@ -26,16 +26,16 @@ namespace :exports do
 
   desc 'export readme data'
   task readmes: :environment do
-    registry = Registry.find_by(name: 'crates.io')
+    registry = Registry.find_by(name: 'carthage')
     packages = Package.where(registry_id: registry.id).where.not(keywords: [])
 
     csv = CSV.generate do |csv|
-      csv << %w[id ecosystem name description readme keywords]
+      csv << %w[id ecosystem name normalized_licenses description readme keywords]
       packages.find_each do |package|
         readme = package.fetch_readme
         next unless readme.present? && readme['plain'].present?
         description = package.description_with_fallback.gsub(/[\n\r]/, ' ')
-        csv << [package.id, package.ecosystem, package.name, description, readme['plain'], package.keywords.join('|')]
+        csv << [package.id, package.ecosystem, package.name, package.normalized_licenses, description, readme['plain'], package.keywords.join('|')]
       end
     end
     
