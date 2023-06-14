@@ -112,7 +112,7 @@ GEM
     crack (0.4.5)
       rexml
     crass (1.0.6)
-    dalli (3.2.4)
+    dalli (3.2.5)
     date (3.3.3)
     deb_control (0.0.1)
     debug (1.8.0)
