@@ -41,7 +41,7 @@ gem "chartkick"
 gem "groupdate"
 gem 'jquery-rails'
 gem 'addressable'
-gem 'google-protobuf', '3.23.2'
+gem 'google-protobuf', '3.23.3'
 gem "xmlrpc"
 gem 'rexml'
 gem 'appsignal'
