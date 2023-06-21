@@ -137,7 +137,7 @@ class Registry < ApplicationRecord
       end
       
       all_deps = []
-      all_versions = package.versions.includes(:dependencies)
+      all_versions = package.versions
 
       all_versions.each do |version|
          version
