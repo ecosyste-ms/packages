@@ -307,7 +307,7 @@ GEM
     strings-ansi (0.2.0)
     thor (1.2.2)
     tilt (2.2.0)
-    timeout (0.3.2)
+    timeout (0.4.0)
     toml-rb (2.2.0)
       citrus (~> 3.0, > 3.0)
     tomlrb (2.0.3)
