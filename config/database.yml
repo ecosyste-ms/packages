@@ -7,6 +7,8 @@ default: &default
   host:     <%= ENV.fetch("POSTGRES_HOST") { '' } %>
   port:     <%= ENV.fetch("POSTGRES_PORT") { '' } %>
   pool:     <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  variables:
+    statement_timeout: '600s'
 
 development:
   <<: *default
