@@ -106,10 +106,16 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = @registry.packages.find_by_name(params[:id])
     if @package
-      @package.sync_async unless @package.last_synced_at && @package.last_synced_at > 1.day.ago
+      @package.sync_async
     else
       @registry.sync_package_async(params[:id])
     end
+    render json: { message: 'pong' }
+  end
+
+  def ping_all
+    Package.where(repository_url: params[:repository_url]).find_each(&:sync_async)
+
     render json: { message: 'pong' }
   end
 end

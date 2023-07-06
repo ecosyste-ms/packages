@@ -21,6 +21,7 @@ Rails.application.routes.draw do
       resources :packages, only: [:lookup] do
         collection do
           get :lookup, to: 'packages#lookup'
+          get :ping, to: 'packages#ping_all'
         end
       end
 

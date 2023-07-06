@@ -211,6 +211,7 @@ class Package < ApplicationRecord
   end
 
   def sync_async
+    return if last_synced_at && last_synced_at > 1.day.ago
     UpdatePackageWorker.perform_async(id)
   end
 
