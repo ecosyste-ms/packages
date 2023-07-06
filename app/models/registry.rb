@@ -101,9 +101,6 @@ class Registry < ApplicationRecord
   end
 
   def sync_package(name)
-    # temp fix for overwhelmed queue
-    return if last_synced_at && last_synced_at > 1.day.ago
-
     logger.info "Syncing #{name}"
     package_metadata = ecosystem_instance.package_metadata(name)
     return false unless package_metadata
