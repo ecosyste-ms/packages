@@ -101,6 +101,9 @@ class Registry < ApplicationRecord
   end
 
   def sync_package(name)
+    existing_package = packages.find_by_name(name)
+    return if existing_package&.last_synced_at && existing_package.last_synced_at > 1.day.ago
+
     logger.info "Syncing #{name}"
     package_metadata = ecosystem_instance.package_metadata(name)
     return false unless package_metadata
