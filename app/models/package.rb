@@ -199,9 +199,6 @@ class Package < ApplicationRecord
   end
 
   def sync
-    # temp fix for overwhelmed queue
-    return if last_synced_at && last_synced_at > 1.day.ago
-
     result = registry.sync_package(name)
     if result
       update_dependent_repos_count_async

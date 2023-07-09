@@ -102,7 +102,12 @@ class Registry < ApplicationRecord
 
   def sync_package(name)
     existing_package = packages.find_by_name(name)
-    return if existing_package&.last_synced_at && existing_package.last_synced_at > 1.day.ago
+    if existing_package&.last_synced_at && existing_package.last_synced_at > 1.day.ago
+      # if recently synced, schedule for syncing 1 day later
+      delay = (existing_package.last_synced_at + 1.day) - Time.now
+      SyncPackageWorker.perform_in(delay, id, name)
+      return
+    end
 
     logger.info "Syncing #{name}"
     package_metadata = ecosystem_instance.package_metadata(name)
