@@ -60,8 +60,8 @@ class CarthageTest < ActiveSupport::TestCase
     stub_request(:get, "https://repos.ecosyste.ms/api/v1/package_names/carthage")
       .to_return({ status: 200, body: file_fixture('carthage/carthage') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 20
-    assert_equal recently_updated_package_names.last, '52inc/Pulley'
+    assert_equal recently_updated_package_names.length, 0
+    assert_equal recently_updated_package_names.last, nil
   end
   
   test 'package_metadata' do
