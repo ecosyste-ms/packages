@@ -23,6 +23,10 @@ module Ecosystem
       url = check_status_url(package)
       response = Typhoeus.get(url)
       return "removed" if [400, 404, 410].include?(response.response_code)
+
+      url = registry_url(package)
+      response = Typhoeus.get(url)
+      return "removed" if [400, 404, 410].include?(response.response_code)
     end
 
     def recently_updated_package_names
