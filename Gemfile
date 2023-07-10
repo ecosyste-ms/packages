@@ -49,6 +49,7 @@ gem 'faraday-typhoeus'
 gem 'packageurl-ruby'
 gem 'sitemap_generator'
 gem 'dalli'
+gem 'postgresql_cursor'
 
 group :development, :test do
   gem "debug", platforms: %i[ mri mingw x64_mingw ]

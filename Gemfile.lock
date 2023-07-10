@@ -215,6 +215,8 @@ GEM
       activerecord (>= 6)
     polyglot (0.3.5)
     popper_js (2.11.7)
+    postgresql_cursor (0.6.8)
+      activerecord (>= 6.0)
     public_suffix (5.0.1)
     puma (6.3.0)
       nio4r (~> 2.0)
@@ -376,6 +378,7 @@ DEPENDENCIES
   pg
   pg_query
   pghero
+  postgresql_cursor
   puma
   rack-attack
   rack-attack-rate-limit
