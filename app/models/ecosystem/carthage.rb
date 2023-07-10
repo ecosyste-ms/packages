@@ -16,8 +16,8 @@ module Ecosystem
 
     def recently_updated_package_names
       json = get_json("https://repos.ecosyste.ms/api/v1/package_names/carthage")
-      return nil if json.nil?
-      return nil if json['error'].present?
+      return [] if json.nil?
+      return [] if json['error'].present?
       json.first(20)
     rescue
       []
