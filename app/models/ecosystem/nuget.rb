@@ -16,7 +16,7 @@ module Ecosystem
     end
 
     def check_status_url(package)
-      "https://api.nuget.org/v3/registration3/#{package.name.downcase}/index.json"
+      "https://api.nuget.org/v3-flatcontainer/#{package.name.downcase}/index.json"
     end
 
     def check_status(package)
@@ -27,6 +27,7 @@ module Ecosystem
       url = registry_url(package)
       response = Typhoeus.get(url)
       return "removed" if [400, 404, 410].include?(response.response_code)
+      return "removed" if response.body.include? 'This package has been deleted from the gallery.'
     end
 
     def recently_updated_package_names
