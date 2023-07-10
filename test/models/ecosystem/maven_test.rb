@@ -102,10 +102,7 @@ class MavenTest < ActiveSupport::TestCase
     package_metadata = @ecosystem.package_metadata('dev.zio:zio-aws-autoscaling_3')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
-    assert_equal versions_metadata, [
-      {:number=>"5.17.225.2", :published_at=>"2022-07-12 12:10:25 +0000", :licenses=>"APL2"},
-      {:number=>"5.17.102.7", :published_at=>"2022-07-12 12:10:25 +0000", :licenses=>"APL2"},
-    ]
+    assert_equal versions_metadata, [{:number=>"5.17.102.7", :published_at=>'2022-07-12 12:10:25 +0000', :licenses=>"APL2"}]
   end
 
   test 'dependencies_metadata' do

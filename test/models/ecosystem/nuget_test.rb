@@ -46,7 +46,7 @@ class NugetTest < ActiveSupport::TestCase
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "https://api.nuget.org/v3/registration3/ogcapi.net.sqlserver/index.json"
+    assert_equal check_status_url, "https://api.nuget.org/v3-flatcontainer/ogcapi.net.sqlserver/index.json"
   end
 
   test 'purl' do
