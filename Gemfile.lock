@@ -267,7 +267,7 @@ GEM
       redis-client (>= 0.9.0)
     redis-client (0.14.1)
       connection_pool
-    reline (0.3.5)
+    reline (0.3.6)
       io-console (~> 0.5)
     rexml (3.2.5)
     rswag-api (2.9.0)
