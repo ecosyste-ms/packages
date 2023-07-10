@@ -64,8 +64,9 @@ module Ecosystem
 
     def fetch_latest_available_pom(group_id, artifact_id, version_numbers)
       pom = nil
-      while pom.nil? && version_numbers.any?
-        version_number = version_numbers.pop
+      numbers = version_numbers.dup
+      while pom.nil? && numbers.any?
+        version_number = numbers.pop
         pom = download_pom(group_id, artifact_id, version_number)
       end
       pom
