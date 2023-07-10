@@ -30,6 +30,19 @@ module Ecosystem
         yaml = get_raw_no_exception("https://raw.githubusercontent.com/#{full_name}/#{json['default_branch']}/#{yaml_path}.yaml")
       end
       
+      # TODO search for action.yml or action.yaml in all tags if not found in default branch
+      tags = tags_json = get_json(json['tags_url'])
+      if tags.present?
+        yaml = nil
+        while yaml.blank? && tags.present?
+          tag = tags.shift
+          yaml = get_raw_no_exception("https://raw.githubusercontent.com/#{full_name}/#{tag['name']}/#{yaml_path}.yml")
+          if yaml.blank?
+            yaml = get_raw_no_exception("https://raw.githubusercontent.com/#{full_name}/#{tag['name']}/#{yaml_path}.yaml")
+          end
+        end
+      end
+      
       return nil unless yaml.present?
 
       yaml = YAML.safe_load(yaml)
