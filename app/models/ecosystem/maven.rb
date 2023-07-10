@@ -54,13 +54,21 @@ module Ecosystem
       xml = get_xml(url)
       version_numbers = xml.css("version").map(&:text).filter { |item| !item.ends_with?("-SNAPSHOT") }
       return {} if version_numbers.empty?
-      latest_version_number = version_numbers.last
-      latest_version_xml = download_pom(group_id, artifact_id, latest_version_number)
+      latest_version_xml = fetch_latest_available_pom(group_id, artifact_id, version_numbers)
       return nil if latest_version_xml.nil?
       mapping_from_pom_xml(latest_version_xml, 0).merge({ name: name, versions: version_numbers, namespace: group_id })
     rescue => e
       p e
       nil
+    end
+
+    def fetch_latest_available_pom(group_id, artifact_id, version_numbers)
+      pom = nil
+      while pom.nil? && version_numbers.any?
+        version_number = version_numbers.pop
+        pom = download_pom(group_id, artifact_id, version_number)
+      end
+      pom
     end
 
     def map_package_metadata(package)
