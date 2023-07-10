@@ -6,11 +6,11 @@
     },
     {
       "command": "bundle exec rake packages:sync_least_recent",
-      "schedule": "*/30 * * * *"
+      "schedule": "*/15 * * * *"
     },
     {
       "command": "bundle exec rake packages:sync_least_recent_top",
-      "schedule": "*/30 * * * *"
+      "schedule": "*/20 * * * *"
     },
     {
       "command": "bundle exec rake packages:update_repo_metadata_async",
