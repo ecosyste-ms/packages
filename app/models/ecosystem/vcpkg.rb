@@ -7,7 +7,7 @@ module Ecosystem
     end
 
     def check_status(package)
-      return 'removed' unless packages.find { |package| package["Name"] == name }
+      return 'removed' unless packages.find { |package| package["Name"] == package.name }
     end
 
     def packages
