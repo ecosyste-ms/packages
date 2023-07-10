@@ -9,6 +9,13 @@ module Ecosystem
       "#{@registry_url}/package/#{package.name}"
     end
 
+    def check_status(package)
+      url = check_status_url(package)
+      response = Typhoeus.head(url, followlocation: true)
+      return "removed" if [400, 404, 410].include?(response.response_code)
+      return 'removed' if fetch_package_metadata(package.name).nil?
+    end
+
     def documentation_url(package, version = nil)
       "https://docs.racket-lang.org/#{package.name}/index.html"
     end
@@ -29,7 +36,7 @@ module Ecosystem
     end
 
     def all_package_data
-      get_json("https://pkgs.racket-lang.org/pkgs-all.json.gz")
+      @all_package_data ||= get_json("https://pkgs.racket-lang.org/pkgs-all.json.gz")
     rescue
       {}
     end
