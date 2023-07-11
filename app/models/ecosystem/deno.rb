@@ -12,6 +12,12 @@ module Ecosystem
       end
     end
 
+    def check_status(package)
+      url = check_status_url(package)
+      response = Typhoeus.head(url)
+      "removed" if [400, 404, 410].include?(response.response_code)
+    end
+
     def all_package_names
       page = 1
       packages = []
