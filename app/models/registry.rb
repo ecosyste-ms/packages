@@ -305,11 +305,15 @@ class Registry < ApplicationRecord
   end
 
   def outdated_packages_count
-    @outdated_packages_count ||= packages.active.outdated.count
+    Rails.cache.fetch("outdated_packages_count/#{id}", expires_in: 1.hour) do
+      packages.active.outdated.count
+    end
   end
 
   def active_packages_count
-    @active_packages_count ||= packages.active.count
+    Rails.cache.fetch("active_packages_count/#{id}", expires_in: 1.hour) do
+      packages.active.count
+    end
   end
 
   def outdated_percentage
