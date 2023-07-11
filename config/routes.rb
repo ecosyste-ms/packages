@@ -90,6 +90,10 @@ Rails.application.routes.draw do
       get :keywords, to: 'registries#keywords', as: :keywords
       get 'keywords/:keyword', to: 'registries#keyword', as: :keyword
     end
+
+    collection do
+      get :status, to: 'registries#status'
+    end
   end
 
   resources :keywords, only: [:index, :show], constraints: { id: /.*/ }

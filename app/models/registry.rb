@@ -303,4 +303,21 @@ class Registry < ApplicationRecord
   def icon_url
     "https://github.com/#{github}.png"
   end
+
+  def outdated_packages_count
+    @outdated_packages_count ||= packages.active.outdated.count
+  end
+
+  def active_packages_count
+    @active_packages_count ||= packages.active.count
+  end
+
+  def outdated_percentage
+    return 0 if active_packages_count.zero?
+    outdated_packages_count.to_f / active_packages_count * 100
+  end
+
+  def least_recently_synced_package
+    @least_recently_synced_package ||= packages.active.order('last_synced_at asc').first
+  end
 end

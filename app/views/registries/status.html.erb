@@ -1,0 +1,34 @@
+<div class="container-sm">
+  <h4 class='mb-3'>Registry Statuses</h4>
+
+  <% @registries.each do |registry|%>
+    <div class="card mb-3 registry d-flex" id="registry_<%= registry.id %>">
+      <div class="card-body pb-1">
+        <div class="d-flex">
+          
+          <div class="flex-grow-1 ms-3 text-break">
+            <h5 class='card-title'>
+              <%= link_to registry, registry_packages_path(registry.name) %>
+            </h5>
+          
+            <p class="card-subtitle mb-2 text-muted">
+              <%= number_with_delimiter registry.packages_count %> packages<br/>
+              Active: <%= number_with_delimiter registry.active_packages_count %> packages<br/>
+              Outdated: <%= number_with_delimiter registry.outdated_packages_count %> packages (<%= registry.outdated_percentage.round %>%) <br/>
+            </p>
+
+            <% if registry.outdated_packages_count > 0 %>
+              <p class="card-subtitle mb-2 text-muted">
+                Least recently synced package: <%= link_to registry.least_recently_synced_package.name, [registry, registry.least_recently_synced_package] %> (<%= time_ago_in_words(registry.least_recently_synced_package.updated_at) %> ago)
+              </p>
+            <% end %>
+          </div>
+          <div class="flex-shrink-0">
+            <img src="<%= registry.icon_url %>" class="rounded" height='40' width='40' onerror="this.style.display='none'">
+          </div>  
+        </div>
+      </div>
+    </div>
+
+  <% end %>
+</div>
