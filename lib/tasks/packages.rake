@@ -10,6 +10,11 @@ namespace :packages do
     r.sync_recently_updated_packages_async
   end
 
+  desc 'sync_worst_one_percent'
+  task sync_worst_one_percent: :environment do
+    Registry.sync_worst_one_percent
+  end
+
   desc 'sync all packages'
   task sync_all: :environment do
     Registry.sync_all_packages

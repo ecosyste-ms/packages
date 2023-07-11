@@ -13,6 +13,10 @@
       "schedule": "*/20 * * * *"
     },
     {
+      "command": "bundle exec rake packages:sync_worst_one_percent",
+      "schedule": "*/25 * * * *"
+    },
+    {
       "command": "bundle exec rake packages:update_repo_metadata_async",
       "schedule": "*/30 * * * *"
     },

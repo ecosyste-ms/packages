@@ -332,7 +332,9 @@ class Registry < ApplicationRecord
   end
 
   def one_percent_of_packages_count
-    (active_packages_count * 0.01).ceil
+    count = (active_packages_count * 0.01).ceil
+    return 2000 if count > 2000
+    count
   end
 
   def sync_one_percent_of_packages
