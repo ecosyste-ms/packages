@@ -2,6 +2,10 @@
 module Ecosystem
   class Postmarketos < Base
 
+    def sync_in_batches?
+      true
+    end
+
     def purl(package, version = nil)
       PackageURL.new(
         type: 'apk',
@@ -18,6 +22,10 @@ module Ecosystem
 
     def download_url(package, version)
       "https://mirror.postmarketos.org/postmarketos/#{@registry.version}/#{package.metadata['architecture']}/#{package.name}-#{version.number}.apk"
+    end
+
+    def check_status(package)
+      return "removed" if fetch_package_metadata(package.name).blank?
     end
 
     def install_command(package, version = nil)

@@ -2,6 +2,10 @@
 module Ecosystem
   class Adelie < Base
 
+    def sync_in_batches?
+      true
+    end
+
     def purl(package, version = nil)
       PackageURL.new(
         type: 'apk',
@@ -22,6 +26,10 @@ module Ecosystem
 
     def install_command(package, version = nil)
       "apk add #{package.name}"
+    end
+    
+    def check_status(package)
+      return "removed" if fetch_package_metadata(package.name).blank?
     end
 
     def fetch_packages(repository, architecture)

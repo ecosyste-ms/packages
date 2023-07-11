@@ -2,6 +2,10 @@
 
 module Ecosystem
   class Vcpkg < Base
+    def sync_in_batches?
+      true
+    end
+
     def install_command(package, _version = nil)
       ".\vcpkg install #{package.name}"
     end

@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 module Ecosystem
   class Bower < Base
+
+    def sync_in_batches?
+      true
+    end
+
     def install_command(package, version = nil)
       "bower install #{package.name}" + (version ? "##{version}" : "")
     end

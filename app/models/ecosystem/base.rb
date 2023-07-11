@@ -10,6 +10,10 @@ module Ecosystem
       @registry_url = registry.url
     end
 
+    def sync_in_batches?
+      false
+    end
+
     def self.list
       @ecosystems ||= begin
         Dir[Rails.root.join("app", "models", "ecosystem", "*.rb")].sort.each do |file|

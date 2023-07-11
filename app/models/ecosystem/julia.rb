@@ -2,6 +2,11 @@
 
 module Ecosystem
   class Julia < Base
+
+    def sync_in_batches?
+      true
+    end
+
     def registry_url(package, version = nil)
       "#{@registry_url}/ui/Packages/#{package.name}/#{package.metadata['slug']}/#{version}"
     end
