@@ -19,7 +19,7 @@
 
             <% if registry.outdated_packages_count > 0 %>
               <p class="card-subtitle mb-2 text-muted">
-                Least recently synced package: <%= link_to registry.least_recently_synced_package.name, [registry, registry.least_recently_synced_package] %> (<%= time_ago_in_words(registry.least_recently_synced_package.updated_at) %> ago)
+                Least recently synced package: <%= link_to registry.least_recently_synced_package.name, [registry, registry.least_recently_synced_package] %> <span title='<%= registry.least_recently_synced_package.last_synced_at %>'>(<%= time_ago_in_words(registry.least_recently_synced_package.last_synced_at) %> ago)</span>
               </p>
             <% end %>
           </div>
