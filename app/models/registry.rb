@@ -330,4 +330,16 @@ class Registry < ApplicationRecord
   def least_recently_synced_package
     packages.find(least_recently_synced_package_id)
   end
+
+  def one_percent_of_packages_count
+    (active_packages_count * 0.01).ceil
+  end
+
+  def sync_one_percent_of_packages
+    packages.active.order('last_synced_at asc').limit(one_percent_of_packages_count).each(&:sync_async)
+  end
+
+  def self.sync_worst_one_percent
+    Registry.all.sort_by(&:outdated_percentage).last.sync_one_percent_of_packages
+  end
 end
