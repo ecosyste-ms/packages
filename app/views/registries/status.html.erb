@@ -1,6 +1,11 @@
 <div class="container-sm">
   <h4 class='mb-3'>Registry Statuses</h4>
 
+  Total registries: <%= number_with_delimiter @registries.count %><br/>
+  Total packages: <%= number_with_delimiter @registries.sum(&:packages_count) %><br/>
+  Total active packages: <%= number_with_delimiter @registries.sum(&:active_packages_count) %><br/>
+  Total outdated packages: <%= number_with_delimiter @registries.sum(&:outdated_packages_count) %> (<%= (@registries.sum(&:outdated_packages_count).to_f/@registries.sum(&:active_packages_count)*100).round %>%)<br/><br/>
+
   <% @registries.each do |registry|%>
     <div class="card mb-3 registry d-flex" id="registry_<%= registry.id %>">
       <div class="card-body pb-1">
