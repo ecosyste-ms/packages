@@ -45,7 +45,7 @@ class SwiftpmTest < ActiveSupport::TestCase
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "https://github.com/swift-cloud/Compute"
+    assert_equal check_status_url, "https://swiftpackageindex.com/swift-cloud/Compute"
   end
 
   test 'purl' do

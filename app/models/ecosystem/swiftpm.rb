@@ -30,7 +30,7 @@ module Ecosystem
     end
 
     def check_status_url(package)
-      package['repository_url']
+      registry_url(package).presence || package['repository_url']
     end
 
     def documentation_url(package, version = nil)
