@@ -2,6 +2,11 @@
 
 module Ecosystem
   class Conda < Base
+
+    def sync_in_batches?
+      true
+    end
+
     def registry_url(package, version = nil)
       "https://anaconda.org/#{@registry.metadata['kind']}/#{package.name}"
     end
