@@ -568,6 +568,13 @@ paths:
           schema:
             type: string
             format: date-time
+        - name: published_before
+          in: query
+          description: filter by published_at before given time
+          required: false
+          schema:
+            type: string
+            format: date-time
         - name: sort
           in: query
           description: field to order results by
@@ -795,6 +802,13 @@ paths:
         - name: published_after
           in: query
           description: filter by published_at after given time
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: published_before
+          in: query
+          description: filter by published_at before given time
           required: false
           schema:
             type: string

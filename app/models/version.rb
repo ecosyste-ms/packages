@@ -9,6 +9,7 @@ class Version < ApplicationRecord
 
   scope :created_after, ->(created_at) { where('created_at > ?', created_at) }
   scope :published_after, ->(published_at) { where('published_at > ?', published_at) }
+  scope :published_before, ->(published_at) { where('published_at < ?', published_at) }
   scope :updated_after, ->(updated_at) { where('updated_at > ?', updated_at) }
 
   def to_param
