@@ -32,19 +32,17 @@ module Ecosystem
 
     def packages
       @packages ||= begin
-        Rails.cache.fetch("bower_packages", expires_in: 1.day) do
-          packages = {}
-          data = get("https://registry.bower.io/packages")
+        packages = {}
+        data = get("https://registry.bower.io/packages")
 
-          data.each do |hash|
-            packages[hash['name'].downcase] = {
-              "name" => hash['name'].downcase,
-              "url" => hash['url'],
-            }
-          end
-
-          packages
+        data.each do |hash|
+          packages[hash['name'].downcase] = {
+            "name" => hash['name'].downcase,
+            "url" => hash['url'],
+          }
         end
+
+        packages
       rescue
         {}
       end
