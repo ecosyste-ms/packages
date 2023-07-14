@@ -208,12 +208,16 @@ module Ecosystem
       repo_names = Set.new
     
       slugs.each do |slug|
+        begin
         url = "https://github.com#{slug}"
         response = Faraday.get(url)
         next unless response.success?
         doc = Nokogiri::HTML(response.body)
-        name = doc.css('.octicon-repo')[4].parent['href'].gsub('https://github.com/', '')
+        name = doc.css('.octicon-repo').last.parent['href'].gsub('https://github.com/', '')
         repo_names << name
+        rescue
+          puts "Error: #{url}"
+        end
         sleep 1
       end
       repo_names
