@@ -55,6 +55,8 @@ module Ecosystem
         repository_url: repo_fallback(fields["Home page"], ''),
         page: package[:page]
       }
+    rescue
+      nil
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
