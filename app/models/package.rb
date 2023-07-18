@@ -358,7 +358,7 @@ class Package < ApplicationRecord
       builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
     end
 
-    response = connection.get("/api/v1/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}/tags")
+    response = connection.get("/api/v1/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}/tags?per_page=1000")
     return nil unless response.success?
     return response.body
   rescue

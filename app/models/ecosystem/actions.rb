@@ -31,7 +31,7 @@ module Ecosystem
       end
       
       # TODO search for action.yml or action.yaml in all tags if not found in default branch
-      tags = tags_json = get_json(json['tags_url'])
+      tags = tags_json = get_json(json['tags_url']+'?per_page=1000')
       if tags.present?
         yaml = nil
         while yaml.blank? && tags.present?
@@ -93,7 +93,7 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       return [] unless pkg_metadata[:tags_url]
-      tags_json = get_json(pkg_metadata[:tags_url])
+      tags_json = get_json(pkg_metadata[:tags_url]+'?per_page=1000')
       return [] if tags_json.blank?
 
       tags_json.map do |tag|
