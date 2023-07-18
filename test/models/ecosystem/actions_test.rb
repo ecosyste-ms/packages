@@ -69,6 +69,10 @@ class ActionsTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('actions/lookup?url=https:%2F%2Fgithub.com%2Fgetsentry%2Faction-git-diff-suggestions') })
     stub_request(:get, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/main/action.yml")
       .to_return({ status: 200, body: file_fixture('actions/action.yml') })
+    stub_request(:get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/getsentry%2Faction-git-diff-suggestions/tags?per_page=1000")
+      .to_return({ status: 200, body: file_fixture('actions/tags') })
+    stub_request(:get, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/v1/action.yml")
+      .to_return({ status: 200, body: file_fixture('actions/action.yml.1') })
     
     package_metadata = @ecosystem.package_metadata('getsentry/action-git-diff-suggestions')
 
@@ -81,16 +85,18 @@ class ActionsTest < ActiveSupport::TestCase
       :homepage=>nil, 
       :tags_url=>"http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/getsentry%2Faction-git-diff-suggestions/tags", 
       :namespace=>"getsentry", 
-      :metadata=>{"name"=>"action-git-diff-suggestions", "description"=>"This GitHub Action will take the current git changes and apply them as GitHub code review suggestions", "author"=>"Sentry", "branding"=>{"icon"=>"book-open", "color"=>"purple"}, "inputs"=>{"github-token"=>{"description"=>"github token", "default"=>"${{ github.token }}"}, "message"=>{"description"=>"The message to prepend the review suggestion"}}, "runs"=>{"using"=>"node12", "main"=>"dist/index.js"}, "default_branch"=>"main","path"=>nil}}
+      :metadata=>{"name"=>"action-git-diff-suggestions", "description"=>"This GitHub Action will take the current git changes and apply them as GitHub code review suggestions", "author"=>"Sentry", "branding"=>{"icon"=>"book-open", "color"=>"purple"}, "inputs"=>{"github-token"=>{"description"=>"github token"}, "message"=>{"description"=>"The message to prepend the review suggestion"}}, "runs"=>{"using"=>"node12", "main"=>"dist/index.js"}, "default_branch"=>"main", "path"=>nil}}
   end
 
   test 'versions_metadata' do
-    stub_request(:get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/getsentry%2Faction-git-diff-suggestions/tags")
+    stub_request(:get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/getsentry%2Faction-git-diff-suggestions/tags?per_page=1000")
       .to_return({ status: 200, body: file_fixture('actions/tags') })
     stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/getsentry/action-git-diff-suggestions")
       .to_return({ status: 200, body: file_fixture('actions/lookup?url=https:%2F%2Fgithub.com%2Fgetsentry%2Faction-git-diff-suggestions') })
     stub_request(:get, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/main/action.yml")
       .to_return({ status: 200, body: file_fixture('actions/action.yml') })
+    stub_request(:get, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/v1/action.yml")
+      .to_return({ status: 200, body: file_fixture('actions/action.yml.1') })
     package_metadata = @ecosystem.package_metadata('getsentry/action-git-diff-suggestions')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
