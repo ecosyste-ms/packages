@@ -16,6 +16,7 @@ class Package < ApplicationRecord
   scope :updated_after, ->(updated_at) { where('updated_at > ?', updated_at) }
   scope :active, -> { where(status: nil) }
   scope :with_repository_url, -> { where("repository_url <> ''") }
+  scope :without_repository_url, -> { where(repository_url: [nil, '']) }
   scope :with_homepage, -> { where("homepage <> ''") }
   scope :with_repository_or_homepage_url, -> { where("repository_url <> '' OR homepage <> ''") }
   scope :with_repo_metadata, -> { where('length(repo_metadata::text) > 2') }

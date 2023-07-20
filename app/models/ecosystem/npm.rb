@@ -112,6 +112,12 @@ module Ecosystem
       repo = repo[0] if repo.is_a?(Array)
       repo_url = repo.try(:fetch, "url", nil)
 
+      if repo_url.blank?
+        repo = package.fetch("repository", {})
+        repo = repo[0] if repo.is_a?(Array)
+        repo_url = repo.try(:fetch, "url", nil)
+      end
+
       url = repo_fallback(repo_url, package["homepage"])
       return nil if ['https://github.com/npm/deprecate-holder',"https://github.com/npm/security-holder"].include?(url)
       url
