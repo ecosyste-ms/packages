@@ -7,6 +7,10 @@ module Ecosystem
       package.repository_url
     end
 
+    def check_status(package)
+      return 'removed' if fetch_package_metadata(package.name).nil?
+    end
+
     def fetch_package_metadata(name)
       parts = name.split('/')
       return nil if parts.length < 2
