@@ -114,7 +114,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
   end
 
   def ping_all
-    Package.repository_url(params[:repository_url]).find_each(&:sync_async)
+    Package.repository_url(params[:repository_url]).limit(1000).each(&:sync_async) unless params[:repository_url].nil?
 
     render json: { message: 'pong' }
   end
