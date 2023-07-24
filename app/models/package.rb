@@ -25,6 +25,8 @@ class Package < ApplicationRecord
   scope :without_rankings, -> { where('length(rankings::text) = 2') }
   scope :top, -> (percent = 1) { where("(rankings->>'average')::text::float < ?", percent) }
 
+  scope :repository_url, ->(repository_url) { where("lower(repository_url) = ?", repository_url.try(:downcase)) }
+
   scope :outdated, -> { where('last_synced_at < ?', 1.month.ago) }
 
   scope :keyword, ->(keyword) { where("keywords @> ARRAY[?]::varchar[]", keyword) }
@@ -556,7 +558,7 @@ class Package < ApplicationRecord
 
   def related_packages
     return [] unless repository_url.present?
-    registry.packages.where(repository_url: repository_url).where.not(id: id)
+    registry.packages.repository_url(repository_url).where.not(id: id)
   end
 
   def fetch_advisories

@@ -17,7 +17,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
 
   def lookup
     if params[:repository_url].present?
-      scope = Package.where(repository_url: params[:repository_url])
+      scope = Package.repository_url(params[:repository_url])
     elsif params[:purl].present?
       purl = PackageURL.parse(params[:purl])
       name = purl.name
@@ -114,7 +114,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
   end
 
   def ping_all
-    Package.where(repository_url: params[:repository_url]).find_each(&:sync_async)
+    Package.repository_url(params[:repository_url]).find_each(&:sync_async)
 
     render json: { message: 'pong' }
   end

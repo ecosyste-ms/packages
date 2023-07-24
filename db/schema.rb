@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_05_18_162516) do
+ActiveRecord::Schema[7.0].define(version: 2023_07_24_131917) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -115,6 +115,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_05_18_162516) do
     t.integer "docker_dependents_count"
     t.bigint "docker_downloads_count"
     t.index "(((rankings ->> 'average'::text))::double precision)", name: "index_packages_on_rankings_average"
+    t.index "lower((repository_url)::text)", name: "index_packages_on_lower_repository_url"
     t.index "registry_id, (((repo_metadata ->> 'forks_count'::text))::integer)", name: "index_packages_on_forks_count"
     t.index "registry_id, (((repo_metadata ->> 'stargazers_count'::text))::integer)", name: "index_packages_on_stargazers_count"
     t.index ["keywords"], name: "index_packages_on_keywords", using: :gin
@@ -126,7 +127,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_05_18_162516) do
     t.index ["registry_id", "name"], name: "index_packages_on_registry_id_and_name", unique: true
     t.index ["registry_id", "namespace"], name: "index_packages_on_registry_id_and_namespace"
     t.index ["registry_id", "updated_at"], name: "index_packages_on_registry_id_and_updated_at"
-    t.index ["repository_url"], name: "index_packages_on_repository_url"
     t.index ["status", "last_synced_at"], name: "index_packages_on_status_and_last_synced_at"
   end
 
