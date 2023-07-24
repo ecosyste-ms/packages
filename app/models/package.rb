@@ -25,7 +25,8 @@ class Package < ApplicationRecord
   scope :without_rankings, -> { where('length(rankings::text) = 2') }
   scope :top, -> (percent = 1) { where("(rankings->>'average')::text::float < ?", percent) }
 
-  scope :repository_url, ->(repository_url) { where("lower(repository_url) = ?", repository_url.try(:downcase)) }
+  # scope :repository_url, ->(repository_url) { where("lower(repository_url) = ?", repository_url.try(:downcase)) }
+  scope :repository_url, ->(repository_url) { where(repository_url: repository_url) }
 
   scope :outdated, -> { where('last_synced_at < ?', 1.month.ago) }
 
