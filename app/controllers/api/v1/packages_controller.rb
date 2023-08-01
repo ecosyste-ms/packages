@@ -28,6 +28,13 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       scope = Package.where(name: params[:name], ecosystem: params[:ecosystem])
     end
 
+    if params[:sort].present? || params[:order].present?
+      sort = params[:sort] || 'updated_at'
+      order = params[:order] || 'desc'
+      sort_options = sort.split(',').zip(order.split(',')).to_h
+      scope = scope.order(sort_options)
+    end
+
     @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
   end
 

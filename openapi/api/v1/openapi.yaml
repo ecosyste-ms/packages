@@ -47,6 +47,18 @@ paths:
           required: false
           schema:
             type: string
+        - name: sort
+          in: query
+          description: field to sort results by
+          required: false
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: direction to sort results by
+          required: false
+          schema:
+            type: string
       responses:
         200:
           description: OK
