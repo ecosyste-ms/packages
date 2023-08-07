@@ -85,7 +85,7 @@ GEM
       tzinfo (~> 2.0)
     addressable (2.8.4)
       public_suffix (>= 2.0.2, < 6.0)
-    appsignal (3.4.8)
+    appsignal (3.4.10)
       rack
     autoprefixer-rails (10.4.13.0)
       execjs (~> 2)
@@ -210,7 +210,7 @@ GEM
     puma (6.3.0)
       nio4r (~> 2.0)
     racc (1.7.1)
-    rack (2.2.7)
+    rack (2.2.8)
     rack-attack (6.7.0)
       rack (>= 1.0, < 4)
     rack-attack-rate-limit (1.1.0)
