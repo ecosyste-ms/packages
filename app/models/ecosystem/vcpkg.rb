@@ -11,7 +11,8 @@ module Ecosystem
     end
 
     def check_status(package)
-      return 'removed' unless packages.find { |package| package["Name"] == package.name }
+      name = package.is_a?(Package) ? package.name : package['Name']
+      return 'removed' unless packages.find { |package| package["Name"] == name }
     end
 
     def packages
