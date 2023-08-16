@@ -20,8 +20,10 @@ module Ecosystem
       "conda install -c #{@registry.metadata['kind']} #{package.name}#{version ? "=" + version : ""}"
     end
 
-    def check_status_url(package)
-      "https://conda.ecosyste.ms/package/#{package.name}"
+    def check_status(package)
+      url = registry_url(package)
+      response = Typhoeus.get(url)
+      return "removed" if [302, 404].include?(response.response_code)
     end
 
     def all_package_names
