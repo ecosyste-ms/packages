@@ -44,16 +44,16 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
-      meta = get("https://api.deno.land/modules/#{name}")
-      versions = get("https://cdn.deno.land/#{name}/meta/versions.json")
-      latest_version_number = versions['latest']
-      return false if latest_version_number.nil?
+      meta = get("https://apiland.deno.dev/v2/modules/#{name}")
+      versions = meta['versions']
+      latest_version_number = meta['latest_version']
       latest_version = get("https://cdn.deno.land/#{name}/versions/#{CGI.escape(latest_version_number)}/meta/meta.json")
       {
         name: name,
-        description: meta['data']['description'],
+        description: meta['description'],
         repository_url: 'https://github.com/'+latest_version['upload_options']['repository'],
-        versions: versions['versions']
+        keywords: meta['tags'],
+        versions: versions
       }
     rescue
       nil
