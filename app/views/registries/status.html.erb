@@ -22,7 +22,7 @@
               Outdated: <%= number_with_delimiter registry.outdated_packages_count %> packages (<%= registry.outdated_percentage.round %>%) <br/>
             </p>
 
-            <% if registry.outdated_packages_count > 0 %>
+            <% if registry.outdated_packages_count > 0 && registry.least_recently_synced_package.present? %>
               <p class="card-subtitle mb-2 text-muted">
                 Least recently synced package: <%= link_to registry.least_recently_synced_package.name, [registry, registry.least_recently_synced_package] %> <span title='<%= registry.least_recently_synced_package.last_synced_at %>'>(<%= time_ago_in_words(registry.least_recently_synced_package.last_synced_at) %> ago)</span>
               </p>

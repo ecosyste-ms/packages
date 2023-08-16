@@ -328,7 +328,7 @@ class Registry < ApplicationRecord
   end
 
   def least_recently_synced_package
-    packages.find(least_recently_synced_package_id)
+    packages.find_by_id(least_recently_synced_package_id)
   end
 
   def one_percent_of_packages_count
