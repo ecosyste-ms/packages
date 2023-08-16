@@ -61,30 +61,30 @@ class DenoTest < ActiveSupport::TestCase
   end
 
   test 'all_package_names' do
-    stub_request(:get, "https://api.deno.land/modules?page=1&limit=100&sort=oldest")
-      .to_return({ status: 200, body: file_fixture('deno/modules?page=1&limit=100&sort=oldest') })
-    stub_request(:get, "https://api.deno.land/modules?page=2&limit=100&sort=oldest")
-      .to_return({ status: 200, body: file_fixture('deno/modules?page=2&limit=100&sort=oldest') })
+    stub_request(:get, "https://apiland.deno.dev/v2/modules?page=1&limit=100")
+      .to_return({ status: 200, body: file_fixture('deno/modules?page=1&limit=100') })
+    stub_request(:get, "https://apiland.deno.dev/v2/modules?page=2&limit=100")
+      .to_return({ status: 200, body: file_fixture('deno/modules?page=2&limit=100') })
     all_package_names = @ecosystem.all_package_names
     assert_equal all_package_names.length, 100
-    assert_equal all_package_names.last, 'di'
+    assert_equal all_package_names.last, 'xhr'
   end
 
   test 'recently_updated_package_names' do
-    stub_request(:get, "https://api.deno.land/stats")
-      .to_return({ status: 200, body: file_fixture('deno/stats') })
+    stub_request(:get, "https://apiland.deno.dev/v2/modules")
+      .to_return({ status: 200, body: file_fixture('deno/modules') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 16
-    assert_equal recently_updated_package_names.first, 'riiidx'
+    assert_equal recently_updated_package_names.length, 300
+    assert_equal recently_updated_package_names.first, 'jose'
   end
 
   test 'package_metadata' do
-    stub_request(:get, "https://api.deno.land/modules/deno_es")
+    stub_request(:get, "https://apiland.deno.dev/v2/modules/deno_es")
       .to_return({ status: 200, body: file_fixture('deno/deno_es') })
     stub_request(:get, "https://cdn.deno.land/deno_es/meta/versions.json")
       .to_return({ status: 200, body: file_fixture('deno/versions.json') })
-    stub_request(:get, "https://cdn.deno.land/deno_es/versions/v0.4.2/meta/meta.json")
-      .to_return({ status: 200, body: file_fixture('deno/meta.json') })
+    stub_request(:get, "https://cdn.deno.land/deno_es/versions/v0.4.3/meta/meta.json")
+      .to_return({ status: 200, body: file_fixture('deno/meta.json.2') })
     package_metadata = @ecosystem.package_metadata('deno_es')
     
     assert_equal package_metadata[:name], "deno_es"
@@ -96,10 +96,12 @@ class DenoTest < ActiveSupport::TestCase
   end
 
   test 'versions_metadata' do
-    stub_request(:get, "https://api.deno.land/modules/deno_es")
+    stub_request(:get, "https://apiland.deno.dev/v2/modules/deno_es")
       .to_return({ status: 200, body: file_fixture('deno/deno_es') })
     stub_request(:get, "https://cdn.deno.land/deno_es/meta/versions.json")
       .to_return({ status: 200, body: file_fixture('deno/versions.json') })
+      stub_request(:get, "https://cdn.deno.land/deno_es/versions/v0.4.3/meta/meta.json")
+      .to_return({ status: 200, body: file_fixture('deno/meta.json.2') })
     stub_request(:get, "https://cdn.deno.land/deno_es/versions/v0.4.2/meta/meta.json")
       .to_return({ status: 200, body: file_fixture('deno/meta.json') })
     stub_request(:get, "https://cdn.deno.land/deno_es/versions/v0.4.1/meta/meta.json")
@@ -108,6 +110,7 @@ class DenoTest < ActiveSupport::TestCase
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
+      {:number=>"v0.4.3", :published_at=>"2022-05-07T07:05:25.556Z"},
       {:number=>"v0.4.2", :published_at=>"2022-03-25T06:16:54.883Z"},
       {:number=>"v0.4.1", :published_at=>"2022-01-18T05:37:36.728Z"}
     ]

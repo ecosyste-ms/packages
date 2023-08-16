@@ -22,22 +22,20 @@ module Ecosystem
       page = 1
       packages = []
       loop do
-        r = get("https://api.deno.land/modules?sort=oldest&page=#{page}&limit=100")['data']['results']
+        r = get("https://apiland.deno.dev/v2/modules?page=#{page}&limit=100")['items']
         break if r == []
 
         packages += r
         page += 1
       end
-      packages.map { |package| package["name"] }
+      packages.map { |package| package["name"] }.uniq
     rescue
       []
     end
 
     def recently_updated_package_names
-      json = get("https://api.deno.land/stats")
-      names = []
-      names += json['data']['recently_added_modules'].map { |p| p["name"] }
-      names += json['data']['recently_uploaded_versions'].map { |p| p["name"] }
+      json = get("https://apiland.deno.dev/v2/modules")
+      names = json['items'].map { |p| p["name"] }
       names.uniq
     rescue
       []
