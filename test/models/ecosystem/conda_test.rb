@@ -49,7 +49,7 @@ class CondaTest < ActiveSupport::TestCase
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "https://conda.ecosyste.ms/package/aiofiles"
+    assert_equal check_status_url, "https://anaconda.org/anaconda/aiofiles"
   end
 
   test 'purl' do
@@ -140,6 +140,6 @@ class CondaTest < ActiveSupport::TestCase
 
   test 'conda-forge check_status_url' do
     check_status_url = @ecosystem2.check_status_url(@package2)
-    assert_equal check_status_url, "https://conda.ecosyste.ms/package/aiofiles"
+    assert_equal check_status_url, "https://anaconda.org/conda-forge/aiofiles"
   end
 end
