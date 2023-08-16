@@ -43,7 +43,7 @@ class Package < ApplicationRecord
   end
 
   def self.sync_least_recent_async
-    Package.active.order('last_synced_at asc nulls first').limit(3000).each(&:sync_async)
+    Package.active.outdated.order('RANDOM()').limit(3000).each(&:sync_async)
   end
 
   def self.sync_least_recent_top_async
