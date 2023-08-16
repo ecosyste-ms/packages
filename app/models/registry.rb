@@ -338,7 +338,7 @@ class Registry < ApplicationRecord
   end
 
   def sync_one_percent_of_packages
-    packages.active.order('last_synced_at asc').limit(one_percent_of_packages_count).each(&:sync_async)
+    packages.active.outdated.order('RANDOM()').limit(one_percent_of_packages_count).each(&:sync_async)
   end
 
   def self.sync_worst_one_percent
