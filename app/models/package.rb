@@ -474,7 +474,7 @@ class Package < ApplicationRecord
     return if repo_metadata.blank?
     return if repo_metadata['host'].blank?
 
-    connection = Faraday.new 'https://repos.ecosyste.ms' do |builder|
+    connection = Faraday.new 'https://issues.ecosyste.ms' do |builder|
       builder.use Faraday::FollowRedirects::Middleware
       builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
       builder.response :json
