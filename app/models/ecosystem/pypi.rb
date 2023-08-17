@@ -89,15 +89,21 @@ module Ecosystem
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
-      pkg_metadata[:releases].reject { |_k, v| v == [] }.map do |k, v|
-        {
-          number: k,
-          published_at: v[0]["upload_time"],
-          integrity: 'sha256-' + v[0]['digests']['sha256'],
-          metadata: {
-            download_url: v[0]['url']
+      pkg_metadata[:releases].map do |k, v|
+        if v == []
+          {
+            number: k
           }
-        }
+        else
+          {
+            number: k,
+            published_at: v[0]["upload_time"],
+            integrity: 'sha256-' + v[0]['digests']['sha256'],
+            metadata: {
+              download_url: v[0]['url']
+            }
+          }
+        end
       end
     end
 
