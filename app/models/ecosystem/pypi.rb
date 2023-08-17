@@ -92,7 +92,12 @@ module Ecosystem
       pkg_metadata[:releases].map do |k, v|
         if v == []
           {
-            number: k
+            number: k,
+            published_at: nil,
+            integrity: nil,
+            metadata: {
+              download_url: nil
+            }
           }
         else
           {
