@@ -26,7 +26,6 @@ class Package < ApplicationRecord
   scope :top, -> (percent = 1) { where("(rankings->>'average')::text::float < ?", percent) }
 
   scope :repository_url, ->(repository_url) { where("lower(repository_url) = ?", repository_url.try(:downcase)) }
-  # scope :repository_url, ->(repository_url) { where(repository_url: repository_url) }
 
   scope :outdated, -> { where('last_synced_at < ?', 1.month.ago) }
 
@@ -35,6 +34,8 @@ class Package < ApplicationRecord
   scope :without_maintainerships, -> { includes(:maintainerships).where(maintainerships: {package_id: nil}) }
 
   scope :with_funding, -> { where("length(metadata ->> 'funding') > 2 OR length(repo_metadata -> 'metadata' ->> 'funding') > 2 OR repo_metadata -> 'owner_record' -> 'metadata' ->> 'has_sponsors_listing' = 'true'") }
+
+  scope :with_issue_metadata, -> { where('length(issue_metadata::text) > 2') }
 
   after_create :update_rankings_async
 
@@ -281,6 +282,8 @@ class Package < ApplicationRecord
       repo_metadata.merge!({'owner_record' => owner}) if owner
       repo_metadata.merge!({'tags' => tags}) if tags
       update(repo_metadata: repo_metadata)
+      ping_issues
+      update_issue_metadata
     end
     update(repo_metadata_updated_at: Time.now)
   end
@@ -455,6 +458,52 @@ class Package < ApplicationRecord
 
     update(dependent_repos_count: json['dependents_count'])
     update_rankings
+  end
+
+  def update_issue_metadata
+    return if repo_metadata.blank?
+    return if repo_metadata['host'].blank?
+
+    issue_metadata = fetch_issue_metadata
+    return if issue_metadata.blank?
+
+    update(issue_metadata: issue_metadata)
+  end
+
+  def ping_issues
+    return if repo_metadata.blank?
+    return if repo_metadata['host'].blank?
+
+    connection = Faraday.new 'https://repos.ecosyste.ms' do |builder|
+      builder.use Faraday::FollowRedirects::Middleware
+      builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
+      builder.response :json
+      builder.request :json
+      builder.request :instrumentation
+      builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
+    end
+    connection.get("/api/v1/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}/ping")
+  end
+
+  def fetch_issue_metadata
+    return if repo_metadata.blank?
+    connection = Faraday.new 'https://issues.ecosyste.ms' do |builder|
+      builder.use Faraday::FollowRedirects::Middleware
+      builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
+      builder.response :json
+      builder.request :json
+      builder.request :instrumentation
+      builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
+    end
+
+    response = connection.get("/api/v1/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}")
+    return nil unless response.success?
+    return response.body.except('full_name', 'host', 'owner','html_url', 'issue_authors', 'repository_url', 'issue_labels_count', 'pull_request_labels_count', 
+      'issue_author_associations_count', 'pull_request_author_associations_count', 'pull_request_authors', 'past_year_issue_labels_count', 'past_year_pull_request_labels_count', 
+      'past_year_issue_author_associations_count', 'past_year_pull_request_author_associations_count', 'past_year_issue_authors', 'past_year_pull_request_authors',
+      'created_at', 'updated_at', 'status')
+  rescue
+    nil
   end
 
   def load_rankings
