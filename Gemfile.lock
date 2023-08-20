@@ -207,7 +207,7 @@ GEM
     postgresql_cursor (0.6.8)
       activerecord (>= 6.0)
     public_suffix (5.0.3)
-    puma (6.3.0)
+    puma (6.3.1)
       nio4r (~> 2.0)
     racc (1.7.1)
     rack (2.2.8)
