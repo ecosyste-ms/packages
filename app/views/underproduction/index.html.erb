@@ -1,0 +1,35 @@
+<% @meta_description = "TBC" %>
+<% @meta_title = "Underproduction in Open Source" %>
+
+<div class="container-sm">
+  <h1 class='mb-3'>Underproduction  in Open Source</h1>
+
+  <p class='lead'>
+    <%= @meta_description %>
+  <p>
+
+  <% @registries.each do |registry| %>
+
+    <div class="card mb-3 registry d-flex" id="registry_<%= registry.id %>">
+      <div class="card-body pb-1">
+        <div class="d-flex">
+          
+          <div class="flex-grow-1 ms-3 text-break">
+            <h5 class='card-title'>
+              <%= link_to registry.name, underproduction_registry_path(registry.name) %>
+            </h5>
+          
+            <p class="card-subtitle mb-2 text-muted">
+              <%= pluralize number_with_delimiter(registry.packages_count), 'packages' %>
+              (<%= registry.funded_packages_percentage.round(2) %>%)
+            </p>
+          </div>
+          <div class="flex-shrink-0">
+            <img src="<%= registry.icon_url %>" class="rounded" height='40' width='40' onerror="this.style.display='none'">
+          </div>  
+        </div>
+      </div>
+    </div>
+
+  <% end %>
+</div>

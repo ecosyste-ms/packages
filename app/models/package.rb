@@ -758,4 +758,6 @@ class Package < ApplicationRecord
 
   scope :with_issue_close_time, -> { where.not(issue_metadata: nil).where.not("(issue_metadata->'avg_time_to_close_issue')::text = ?", 'null') }
   scope :production, -> { active.where('dependent_repos_count > 0').with_issue_close_time }
+
+  # TODO some combination of quality factors that works for all projects in an ecosystem (even if repo unknown)
 end
