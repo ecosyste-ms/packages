@@ -36,6 +36,7 @@ class Package < ApplicationRecord
   scope :with_funding, -> { where("length(metadata ->> 'funding') > 2 OR length(repo_metadata -> 'metadata' ->> 'funding') > 2 OR repo_metadata -> 'owner_record' -> 'metadata' ->> 'has_sponsors_listing' = 'true'") }
 
   scope :with_issue_metadata, -> { where('length(issue_metadata::text) > 2') }
+  scope :without_issue_metadata, -> { where(issue_metadata: nil) }
 
   after_create :update_rankings_async
 
@@ -721,4 +722,42 @@ class Package < ApplicationRecord
   rescue
     nil
   end
+
+  # underproduction
+
+  def usage
+    dependent_repos_count
+  end
+
+  def quality
+    issue_metadata['avg_time_to_close_issue']
+  end
+
+  def update_underproduction_ranks
+    return unless usage.present? && quality.present?
+
+    usage = calculate_usage_rank
+    quality = calculate_quality_rank
+    production = Math.log(usage/quality.to_f)
+    
+
+    rankings['underproduction'] = {
+      'usage_rank' => usage,
+      'quality_rank' => quality,
+      'production' => production
+    }
+    save
+  
+    save
+  end
+
+  def calculate_usage_rank
+    registry.package_ids_sorted_by_usage.index(id) + 1
+  end
+
+  def calculate_quality_rank
+    registry.package_ids_sorted_by_quality.index(id) + 1
+  end
+
+  scope :with_issue_close_time, -> { where.not(issue_metadata: nil).where.not("(issue_metadata->'avg_time_to_close_issue')::text = ?", 'null') }
 end

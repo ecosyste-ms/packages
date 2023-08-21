@@ -344,4 +344,14 @@ class Registry < ApplicationRecord
   def self.sync_worst_one_percent
     Registry.all.sort_by(&:outdated_percentage).last.sync_one_percent_of_packages
   end
+
+  # underproduction
+
+  def package_ids_sorted_by_usage
+    @package_ids_sorted_by_usage ||= packages.where('dependent_repos_count > 0').with_issue_close_time.order(dependent_repos_count: :asc).pluck(:id)
+  end
+
+  def package_ids_sorted_by_quality
+    @package_ids_sorted_by_quality ||= packages.where('dependent_repos_count > 0').with_issue_close_time.order(Arel.sql("(issue_metadata->>'avg_time_to_close_issue')::text::float desc")).pluck(:id)
+  end
 end
