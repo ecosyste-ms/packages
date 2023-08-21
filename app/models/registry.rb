@@ -348,10 +348,10 @@ class Registry < ApplicationRecord
   # underproduction
 
   def package_ids_sorted_by_usage
-    @package_ids_sorted_by_usage ||= packages.where('dependent_repos_count > 0').with_issue_close_time.order(dependent_repos_count: :asc).pluck(:id)
+    @package_ids_sorted_by_usage ||= packages.active.where('dependent_repos_count > 0').with_issue_close_time.order(dependent_repos_count: :asc).pluck(:id)
   end
 
   def package_ids_sorted_by_quality
-    @package_ids_sorted_by_quality ||= packages.where('dependent_repos_count > 0').with_issue_close_time.order(Arel.sql("(issue_metadata->>'avg_time_to_close_issue')::text::float desc")).pluck(:id)
+    @package_ids_sorted_by_quality ||= packages.active.where('dependent_repos_count > 0').with_issue_close_time.order(Arel.sql("(issue_metadata->>'avg_time_to_close_issue')::text::float desc")).pluck(:id)
   end
 end
