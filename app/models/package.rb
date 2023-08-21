@@ -760,4 +760,5 @@ class Package < ApplicationRecord
   scope :production, -> { active.where('dependent_repos_count > 0').with_issue_close_time }
 
   # TODO some combination of quality factors that works for all projects in an ecosystem (even if repo unknown)
+  # TODO some combination of usage factors that works for all projects in an ecosystem (i.e. avg ranking)
 end
