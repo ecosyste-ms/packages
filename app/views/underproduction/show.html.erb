@@ -67,10 +67,12 @@
             - <%= number_with_delimiter package.stars %> stars on <%= package.repo_metadata.fetch('host',{})['name'] %>
           <% end %>
 
-          <br/>Underproduction: <span title='usage: <%= package.rankings['underproduction']['usage_rank'] %> - quality: <%= package.rankings['underproduction']['quality_rank'] %>'><%= package.rankings['underproduction']['production'] %></span>
-          <br/>Avg time to close issues: <%= distance_of_time_in_words package.issue_metadata['avg_time_to_close_issue'] %>
-          <% if package.issue_metadata['avg_time_to_close_pull_request'] %>
-            <br/>Avg time to close pull requests: <%= distance_of_time_in_words package.issue_metadata['avg_time_to_close_pull_request'] %>
+          <% if package.rankings['underproduction'] %>  
+            <br/>Underproduction: <span title='usage: <%= package.rankings['underproduction']['usage_rank'] %> - quality: <%= package.rankings['underproduction']['quality_rank'] %>'><%= package.rankings['underproduction']['production'] %></span>
+            <br/>Avg time to close issues: <%= distance_of_time_in_words package.issue_metadata['avg_time_to_close_issue'] %>
+            <% if package.issue_metadata['avg_time_to_close_pull_request'] %>
+              <br/>Avg time to close pull requests: <%= distance_of_time_in_words package.issue_metadata['avg_time_to_close_pull_request'] %>
+            <% end %>
           <% end %>
         </small>
       </div>
