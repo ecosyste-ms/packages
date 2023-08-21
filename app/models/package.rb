@@ -738,7 +738,7 @@ class Package < ApplicationRecord
 
     usage = calculate_usage_rank
     quality = calculate_quality_rank
-    production = Math.log(usage/quality.to_f)
+    production = Math.log10(usage/quality.to_f)
     
     rankings['underproduction'] = {
       'usage_rank' => usage,
