@@ -733,21 +733,18 @@ class Package < ApplicationRecord
     issue_metadata['avg_time_to_close_issue']
   end
 
-  def update_underproduction_ranks
+  def update_production_ranks
     return unless usage.present? && quality.present?
 
     usage = calculate_usage_rank
     quality = calculate_quality_rank
     production = Math.log(usage/quality.to_f)
     
-
     rankings['underproduction'] = {
       'usage_rank' => usage,
       'quality_rank' => quality,
       'production' => production
     }
-    save
-  
     save
   end
 
@@ -760,4 +757,5 @@ class Package < ApplicationRecord
   end
 
   scope :with_issue_close_time, -> { where.not(issue_metadata: nil).where.not("(issue_metadata->'avg_time_to_close_issue')::text = ?", 'null') }
+  scope :production, -> { active.where('dependent_repos_count > 0').with_issue_close_time }
 end
