@@ -6,15 +6,15 @@
     },
     {
       "command": "bundle exec rake packages:sync_recent",
-      "schedule": "*/10 * * * *"
-    },
-    {
-      "command": "bundle exec rake packages:sync_least_recent",
       "schedule": "*/15 * * * *"
     },
     {
-      "command": "bundle exec rake packages:sync_least_recent_top",
+      "command": "bundle exec rake packages:sync_least_recent",
       "schedule": "*/20 * * * *"
+    },
+    {
+      "command": "bundle exec rake packages:sync_least_recent_top",
+      "schedule": "*/30 * * * *"
     },
     {
       "command": "bundle exec rake packages:sync_worst_one_percent",
