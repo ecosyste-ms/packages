@@ -45,15 +45,15 @@ class Package < ApplicationRecord
   end
 
   def self.sync_least_recent_async
-    Package.active.outdated.order('RANDOM()').limit(3000).each(&:sync_async)
+    Package.active.outdated.order('RANDOM()').limit(3000).select('id, last_synced_at').each(&:sync_async)
   end
 
   def self.sync_least_recent_top_async
-    Package.active.order('last_synced_at asc nulls first').top(2).where('last_synced_at < ?', 12.hours.ago).limit(3_000).each(&:sync_async)
+    Package.active.order('last_synced_at asc nulls first').top(2).where('last_synced_at < ?', 12.hours.ago).select('id, last_synced_at').limit(3_000).each(&:sync_async)
   end
 
   def self.check_statuses_async
-    Package.active.order('last_synced_at asc nulls first').limit(1000).each(&:check_status_async)
+    Package.active.order('last_synced_at asc nulls first').limit(1000).select('id').each(&:check_status_async)
   end
 
   def self.sync_download_counts_async
