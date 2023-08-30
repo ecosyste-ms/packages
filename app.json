@@ -14,7 +14,7 @@
     },
     {
       "command": "bundle exec rake packages:sync_least_recent_top",
-      "schedule": "*/30 * * * *"
+      "schedule": "*/40 * * * *"
     },
     {
       "command": "bundle exec rake packages:sync_worst_one_percent",
