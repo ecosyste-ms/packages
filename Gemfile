@@ -50,6 +50,7 @@ gem 'packageurl-ruby'
 gem 'sitemap_generator'
 gem 'dalli'
 gem 'postgresql_cursor'
+gem 'rack-timeout'
 
 group :development, :test do
   gem "debug", platforms: %i[ mri mingw x64_mingw ]
