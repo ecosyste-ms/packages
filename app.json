@@ -18,7 +18,7 @@
     },
     {
       "command": "bundle exec rake packages:sync_worst_one_percent",
-      "schedule": "*/25 * * * *"
+      "schedule": "*/30 * * * *"
     },
     {
       "command": "bundle exec rake packages:update_repo_metadata_async",
@@ -37,11 +37,11 @@
       "schedule": "0 0 * * *"
     },
     {
-      "command": "bundle exec rake packages:sync_maintainers_async",
+      "command": "bundle exec rake packages:sync_maintainers",
       "schedule": "*/30 * * * *"
     },
     {
-      "command": "bundle exec rake packages:update_rankings_async",
+      "command": "bundle exec rake packages:update_rankings",
       "schedule": "*/30 * * * *"
     },
     {
