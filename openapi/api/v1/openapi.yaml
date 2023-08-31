@@ -6,7 +6,7 @@ info:
     name: Ecosyste.ms
     email: support@ecosyste.ms
     url: https://ecosyste.ms 
-  version: 1.0.0
+  version: 1.0.1
   license:
     name: CC-BY-SA-4.0
     url: https://creativecommons.org/licenses/by-sa/4.0/
@@ -877,7 +877,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Version'
+                $ref: '#/components/schemas/VersionWithDependencies'
 components:
   schemas:
     Registry:
@@ -1138,6 +1138,63 @@ components:
             format: date-time
           purl:
             type: string
+          version_url:
+            type: string
+    VersionWithDependencies:
+      required:
+        - number
+        - published_at
+        - licenses
+        - integrity
+        - status
+        - download_url
+        - registry_url
+        - documentation_url
+        - install_command
+        - metadata
+        - created_at
+        - updated_at
+        - purl
+        - dependencies
+      type: object
+      properties:
+          number:
+            type: string
+          published_at:
+            type: string
+            nullable: true
+          licenses:
+            type: string
+            nullable: true
+          integrity:
+            type: string
+            nullable: true
+          status:
+            type: string
+            nullable: true
+          download_url:
+            type: string
+            nullable: true
+          registry_url:
+            type: string
+            nullable: true
+          documentation_url:
+            type: string
+            nullable: true
+          install_command:
+            type: string
+            nullable: true
+          metadata:
+            type: object
+            nullable: true
+          created_at:
+            type: string
+            format: date-time
+          updated_at:
+            type: string
+            format: date-time
+          purl:
+            type: string
           dependencies:
             type: array
             items:
@@ -1198,13 +1255,11 @@ components:
           format: date-time
         purl:
           type: string
+        version_url:
+            type: string
         package:
           type: object
           $ref: '#/components/schemas/Package'
-        dependencies:
-          type: array
-          items:
-            $ref: '#/components/schemas/Dependency'
     Dependency:
       required:
         - ecosystem
