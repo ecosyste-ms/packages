@@ -130,7 +130,7 @@ module Ecosystem
     end
 
     def namespace(package)
-      return nil if package["_id"].split("/").length == 1
+      return nil if package["_id"].nil? || package["_id"].split("/").length == 1
       package["_id"].split("/").first.gsub('@', '')
     end
 
