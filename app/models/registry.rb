@@ -233,7 +233,6 @@ class Registry < ApplicationRecord
   end
 
   def sync_maintainers(package)
-    
     maintainers_json = ecosystem_instance.maintainers_metadata(package.name)
     maintainer_records = []
 
@@ -264,6 +263,8 @@ class Registry < ApplicationRecord
     end
     package.update_maintainers_count
     package.maintainers.reload.each(&:update_packages_count)
+  rescue ApplicationRecord::RecordNotUnique
+    nil
   end
 
   def maintainer_url(maintainer)
