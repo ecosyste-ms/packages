@@ -263,7 +263,7 @@ class Registry < ApplicationRecord
     end
     package.update_maintainers_count
     package.maintainers.reload.each(&:update_packages_count)
-  rescue ApplicationRecord::RecordNotUnique
+  rescue ActiveRecord::RecordNotUnique
     nil
   end
 
