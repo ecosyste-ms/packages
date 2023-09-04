@@ -70,7 +70,7 @@ class Registry < ApplicationRecord
   end
 
   def sync_recently_updated_packages
-    sync_packages(recently_updated_package_names)
+    sync_packages(recently_updated_package_names_excluding_recently_synced)
   end
 
   def sync_all_packages_async
@@ -82,7 +82,7 @@ class Registry < ApplicationRecord
   end
 
   def sync_recently_updated_packages_async
-    sync_packages_async(recently_updated_package_names)
+    sync_packages_async(recently_updated_package_names_excluding_recently_synced)
   end
 
   def sync_packages(package_names)
