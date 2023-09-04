@@ -766,6 +766,34 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Package'
+  /registries/{registryName}/ackages/{packageName}/version_numbers:
+    get:
+      summary: get a list of version numbers for a package from a registry
+      operationId: getRegistryPackageVersionNumbers
+      tags:
+        - packages
+      parameters:
+        - in: path
+          name: registryName
+          schema:
+            type: string
+          required: true
+          description: name of registry
+        - in: path
+          name: packageName
+          schema:
+            type: string
+          required: true
+          description: name of package
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
   /registries/{registryName}/packages/{packageName}/versions:
     get:
       summary: get a list of versions for a package
@@ -1064,6 +1092,8 @@ components:
           items:
             $ref: '#/components/schemas/Advisory'
         versions_url:
+          type: string
+        version_numbers_url:
           type: string
         dependent_packages_url:
           type: string
