@@ -202,7 +202,7 @@ GEM
     ox (2.14.17)
     packageurl-ruby (0.1.0)
     pagy (6.0.4)
-    pg (1.5.3)
+    pg (1.5.4)
     pg_query (4.2.3)
       google-protobuf (>= 3.22.3)
     pghero (3.3.3)
