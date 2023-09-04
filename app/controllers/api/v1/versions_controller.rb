@@ -37,4 +37,12 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
     @pagy, @versions = pagy_countless(scope.order(sort_options))
   end
+
+  def version_numbers
+    @registry = Registry.find_by_name!(params[:registry_id])
+    @package = @registry.packages.find_by_name(params[:id])
+    @package = @registry.packages.find_by_name!(params[:id].downcase) if @package.nil?
+    numbers = @package.versions.pluck(:number)
+    render json: numbers
+  end
 end

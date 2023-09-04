@@ -42,4 +42,13 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal first_version['number'], "1.0.0"
     assert_equal first_version['metadata'], {"foo"=>"bar"}
   end
+
+  test 'get version numbers' do
+    get version_numbers_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal actual_response, ["1.0.0"]
+  end
 end

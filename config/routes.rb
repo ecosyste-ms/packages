@@ -44,6 +44,7 @@ Rails.application.routes.draw do
             get :dependent_packages, to: 'packages#dependent_packages'
             get :related_packages, to: 'packages#related_packages'
             get :ping, to: 'packages#ping'
+            get :version_numbers, to: 'versions#version_numbers'
           end
         end
 
