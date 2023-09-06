@@ -8,7 +8,7 @@ class Api::V1::DependenciesController < Api::V1::ApplicationController
     scope = scope.where(requirement: params[:requirement]) if params[:requirement].present?
     scope = scope.where(kind: params[:kind]) if params[:kind].present?
     scope = scope.where(optional: params[:optional]) if params[:optional].present?
-    @scope = @scope.where('id > ?', params[:after]) if params[:after].present?
+    scope = scope.where('dependencies.id > ?', params[:after]) if params[:after].present?
 
     @pagy, @dependencies = pagy_countless(scope)
   end
