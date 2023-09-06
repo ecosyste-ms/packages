@@ -309,7 +309,7 @@ GEM
     spdx (2.0.12)
       fuzzy_match (~> 2.1)
       treetop (~> 1.6)
-    sprockets (4.2.0)
+    sprockets (4.2.1)
       concurrent-ruby (~> 1.0)
       rack (>= 2.2.4, < 4)
     sprockets-rails (3.4.2)
