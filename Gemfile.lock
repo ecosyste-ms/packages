@@ -87,7 +87,7 @@ GEM
       public_suffix (>= 2.0.2, < 6.0)
     appsignal (3.4.12)
       rack
-    autoprefixer-rails (10.4.13.0)
+    autoprefixer-rails (10.4.15.0)
       execjs (~> 2)
     bindex (0.8.1)
     bootsnap (1.16.0)
