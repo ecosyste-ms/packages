@@ -1003,6 +1003,7 @@ components:
         - maintainers
         - usage_url
         - dependent_repositories_url
+        - status
       type: object
       properties:
         name:
