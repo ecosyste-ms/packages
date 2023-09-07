@@ -140,6 +140,8 @@ class Registry < ApplicationRecord
     end
 
     if new_versions.any?
+      new_versions.uniq { |v| v[:number] }
+
       new_versions.each_slice(100) do |s|
         Version.upsert_all(s, unique_by: [:package_id, :number])
       end
