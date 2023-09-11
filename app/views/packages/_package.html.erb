@@ -38,11 +38,11 @@
         <%= '-' if package.versions_count > 0 %> <span title="<%= package.latest_release_published_at %>">Latest release: <%= time_ago_in_words package.latest_release_published_at %> ago</span>
       <% end %>
 
-      <% if package.dependent_packages_count > 0 %>
+      <% if package.dependent_packages_count && package.dependent_packages_count > 0 %>
         - <%= pluralize number_with_delimiter(package.dependent_packages_count), 'dependent package' %>
       <% end %>
 
-      <% if package.dependent_repos_count > 0 %>
+      <% if package.dependent_repos_count && package.dependent_repos_count > 0 %>
         - <%= pluralize number_with_delimiter(package.dependent_repos_count), 'dependent repositories' %>
       <% end %>
 
