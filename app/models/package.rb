@@ -610,7 +610,7 @@ class Package < ApplicationRecord
   end
 
   def related_packages
-    return [] unless repository_url.present?
+    return registry.packages.where('false') unless repository_url.present?
     registry.packages.repository_url(repository_url).where.not(id: id)
   end
 
