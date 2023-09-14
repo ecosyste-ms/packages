@@ -766,7 +766,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Package'
-  /registries/{registryName}/ackages/{packageName}/version_numbers:
+  /registries/{registryName}/packages/{packageName}/version_numbers:
     get:
       summary: get a list of version numbers for a package from a registry
       operationId: getRegistryPackageVersionNumbers
