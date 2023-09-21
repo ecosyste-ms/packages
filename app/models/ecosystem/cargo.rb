@@ -53,7 +53,7 @@ module Ecosystem
     end
 
     def map_package_metadata(package)
-      return false unless package["versions"].present?
+      return false unless package.present? && package["versions"].present?
       latest_version = package["versions"].to_a.first
       {
         name: package["crate"]["id"],

@@ -58,8 +58,10 @@ module Ecosystem
       response = Typhoeus.head(url)
       return "removed" if [302, 404].include?(response.response_code)
 
-      json = get_json("https://repo.packagist.org/p2/#{package.name}~dev.json")&.dig("packages", package.name)
-      return "abandoned" if json == []
+      json = get_json("https://repo.packagist.org/p2/#{package.name}~dev.json")
+      return "abandoned" if json == "404 not found, no packages here"
+      res = json&.dig("packages", package.name)
+      return "abandoned" if res == []
     end
 
     def deprecation_info(name)

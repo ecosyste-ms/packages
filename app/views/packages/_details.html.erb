@@ -95,11 +95,11 @@
       <br/>Namespace: <%= link_to @package.namespace, registry_namespace_path(@registry.name, @package.namespace) %>
     <% end %>
 
-    <% if @package.dependent_packages_count > 0 %>  
+    <% if @package.dependent_packages_count && @package.dependent_packages_count > 0 %>  
       <br/>Dependent packages: <%= number_with_delimiter(@package.dependent_packages_count) %>
     <% end %>
 
-    <% if @package.dependent_repos_count > 0 %>
+    <% if @package.dependent_repos_count && @package.dependent_repos_count > 0 %>
       <br/>Dependent repositories: <%= link_to number_with_delimiter(@package.dependent_repos_count), "https://repos.ecosyste.ms/usage/#{@package.ecosystem}/#{@package.name}", target: :_blank %>
     <% end %>
     

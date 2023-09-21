@@ -56,6 +56,8 @@ module Ecosystem
         packages << package if package['P'].present?
       end
       packages
+    rescue
+      []
     end
  
     def packages

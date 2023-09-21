@@ -143,7 +143,7 @@ module Ecosystem
 
     def maintainers_metadata(name)
       data = fetch_package_metadata(name)
-      return [] if data['m'].blank?
+      return [] if data.blank? || data['m'].blank?
       d = data['m'].split('<')
       name = d[0].strip
       email = d[1].gsub('>','').strip
