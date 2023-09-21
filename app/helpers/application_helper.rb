@@ -18,7 +18,7 @@ module ApplicationHelper
   end
 
   def meta_description
-    @meta_description || "An open API service providing package, version and dependency metadata many open source software ecosystems and registries."
+    @meta_description || "An open API service providing package, version and dependency metadata of many open source software ecosystems and registries."
   end
 
   def meta_title
