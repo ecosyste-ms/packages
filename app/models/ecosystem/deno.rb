@@ -14,7 +14,7 @@ module Ecosystem
 
     def check_status(package)
       url = check_status_url(package)
-      response = Typhoeus.head(url)
+      response = Typhoeus.head(url, followlocation: true)
       "removed" if [400, 404, 410].include?(response.response_code)
     end
 
