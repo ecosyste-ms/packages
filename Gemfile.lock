@@ -135,7 +135,7 @@ GEM
     faraday-typhoeus (1.0.0)
       faraday (~> 2.0)
       typhoeus (~> 1.4)
-    ffi (1.15.5)
+    ffi (1.16.1)
     fuzzy_match (2.1.0)
     globalid (1.2.1)
       activesupport (>= 6.1)
