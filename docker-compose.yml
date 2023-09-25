@@ -12,7 +12,7 @@ services:
       - RAILS_ENV=development
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=development
-      - DATABASE_HOST=database.service.packages.internal
+      - POSTGRES_HOST=database.service.packages.internal
     networks:
       - internal
     depends_on:

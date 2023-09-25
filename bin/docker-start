@@ -1,6 +1,7 @@
-
 #!/bin/sh
 set -e
+
+echo "starting db connection"
 
 db_host=${DATABASE_HOST:-database.service.packages.internal}
 while ! nc -z $db_host ${DATABASE_PORT:-5432}; do
@@ -8,7 +9,11 @@ while ! nc -z $db_host ${DATABASE_PORT:-5432}; do
   sleep 1
 done
 
+echo "db available"
+
 bundle exec rake db:create db:migrate
 rm -rf tmp/pids
+
+echo "starting rails server"
 
 exec bundle exec rails s -b 0.0.0.0
