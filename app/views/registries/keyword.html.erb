@@ -62,7 +62,7 @@
         <div class="list-group list-group-flush">
           <% @related_keywords.each do |keyword, count| %>
             <% next if keyword.blank? %>
-            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="<%= keyword_registry_path(@registry.name, keyword) %>">
+            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="<%= keyword_registry_path(@registry.name, keyword) rescue nil %>">
               <%= keyword %>
               <span class="badge bg-primary rounded-pill"><%= number_with_delimiter count%></span>
             </a>
