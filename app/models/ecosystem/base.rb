@@ -146,6 +146,9 @@ module Ecosystem
         name: package.name.encode('iso-8859-1'),
         version: version.try(:number).try(:encode,'iso-8859-1')
       ).to_s
+    rescue
+      # invalid encoding
+      nil
     end
 
     def purl_type
