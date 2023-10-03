@@ -2,3 +2,5 @@ production:
   ignore_errors:
     - ActiveRecord::RecordNotFound
     - ActionController::RoutingError
+    - ActiveRecord::QueryCanceled
+    - Rack::Timeout::RequestTimeoutException
