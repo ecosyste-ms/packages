@@ -21,7 +21,7 @@ class MaintainersController < ApplicationController
       scope = scope.order('updated_at desc')
     end
 
-    @pagy, @packages = pagy(scope)
+    @pagy, @packages = pagy_countless(scope)
   end
 
   def namespaces

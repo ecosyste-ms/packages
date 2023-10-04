@@ -11,6 +11,6 @@ class InfrastructureController < ApplicationController
       @scope = @scope.where(registry_id: @registry.id)
     end
 
-    @pagy, @packages = pagy(@scope)
+    @pagy, @packages = pagy_countless(@scope)
   end
 end
