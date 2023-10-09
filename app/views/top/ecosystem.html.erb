@@ -1,7 +1,19 @@
-<% @meta_title = "Top #{@registry.ecosystem} Packages "%>
+<% @meta_title = "Top #{@registry.ecosystem} packages on #{@registry.name} by #{@sort_name}"%>
 
 <div class="container-sm">
-  <h1 class='mb-3'><%= link_to 'Top Open Source Packages', top_path %> : <%= @registry.ecosystem %> </h1>
+  <h1 class='mb-3'><%= @meta_title  %></h1>
+
+  <p>
+    Top by:
+    <%= link_to 'Downloads', top_ecosystem_path(@registry.ecosystem, sort: 'downloads') %> | 
+    <%= link_to 'Dependent Packages', top_ecosystem_path(@registry.ecosystem, sort: 'dependent_packages_count') %> | 
+    <%= link_to 'Dependent Repositories', top_ecosystem_path(@registry.ecosystem, sort: 'dependent_repos_count') %> |
+    <%= link_to 'Stars', top_ecosystem_path(@registry.ecosystem, sort: 'stars') %> |
+    <%= link_to 'Forks', top_ecosystem_path(@registry.ecosystem, sort: 'forks') %> |
+    <%= link_to 'Versions', top_ecosystem_path(@registry.ecosystem, sort: 'versions_count') %> |
+    <%= link_to 'Maintainers', top_ecosystem_path(@registry.ecosystem, sort: 'maintainers_count') %> |
+    <%= link_to 'Average Ranking', top_ecosystem_path(@registry.ecosystem, sort: nil) %>
+  </p>
 
   <div class="table-responsive">
     <table class='table table-striped'>
