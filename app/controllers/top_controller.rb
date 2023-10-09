@@ -34,6 +34,12 @@ class TopController < ApplicationController
       @sort_name = 'latest release'
       @sort = 'latest_release_published_at desc nulls last'
       @scope = @scope.top(1)
+    when 'docker_downloads_count'
+      @sort_name = 'docker downloads'
+      @sort = 'docker_downloads_count desc nulls last'
+    when 'docker_dependents_count'
+      @sort_name = 'docker dependents'
+      @sort = 'docker_dependents_count desc nulls last'
     else
       @sort_name = 'average ranking'
       @sort = Arel.sql("(rankings->>'average')::text::float").asc.nulls_last

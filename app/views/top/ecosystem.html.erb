@@ -8,6 +8,8 @@
     <%= link_to 'Downloads', top_ecosystem_path(@registry.ecosystem, sort: 'downloads') %> | 
     <%= link_to 'Dependent Packages', top_ecosystem_path(@registry.ecosystem, sort: 'dependent_packages_count') %> | 
     <%= link_to 'Dependent Repositories', top_ecosystem_path(@registry.ecosystem, sort: 'dependent_repos_count') %> |
+    <%= link_to 'Docker Downloads', top_ecosystem_path(@registry.ecosystem, sort: 'docker_downloads_count') %> | 
+    <%= link_to 'Docker Dependents', top_ecosystem_path(@registry.ecosystem, sort: 'docker_dependents_count') %> |
     <%= link_to 'Stars', top_ecosystem_path(@registry.ecosystem, sort: 'stars') %> |
     <%= link_to 'Forks', top_ecosystem_path(@registry.ecosystem, sort: 'forks') %> |
     <%= link_to 'Versions', top_ecosystem_path(@registry.ecosystem, sort: 'versions_count') %> |
@@ -24,6 +26,16 @@
           <% if @packages.any?{|p| p.downloads.present?} %>
             <th scope="col">
               <%= link_to 'Downloads', top_ecosystem_path(@registry.ecosystem, sort: 'downloads') %>
+            </th>
+          <% end %>
+          <% if @packages.any?{|p| p.docker_downloads_count.present?} %>
+            <th scope="col">
+              <%= link_to 'Docker downloads', top_ecosystem_path(@registry.ecosystem, sort: 'docker_downloads_count') %>
+            </th>
+          <% end %>
+          <% if @packages.any?{|p| p.docker_dependents_count.present?} %>
+            <th scope="col">
+              <%= link_to 'Docker dependents', top_ecosystem_path(@registry.ecosystem, sort: 'docker_dependents_count') %>
             </th>
           <% end %>
           <% if @packages.any?{|p| p.dependent_packages_count > 0} %>
@@ -80,6 +92,16 @@
             <% if @packages.any?{|p| p.downloads.present?} %>
               <td>
                 <%= number_with_delimiter package.downloads %>
+              </td>
+            <% end %>
+            <% if @packages.any?{|p| p.docker_downloads_count.present?} %>
+              <td>
+                <%= number_with_delimiter package.docker_downloads_count %>
+              </td>
+            <% end %>
+            <% if @packages.any?{|p| p.docker_dependents_count.present?} %>
+              <td>
+                <%= number_with_delimiter package.docker_dependents_count %>
               </td>
             <% end %>
             <% if @packages.any?{|p| p.dependent_packages_count > 0} %>
