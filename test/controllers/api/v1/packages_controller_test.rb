@@ -36,4 +36,57 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response["name"], @package.name
     assert_equal actual_response['metadata'], {"foo"=>"bar"}
   end
+
+  test 'lookup by purl' do
+    get lookup_api_v1_packages_path(purl: 'pkg:cargo/rand@0.8.0')
+    assert_response :success
+    assert_template 'packages/lookup', file: 'packages/lookup.json.jbuilder'
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal actual_response.length, 1
+    assert_equal actual_response.first['name'], @package.name
+  end
+
+  test 'lookup by purl github actions' do
+    @registry = Registry.create(name: 'github actions', url: 'https://github.com/marketplace/actions/', ecosystem: 'actions')
+    @package = @registry.packages.create(ecosystem: 'actions', name: 'actions/checkout')
+
+    get lookup_api_v1_packages_path(purl: 'pkg:github/actions/checkout@v4')
+    assert_response :success
+    assert_template 'packages/lookup', file: 'packages/lookup.json.jbuilder'
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal actual_response.length, 1
+    assert_equal actual_response.first['name'], @package.name
+  end
+
+  test 'lookup by purl maven' do
+    @registry = Registry.create(name: 'maven', url: 'https://mvnrepository.com/', ecosystem: 'maven')
+    @package = @registry.packages.create(ecosystem: 'maven', name: 'org.apache.commons:commons-lang3')
+
+    get lookup_api_v1_packages_path(purl: 'pkg:maven/org.apache.commons/commons-lang3@3.11')
+    assert_response :success
+    assert_template 'packages/lookup', file: 'packages/lookup.json.jbuilder'
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal actual_response.length, 1
+    assert_equal actual_response.first['name'], @package.name
+  end
+
+  test 'lookup by purl cocoapods with + in name' do
+    @registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+    @package = @registry.packages.create(ecosystem: 'cocoapods', name: 'UIView+BooleanAnimations')
+
+    get lookup_api_v1_packages_path(purl: 'pkg:cocoapods/UIView%2BBooleanAnimations')
+    assert_response :success
+    assert_template 'packages/lookup', file: 'packages/lookup.json.jbuilder'
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal actual_response.length, 1
+    assert_equal actual_response.first['name'], @package.name
+  end
 end

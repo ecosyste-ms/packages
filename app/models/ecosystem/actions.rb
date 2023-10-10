@@ -3,7 +3,7 @@
 module Ecosystem
   class Actions < Base
 
-    def purl_type
+    def self.purl_type
       'github'
     end
 

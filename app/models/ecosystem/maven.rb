@@ -11,6 +11,10 @@ module Ecosystem
       ).to_s
     end
 
+    def self.namespace_seperator
+      ':'
+    end
+
     def download_url(package, version)
       return nil unless version.present?
       group_id, artifact_id = *package.name.split(':', 2)
