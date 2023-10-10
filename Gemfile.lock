@@ -85,7 +85,7 @@ GEM
       tzinfo (~> 2.0)
     addressable (2.8.5)
       public_suffix (>= 2.0.2, < 6.0)
-    appsignal (3.4.12)
+    appsignal (3.4.13)
       rack
     autoprefixer-rails (10.4.15.0)
       execjs (~> 2)
@@ -182,7 +182,7 @@ GEM
     mocha (2.1.0)
       ruby2_keywords (>= 0.0.5)
     msgpack (1.7.2)
-    net-imap (0.4.0)
+    net-imap (0.4.1)
       date
       net-protocol
     net-pop (0.1.2)
@@ -295,7 +295,7 @@ GEM
     shoulda-context (2.0.0)
     shoulda-matchers (5.3.0)
       activesupport (>= 5.2.0)
-    sidekiq (7.1.5)
+    sidekiq (7.1.6)
       concurrent-ruby (< 2)
       connection_pool (>= 2.3.0)
       rack (>= 2.2.4)
