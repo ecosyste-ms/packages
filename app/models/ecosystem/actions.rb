@@ -3,6 +3,10 @@
 module Ecosystem
   class Actions < Base
 
+    def purl_type
+      'github'
+    end
+
     def check_status_url(package)
       package.repository_url
     end
