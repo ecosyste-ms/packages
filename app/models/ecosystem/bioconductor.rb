@@ -54,6 +54,7 @@ module Ecosystem
         description: package[:html].css("h2").text.strip,
         licenses: package[:properties]["License"],
         repository_url: repo_fallback(package[:properties].fetch("URL", "").split(",").first.presence, (package[:properties].fetch("URL", "").split(",").last.presence || package[:properties]["BugReports"])).to_s[0, 255],
+        keywords_array: package[:properties]["biocViews"].split(", "),
         properties: package[:properties],
         downloads: downloads(package),
         downloads_period: "total",
