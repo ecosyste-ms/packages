@@ -96,6 +96,15 @@ class Package < ApplicationRecord
     update(dependent_packages_count: Dependency.where(package_id: id).joins(version: :package).count('distinct(packages.id)'))
   end
 
+  def update_dependent_packages_count_async
+    UpdateDependentPackagesCountWorker.perform_async(id)
+  end
+
+  def update_dependent_packages_details
+    update_dependent_package_ids
+    update_dependent_packages_count
+  end
+
   def update_maintainers_count
     update(maintainers_count: maintainerships.count)
   end

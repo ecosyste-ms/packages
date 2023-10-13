@@ -172,8 +172,7 @@ class Registry < ApplicationRecord
 
     package.update(versions_count: package.versions.count, last_synced_at: Time.zone.now)
     package.update_details
-    # package.update_dependent_package_ids
-    package.update_dependent_packages_count
+    package.update_dependent_packages_count_async
     package.sync_maintainers_async if ecosystem_class.instance_methods(false).include? :maintainers_metadata
 
     # package.update_integrities_async
