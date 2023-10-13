@@ -150,7 +150,6 @@ class Registry < ApplicationRecord
       all_versions = package.versions
 
       all_versions.each do |version|
-         version
         next if version.dependencies.any?
 
         deps = begin
@@ -166,6 +165,7 @@ class Registry < ApplicationRecord
       end
       
       all_deps.flatten.each_slice(100) do |s|
+        # TODO upsert dependencies instead
         Dependency.insert_all(s) 
       end
     end
