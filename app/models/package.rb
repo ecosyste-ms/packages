@@ -88,6 +88,10 @@ class Package < ApplicationRecord
     read_attribute(:description).presence || repo_metadata && repo_metadata['description']
   end
 
+  def language
+    return read_attribute(:language) || repo_metadata && repo_metadata['language']
+  end
+
   def update_dependent_package_ids
     Dependency.where(package_id: nil, ecosystem: registry.ecosystem, package_name: name).in_batches.update_all(package_id: id)
   end
