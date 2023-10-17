@@ -464,6 +464,7 @@ class Package < ApplicationRecord
   end
 
   def update_dependent_repos_count
+    update_dependent_packages_details
     json = fetch_dependent_repos_count
     return if json.blank?
     return unless json.is_a?(Hash)
