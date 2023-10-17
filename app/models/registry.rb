@@ -297,7 +297,7 @@ class Registry < ApplicationRecord
   end 
 
   def keywords
-    Rails.cache.fetch("registries_keywords/#{id}", expires_in: 1.day) do
+    Rails.cache.fetch("registries_keywords/#{id}", expires_in: 1.week) do
       Package.connection.select_rows("select keywords, count (keywords) as keywords_count from (select id, registry_id, unnest(keywords) as keywords from packages where registry_id = #{id}) as foo group by keywords order by keywords_count desc, keywords asc;")
     end
   end
@@ -307,13 +307,13 @@ class Registry < ApplicationRecord
   end
 
   def outdated_packages_count
-    Rails.cache.fetch("outdated_packages_count/#{id}", expires_in: 10.minutes) do
+    Rails.cache.fetch("outdated_packages_count/#{id}", expires_in: 30.minutes) do
       packages.active.outdated.count
     end
   end
 
   def active_packages_count
-    Rails.cache.fetch("active_packages_count/#{id}", expires_in: 10.minutes) do
+    Rails.cache.fetch("active_packages_count/#{id}", expires_in: 30.minutes) do
       packages.active.count
     end
   end
