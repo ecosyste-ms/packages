@@ -323,4 +323,96 @@ namespace :open_data do
       end
     end
   end
+
+  desc "Export dependencies open data csv"
+  task export_dependencies2: :environment do
+    csv_file = File.open("data/dependencies2-#{EXPORT_VERSION}-#{EXPORT_DATE}.csv", "w")
+    csv_file = CSV.new(csv_file)
+    csv_file << [
+      "ID",
+      "Ecosystem",
+      "Registry",
+      "Package Name",
+      "Package ID",
+      "Version Number",
+      "Version ID",
+      "Dependency Name",
+      "Dependency Ecosystem",
+      "Dependency Kind",
+      "Optional Dependency",
+      "Dependency Requirements",
+      "Dependency Package ID",
+    ]
+
+    Dependency.includes(version: {package: :registry}).find_each do |dependency|
+      version = dependency.version
+      next if version.nil?
+      package = version.package
+      next if package.nil?
+      csv_file << [
+        dependency.id,
+        package.ecosystem,
+        package.registry.name,
+        package.name,
+        package.id,
+        version.number,
+        version.id,
+        dependency.package_name.try(:tr, "\r\n", ""),
+        dependency.ecosystem.try(:tr, "\r\n", ""),
+        dependency.kind.try(:tr, "\r\n", ""),
+        dependency.optional,
+        dependency.requirements.try(:tr, "\r\n", ""),
+        dependency.package_id,
+      ]
+    end
+  end
+
+  desc "Export dependencies open data csv"
+  task export_dependencies3: :environment do
+    csv_file = File.open("data/dependencies3-#{EXPORT_VERSION}-#{EXPORT_DATE}.csv", "w")
+    csv_file = CSV.new(csv_file)
+    csv_file << [
+      "ID",
+      "Ecosystem",
+      "Registry",
+      "Package Name",
+      "Package ID",
+      "Version Number",
+      "Version ID",
+      "Dependency Name",
+      "Dependency Ecosystem",
+      "Dependency Kind",
+      "Optional Dependency",
+      "Dependency Requirements",
+      "Dependency Package ID",
+    ]
+
+    Dependency.each_row_batch do |batch|
+      version_ids = batch.map{|r| r['version_id'] }.uniq
+      versions = Version.where(id: version_ids).includes(package: :registry)
+
+      batch.each do |row|
+        version = versions.find{|v| v.id == row['version_id'] }
+      
+        next if version.nil?
+        package = version.package
+        next if package.nil?
+        csv_file << [
+          row['id'],
+          package.ecosystem,
+          package.registry.name,
+          package.name,
+          package.id,
+          version.number,
+          version.id,
+          row['package_name'].try(:tr, "\r\n", ""),
+          row['ecosystem'].try(:tr, "\r\n", ""),
+          row['kind'].try(:tr, "\r\n", ""),
+          row['optional'],
+          row['requirements'].try(:tr, "\r\n", ""),
+          row['package_id'],
+        ]
+      end
+    end
+  end
 end
