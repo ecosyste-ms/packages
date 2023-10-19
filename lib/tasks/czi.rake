@@ -164,6 +164,10 @@ namespace :czi do
       [name.remove(/\s/), version&.remove(/[()]/) || "", environment_markers || ""]
     end
 
+    def normalized_name(name)
+      name.downcase.gsub('_', '-').gsub('.', '-')
+    end
+
     csv = CSV.read('data/pypi_raw_df.csv', headers: true)
 
     registry = Registry.find_by_ecosystem('pypi')
@@ -175,10 +179,7 @@ namespace :czi do
     dependencies = Set.new
 
     csv.each do |row|
-      package = registry.packages.where(name: row['pypi package']).first
-      package = registry.packages.where(name: row['pypi package'].downcase).first if package.nil?
-      package = registry.packages.where(name: row['pypi package'].downcase.gsub('_', '-')).first if package.nil?
-      package = registry.packages.where(name: row['pypi package'].downcase.gsub('-', '.')).first if package.nil?
+      package = registry.packages.find_by_normalized_name(row['pypi package'])
 
       if package
         puts "#{package.name} - #{package.latest_release_number}"
@@ -189,15 +190,15 @@ namespace :czi do
 
         file.puts JSON.generate(obj)
 
-        processed_names << package.name
+        processed_names << normalized_name(package.name)
         package.latest_version.dependencies.map(&:package_name).each do |name|
           n,v,e = parse_pep_508_dep_spec(name)
           n = n.split('[').first if n.include?('[') # extras
-          dependencies << n
+          dependencies << normalized_name(n)
         end
       else
         puts "Package not found: #{row['pypi package']}"
-        missing_names << row['pypi package']
+        missing_names << normalized_name(row['pypi package'])
       end
     end
 
@@ -208,20 +209,11 @@ namespace :czi do
       dependencies = Set.new
 
       first_level_dependencies.each do |name|
-        next if processed_names.include?(name)
-        next if missing_names.include?(name)
-        next if processed_names.include?(name.downcase)
-        next if missing_names.include?(name.downcase)
-        next if processed_names.include?(name.downcase.gsub('_', '-'))
-        next if missing_names.include?(name.downcase.gsub('_', '-'))
-        next if processed_names.include?(name.downcase.gsub('-', '.'))
-        next if missing_names.include?(name.downcase.gsub('-', '.'))
+        next if processed_names.include?(normalized_name(name))
+        next if missing_names.include?(normalized_name(name))
 
-        package = registry.packages.where(name: name).first
-        package = registry.packages.where(name: name.downcase).first if package.nil?
-        package = registry.packages.where(name: name.downcase.gsub('_', '-')).first if package.nil?
-        package = registry.packages.where(name: name.downcase.gsub('-', '.')).first if package.nil?
-
+        package = registry.packages.find_by_normalized_name(name)
+        
         if package
           puts "#{package.name} - #{package.latest_release_number}"
 
@@ -231,15 +223,15 @@ namespace :czi do
 
           file.puts JSON.generate(obj)
 
-          processed_names << package.name
+          processed_names << normalized_name(package.name)
           package.latest_version.dependencies.map(&:package_name).each do |name|
             n,v,e = parse_pep_508_dep_spec(name)
             n = n.split('[').first if n.include?('[') # extras
-            dependencies << n
+            dependencies << normalized_name(n)
           end
         else
           puts "Package not found: #{name}"
-          missing_names << name
+          missing_names << normalized_name(name)
         end
       end
 
