@@ -62,7 +62,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       # TODO: This is a temporary fix for pypi packages with underscores in their name
       # should redirect to the correct package name
       if @registry.ecosystem == 'pypi'
-        @package = @registry.packages.find_by_name!(params[:id].downcase.gsub('_', '-'))
+        @package = @registry.packages.find_by_normalized_name!(params[:id])
       elsif @registry.ecosystem == 'docker' && !params[:id].include?('/')
         @package = @registry.packages.find_by_name!("library/#{params[:id]}")
       else

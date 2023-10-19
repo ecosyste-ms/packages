@@ -42,6 +42,45 @@ class Package < ApplicationRecord
 
   after_create :update_rankings_async
 
+  def self.find_by_normalized_name(name)
+    # for pypi
+    where("metadata->>'normalized_name' = ?", name.downcase.gsub('_', '-').gsub('.', '-')).first
+  end
+
+  def self.find_by_normalized_name!(name)
+    project = find_by_normalized_name(name)
+    raise ActiveRecord::RecordNotFound if project.nil?
+    project
+  end
+
+  def self.find_by_name(name)
+    find_by(name: name.downcase)
+  end
+
+  def self.find_by_name!(name)
+    find_by!(name: name.downcase)
+  end
+
+  def self.find_by_name_or_alias(name)
+    find_by(name: name.downcase) || find_by(normalized_licenses: [name.downcase])
+  end
+
+  def self.find_by_name_or_alias!(name)
+    find_by!(name: name.downcase) || find_by!(normalized_licenses: [name.downcase])
+  end
+
+  def self.find_by_name_or_alias_with_fallback(name)
+    find_by(name: name.downcase) || find_by(normalized_licenses: [name.downcase]) || find_by(name: name.downcase.gsub('_', '-').gsub('.', '-'))
+  end
+
+  def self.find_by_name_or_alias_with_fallback!(name)
+    find_by!(name: name.downcase) || find_by!(normalized_licenses: [name.downcase]) || find_by!(name: name.downcase.gsub('_', '-').gsub('.', '-'))
+  end
+
+  def self.find_by_name_or_alias_with_fallback_and_ecosystem(name, ecosystem)
+    find_by(name: name.downcase, ecosystem: ecosystem) || find_by(normalized_licenses: [name.downcase], ecosystem: ecosystem) || find_by(name: name.downcase.gsub('_', '-').gsub('.', '-'), ecosystem: ecosystem)
+  end
+
   def self.keywords
     Package.connection.select_rows("select keywords, count (keywords) as keywords_count from (select id, unnest(keywords) as keywords from packages) as foo group by keywords order by keywords_count desc, keywords asc;").reject{|k,v| k.blank?}
   end
