@@ -33,5 +33,6 @@
 
 .env
 
-# Ignore generated csv files
+# Ignore generated files
 *.csv
+data/*
