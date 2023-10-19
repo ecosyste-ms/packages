@@ -178,6 +178,7 @@ namespace :czi do
       package = registry.packages.where(name: row['pypi package']).first
       package = registry.packages.where(name: row['pypi package'].downcase).first if package.nil?
       package = registry.packages.where(name: row['pypi package'].downcase.gsub('_', '-')).first if package.nil?
+      package = registry.packages.where(name: row['pypi package'].downcase.gsub('-', '.')).first if package.nil?
 
       if package
         puts "#{package.name} - #{package.latest_release_number}"
@@ -213,10 +214,14 @@ namespace :czi do
         next if missing_names.include?(name.downcase)
         next if processed_names.include?(name.downcase.gsub('_', '-'))
         next if missing_names.include?(name.downcase.gsub('_', '-'))
+        next if processed_names.include?(name.downcase.gsub('-', '.'))
+        next if missing_names.include?(name.downcase.gsub('-', '.'))
 
         package = registry.packages.where(name: name).first
         package = registry.packages.where(name: name.downcase).first if package.nil?
         package = registry.packages.where(name: name.downcase.gsub('_', '-')).first if package.nil?
+        package = registry.packages.where(name: name.downcase.gsub('-', '.')).first if package.nil?
+
         if package
           puts "#{package.name} - #{package.latest_release_number}"
 
