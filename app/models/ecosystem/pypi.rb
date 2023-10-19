@@ -127,16 +127,6 @@ module Ecosystem
     def dependencies_metadata(name, version, _package)
       requires_dist = get_json("#{@registry_url}/pypi/#{name}/#{version}/json")["info"]["requires_dist"]
       return [] if requires_dist.nil?
-      # requires_dist.map do |r|
-      #   dep = r.split(';')[0]
-      #   kind = r.split(';')[1].presence || 'runtime'
-      #   {
-      #     package_name: dep.split(' ').first,
-      #     requirements: (dep.split(' ')[1..-1].join(' ').gsub('(', '').gsub(')', '')).presence || "*",
-      #     kind: kind.gsub("'", "").gsub('"', '').gsub(' ', '').gsub('extra==', ''),
-      #     ecosystem: self.class.name.demodulize.downcase,
-      #   }
-      # end
 
       requires_dist.flat_map do |dep|
         name, version, environment_markers = parse_pep_508_dep_spec(dep)
