@@ -88,6 +88,7 @@ namespace :czi do
 
     csv.each do |row|
       package = registry.packages.where(name: row['CRAN Package']).first
+      package = registry.packages.where(name: row['CRAN Package'].downcase).first if package.nil?
 
       if package
         puts "#{package.name} - #{package.latest_release_number}"
@@ -118,6 +119,8 @@ namespace :czi do
         next if processed_names.include?(name)
         next if missing_names.include?(name)
         package = registry.packages.where(name: name).first
+        package = registry.packages.where(name: name.downcase).first if package.nil?
+
         if package
           puts "#{package.name} - #{package.latest_release_number}"
 
@@ -162,6 +165,7 @@ namespace :czi do
 
     csv.each do |row|
       package = registry.packages.where(name: row['pypi package']).first
+      package = registry.packages.where(name: row['pypi package'].downcase).first if package.nil?
 
       if package
         puts "#{package.name} - #{package.latest_release_number}"
@@ -192,6 +196,7 @@ namespace :czi do
         next if processed_names.include?(name)
         next if missing_names.include?(name)
         package = registry.packages.where(name: name).first
+        package = registry.packages.where(name: name.downcase).first if package.nil?
         if package
           puts "#{package.name} - #{package.latest_release_number}"
 
