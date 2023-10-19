@@ -180,7 +180,7 @@ namespace :czi do
 
     csv.each do |row|
       package = registry.packages.find_by_name(row['pypi package'])
-      package = registry.packages.find_by_normalized_name(row['pypi package']) if package.nil?
+      package = registry.packages.find_by_normalized_name(row['pypi package']) if package.nil? && row['pypi package'] != normalized_name(row['pypi package'])
 
       if package
         puts "#{package.name} - #{package.latest_release_number}"
@@ -214,7 +214,7 @@ namespace :czi do
         next if missing_names.include?(normalized_name(name))
 
         package = registry.packages.find_by_name(name)
-        package = registry.packages.find_by_normalized_name(name) if package.nil?
+        package = registry.packages.find_by_normalized_name(name) if package.nil? && row['pypi package'] != normalized_name(row['pypi package'])
         
         if package
           puts "#{package.name} - #{package.latest_release_number}"
