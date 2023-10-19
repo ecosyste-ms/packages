@@ -19,15 +19,9 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     if params[:repository_url].present?
       scope = Package.repository_url(params[:repository_url])
     elsif params[:purl].present?
-      puts params[:purl]
       purl = PackageURL.parse(params[:purl])
-      p purl
       name = [purl.namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_seperator(purl.type))
       ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type) 
-
-      puts name
-      puts ecosystem
-
       scope = Package.where(name: name, ecosystem: ecosystem)
     else
       params[:name] = "library/#{params[:name]}" if params[:ecosystem] == 'docker' && !params[:name].include?('/')
