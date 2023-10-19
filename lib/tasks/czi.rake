@@ -151,6 +151,19 @@ namespace :czi do
   end
 
   task :pypi => :environment do
+    
+    PEP_508_NAME_REGEX = /[A-Z0-9][A-Z0-9._-]*[A-Z0-9]|[A-Z0-9]/i.freeze
+    PEP_508_NAME_WITH_EXTRAS_REGEX = /(^#{PEP_508_NAME_REGEX}\s*(?:\[#{PEP_508_NAME_REGEX}(?:,\s*#{PEP_508_NAME_REGEX})*\])?)/i.freeze
+
+    def parse_pep_508_dep_spec(dep)
+      name, requirement = dep.split(PEP_508_NAME_WITH_EXTRAS_REGEX, 2).last(2)
+      version, environment_markers = requirement.split(";").map(&:strip)
+
+      # remove whitespace from name
+      # remove parentheses surrounding version requirement
+      [name.remove(/\s/), version&.remove(/[()]/) || "", environment_markers || ""]
+    end
+
     csv = CSV.read('data/pypi_raw_df.csv', headers: true)
 
     registry = Registry.find_by_ecosystem('pypi')
@@ -176,7 +189,8 @@ namespace :czi do
 
         processed_names << package.name
         package.latest_version.dependencies.map(&:package_name).each do |name|
-          dependencies << name
+          n,v,e = parse_pep_508_dep_spec(name)
+          dependencies << n
         end
       else
         puts "Package not found: #{row['pypi package']}"
@@ -209,7 +223,8 @@ namespace :czi do
 
           processed_names << package.name
           package.latest_version.dependencies.map(&:package_name).each do |name|
-            dependencies << name
+            n,v,e = parse_pep_508_dep_spec(name)
+            dependencies << n
           end
         else
           puts "Package not found: #{name}"
@@ -224,7 +239,8 @@ namespace :czi do
     end
 
     missing_names.each do |name|
-      registry.sync_package_async(name)
+      puts name
+      # registry.sync_package_async(name)
     end
   end
 end
