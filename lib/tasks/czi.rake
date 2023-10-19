@@ -87,7 +87,7 @@ namespace :czi do
     dependencies = Set.new
 
     csv.each do |row|
-      package = registry.packages.where('lower(name) = ?', row['CRAN Package'].downcase).first
+      package = registry.packages.where(name: row['CRAN Package']).first
 
       if package
         puts "#{package.name} - #{package.latest_release_number}"
@@ -117,7 +117,7 @@ namespace :czi do
       first_level_dependencies.each do |name|
         next if processed_names.include?(name)
         next if missing_names.include?(name)
-        package = registry.packages.where('lower(name) = ?', name.downcase).first
+        package = registry.packages.where(name: name).first
         if package
           puts "#{package.name} - #{package.latest_release_number}"
 
@@ -161,7 +161,7 @@ namespace :czi do
     dependencies = Set.new
 
     csv.each do |row|
-      package = registry.packages.where('lower(name) = ?', row['pypi package'].downcase).first
+      package = registry.packages.where(name: row['pypi package']).first
 
       if package
         puts "#{package.name} - #{package.latest_release_number}"
@@ -191,7 +191,7 @@ namespace :czi do
       first_level_dependencies.each do |name|
         next if processed_names.include?(name)
         next if missing_names.include?(name)
-        package = registry.packages.where('lower(name) = ?', name.downcase).first
+        package = registry.packages.where(name: name).first
         if package
           puts "#{package.name} - #{package.latest_release_number}"
 
