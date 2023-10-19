@@ -67,7 +67,7 @@ namespace :czi do
 
     missing_names.each do |name|
       puts "Syncing #{name}"
-      registry.sync_package(name)
+      registry.sync_package_async(name)
     end
 
 
@@ -145,7 +145,7 @@ namespace :czi do
 
     missing_names.each do |name|
       puts "Syncing #{name}"
-      registry.sync_package(name)
+      registry.sync_package_async(name)
     end
   end
 
@@ -219,7 +219,7 @@ namespace :czi do
 
     missing_names.each do |name|
       puts "Syncing #{name}"
-      registry.sync_package(name)
+      registry.sync_package_async(name)
     end
   end
 end
