@@ -4,6 +4,9 @@ require "xmlrpc/client"
 module Ecosystem
   class Pypi < Base
 
+    PEP_508_NAME_REGEX = /[A-Z0-9][A-Z0-9._-]*[A-Z0-9]|[A-Z0-9]/i.freeze
+    PEP_508_NAME_WITH_EXTRAS_REGEX = /(^#{PEP_508_NAME_REGEX}\s*(?:\[#{PEP_508_NAME_REGEX}(?:,\s*#{PEP_508_NAME_REGEX})*\])?)/i.freeze
+
     def purl(package, version = nil)
       PackageURL.new(
         type: purl_type,
@@ -112,16 +115,37 @@ module Ecosystem
       end
     end
 
+    def parse_pep_508_dep_spec(dep)
+      name, requirement = dep.split(PEP_508_NAME_WITH_EXTRAS_REGEX, 2).last(2)
+      version, environment_markers = requirement.split(";").map(&:strip)
+
+      # remove whitespace from name
+      # remove parentheses surrounding version requirement
+      [name.remove(/\s/), version&.remove(/[()]/) || "", environment_markers || ""]
+    end
+
     def dependencies_metadata(name, version, _package)
       requires_dist = get_json("#{@registry_url}/pypi/#{name}/#{version}/json")["info"]["requires_dist"]
       return [] if requires_dist.nil?
-      requires_dist.map do |r|
-        dep = r.split(';')[0]
-        kind = r.split(';')[1].presence || 'runtime'
+      # requires_dist.map do |r|
+      #   dep = r.split(';')[0]
+      #   kind = r.split(';')[1].presence || 'runtime'
+      #   {
+      #     package_name: dep.split(' ').first,
+      #     requirements: (dep.split(' ')[1..-1].join(' ').gsub('(', '').gsub(')', '')).presence || "*",
+      #     kind: kind.gsub("'", "").gsub('"', '').gsub(' ', '').gsub('extra==', ''),
+      #     ecosystem: self.class.name.demodulize.downcase,
+      #   }
+      # end
+
+      requires_dist.flat_map do |dep|
+        name, version, environment_markers = parse_pep_508_dep_spec(dep)
+
         {
-          package_name: dep.split(' ').first,
-          requirements: (dep.split(' ')[1..-1].join(' ').gsub('(', '').gsub(')', '')).presence || "*",
-          kind: kind.gsub("'", "").gsub('"', '').gsub(' ', '').gsub('extra==', ''),
+          package_name: name,
+          requirements: version.presence || "*",
+          kind: environment_markers.presence || "runtime",
+          optional: environment_markers.present?,
           ecosystem: self.class.name.demodulize.downcase,
         }
       end

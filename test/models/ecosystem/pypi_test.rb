@@ -123,7 +123,7 @@ class PypiTest < ActiveSupport::TestCase
     
     dependencies_metadata = @ecosystem.dependencies_metadata('yiban', '0.1.2.32', nil)
 
-    assert_equal dependencies_metadata, [{:package_name=>"openpyxl", :requirements=>"*", :kind=>"runtime", :ecosystem=>"pypi"}]
+    assert_equal dependencies_metadata, [{:package_name=>"openpyxl", :requirements=>"*", :kind=>"runtime", :optional=>false, :ecosystem=>"pypi"}]
   end
 
   test 'dependencies_metadata with kinds' do
@@ -133,19 +133,19 @@ class PypiTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('siuba', '0.3.0', nil)
 
     assert_equal dependencies_metadata, [
-      {:package_name=>"hypothesis", :requirements=>"*", :kind=>"test", :ecosystem=>"pypi"},
-      {:package_name=>"pytest", :requirements=>"*", :kind=>"test", :ecosystem=>"pypi"},
-      {:package_name=>"gapminder", :requirements=>"==0.1", :kind=>"docs", :ecosystem=>"pypi"},
-      {:package_name=>"jupytext", :requirements=>"*", :kind=>"docs", :ecosystem=>"pypi"},
-      {:package_name=>"nbsphinx", :requirements=>"*", :kind=>"docs", :ecosystem=>"pypi"},
-      {:package_name=>"sphinx", :requirements=>"*", :kind=>"docs", :ecosystem=>"pypi"},
-      {:package_name=>"nbval", :requirements=>"*", :kind=>"docs", :ecosystem=>"pypi"},
-      {:package_name=>"jupyter", :requirements=>"*", :kind=>"docs", :ecosystem=>"pypi"},
-      {:package_name=>"plotnine", :requirements=>"*", :kind=>"docs", :ecosystem=>"pypi"},
-      {:package_name=>"PyYAML", :requirements=>">=3.0.0", :kind=>"runtime", :ecosystem=>"pypi"},
-      {:package_name=>"SQLAlchemy", :requirements=>">=1.2.19", :kind=>"runtime", :ecosystem=>"pypi"},
-      {:package_name=>"numpy", :requirements=>">=1.12.0", :kind=>"runtime", :ecosystem=>"pypi"},
-      {:package_name=>"pandas", :requirements=>">=0.24.0", :kind=>"runtime", :ecosystem=>"pypi"}
+      {:package_name=>"hypothesis", :requirements=>"*", :kind=>"extra == 'test'", :optional=>true, :ecosystem=>"pypi"},
+      {:package_name=>"pytest", :requirements=>"*", :kind=>"extra == 'test'", :optional=>true, :ecosystem=>"pypi"},
+      {:package_name=>"gapminder", :requirements=>"==0.1", :kind=>"extra == 'docs'", :optional=>true, :ecosystem=>"pypi"},
+      {:package_name=>"jupytext", :requirements=>"*", :kind=>"extra == 'docs'", :optional=>true, :ecosystem=>"pypi"},
+      {:package_name=>"nbsphinx", :requirements=>"*", :kind=>"extra == 'docs'", :optional=>true, :ecosystem=>"pypi"},
+      {:package_name=>"sphinx", :requirements=>"*", :kind=>"extra == 'docs'", :optional=>true, :ecosystem=>"pypi"},
+      {:package_name=>"nbval", :requirements=>"*", :kind=>"extra == 'docs'", :optional=>true, :ecosystem=>"pypi"},
+      {:package_name=>"jupyter", :requirements=>"*", :kind=>"extra == 'docs'", :optional=>true, :ecosystem=>"pypi"},
+      {:package_name=>"plotnine", :requirements=>"*", :kind=>"extra == 'docs'", :optional=>true, :ecosystem=>"pypi"},
+      {:package_name=>"PyYAML", :requirements=>">=3.0.0", :kind=>"runtime", :optional=>false, :ecosystem=>"pypi"},
+      {:package_name=>"SQLAlchemy", :requirements=>">=1.2.19", :kind=>"runtime", :optional=>false, :ecosystem=>"pypi"},
+      {:package_name=>"numpy", :requirements=>">=1.12.0", :kind=>"runtime", :optional=>false, :ecosystem=>"pypi"},
+      {:package_name=>"pandas", :requirements=>">=0.24.0", :kind=>"runtime", :optional=>false, :ecosystem=>"pypi"}
     ]
   end
 
