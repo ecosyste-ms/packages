@@ -94,7 +94,7 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal package_metadata[:keywords_array], ["Yiban"]
     assert_equal package_metadata[:downloads], 18
     assert_equal package_metadata[:downloads_period], "last-month"
-    assert_equal package_metadata[:metadata], {"funding"=>nil, "classifiers"=>["Development Status :: 1 - Planning", "Intended Audience :: Developers", "Intended Audience :: Education", "License :: OSI Approved :: BSD License", "Natural Language :: Chinese (Simplified)", "Operating System :: Microsoft :: Windows :: Windows 10", "Programming Language :: Python :: 3.8", "Programming Language :: Python :: Implementation :: PyPy"]}
+    assert_equal package_metadata[:metadata], {"funding"=>nil, "classifiers"=>["Development Status :: 1 - Planning", "Intended Audience :: Developers", "Intended Audience :: Education", "License :: OSI Approved :: BSD License", "Natural Language :: Chinese (Simplified)", "Operating System :: Microsoft :: Windows :: Windows 10", "Programming Language :: Python :: 3.8", "Programming Language :: Python :: Implementation :: PyPy"], "normalized_name"=>"yiban"}
   end
 
   test 'versions_metadata' do
