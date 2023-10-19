@@ -23,13 +23,13 @@ namespace :czi do
         
         file.puts JSON.generate(obj)
 
-        processed_names << package.name.downcase
+        processed_names << package.name
         package.latest_version.dependencies.map(&:package_name).each do |name|
-          dependencies << name.downcase
+          dependencies << name
         end
       else
         puts "Package not found: #{row['Bioconductor Package']}"
-        missing_names << row['Bioconductor Package'].downcase
+        missing_names << row['Bioconductor Package']
       end
     end
 
@@ -50,13 +50,13 @@ namespace :czi do
           
           file.puts JSON.generate(obj)
 
-          processed_names << package.name.downcase
+          processed_names << package.name
           package.latest_version.dependencies.map(&:package_name).each do |name|
-            dependencies << name.downcase
+            dependencies << name
           end
         else
           puts "Package not found: #{name}"
-          missing_names << name.downcase
+          missing_names << name
         end
       end
 
