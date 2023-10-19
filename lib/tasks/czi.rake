@@ -177,6 +177,7 @@ namespace :czi do
     csv.each do |row|
       package = registry.packages.where(name: row['pypi package']).first
       package = registry.packages.where(name: row['pypi package'].downcase).first if package.nil?
+      package = registry.packages.where(name: row['pypi package'].downcase.gsub('_', '-')).first if package.nil?
 
       if package
         puts "#{package.name} - #{package.latest_release_number}"
@@ -190,6 +191,7 @@ namespace :czi do
         processed_names << package.name
         package.latest_version.dependencies.map(&:package_name).each do |name|
           n,v,e = parse_pep_508_dep_spec(name)
+          n = n.split('[').first if n.include?('[') # extras
           dependencies << n
         end
       else
@@ -212,6 +214,7 @@ namespace :czi do
 
         package = registry.packages.where(name: name).first
         package = registry.packages.where(name: name.downcase).first if package.nil?
+        package = registry.packages.where(name: name.downcase.gsub('_', '-')).first if package.nil?
         if package
           puts "#{package.name} - #{package.latest_release_number}"
 
@@ -224,6 +227,7 @@ namespace :czi do
           processed_names << package.name
           package.latest_version.dependencies.map(&:package_name).each do |name|
             n,v,e = parse_pep_508_dep_spec(name)
+            n = n.split('[').first if n.include?('[') # extras
             dependencies << n
           end
         else
