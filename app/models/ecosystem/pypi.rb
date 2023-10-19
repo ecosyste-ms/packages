@@ -74,6 +74,7 @@ module Ecosystem
         metadata: {
           "funding" => package.dig("info", "project_urls", "Funding"),
           "classifiers" => package["info"]["classifiers"],
+          "normalized_name" => package["info"]["name"].downcase.gsub('_', '-').gsub('.', '-')
         }
       }
 
