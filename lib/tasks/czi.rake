@@ -210,7 +210,9 @@ namespace :czi do
         next if processed_names.include?(name)
         next if missing_names.include?(name)
         next if processed_names.include?(name.downcase)
-        next if processed_names.include?(name.downcase)
+        next if missing_names.include?(name.downcase)
+        next if processed_names.include?(name.downcase.gsub('_', '-'))
+        next if missing_names.include?(name.downcase.gsub('_', '-'))
 
         package = registry.packages.where(name: name).first
         package = registry.packages.where(name: name.downcase).first if package.nil?
