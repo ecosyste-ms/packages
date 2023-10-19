@@ -66,6 +66,8 @@ namespace :czi do
       puts '--------------------------'
     end
 
+    # TODO: look up missing packages, potentially fallback to CRAN
+
   end
 end
 
