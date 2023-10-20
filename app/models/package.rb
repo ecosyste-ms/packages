@@ -691,7 +691,7 @@ class Package < ApplicationRecord
     response = Faraday.get(url)
     return nil unless response.success?
     advisories = JSON.parse response.body
-    pkgs = advisories.map{|a| a['packages'].map{|p| [p['ecosystem'],p['package_name']]} }.uniq
+    pkgs = advisories.map{|a| a['packages'].map{|p| [p['ecosystem'],p['package_name']]} }.uniq.flatten(1)
     pkgs.each do |ecosystem, package_name|
       Registry.where(ecosystem: ecosystem).each do |registry|
         registry.packages.find_by_name(package_name).try(:update_advisories_async)
