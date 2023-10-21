@@ -277,6 +277,131 @@ namespace :czi do
 
       file.puts JSON.generate(obj)
     end
+
+    # todo fetch transitive dependencies of each discovered package
+
+  end
+
+  task github_with_transitive: :environment do
+
+    PEP_508_NAME_REGEX = /[A-Z0-9][A-Z0-9._-]*[A-Z0-9]|[A-Z0-9]/i.freeze
+    PEP_508_NAME_WITH_EXTRAS_REGEX = /(^#{PEP_508_NAME_REGEX}\s*(?:\[#{PEP_508_NAME_REGEX}(?:,\s*#{PEP_508_NAME_REGEX})*\])?)/i.freeze
+
+    def parse_pep_508_dep_spec(dep)
+      name, requirement = dep.split(PEP_508_NAME_WITH_EXTRAS_REGEX, 2).last(2)
+      version, environment_markers = requirement.split(";").map(&:strip)
+
+      # remove whitespace from name
+      # remove parentheses surrounding version requirement
+      [name.remove(/\s/), version&.remove(/[()]/) || "", environment_markers || ""]
+    end
+
+    def normalized_name(name)
+      name.downcase.gsub('_', '-').gsub('.', '-')
+    end
+
+    file = File.open("data/github_packages_with_transitive.ndjson", "a")
+
+    packages = Set.new
+    github_urls = Set.new
+    
+    processed_names = Set.new
+    missing_names = Set.new
+    dependencies = Set.new
+
+    CSV.foreach('data/github_df.csv', headers: true) do |row|
+      github_urls << row['package_url'].downcase
+      print '.'
+    end;nil
+
+    github_urls.to_a.sort.each do |url|
+      puts url
+      Package.repository_url(url).each do |package|
+        packages << [package.ecosystem, package.name, package.id]
+      end
+    end
+
+    packages.each do |ecosystem, name, id|
+      package = Package.find(id)
+      puts "  #{package.ecosystem} - #{package.name} - #{package.latest_release_number}"
+  
+      next if package.latest_version.nil?
+
+      obj = package.as_json(include: [latest_version: { include: :dependencies }])
+
+      file.puts JSON.generate(obj)
+
+      if package.ecosystem == 'pypi'
+        name = normalized_name(package.name)
+      else
+        name = package.name
+      end
+
+      processed_names << [package.registry_id, name]
+      package.latest_version.dependencies.map(&:package_name).each do |dep_name|
+        if package.ecosystem == 'pypi'
+          n,v,e = parse_pep_508_dep_spec(dep_name)
+          n = n.split('[').first if n.include?('[') # extras
+          dependencies << [package.registry_id, normalized_name(n)]
+        else
+          dependencies << [package.registry_id, dep_name]
+        end
+      end
+    end
+
+    while dependencies.count > 0
+
+      first_level_dependencies = dependencies.flatten.uniq
+
+      dependencies = Set.new
+
+      first_level_dependencies.each do |registry_id, name|
+        next if processed_names.include?([registry_id, name])
+        next if missing_names.include?([registry_id, name])
+
+        registry = Registry.find(registry_id)
+        package = registry.packages.find_by_name(name)
+        package = registry.packages.find_by_normalized_name(name) if registry.ecosystem == 'pypi' && package.nil? && name != normalized_name(name)
+        
+        if package
+          puts "#{package.name} - #{package.latest_release_number}"
+
+          obj = package.as_json(include: [latest_version: { include: :dependencies }])
+          
+          next if package.latest_version.nil?
+
+          file.puts JSON.generate(obj)
+
+          if package.ecosystem == 'pypi'
+            name = normalized_name(package.name)
+          else
+            name = package.name
+          end
+
+          processed_names << [package.registry_id, name]
+          package.latest_version.dependencies.map(&:package_name).each do |dep_name|
+            if package.ecosystem == 'pypi'
+              n,v,e = parse_pep_508_dep_spec(dep_name)
+              n = n.split('[').first if n.include?('[') # extras
+              dependencies << [package.registry_id, normalized_name(n)]
+            else
+              dependencies << [package.registry_id, dep_name]
+            end
+          end
+        else
+          puts "Package not found: #{name}"
+          missing_names << [registry_id, name]
+        end
+      end
+
+      puts "Processed #{processed_names.uniq.count} packages"
+      puts "Found #{missing_names.uniq.count} missing packages"
+      puts "Found #{dependencies.uniq.count} dependencies"
+      puts '--------------------------'
+    end
+
+    # todo fetch transitive dependencies of each discovered package
+
   end
 end
 
