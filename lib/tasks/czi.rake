@@ -334,7 +334,7 @@ namespace :czi do
       if package.ecosystem == 'pypi'
         name = normalized_name(package.name)
       else
-        name = package.name
+        name = package.name.downcase
       end
 
       processed_names << [package.registry_id, name]
@@ -344,7 +344,7 @@ namespace :czi do
           n = n.split('[').first if n.include?('[') # extras
           dependencies << [package.registry_id, normalized_name(n)]
         else
-          dependencies << [package.registry_id, dep_name]
+          dependencies << [package.registry_id, dep_name.downcase]
         end
       end
     end
@@ -356,8 +356,8 @@ namespace :czi do
       dependencies = Set.new
 
       first_level_dependencies.each do |registry_id, name|
-        next if processed_names.include?([registry_id, name])
-        next if missing_names.include?([registry_id, name])
+        next if processed_names.include?([registry_id, name.downcase])
+        next if missing_names.include?([registry_id, name.downcase])
 
         registry = Registry.find(registry_id)
         package = registry.packages.find_by_name(name)
@@ -375,7 +375,7 @@ namespace :czi do
           if package.ecosystem == 'pypi'
             name = normalized_name(package.name)
           else
-            name = package.name
+            name = package.name.downcase
           end
 
           processed_names << [package.registry_id, name]
@@ -390,7 +390,7 @@ namespace :czi do
           end
         else
           puts "Package not found: #{name}"
-          missing_names << [registry_id, name]
+          missing_names << [registry_id, name.downcase]
         end
       end
 
@@ -399,8 +399,6 @@ namespace :czi do
       puts "Found #{dependencies.uniq.count} dependencies"
       puts '--------------------------'
     end
-
-    # todo fetch transitive dependencies of each discovered package
 
   end
 end
