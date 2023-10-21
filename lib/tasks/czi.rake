@@ -270,9 +270,10 @@ namespace :czi do
     packages.each do |ecosystem, name, id|
       package = Package.find(id)
       puts "  #{package.ecosystem} - #{package.name} - #{package.latest_release_number}"
-      obj = package.as_json(include: [latest_version: { include: :dependencies }])
-      
+  
       next if package.latest_version.nil?
+
+      obj = package.as_json(include: [latest_version: { include: :dependencies }])
 
       file.puts JSON.generate(obj)
     end
