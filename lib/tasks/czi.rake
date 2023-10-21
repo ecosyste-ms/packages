@@ -248,5 +248,34 @@ namespace :czi do
       # registry.sync_package_async(name)
     end
   end
+
+  task github: :environment do
+    file = File.open("data/github_packages.ndjson", "a")
+
+    packages = Set.new
+    github_urls = Set.new
+
+    CSV.foreach('data/github_df.csv', headers: true) do |row|
+      github_urls << row['package_url'].downcase
+      print '.'
+    end;nil
+
+    github_urls.to_a.sort.each do |url|
+      puts url
+      Package.repository_url(url).each do |package|
+        packages << [package.ecosystem, package.name, package.id]
+      end
+    end
+
+    packages.each do |ecosystem, name, id|
+      package = Package.find(id)
+      puts "  #{package.ecosystem} - #{package.name} - #{package.latest_release_number}"
+      obj = package.as_json(include: [latest_version: { include: :dependencies }])
+      
+      next if package.latest_version.nil?
+
+      file.puts JSON.generate(obj)
+    end
+  end
 end
 
