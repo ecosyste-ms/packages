@@ -121,9 +121,9 @@ module Ecosystem
         next if email.nil?
         email = email.gsub('>','').gsub(' at ', '@')
         {
-          uuid: email,
+          uuid: email.strip,
           name: name.strip,
-          email: email
+          email: email.strip
         }
       end.compact
     end
