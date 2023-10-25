@@ -19,7 +19,7 @@ namespace :czi do
         puts "#{package.name} - #{package.latest_release_number}"
 
         obj = package.as_json(include: [:maintainers,latest_version: { include: :dependencies }])
-
+        obj['mentioned'] = true
         if package.repository_url.present?
           # fetch committers for package
           connection = Faraday.new 'https://commits.ecosyste.ms' do |builder|
@@ -71,7 +71,8 @@ namespace :czi do
           puts "#{package.name} - #{package.latest_release_number}"
 
           obj = package.as_json(include: [:maintainers, latest_version: { include: :dependencies }])
-          
+          obj['mentioned'] = false
+
           # fetch committers for package
           if package.repository_url.present?
             # fetch committers for package
@@ -130,7 +131,7 @@ namespace :czi do
 
     registry = Registry.find_by_ecosystem('cran')
 
-    file = File.open("data/cran.ndjson", "a")
+    file = File.open("data/cran_with_commits.ndjson", "a")
 
     processed_names = Set.new
     missing_names = Set.new
@@ -142,10 +143,35 @@ namespace :czi do
 
       if package
         puts "#{package.name} - #{package.latest_release_number}"
-
-        obj = package.as_json(include: [latest_version: { include: :dependencies }])
         
         next if package.latest_version.nil?
+
+        obj = package.as_json(include: [:maintainers,latest_version: { include: :dependencies }])
+        obj['mentioned'] = true
+        if package.repository_url.present?
+          # fetch committers for package
+          connection = Faraday.new 'https://commits.ecosyste.ms' do |builder|
+            builder.use Faraday::FollowRedirects::Middleware
+            builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
+            builder.response :json
+            builder.request :json
+            builder.request :instrumentation
+            builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
+          end
+    
+          url = "/api/v1/repositories/lookup?url=#{package.repository_url}"
+          puts url
+          response = connection.get(url)
+          if response.status == 200
+            
+            json = response.body
+            obj['commits_stats'] = json
+          else
+            obj['commits_stats'] = {}
+          end
+        else
+          obj['commits_stats'] = {}
+        end
 
         file.puts JSON.generate(obj)
 
@@ -174,9 +200,34 @@ namespace :czi do
         if package
           puts "#{package.name} - #{package.latest_release_number}"
 
-          obj = package.as_json(include: [latest_version: { include: :dependencies }])
-          
           next if package.latest_version.nil?
+
+          obj = package.as_json(include: [:maintainers,latest_version: { include: :dependencies }])
+          obj['mentioned'] = false
+          if package.repository_url.present?
+            # fetch committers for package
+            connection = Faraday.new 'https://commits.ecosyste.ms' do |builder|
+              builder.use Faraday::FollowRedirects::Middleware
+              builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
+              builder.response :json
+              builder.request :json
+              builder.request :instrumentation
+              builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
+            end
+      
+            url = "/api/v1/repositories/lookup?url=#{package.repository_url}"
+            puts url
+            response = connection.get(url)
+            if response.status == 200
+              
+              json = response.body
+              obj['commits_stats'] = json
+            else
+              obj['commits_stats'] = {}
+            end
+          else
+            obj['commits_stats'] = {}
+          end
 
           file.puts JSON.generate(obj)
 
