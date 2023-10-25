@@ -25,7 +25,8 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       scope = Package.where(name: name, ecosystem: ecosystem)
     else
       params[:name] = "library/#{params[:name]}" if params[:ecosystem] == 'docker' && !params[:name].include?('/')
-      scope = Package.where(name: params[:name], ecosystem: params[:ecosystem])
+      scope = Package.where(name: params[:name])
+      scope = scope.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
     end
 
     if params[:sort].present? || params[:order].present?
