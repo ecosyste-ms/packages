@@ -12,7 +12,7 @@ namespace :czi do
     missing_names = Set.new
     dependencies = Set.new
 
-    csv.first(10).each do |row|
+    csv.each do |row|
       package = registry.packages.where('lower(name) = ?', row['Bioconductor Package'].downcase).first
 
       if package
