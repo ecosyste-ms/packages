@@ -502,5 +502,134 @@ namespace :czi do
     # output.close
 
   end
+
+  task :count_dois => :environment do
+    ids = {}
+    total = 14770210
+    CSV.foreach('data/comm_disambiguated.tsv', headers: true, col_sep: "\t") do |row| 
+      print " row: #{$.} (#{$./total.to_f*100}%) \r"
+      ids[row['ID']] ||= []
+      ids[row['ID']] << row['doi'] if ids[row['ID']].exclude?(row['doi'])
+    end
+
+    json = File.open("data/comm_disambiguated_dois_count.json", "w")
+    json << JSON.pretty_generate(ids)
+    json.close
+  end
+
+  task :count_cvis => :environment do
+    dois = {}
+    total = 14770210
+    CSV.foreach('data/comm_disambiguated.tsv', headers: true, col_sep: "\t") do |row| 
+      next unless row['doi'].present?
+      print " row: #{$.} (#{$./total.to_f*100}%) \r"
+      dois[row['doi'].downcase] ||= []
+      dois[row['doi'].downcase] << row['ID'] if dois[row['doi'].downcase].exclude?(row['ID'].upcase)
+    end
+
+    json = File.open("data/comm_disambiguated_cvis_count.json", "w")
+    json << JSON.pretty_generate(dois)
+    json.close
+  end
+
+  task :unknown_czis => :environment do
+    PEP_508_NAME_REGEX = /[A-Z0-9][A-Z0-9._-]*[A-Z0-9]|[A-Z0-9]/i.freeze
+    PEP_508_NAME_WITH_EXTRAS_REGEX = /(^#{PEP_508_NAME_REGEX}\s*(?:\[#{PEP_508_NAME_REGEX}(?:,\s*#{PEP_508_NAME_REGEX})*\])?)/i.freeze
+
+    def parse_pep_508_dep_spec(dep)
+      name, requirement = dep.split(PEP_508_NAME_WITH_EXTRAS_REGEX, 2).last(2)
+      version, environment_markers = requirement.split(";").map(&:strip)
+
+      # remove whitespace from name
+      # remove parentheses surrounding version requirement
+      [name.remove(/\s/), version&.remove(/[()]/) || "", environment_markers || ""]
+    end
+
+    def normalized_name(name)
+      name.downcase.gsub('_', '-').gsub('.', '-')
+    end
+
+    mention_counts_file = File.read("data/comm_disambiguated_ids_count.json")
+    mention_counts = JSON.parse(mention_counts_file)
+
+    unknown_file = File.read('data/unknown_czi.json')
+    unknown_names = JSON.parse(unknown_file)
+
+    registry = Registry.find_by_ecosystem('pypi')
+
+    file = File.open("data/unknown_pypi_with_mentions.ndjson", "a")
+
+    processed_names = Set.new
+    missing_names = Set.new
+    dependencies = Set.new
+
+    unknown_names.each do |name|
+      package = registry.packages.find_by_name(name)
+      package = registry.packages.find_by_normalized_name(name) if package.nil? && name != normalized_name(name)
+
+      if package
+        puts "#{package.name} - #{package.latest_release_number}"
+
+        next if package.latest_version.nil?
+
+        obj = package.as_json(include: [latest_version: { include: :dependencies }])
+        
+        
+
+        file.puts JSON.generate(obj)
+
+        processed_names << normalized_name(package.name)
+        package.latest_version.dependencies.map(&:package_name).each do |name|
+          n,v,e = parse_pep_508_dep_spec(name)
+          n = n.split('[').first if n.include?('[') # extras
+          dependencies << normalized_name(n)
+        end
+      else
+        puts "Package not found: #{name}"
+        missing_names << normalized_name(name)
+      end
+    end
+
+    while dependencies.count > 0
+
+      first_level_dependencies = dependencies.flatten.uniq
+
+      dependencies = Set.new
+
+      first_level_dependencies.each do |name|
+        next if processed_names.include?(normalized_name(name))
+        next if missing_names.include?(normalized_name(name))
+
+        package = registry.packages.find_by_name(name)
+        package = registry.packages.find_by_normalized_name(name) if package.nil? && name != normalized_name(name)
+        
+        if package
+          puts "#{package.name} - #{package.latest_release_number}"
+
+          next if package.latest_version.nil?
+
+          obj = package.as_json(include: [latest_version: { include: :dependencies }])
+          
+
+          file.puts JSON.generate(obj)
+
+          processed_names << normalized_name(package.name)
+          package.latest_version.dependencies.map(&:package_name).each do |name|
+            n,v,e = parse_pep_508_dep_spec(name)
+            n = n.split('[').first if n.include?('[') # extras
+            dependencies << normalized_name(n)
+          end
+        else
+          puts "Package not found: #{name}"
+          missing_names << normalized_name(name)
+        end
+      end
+
+      puts "Processed #{processed_names.uniq.count} packages"
+      puts "Found #{missing_names.uniq.count} missing packages"
+      puts "Found #{dependencies.uniq.count} dependencies"
+      puts '--------------------------'
+    end
+  end
 end
 
