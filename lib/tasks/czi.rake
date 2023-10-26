@@ -186,26 +186,34 @@ namespace :czi do
       name.downcase.gsub('_', '-').gsub('.', '-')
     end
 
-    csv = CSV.read('data/pypi_raw_df.csv', headers: true)
+    mention_counts_file = File.read("data/comm_disambiguated_ids_count.json")
+    mention_counts = JSON.parse(mention_counts_file)
+
+    csv = CSV.read('data/pypi_df.csv', headers: true)
 
     registry = Registry.find_by_ecosystem('pypi')
 
-    file = File.open("data/pypi.ndjson", "a")
+    file = File.open("data/pypi_with_mentions.ndjson", "a")
 
     processed_names = Set.new
     missing_names = Set.new
     dependencies = Set.new
 
     csv.each do |row|
-      package = registry.packages.find_by_name(row['pypi package'])
-      package = registry.packages.find_by_normalized_name(row['pypi package']) if package.nil? && row['pypi package'] != normalized_name(row['pypi package'])
+      package = registry.packages.find_by_name(row['software_mention'])
+      package = registry.packages.find_by_normalized_name(row['software_mention']) if package.nil? && row['software_mention'] != normalized_name(row['software_mention'])
 
       if package
         puts "#{package.name} - #{package.latest_release_number}"
 
+        next if package.latest_version.nil?
+
         obj = package.as_json(include: [latest_version: { include: :dependencies }])
         
-        next if package.latest_version.nil?
+        obj['czi_id'] = row['ID']
+        obj['mentioned'] = true
+        mentions = mention_counts[row['ID']]
+        obj['mentions_count'] = mentions
 
         file.puts JSON.generate(obj)
 
@@ -216,8 +224,8 @@ namespace :czi do
           dependencies << normalized_name(n)
         end
       else
-        puts "Package not found: #{row['pypi package']}"
-        missing_names << normalized_name(row['pypi package'])
+        puts "Package not found: #{row['software_mention']}"
+        missing_names << normalized_name(row['software_mention'])
       end
     end
 
@@ -237,9 +245,13 @@ namespace :czi do
         if package
           puts "#{package.name} - #{package.latest_release_number}"
 
+          next if package.latest_version.nil?
+
           obj = package.as_json(include: [latest_version: { include: :dependencies }])
           
-          next if package.latest_version.nil?
+          obj['czi_id'] = nil
+          obj['mentioned'] = false
+          obj['mentions_count'] = 0
 
           file.puts JSON.generate(obj)
 
