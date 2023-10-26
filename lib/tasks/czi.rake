@@ -78,25 +78,25 @@ namespace :czi do
       registry.sync_package_async(name)
     end
 
-
-    # TODO: look up missing packages in old versions of registry, potentially fallback to CRAN
-
   end
 
   task :cran => :environment do
-    csv = CSV.read('data/cran_raw_df.csv', headers: true)
+    csv = CSV.read('data/cran_df.csv', headers: true)
+
+    mention_counts_file = File.read("data/comm_disambiguated_ids_count.json")
+    mention_counts = JSON.parse(mention_counts_file)
 
     registry = Registry.find_by_ecosystem('cran')
 
-    file = File.open("data/cran_with_commits.ndjson", "a")
+    file = File.open("data/cran_with_mention_counts.ndjson", "a")
 
     processed_names = Set.new
     missing_names = Set.new
     dependencies = Set.new
 
     csv.each do |row|
-      package = registry.packages.where(name: row['CRAN Package']).first
-      package = registry.packages.where(name: row['CRAN Package'].downcase).first if package.nil?
+      package = registry.packages.where(name: row['software_mention']).first
+      package = registry.packages.where(name: row['software_mention'].downcase).first if package.nil?
 
       if package
         puts "#{package.name} - #{package.latest_release_number}"
@@ -105,30 +105,8 @@ namespace :czi do
 
         obj = package.as_json(include: [:maintainers,latest_version: { include: :dependencies }])
         obj['mentioned'] = true
-        if package.repository_url.present?
-          # fetch committers for package
-          connection = Faraday.new 'https://commits.ecosyste.ms' do |builder|
-            builder.use Faraday::FollowRedirects::Middleware
-            builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
-            builder.response :json
-            builder.request :json
-            builder.request :instrumentation
-            builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
-          end
-    
-          url = "/api/v1/repositories/lookup?url=#{package.repository_url}"
-          puts url
-          response = connection.get(url)
-          if response.status == 200
-            
-            json = response.body
-            obj['commits_stats'] = json
-          else
-            obj['commits_stats'] = {}
-          end
-        else
-          obj['commits_stats'] = {}
-        end
+        mentions = mention_counts[row['ID']]
+        obj['mentions_count'] = mentions
 
         file.puts JSON.generate(obj)
 
@@ -137,8 +115,8 @@ namespace :czi do
           dependencies << name
         end
       else
-        puts "Package not found: #{row['CRAN Package']}"
-        missing_names << row['CRAN Package']
+        puts "Package not found: #{row['software_mention']}"
+        missing_names << row['software_mention']
       end
     end
 
@@ -161,30 +139,7 @@ namespace :czi do
 
           obj = package.as_json(include: [:maintainers,latest_version: { include: :dependencies }])
           obj['mentioned'] = false
-          if package.repository_url.present?
-            # fetch committers for package
-            connection = Faraday.new 'https://commits.ecosyste.ms' do |builder|
-              builder.use Faraday::FollowRedirects::Middleware
-              builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
-              builder.response :json
-              builder.request :json
-              builder.request :instrumentation
-              builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
-            end
-      
-            url = "/api/v1/repositories/lookup?url=#{package.repository_url}"
-            puts url
-            response = connection.get(url)
-            if response.status == 200
-              
-              json = response.body
-              obj['commits_stats'] = json
-            else
-              obj['commits_stats'] = {}
-            end
-          else
-            obj['commits_stats'] = {}
-          end
+          obj['mentions_count'] = 0
 
           file.puts JSON.generate(obj)
 
