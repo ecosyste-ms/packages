@@ -26,6 +26,7 @@ namespace :czi do
         
         mentions = mention_counts[row['ID']]
         obj['mentions_count'] = mentions
+        obj['czi_id'] = row['ID']
 
         file.puts JSON.generate(obj)
 
@@ -55,6 +56,7 @@ namespace :czi do
           obj = package.as_json(include: [:maintainers, latest_version: { include: :dependencies }])
           obj['mentioned'] = false
           obj['mentions_count'] = 0
+          obj['czi_id']
 
           file.puts JSON.generate(obj)
 
@@ -107,6 +109,7 @@ namespace :czi do
         obj['mentioned'] = true
         mentions = mention_counts[row['ID']]
         obj['mentions_count'] = mentions
+        obj['czi_id'] = row['ID']
 
         file.puts JSON.generate(obj)
 
@@ -140,6 +143,7 @@ namespace :czi do
           obj = package.as_json(include: [:maintainers,latest_version: { include: :dependencies }])
           obj['mentioned'] = false
           obj['mentions_count'] = 0
+          obj['czi_id'] = nil
 
           file.puts JSON.generate(obj)
 
