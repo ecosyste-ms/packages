@@ -122,7 +122,7 @@ GEM
       rexml
     crass (1.0.6)
     dalli (3.2.6)
-    date (3.3.3)
+    date (3.3.4)
     deb_control (0.0.1)
     debug (1.8.0)
       irb (>= 1.5.0)
