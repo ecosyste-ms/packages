@@ -20,7 +20,7 @@ gem "oj"
 gem "ox"
 gem "simple-rss"
 gem "redis"
-gem "sidekiq", '7.1.6'
+gem "sidekiq", '7.2.0'
 gem 'sidekiq-unique-jobs'
 gem "bibliothecary", github: "ecosyste-ms/bibliothecary", branch: "main"
 gem "pagy"
