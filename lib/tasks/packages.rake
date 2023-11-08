@@ -107,4 +107,14 @@ namespace :packages do
       registry.sync_package_async(repo_name)
     end
   end
+
+  desc 'sync docker packages'
+  task sync_outdated_docker: :environment do
+    registry = Registry.find_by(ecosystem: 'docker')
+    registry.packages.active.outdated.limit(1000).each do |package|
+      puts package.name
+      package.sync_async
+      sleep 1 # rate limited
+    end
+  end
 end

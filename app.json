@@ -53,6 +53,10 @@
       "schedule": "0 * * * *"
     },
     {
+      "command": "bundle exec rake packages:sync_outdated_docker",
+      "schedule": "0 * * * *"
+    },
+    {
       "command": "bundle exec rake packages:update_docker_usages",
       "schedule": "0 0 * * *"
     },
