@@ -4,7 +4,9 @@
   Total registries: <%= number_with_delimiter @registries.count %><br/>
   Total packages: <%= number_with_delimiter @registries.sum(&:packages_count) %><br/>
   Total active packages: <%= number_with_delimiter @registries.sum(&:active_packages_count) %><br/>
-  Total outdated packages: <%= number_with_delimiter @registries.sum(&:outdated_packages_count) %> (<%= (@registries.sum(&:outdated_packages_count).to_f/@registries.sum(&:active_packages_count)*100).round %>%)<br/><br/>
+  Total outdated packages: <%= number_with_delimiter @registries.sum(&:outdated_packages_count) %> (<%= (@registries.sum(&:outdated_packages_count).to_f/@registries.sum(&:active_packages_count)*100).round %>%)<br/>
+  Total outdated w/o docker: <%= number_with_delimiter @registries.reject{|r| r.ecosystem == 'docker' }.sum(&:outdated_packages_count) %> (<%= (@registries.reject{|r| r.ecosystem == 'docker' }.sum(&:outdated_packages_count).to_f/@registries.reject{|r| r.ecosystem == 'docker' }.sum(&:active_packages_count)*100).round %>%)
+  <br/><br/>
 
   <% @registries.each do |registry|%>
     <div class="card mb-3 registry d-flex" id="registry_<%= registry.id %>">
