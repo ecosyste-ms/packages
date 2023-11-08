@@ -7,20 +7,22 @@ class Registry < ApplicationRecord
   has_many :versions, through: :packages
   has_many :maintainers
 
+  scope :not_docker, -> { where.not(ecosystem: 'docker') }
+
   def self.update_extra_counts
     all.each(&:update_extra_counts)
   end
 
   def self.sync_all_recently_updated_packages_async
-    all.each(&:sync_recently_updated_packages_async)
+    not_docker.each(&:sync_recently_updated_packages_async)
   end
 
   def self.sync_all_packages
-    all.each(&:sync_all_packages)
+    not_docker.each(&:sync_all_packages)
   end
 
   def self.sync_all_missing_packages_async
-    all.each(&:sync_missing_packages_async)
+    not_docker.each(&:sync_missing_packages_async)
   end
 
   def to_param
@@ -344,7 +346,7 @@ class Registry < ApplicationRecord
   end
 
   def self.sync_worst_one_percent
-    Registry.all.sort_by(&:outdated_percentage).last.sync_one_percent_of_packages
+    Registry.not_docker.sort_by(&:outdated_percentage).last.sync_one_percent_of_packages
   end
 
   # underproduction
