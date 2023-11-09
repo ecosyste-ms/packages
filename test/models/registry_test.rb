@@ -125,7 +125,7 @@ class RegistryTest < ActiveSupport::TestCase
 
   test 'sync_all_recently_updated_packages_async' do
     @registry.expects(:sync_recently_updated_packages_async).returns(true)
-    Registry.stubs(:all).returns([@registry])
+    Registry.stubs(:not_docker).returns([@registry])
     Registry.sync_all_recently_updated_packages_async
   end
 end
