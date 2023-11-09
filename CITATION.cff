@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+title: 'Ecosyste.ms: Packages'
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Andrew
+    family-names: Nesbitt
+    email: andrew@ecosyste.ms
+    orcid: 'https://orcid.org/0009-0007-2710-1118'
+repository-code: 'https://github.com/ecosyste-ms/packages'
+url: 'https://packages.ecosyste.ms'
+abstract: >-
+   An open API service providing package, version and dependency metadata of many open source software ecosystems and registries. 
+keywords:
+  - open source
+  - package management
+  - software
+license: AGPL-3.0
