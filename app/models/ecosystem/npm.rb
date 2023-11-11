@@ -37,7 +37,7 @@ module Ecosystem
 
       if json 
         return "unpublished" if json["versions"].blank?
-        non_prerelease_versions = json["versions"].values.reject{|v| Semantic::Version.new(v['version']).pre}
+        non_prerelease_versions = json["versions"].values.reject{|v| Semantic::Version.new(v['version']).pre rescue true}
 
         return "deprecated" if non_prerelease_versions.length > 0 && non_prerelease_versions.all? { |v| v["deprecated"] }
 
