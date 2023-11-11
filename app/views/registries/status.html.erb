@@ -21,7 +21,7 @@
             <p class="card-subtitle mb-2 text-muted">
               <%= number_with_delimiter registry.packages_count %> packages<br/>
               Active: <%= number_with_delimiter registry.active_packages_count %> packages<br/>
-              Outdated: <%= number_with_delimiter registry.outdated_packages_count %> packages (<%= registry.outdated_percentage.round %>%) <br/>
+              Outdated: <%= number_with_delimiter registry.outdated_packages_count %> packages (<%= registry.outdated_percentage.round(2) %>%) <br/>
             </p>
 
             <% if registry.outdated_packages_count > 0 && registry.least_recently_synced_package.present? %>
