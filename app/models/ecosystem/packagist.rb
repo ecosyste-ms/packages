@@ -86,7 +86,7 @@ module Ecosystem
         licenses: Array.wrap(latest_version["license"]).join(","),
         repository_url: repo_fallback(latest_version["source"]&.fetch("url"), latest_version["homepage"]),
         versions: pkg_metadata['versions'],
-        downloads: pkg_metadata["downloads"]['total'],
+        downloads: pkg_metadata["downloads"]&.fetch("total"),
         downloads_period: 'total',
         namespace: pkg_metadata["name"].split("/").first,
         metadata: {
