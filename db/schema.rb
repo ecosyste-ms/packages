@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_04_151818) do
+ActiveRecord::Schema[7.1].define(version: 2023_11_14_121723) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -81,6 +81,15 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_04_151818) do
     t.index ["package_id"], name: "index_maintainerships_on_package_id"
   end
 
+  create_table "mentions", force: :cascade do |t|
+    t.integer "paper_id"
+    t.integer "project_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["paper_id"], name: "index_mentions_on_paper_id"
+    t.index ["project_id"], name: "index_mentions_on_project_id"
+  end
+
   create_table "packages", force: :cascade do |t|
     t.integer "registry_id"
     t.string "name"
@@ -132,6 +141,29 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_04_151818) do
     t.index ["status", "last_synced_at"], name: "index_packages_on_status_and_last_synced_at"
   end
 
+  create_table "papers", force: :cascade do |t|
+    t.string "doi"
+    t.string "openalex_id"
+    t.string "title"
+    t.datetime "publication_date"
+    t.json "openalex_data"
+    t.integer "mentions_count"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["doi"], name: "index_papers_on_doi"
+  end
+
+  create_table "projects", force: :cascade do |t|
+    t.string "czi_id"
+    t.string "ecosystem"
+    t.string "name"
+    t.json "package"
+    t.integer "mentions_count"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ecosystem", "name"], name: "index_projects_on_ecosystem_and_name"
+  end
+
   create_table "registries", force: :cascade do |t|
     t.string "name"
     t.string "url"
@@ -168,9 +200,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_04_151818) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.json "metadata", default: {}
+    t.integer "registry_id"
     t.index ["package_id", "number"], name: "index_versions_on_package_id_and_number", unique: true
     t.index ["package_id"], name: "index_versions_on_package_id"
     t.index ["published_at"], name: "index_versions_on_published_at"
+    t.index ["registry_id"], name: "index_versions_on_registry_id"
   end
 
   add_foreign_key "advisories", "sources"
