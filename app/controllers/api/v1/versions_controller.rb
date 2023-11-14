@@ -5,9 +5,16 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     @package = @registry.packages.find_by_name!(params[:package_id].downcase) if @package.nil?
     scope = @package.versions#.includes(:dependencies)
 
-    sort = params[:sort] || 'published_at,created_at'
-    order = params[:order] || 'desc,desc'
-    sort_options = sort.split(',').zip(order.split(',')).to_h
+    if params[:sort].present? || params[:order].present?
+      sort = params[:sort].presence || 'published_at'
+      if params[:order] == 'asc'
+        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+      else
+        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+      end
+    else
+      scope = scope.order('published_at DESC nulls last, created_at DESC')
+    end
 
     scope = scope.created_after(params[:created_after]) if params[:created_after].present?
     scope = scope.published_after(params[:published_after]) if params[:published_after].present?
@@ -26,9 +33,16 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
   def recent
     @registry = Registry.find_by_name!(params[:id])
 
-    sort = params[:sort] || 'published_at,created_at'
-    order = params[:order] || 'desc,desc'
-    sort_options = sort.split(',').zip(order.split(',')).to_h
+    if params[:sort].present? || params[:order].present?
+      sort = params[:sort].presence || 'published_at'
+      if params[:order] == 'asc'
+        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+      else
+        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+      end
+    else
+      scope = scope.order('published_at DESC nulls last, created_at DESC')
+    end
 
     scope = @registry.versions.includes(:package)
     scope = scope.created_after(params[:created_after]) if params[:created_after].present?
