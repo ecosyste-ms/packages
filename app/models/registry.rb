@@ -138,7 +138,7 @@ class Registry < ApplicationRecord
     versions_metadata = ecosystem_instance.versions_metadata(package_metadata, existing_version_numbers)
 
     versions_metadata.each do |version|
-      new_versions << version.merge(package_id: package.id, created_at: Time.now, updated_at: Time.now) unless existing_version_numbers.find { |v| v == version.with_indifferent_access[:number].to_s }
+      new_versions << version.merge(package_id: package.id, registry_id: id, created_at: Time.now, updated_at: Time.now) unless existing_version_numbers.find { |v| v == version.with_indifferent_access[:number].to_s }
     end
 
     if new_versions.any?

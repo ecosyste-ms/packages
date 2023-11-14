@@ -258,6 +258,7 @@ class Package < ApplicationRecord
         v = versions.find{|ver| ver.number == version[:number] }
       end
       if v
+        v.registry_id = registry_id
         v.assign_attributes(version) 
         v.save(validate: false)
       else
