@@ -5,6 +5,11 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     @package = @registry.packages.find_by_name!(params[:package_id].downcase) if @package.nil?
     scope = @package.versions#.includes(:dependencies)
 
+    scope = scope.created_after(params[:created_after]) if params[:created_after].present?
+    scope = scope.published_after(params[:published_after]) if params[:published_after].present?
+    scope = scope.published_before(params[:published_before]) if params[:published_before].present?
+    scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
+
     if params[:sort].present? || params[:order].present?
       sort = params[:sort].presence || 'published_at'
       if params[:order] == 'asc'
@@ -16,11 +21,7 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
       scope = scope.order('published_at DESC nulls last, created_at DESC')
     end
 
-    scope = scope.created_after(params[:created_after]) if params[:created_after].present?
-    scope = scope.published_after(params[:published_after]) if params[:published_after].present?
-    scope = scope.published_before(params[:published_before]) if params[:published_before].present?
-    scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
-    @pagy, @versions = pagy_countless(scope.order(sort_options))
+    @pagy, @versions = pagy_countless(scope)
   end
 
   def show
@@ -33,6 +34,12 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
   def recent
     @registry = Registry.find_by_name!(params[:id])
 
+    scope = @registry.versions.includes(:package)
+    scope = scope.created_after(params[:created_after]) if params[:created_after].present?
+    scope = scope.published_after(params[:published_after]) if params[:published_after].present?
+    scope = scope.published_before(params[:published_before]) if params[:published_before].present?
+    scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
+
     if params[:sort].present? || params[:order].present?
       sort = params[:sort].presence || 'published_at'
       if params[:order] == 'asc'
@@ -44,12 +51,7 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
       scope = scope.order('published_at DESC nulls last, created_at DESC')
     end
 
-    scope = @registry.versions.includes(:package)
-    scope = scope.created_after(params[:created_after]) if params[:created_after].present?
-    scope = scope.published_after(params[:published_after]) if params[:published_after].present?
-    scope = scope.published_before(params[:published_before]) if params[:published_before].present?
-    scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
-    @pagy, @versions = pagy_countless(scope.order(sort_options))
+    @pagy, @versions = pagy_countless(scope)
   end
 
   def version_numbers
