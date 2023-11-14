@@ -30,7 +30,7 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     order = params[:order] || 'desc,desc'
     sort_options = sort.split(',').zip(order.split(',')).to_h
 
-    scope = @registry.versions#.includes(:package)
+    scope = @registry.versions.includes(:package)
     scope = scope.created_after(params[:created_after]) if params[:created_after].present?
     scope = scope.published_after(params[:published_after]) if params[:published_after].present?
     scope = scope.published_before(params[:published_before]) if params[:published_before].present?
