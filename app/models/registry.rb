@@ -4,7 +4,7 @@ class Registry < ApplicationRecord
   validates_uniqueness_of :name, :url
 
   has_many :packages
-  has_many :versions, through: :packages
+  has_many :versions
   has_many :maintainers
 
   scope :not_docker, -> { where.not(ecosystem: 'docker') }
