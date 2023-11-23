@@ -96,7 +96,7 @@ GEM
       public_suffix (>= 2.0.2, < 6.0)
     appsignal (3.4.15)
       rack
-    autoprefixer-rails (10.4.15.0)
+    autoprefixer-rails (10.4.16.0)
       execjs (~> 2)
     base64 (0.2.0)
     bigdecimal (3.1.4)
