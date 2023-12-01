@@ -94,7 +94,7 @@ GEM
       tzinfo (~> 2.0)
     addressable (2.8.5)
       public_suffix (>= 2.0.2, < 6.0)
-    appsignal (3.4.15)
+    appsignal (3.4.16)
       rack
     autoprefixer-rails (10.4.16.0)
       execjs (~> 2)
@@ -202,7 +202,7 @@ GEM
       timeout
     net-smtp (0.4.0)
       net-protocol
-    nio4r (2.6.1)
+    nio4r (2.7.0)
     nokogiri (1.15.5)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
