@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2023_11_14_121723) do
+ActiveRecord::Schema[7.1].define(version: 2023_12_01_153821) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -178,6 +178,7 @@ ActiveRecord::Schema[7.1].define(version: 2023_11_14_121723) do
     t.integer "namespaces_count", default: 0
     t.string "version"
     t.integer "keywords_count", default: 0
+    t.integer "versions_count"
   end
 
   create_table "sources", force: :cascade do |t|

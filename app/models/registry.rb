@@ -37,10 +37,6 @@ class Registry < ApplicationRecord
     end
   end
 
-  def versions_count
-    packages.sum(:versions_count)
-  end
-
   def all_package_names
     ecosystem_instance.all_package_names
   end
@@ -215,6 +211,7 @@ class Registry < ApplicationRecord
     self.namespaces_count = packages.where.not(namespace: nil).distinct.count(:namespace)
     self.metadata['funded_packages_count'] = fetch_funded_packages_count
     self.keywords_count = keywords.length
+    self.versions_count = packages.sum(:versions_count)
     save
   end
 
