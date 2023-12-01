@@ -4,7 +4,21 @@
     <%= line_chart recent_versions_data_path, thousands: "," %>
   </div>
 
-  <h4 class='mb-3'>Total packages indexed: <%= number_with_delimiter @registries.sum(&:packages_count) %></h4>
+  <div class="card mb-3">
+    <div class="card-header">
+      Statistics
+    </div>
+    <div class="card-body">
+      <div class="d-flex">
+        Registries: <%= number_with_delimiter @registries.length %><br/>
+        Packages: <%= number_with_delimiter @registries.sum(&:packages_count) %><br/>
+        Versions: <%= number_with_delimiter @registries.sum(&:versions_count) %><br/>
+        Namespaces: <%= number_with_delimiter @registries.sum(&:namespaces_count) %><br/>
+        Maintainers: <%= number_with_delimiter @registries.sum(&:maintainers_count) %><br/>
+        Keywords: <%= number_with_delimiter @registries.sum(&:keywords_count) %><br/>
+      </div>
+    </div>
+  </div>
 
   <% @registries.group_by(&:ecosystem).each do |ecosystem, registries| %>
     <% if registries.length > 1 && registries.all?{|r| r.version.present? } %>
