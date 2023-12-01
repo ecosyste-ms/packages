@@ -8,7 +8,8 @@
         </h5>
       
         <p class="card-subtitle mb-2 text-muted">
-          <%= number_with_delimiter registry.packages_count %> packages
+          <%= number_with_delimiter registry.packages_count %> packages<br/>
+          <%= number_with_delimiter registry.versions_count %> versions
           <% if registry.maintainers_count > 0 %>
             <br/><%= number_with_delimiter registry.maintainers_count %> maintainers
           <% end %>

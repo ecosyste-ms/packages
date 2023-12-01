@@ -936,6 +936,9 @@ components:
         packages_count:
           type: integer
           format: int64
+        versions_count:
+          type: integer
+          format: int64
         maintainers_count:
           type: integer
           format: int64
