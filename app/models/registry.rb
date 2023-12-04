@@ -232,6 +232,10 @@ class Registry < ApplicationRecord
     funded_packages_count.to_f / packages_count * 100
   end
 
+  def maintainers_supported?
+    ecosystem_class.instance_methods(false).include?(:maintainers_metadata)
+  end
+
   def sync_maintainers(package)
     maintainers_json = ecosystem_instance.maintainers_metadata(package.name)
     maintainer_records = []

@@ -632,7 +632,7 @@ class Package < ApplicationRecord
   end
 
   def sync_maintainers_async
-    SyncMaintainersWorker.perform_async(id)
+    SyncMaintainersWorker.perform_async(id) if registry.maintainers_supported?
   end
 
   def related_packages
