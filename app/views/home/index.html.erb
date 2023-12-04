@@ -12,7 +12,7 @@
       <div class="d-flex">
         Registries: <%= number_with_delimiter @registries.length %><br/>
         Packages: <%= number_with_delimiter @registries.sum(&:packages_count) %><br/>
-        Versions: <%= number_with_delimiter @registries.sum(&:versions_count) %><br/>
+        Versions: <%= number_with_delimiter @registries.sum{|r| r.versions_count.to_i } %><br/>
         Namespaces: <%= number_with_delimiter @registries.sum(&:namespaces_count) %><br/>
         Maintainers: <%= number_with_delimiter @registries.sum(&:maintainers_count) %><br/>
         Keywords: <%= number_with_delimiter @registries.sum(&:keywords_count) %><br/>
