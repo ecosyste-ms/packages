@@ -85,7 +85,7 @@ class CargoTest < ActiveSupport::TestCase
     package_metadata = @ecosystem.package_metadata('parameters_lib')
     
     assert_equal package_metadata[:name], "parameters_lib"
-    assert_equal package_metadata[:description], "Library"
+    assert_equal package_metadata[:description], "Parameters Library"
     assert_equal package_metadata[:homepage], "https://github.com/TheFox/parameters-rust"
     assert_equal package_metadata[:licenses], "MIT"
     assert_equal package_metadata[:repository_url], "https://github.com/TheFox/parameters-rust"
