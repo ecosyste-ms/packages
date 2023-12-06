@@ -101,8 +101,6 @@ class CargoTest < ActiveSupport::TestCase
     package_metadata = @ecosystem.package_metadata('parameters_lib')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
-    pp versions_metadata
-
     assert_equal versions_metadata, [{:number=>"0.2.2",
     :published_at=>"2022-03-29T13:35:06.927472+00:00",
     :status=>nil,
