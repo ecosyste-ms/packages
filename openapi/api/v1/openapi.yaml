@@ -1174,6 +1174,8 @@ components:
             type: string
           version_url:
             type: string
+          related_tag:
+            type: object
     VersionWithDependencies:
       required:
         - number
