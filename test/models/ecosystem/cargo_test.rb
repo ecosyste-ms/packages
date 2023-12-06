@@ -90,9 +90,9 @@ class CargoTest < ActiveSupport::TestCase
     assert_equal package_metadata[:licenses], "MIT"
     assert_equal package_metadata[:repository_url], "https://github.com/TheFox/parameters-rust"
     assert_equal package_metadata[:keywords_array], ["env", "variables"]
-    assert_equal package_metadata[:downloads], 10
+    assert_equal package_metadata[:downloads], 797
     assert_equal package_metadata[:downloads_period], 'total'
-    assert_equal package_metadata[:metadata], {:categories=>["command-line-interface", "filesystem", "parsing", "config"]}
+    assert_equal package_metadata[:metadata], {:categories=>["parsing", "filesystem", "config", "command-line-interface"]}
   end
 
   test 'versions_metadata' do
