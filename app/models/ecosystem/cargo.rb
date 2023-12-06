@@ -78,7 +78,14 @@ module Ecosystem
           published_at: version["created_at"],
           status: (version['yanked'] ? 'yanked' : nil),
           metadata: {
+            uuid: version["id"],
             downloads: version["downloads"],
+            published_by: version["published_by"],
+            checksum: version["checksum"],
+            size: version["size"],
+            license: version["license"],
+            crate_size: version["crate_size"],
+            rust_version: version["rust_version"],
           }
         }
       end
