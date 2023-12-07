@@ -210,7 +210,7 @@ class Registry < ApplicationRecord
   def update_extra_counts
     self.namespaces_count = packages.where.not(namespace: nil).distinct.count(:namespace)
     self.metadata['funded_packages_count'] = fetch_funded_packages_count
-    self.keywords_count = keywords.length
+    self.keywords_count = keywords_count
     self.versions_count = packages.sum(:versions_count)
     save
   end
@@ -301,8 +301,12 @@ class Registry < ApplicationRecord
 
   def keywords
     Rails.cache.fetch("registries_keywords/#{id}", expires_in: 1.week) do
-      Package.connection.select_rows("select keywords, count (keywords) as keywords_count from (select id, registry_id, unnest(keywords) as keywords from packages where registry_id = #{id}) as foo group by keywords order by keywords_count desc, keywords asc limit 100000;")
+      Package.connection.select_rows("select keywords, count (keywords) as keywords_count from (select id, registry_id, unnest(keywords) as keywords from packages where registry_id = #{id}) as foo group by keywords order by keywords_count desc, keywords asc limit 50000;")
     end
+  end
+
+  def keywords_count
+    Package.connection.select_rows("select count (distinct keywords) as keywords_count from (select id, registry_id, unnest(keywords) as keywords from packages where registry_id = #{id}) as foo;").first.first.to_i
   end
 
   def icon_url
