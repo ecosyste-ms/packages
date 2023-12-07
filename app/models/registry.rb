@@ -210,7 +210,7 @@ class Registry < ApplicationRecord
   def update_extra_counts
     self.namespaces_count = packages.where.not(namespace: nil).distinct.count(:namespace)
     self.metadata['funded_packages_count'] = fetch_funded_packages_count
-    self.keywords_count = keywords_count
+    self.keywords_count = count_keywords
     self.versions_count = packages.sum(:versions_count)
     save
   end
@@ -305,7 +305,7 @@ class Registry < ApplicationRecord
     end
   end
 
-  def keywords_count
+  def count_keywords
     Package.connection.select_rows("select count (distinct keywords) as keywords_count from (select id, registry_id, unnest(keywords) as keywords from packages where registry_id = #{id}) as foo;").first.first.to_i
   end
 
