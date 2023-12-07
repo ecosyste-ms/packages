@@ -134,4 +134,26 @@ class PackagesController < ApplicationController
       end
     end
   end
+
+  def lookup
+    if params[:repository_url].present?
+      scope = Package.repository_url(params[:repository_url])
+    elsif params[:purl].present?
+      purl = PackageURL.parse(params[:purl])
+      name = [purl.namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_seperator(purl.type))
+      ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type) 
+      scope = Package.where(name: name, ecosystem: ecosystem)
+    else
+      params[:name] = "library/#{params[:name]}" if params[:ecosystem] == 'docker' && !params[:name].include?('/')
+      scope = Package.where(name: params[:name])
+      scope = scope.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
+    end
+
+    @package = scope.first
+    if @package.nil?
+      raise ActiveRecord::RecordNotFound
+    else
+      redirect_to registry_package_path(@package.registry, @package)
+    end
+  end
 end

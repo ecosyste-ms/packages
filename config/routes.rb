@@ -97,6 +97,8 @@ Rails.application.routes.draw do
     end
   end
 
+  get 'packages/lookup', to: 'packages#lookup'
+
   resources :keywords, only: [:index, :show], constraints: { id: /.*/ }
 
   get :funding, to: 'funding#index'
