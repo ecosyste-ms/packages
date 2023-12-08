@@ -110,7 +110,7 @@ GEM
       concurrent-ruby (~> 1.0, >= 1.0.5)
       redis (>= 1.0, < 6)
     builder (3.2.4)
-    chartkick (5.0.4)
+    chartkick (5.0.5)
     citrus (3.0.2)
     commander (4.6.0)
       highline (~> 2.0.0)
