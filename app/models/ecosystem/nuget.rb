@@ -28,6 +28,7 @@ module Ecosystem
       response = Typhoeus.get(url)
       return "removed" if [400, 404, 410].include?(response.response_code)
       return "removed" if response.body.include? 'This package has been deleted from the gallery.'
+      return "removed" if response.body.include? "This package's content is hidden"
     end
 
     def recently_updated_package_names
