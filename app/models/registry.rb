@@ -314,13 +314,13 @@ class Registry < ApplicationRecord
   end
 
   def outdated_packages_count
-    Rails.cache.fetch("outdated_packages_count/#{id}", expires_in: 30.minutes) do
+    Rails.cache.fetch("outdated_packages_count/#{id}", expires_in: 15.minutes) do
       packages.active.outdated.count
     end
   end
 
   def active_packages_count
-    Rails.cache.fetch("active_packages_count/#{id}", expires_in: 30.minutes) do
+    Rails.cache.fetch("active_packages_count/#{id}", expires_in: 15.minutes) do
       packages.active.count
     end
   end
@@ -331,7 +331,7 @@ class Registry < ApplicationRecord
   end
 
   def least_recently_synced_package_id
-    Rails.cache.fetch("least_recently_synced_package_id/#{id}", expires_in: 10.minutes) do
+    Rails.cache.fetch("least_recently_synced_package_id/#{id}", expires_in: 15.minutes) do
       packages.active.order('last_synced_at asc').first.id
     end
   end
