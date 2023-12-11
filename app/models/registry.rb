@@ -126,7 +126,7 @@ class Registry < ApplicationRecord
 
     package.save!
 
-    package.update_repo_metadata if update_repo_metadata_after_save
+    package.update_repo_metadata_async if update_repo_metadata_after_save
 
     new_versions = []
     existing_version_numbers = package.versions.pluck('number')
