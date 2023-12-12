@@ -21,7 +21,7 @@ gem "ox"
 gem "simple-rss"
 gem "redis"
 gem "sidekiq"
-# gem 'sidekiq-unique-jobs'
+gem 'sidekiq-unique-jobs'
 gem "bibliothecary", github: "ecosyste-ms/bibliothecary", branch: "main"
 gem "pagy"
 gem "pghero"

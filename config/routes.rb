@@ -1,3 +1,4 @@
+require 'sidekiq_unique_jobs/web'
 require 'sidekiq/web'
 
 Sidekiq::Web.use Rack::Auth::Basic do |username, password|

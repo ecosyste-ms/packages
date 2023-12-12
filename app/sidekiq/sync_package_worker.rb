@@ -1,6 +1,6 @@
 class SyncPackageWorker
   include Sidekiq::Worker
-  sidekiq_options queue: :critical
+  sidekiq_options lock: :until_executed, queue: :critical
 
   def perform(registry_id, name)
     Registry.find_by_id(registry_id).try(:sync_package, name)
