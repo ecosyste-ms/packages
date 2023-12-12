@@ -1,6 +1,6 @@
 class UpdateDependentPackagesCountWorker
   include Sidekiq::Worker
-  sidekiq_options lock: :until_executed, queue: :low
+  sidekiq_options queue: :low
 
   def perform(package_id)
     # TODO noop empty whilst emptying the queue
