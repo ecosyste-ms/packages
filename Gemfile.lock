@@ -156,7 +156,7 @@ GEM
     google-protobuf (3.25.1-x86_64-linux)
     groupdate (6.4.0)
       activesupport (>= 6.1)
-    hashdiff (1.0.1)
+    hashdiff (1.1.0)
     highline (2.0.3)
     i18n (1.14.1)
       concurrent-ruby (~> 1.0)
