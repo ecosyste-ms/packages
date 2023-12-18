@@ -114,7 +114,7 @@ namespace :packages do
     registry.packages.active.outdated.limit(1000).order('RANDOM()').each do |package|
       puts package.name
       package.sync_async
-      sleep 0.5 # rate limited
+      sleep 1 # rate limited
     end
   end
 end

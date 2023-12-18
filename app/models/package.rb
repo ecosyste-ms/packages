@@ -784,6 +784,10 @@ class Package < ApplicationRecord
     registry.package_ids_sorted_by_quality.index(id) + 1
   end
 
+  def outdated?
+    last_synced_at && last_synced_at < 1.month.ago
+  end
+
   scope :with_issue_close_time, -> { where.not(issue_metadata: nil).where.not("(issue_metadata->'avg_time_to_close_issue')::text = ?", 'null') }
   scope :production, -> { active.where('dependent_repos_count > 0').with_issue_close_time }
 
