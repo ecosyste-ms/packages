@@ -226,7 +226,7 @@ GEM
     popper_js (2.11.8)
     postgresql_cursor (0.6.8)
       activerecord (>= 6.0)
-    psych (5.1.1.1)
+    psych (5.1.2)
       stringio
     public_suffix (5.0.4)
     puma (6.4.0)
