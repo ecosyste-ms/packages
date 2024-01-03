@@ -66,7 +66,7 @@ module Ecosystem
         keywords_array: parse_keywords(package["info"]["keywords"]),
         licenses: licenses(package),
         repository_url: repo_fallback(
-          package.dig("info", "project_urls", "Source").presence || package.dig("info", "project_urls", "Code").presence || package.dig("info", "project_urls", "Source Code").presence || package.dig("info", "project_urls", "Repository"),
+          package.dig("info", "project_urls", "Source").presence || package.dig("info", "project_urls", "GitHub").presence  || package.dig("info", "project_urls", "Code").presence || package.dig("info", "project_urls", "Source Code").presence || package.dig("info", "project_urls", "Repository"),
           package["info"]["home_page"].presence || package.dig("info", "project_urls", "Homepage").presence || package.dig("info", "project_urls", "Home"),
         ),
         releases: package['releases'],
@@ -77,6 +77,8 @@ module Ecosystem
           "normalized_name" => package["info"]["name"].downcase.gsub('_', '-').gsub('.', '-')
         }
       }
+
+      # TODO add more supported metadata from https://github.com/pypi/warehouse/blob/main/warehouse/templates/packaging/detail.html
 
       downloads = downloads(package)
       h[:downloads] = downloads if downloads.present?
