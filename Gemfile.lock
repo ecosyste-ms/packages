@@ -151,9 +151,6 @@ GEM
     globalid (1.2.1)
       activesupport (>= 6.1)
     google-protobuf (3.25.1)
-    google-protobuf (3.25.1-aarch64-linux)
-    google-protobuf (3.25.1-arm64-darwin)
-    google-protobuf (3.25.1-x86_64-linux)
     groupdate (6.4.0)
       activesupport (>= 6.1)
     hashdiff (1.1.0)
@@ -394,7 +391,7 @@ DEPENDENCIES
   faraday-follow_redirects
   faraday-retry
   faraday-typhoeus
-  google-protobuf (= 3.25.1)
+  google-protobuf
   groupdate
   jbuilder
   jquery-rails
