@@ -439,7 +439,7 @@ DEPENDENCIES
   xmlrpc
 
 RUBY VERSION
-   ruby 3.2.2p31
+   ruby 3.3.0p31
 
 BUNDLED WITH
    2.5.4

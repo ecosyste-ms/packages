@@ -8,7 +8,7 @@ First things first, you'll need to fork and clone the repository to your local m
 
 The project uses ruby on rails which have a number of system dependencies you'll need to install. 
 
-- [ruby 3.2.2](https://www.ruby-lang.org/en/documentation/installation/)
+- [ruby 3.3.0](https://www.ruby-lang.org/en/documentation/installation/)
 - [postgresql 14](https://www.postgresql.org/download/)
 - [redis 6+](https://redis.io/download/)
 - [node.js 16+](https://nodejs.org/en/download/)
