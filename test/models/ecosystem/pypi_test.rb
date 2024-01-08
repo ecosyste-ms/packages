@@ -152,4 +152,9 @@ class PypiTest < ActiveSupport::TestCase
   test 'maintainer_url' do 
     assert_equal @ecosystem.maintainer_url(@maintainer), 'https://pypi.org/user/foo/'
   end
+
+  test 'parse_repository_url' do
+    description = JSON.parse file_fixture('pypi/yiban').read
+    assert_equal @ecosystem.parse_repository_url(description), 'https://github.com/DukeBode/Yiban'
+  end
 end

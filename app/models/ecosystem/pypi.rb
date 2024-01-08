@@ -65,7 +65,7 @@ module Ecosystem
         homepage: (package["info"]["home_page"].presence || package.dig("info", "project_urls", "Homepage").presence || package.dig("info", "project_urls", "Home")),
         keywords_array: parse_keywords(package["info"]["keywords"]),
         licenses: licenses(package),
-        repository_url: repo_fallback(find_repository_url(package.dig("info", "project_urls").try(:values)), package["info"]["home_page"]),
+        repository_url: parse_repository_url(package),
         releases: package['releases'],
         downloads_period: 'last-month',
         metadata: {
@@ -80,6 +80,24 @@ module Ecosystem
       downloads = downloads(package)
       h[:downloads] = downloads if downloads.present?
       h
+    end
+
+    def parse_repository_url(package)
+      repo_url = repo_fallback(find_repository_url(package.dig("info", "project_urls").try(:values)), package["info"]["home_page"])
+      if repo_url.present?
+        return repo_url
+      else
+        # try to parse from description
+        description = package["info"]["description"]
+        if description.present?
+          urls = URI.extract(description.gsub(/[\[\]]/, ' '), ['http', 'https']).uniq
+          matches = urls.map do |url|
+            UrlParser.try_all(url) rescue nil
+          end.compact.group_by(&:itself).transform_values(&:count).sort_by{|k,v| v}.reverse
+          
+          return matches[0][0] if matches.any?
+        end
+      end
     end
 
     def parse_keywords(keywords)
