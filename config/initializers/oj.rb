@@ -1,0 +1,1 @@
+Oj.default_options = {:mode => :strict, :symbolize_keys => false}
