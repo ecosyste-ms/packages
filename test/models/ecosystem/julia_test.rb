@@ -81,8 +81,8 @@ class JuliaTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('julia/info') })
     stub_request(:get, "https://juliahub.com/docs/Inequality/xDAp7/pkg.json")
       .to_return({ status: 200, body: file_fixture('julia/pkg.json') })
-    stub_request(:post, "https://juliahub.com/v1/graphql")
-      .to_return({ status: 200, body: file_fixture('julia/graphql.json') })
+    stub_request(:get, "https://pkgs.genieframework.com/api/v1/badge/Inequality")
+      .to_return({ status: 200, body: file_fixture('julia/Inequality') })
 
     package_metadata = @ecosystem.package_metadata('Inequality')
     
@@ -97,8 +97,8 @@ class JuliaTest < ActiveSupport::TestCase
   test 'versions_metadata' do
     stub_request(:get, "https://juliahub.com/app/packages/info")
       .to_return({ status: 200, body: file_fixture('julia/info') })
-    stub_request(:post, "https://juliahub.com/v1/graphql")
-      .to_return({ status: 200, body: file_fixture('julia/graphql.json') })
+    stub_request(:get, "https://pkgs.genieframework.com/api/v1/badge/Inequality")
+      .to_return({ status: 200, body: file_fixture('julia/Inequality') })
     stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/JosepER/Inequality.jl")
       .to_return({ status: 200, body: file_fixture('julia/lookup?url=https:%2F%2Fgithub.com%2FJosepER%2FInequality.jl') })
     stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/JosepER/Inequality.jl/tags")
@@ -114,8 +114,8 @@ class JuliaTest < ActiveSupport::TestCase
   test 'dependencies_metadata' do
     stub_request(:get, "https://juliahub.com/app/packages/info")
       .to_return({ status: 200, body: file_fixture('julia/info') })
-   stub_request(:post, "https://juliahub.com/v1/graphql")
-      .to_return({ status: 200, body: file_fixture('julia/graphql.json') })
+    stub_request(:get, "https://pkgs.genieframework.com/api/v1/badge/Inequality")
+      .to_return({ status: 200, body: file_fixture('julia/Inequality') })
     stub_request(:get, "https://juliahub.com/docs/Inequality/xDAp7/pkg.json")
       .to_return({ status: 200, body: file_fixture('julia/pkg.json') })
     stub_request(:get, "https://juliahub.com/docs/Inequality/xDAp7/0.0.4/pkg.json")

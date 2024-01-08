@@ -85,7 +85,7 @@ module Ecosystem
         versions: package['metadata']['versions'],
         licenses: package['license'],
         downloads: fetch_downloads(package),
-        downloads_period: 'last-month',
+        downloads_period: 'total',
         metadata: {
           uuid: package['uuid'],
           slug: slug
@@ -94,13 +94,8 @@ module Ecosystem
     end
 
     def fetch_downloads(package)
-      headers = {
-        'X-Hasura-Role': 'anonymous',
-        'Content-Type': 'application/json'
-      }
-      body = Faraday.post("https://juliahub.com/v1/graphql", {"operationName":"PackageStats","variables":{"name":package['name']},"query":"query PackageStats($name: String!) {\n  packageStats: packagestats(where: {package: {name: {_eq: $name}}}) {\n users\n    }\n}\n"}.to_json, headers).body
-      json = Oj.load(body)
-      json['data']['packageStats'].first['users'] rescue nil
+      j = get_json("https://pkgs.genieframework.com/api/v1/badge/#{package['name']}")
+      j['message'].to_i
     rescue
       nil
     end
