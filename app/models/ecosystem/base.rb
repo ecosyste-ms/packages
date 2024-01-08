@@ -128,6 +128,7 @@ module Ecosystem
     end
 
     def find_repository_url(urls)
+      return nil if urls.nil?
       urls.map do |url|
         UrlParser.try_all(url) rescue nil
       end.compact.first
