@@ -127,6 +127,12 @@ module Ecosystem
       end
     end
 
+    def find_repository_url(urls)
+      urls.map do |url|
+        UrlParser.try_all(url) rescue nil
+      end.compact.first
+    end
+
     def package_find_names(package_name)
       [package_name]
     end

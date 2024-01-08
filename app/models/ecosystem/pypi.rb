@@ -65,10 +65,7 @@ module Ecosystem
         homepage: (package["info"]["home_page"].presence || package.dig("info", "project_urls", "Homepage").presence || package.dig("info", "project_urls", "Home")),
         keywords_array: parse_keywords(package["info"]["keywords"]),
         licenses: licenses(package),
-        repository_url: repo_fallback(
-          package.dig("info", "project_urls", "Source").presence || package.dig("info", "project_urls", "GitHub").presence  || package.dig("info", "project_urls", "Code").presence || package.dig("info", "project_urls", "Source Code").presence || package.dig("info", "project_urls", "Repository"),
-          package["info"]["home_page"].presence || package.dig("info", "project_urls", "Homepage").presence || package.dig("info", "project_urls", "Home"),
-        ),
+        repository_url: repo_fallback(find_repository_url(package.dig("info", "project_urls").values), package["info"]["home_page"]),
         releases: package['releases'],
         downloads_period: 'last-month',
         metadata: {
