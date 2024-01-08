@@ -98,9 +98,9 @@ class Registry < ApplicationRecord
     SyncPackageWorker.perform_bulk(package_names.map{|name| [id, name]})
   end
 
-  def sync_package(name)
+  def sync_package(name, force: false)
     existing_package = packages.find_by_name(name)
-    if existing_package&.last_synced_at && existing_package.last_synced_at > 1.day.ago
+    if !force && existing_package&.last_synced_at && existing_package.last_synced_at > 1.day.ago
       # if recently synced, schedule for syncing 1 day later
       delay = (existing_package.last_synced_at + 1.day) - Time.now
       SyncPackageWorker.perform_in(delay, id, name)
