@@ -88,7 +88,7 @@ module Ecosystem
         return repo_url
       else
         # try to parse from description
-        description = package["info"]["description"]
+        description = package["info"]["description"].to_s
         if description.present?
           urls = URI.extract(description.gsub(/[\[\]]/, ' '), ['http', 'https']).uniq
           matches = urls.map do |url|
