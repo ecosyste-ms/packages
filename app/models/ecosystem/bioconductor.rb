@@ -33,7 +33,7 @@ module Ecosystem
     def fetch_package_metadata(name)
       html = get_html("https://www.bioconductor.org/packages/release/bioc/html/#{name}.html")
       properties = {}
-      table = html.css("table.details")[0]
+      table = html.css("h3#details + table")[0]
       return nil if table.nil?
 
       table.css("tr").each do |tr|
@@ -115,7 +115,7 @@ module Ecosystem
     def maintainers_metadata(name)
       pkg = fetch_package_metadata(name)
       return [] unless pkg
-      maintainers = pkg[:html].css('p').find{|p| p.text.starts_with? 'Maintainer'}.text.gsub('Maintainer: ','').split(',')
+      maintainers = pkg[:html].css('p').find{|p| p.text.strip.starts_with? 'Maintainer'}.text.strip.gsub('Maintainer: ','').split(',')
       maintainers.map do |string|
         name, email = string.split(' <')
         next if email.nil?
