@@ -117,4 +117,9 @@ namespace :packages do
       sleep 1 # rate limited
     end
   end
+
+  desc 'sync batch registries outdated'
+  task sync_batch_registries_outdated: :environment do
+    Registry.sync_in_batches_outdated
+  end
 end

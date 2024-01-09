@@ -28,9 +28,13 @@ class Registry < ApplicationRecord
   def sync_in_batches?
     ecosystem_instance.sync_in_batches?
   end
-
+  
   def self.sync_in_batches
     Registry.all.select(&:sync_in_batches?)
+  end
+
+  def self.sync_in_batches_outdated
+    Registry.sync_in_batches.each{|r| r.packages.active.outdated.limit(2000).each(&:sync)};nil
   end
 
   def to_param

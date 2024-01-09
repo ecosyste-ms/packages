@@ -34,7 +34,7 @@
     },
     {
       "command": "bundle exec rake packages:update_extra_counts",
-      "schedule": "0 0 * * *"
+      "schedule": "0 5 * * *"
     },
     {
       "command": "bundle exec rake packages:sync_maintainers",
@@ -46,7 +46,7 @@
     },
     {
       "command": "bundle exec rake sitemap:refresh",
-      "schedule": "0 0 * * *"
+      "schedule": "0 4 * * *"
     },
     {
       "command": "bundle exec rake packages:update_advisories",
@@ -58,7 +58,11 @@
     },
     {
       "command": "bundle exec rake packages:update_docker_usages",
-      "schedule": "0 0 * * *"
+      "schedule": "0 3 * * *"
+    },
+    {
+      "command": "bundle exec rake packages:sync_batch_registries_outdated",
+      "schedule": "0 2 * * *"
     },
     {
       "command": "bundle exec rake packages:crawl_recently_updated_github_marketplace",
