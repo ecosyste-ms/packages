@@ -25,6 +25,14 @@ class Registry < ApplicationRecord
     not_docker.each(&:sync_missing_packages_async)
   end
 
+  def sync_in_batches?
+    ecosystem_instance.sync_in_batches?
+  end
+
+  def self.sync_in_batches
+    Registry.all.select(&:sync_in_batches?)
+  end
+
   def to_param
     name
   end
