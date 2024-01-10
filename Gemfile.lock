@@ -149,7 +149,7 @@ GEM
     fuzzy_match (2.1.0)
     globalid (1.2.1)
       activesupport (>= 6.1)
-    google-protobuf (3.25.1)
+    google-protobuf (3.25.2)
     groupdate (6.4.0)
       activesupport (>= 6.1)
     hashdiff (1.1.0)
