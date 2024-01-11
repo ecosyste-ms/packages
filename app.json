@@ -62,7 +62,7 @@
     },
     {
       "command": "bundle exec rake packages:sync_batch_registries_outdated",
-      "schedule": "0 2 * * *"
+      "schedule": "0 * * * *"
     },
     {
       "command": "bundle exec rake packages:crawl_recently_updated_github_marketplace",

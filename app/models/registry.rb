@@ -34,7 +34,7 @@ class Registry < ApplicationRecord
   end
 
   def self.sync_in_batches_outdated
-    Registry.sync_in_batches.each{|r| r.packages.active.outdated.limit(2000).each(&:sync)};nil
+    Registry.sync_in_batches.each{|r| r.packages.active.outdated.limit(1000).each(&:sync)};nil
   end
 
   def to_param
