@@ -18,6 +18,7 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
+    abbrev (0.1.2)
     actioncable (7.1.2)
       actionpack (= 7.1.2)
       activesupport (= 7.1.2)
@@ -112,8 +113,8 @@ GEM
     builder (3.2.4)
     chartkick (5.0.5)
     citrus (3.0.2)
-    commander (4.6.0)
-      highline (~> 2.0.0)
+    commander (5.0.0)
+      highline (~> 3.0.0)
     concurrent-ruby (1.2.2)
     connection_pool (2.4.1)
     counter_culture (3.5.1)
@@ -153,7 +154,8 @@ GEM
     groupdate (6.4.0)
       activesupport (>= 6.1)
     hashdiff (1.1.0)
-    highline (2.0.3)
+    highline (3.0.0)
+      abbrev
     i18n (1.14.1)
       concurrent-ruby (~> 1.0)
     io-console (0.7.1)
