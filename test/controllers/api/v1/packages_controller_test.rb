@@ -52,7 +52,7 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     @registry = Registry.create(name: 'github actions', url: 'https://github.com/marketplace/actions/', ecosystem: 'actions')
     @package = @registry.packages.create(ecosystem: 'actions', name: 'actions/checkout')
 
-    get lookup_api_v1_packages_path(purl: 'pkg:github/actions/checkout@v4')
+    get lookup_api_v1_packages_path(purl: 'pkg:githubactions/actions/checkout@v4')
     assert_response :success
     assert_template 'packages/lookup', file: 'packages/lookup.json.jbuilder'
 

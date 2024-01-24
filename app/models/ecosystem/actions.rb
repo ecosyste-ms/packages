@@ -4,7 +4,7 @@ module Ecosystem
   class Actions < Base
 
     def self.purl_type
-      'github'
+      'githubactions'
     end
 
     def check_status_url(package)
