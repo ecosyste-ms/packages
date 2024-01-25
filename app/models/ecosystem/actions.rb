@@ -7,6 +7,15 @@ module Ecosystem
       'githubactions'
     end
 
+    def purl(package, version = nil)
+      PackageURL.new(
+        type: purl_type,
+        namespace: package.name.split('/').first,
+        name: package.name.split('/').last,
+        version: version.try(:number).try(:encode,'iso-8859-1')
+      ).to_s
+    end
+
     def check_status_url(package)
       package.repository_url
     end

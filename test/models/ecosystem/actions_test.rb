@@ -102,4 +102,16 @@ class ActionsTest < ActiveSupport::TestCase
 
     assert_equal versions_metadata.first, {:number=>"v1", :published_at=>"2020-11-25T01:40:25.000Z", :metadata=>{:sha=>"8c75946d0d7bbe80a92cf3579d544321512c30b7", :download_url=>"https://codeload.github.com/getsentry/action-git-diff-suggestions/tar.gz/v1"}}
   end
+
+  test 'purl' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:githubactions/getsentry/action-git-diff-suggestions'
+    assert PackageURL.parse(purl)
+  end
+
+  test 'purl with version' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:githubactions/getsentry/action-git-diff-suggestions@v1'
+    assert PackageURL.parse(purl)
+  end
 end
