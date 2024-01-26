@@ -108,7 +108,10 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       resp = request("#{@registry_url}/#{encode_for_proxy(pkg_metadata[:name])}/@v/list")
-      html_resp = request("https://pkg.go.dev/#{pkg_metadata[:name]}?tab=versions")
+      html_resp = get_html("https://pkg.go.dev/#{pkg_metadata[:name]}?tab=versions")
+
+      retracted_version_numbers = fetch_all_retracted_version_numbers(existing_version_numbers, html_resp)
+      existing_version_numbers = existing_version_numbers - retracted_version_numbers
 
       if resp.success?
         text = resp.body
@@ -134,10 +137,9 @@ module Ecosystem
     end
 
     def versions_fallback(package, existing_version_numbers = [])
-      resp = request("https://pkg.go.dev/#{package[:name]}?tab=versions")
+      doc_html = get_html("https://pkg.go.dev/#{package[:name]}?tab=versions")
 
       if resp.success?
-        doc_html = Nokogiri::HTML(resp.body)
         doc_html.css(".Version-tag a").first(50).map do |link|
           next if existing_version_numbers.include?(link.text)
           {
@@ -152,10 +154,16 @@ module Ecosystem
     end
 
     def fetch_version_status(html_resp, version_number)
-      Nokogiri::HTML(html_resp.body).css(".Version-tag a").each do |link|
+      html_resp.css(".Version-tag a").each do |link|
         return link.parent.css('~ .Version-commitTime').first.css('.go-Chip').try(:text).presence if link.text == version_number
       end
       nil
+    end
+
+    def fetch_all_retracted_version_numbers(existing_version_numbers, html_resp)
+      existing_version_numbers.select do |version_number|
+        fetch_version_status(html_resp, version_number) == "retracted"
+      end
     end
 
     def dependencies_metadata(name, version, _package)
