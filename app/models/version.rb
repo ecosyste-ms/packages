@@ -13,6 +13,8 @@ class Version < ApplicationRecord
   scope :published_before, ->(published_at) { where('published_at < ?', published_at) }
   scope :updated_after, ->(updated_at) { where('updated_at > ?', updated_at) }
 
+  scope :active, -> { where(status: nil) }
+
   def to_param
     number
   end
