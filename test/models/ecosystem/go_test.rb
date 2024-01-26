@@ -101,6 +101,8 @@ generators."
   test 'versions_metadata' do
     stub_request(:get, "https://pkg.go.dev/github.com/aws/smithy-go")
       .to_return({ status: 200, body: file_fixture('go/rand') })
+    stub_request(:get, "https://pkg.go.dev/github.com/aws/smithy-go?tab=versions")
+      .to_return({ status: 200, body: file_fixture('go/smithy-go?tab=versions') })
     stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/list")
       .to_return({ status: 200, body: file_fixture('go/list') })
     stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/v1.9.0.info")
@@ -109,7 +111,7 @@ generators."
     package_metadata = @ecosystem.package_metadata('github.com/aws/smithy-go')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
-    assert_equal versions_metadata, [{:number=>"v1.9.0", :published_at=>"2021-11-05T22:57:36Z"}]
+    assert_equal versions_metadata, [{:number=>"v1.9.0", :published_at=>"2021-11-05T22:57:36Z", :status=>nil}]
   end
 
   test 'dependencies_metadata' do

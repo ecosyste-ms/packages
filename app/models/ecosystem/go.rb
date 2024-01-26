@@ -108,6 +108,7 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       resp = request("#{@registry_url}/#{encode_for_proxy(pkg_metadata[:name])}/@v/list")
+      html_resp = request("https://pkg.go.dev/#{pkg_metadata[:name]}?tab=versions")
 
       if resp.success?
         text = resp.body
@@ -120,7 +121,8 @@ module Ecosystem
         versions.reject{|v| existing_version_numbers.include?(v)}.sort.reverse.first(50).map do |v|
           {
             number: v,
-            published_at: get_version(pkg_metadata[:name], v).fetch('Time',nil)
+            published_at: get_version(pkg_metadata[:name], v).fetch('Time',nil),
+            status: fetch_version_status(html_resp, v)
           }
         end
       else
@@ -140,12 +142,20 @@ module Ecosystem
           next if existing_version_numbers.include?(link.text)
           {
             number: link.text,
-            published_at: get_version(package[:name], link.text).fetch('Time',nil)
+            published_at: get_version(package[:name], link.text).fetch('Time',nil),
+            status: fetch_version_status(resp, link.text)
           }
         end.compact
       else
         []
       end
+    end
+
+    def fetch_version_status(html_resp, version_number)
+      Nokogiri::HTML(html_resp.body).css(".Version-tag a").each do |link|
+        return link.parent.css('~ .Version-commitTime').first.css('.go-Chip').try(:text).presence if link.text == version_number
+      end
+      nil
     end
 
     def dependencies_metadata(name, version, _package)
