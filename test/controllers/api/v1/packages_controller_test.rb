@@ -89,4 +89,18 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.length, 1
     assert_equal actual_response.first['name'], @package.name
   end
+
+  test 'lookup by purl npm namespace' do
+    @registry = Registry.create(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    @package = @registry.packages.create(ecosystem: 'npm', name: '@loaders.gl/core', namespace: 'loaders.gl')
+
+    get lookup_api_v1_packages_path(purl: 'pkg:npm/@loaders.gl/core')
+    assert_response :success
+    assert_template 'packages/lookup', file: 'packages/lookup.json.jbuilder'
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal actual_response.length, 1
+    assert_equal actual_response.first['name'], @package.name
+  end
 end
