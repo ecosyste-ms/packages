@@ -68,6 +68,10 @@ module Ecosystem
       registry_url(package)
     end
 
+    def docker_usage_path(package)
+      "#{package.ecosystem}/#{package.name}"
+    end
+
     def check_status(package)
       url = check_status_url(package)
       response = Typhoeus.head(url, followlocation: true)

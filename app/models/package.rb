@@ -692,11 +692,11 @@ class Package < ApplicationRecord
   end
 
   def docker_usage_api_url
-    "https://docker.ecosyste.ms/api/v1/usage/#{ecosystem}/#{name}"
+    "https://docker.ecosyste.ms/api/v1/usage/#{registry.ecosystem_instance.docker_usage_path(self)}"
   end
 
   def docker_usage_url
-    "https://docker.ecosyste.ms/usage/#{ecosystem}/#{name}"
+    "https://docker.ecosyste.ms/usage/#{registry.ecosystem_instance.docker_usage_path(self)}"
   end
 
   def fetch_docker_usage
