@@ -211,6 +211,10 @@ class Package < ApplicationRecord
       end
   end
 
+  def licenses
+    read_attribute(:licenses).presence || repo_metadata && repo_metadata['license']
+  end
+
   def spdx_license
     licenses
       .downcase
