@@ -116,7 +116,8 @@ GEM
     counter_culture (3.5.2)
       activerecord (>= 4.2)
       activesupport (>= 4.2)
-    crack (0.4.5)
+    crack (0.4.6)
+      bigdecimal
       rexml
     crass (1.0.6)
     dalli (3.2.7)
