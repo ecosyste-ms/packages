@@ -103,4 +103,18 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.length, 1
     assert_equal actual_response.first['name'], @package.name
   end
+
+  test 'lookup by purl docker no namespace' do
+    @registry = Registry.create(name: 'hub.docker.com', url: 'https://hub.docker.com', ecosystem: 'docker')
+    @package = @registry.packages.create(ecosystem: 'docker', name: 'library/python', namespace: 'library')
+
+    get lookup_api_v1_packages_path(purl: 'pkg:docker/python')
+    assert_response :success
+    assert_template 'packages/lookup', file: 'packages/lookup.json.jbuilder'
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal actual_response.length, 1
+    assert_equal actual_response.first['name'], @package.name
+  end
 end

@@ -139,8 +139,14 @@ class PackagesController < ApplicationController
     if params[:repository_url].present?
       scope = Package.repository_url(params[:repository_url])
     elsif params[:purl].present?
-      purl = PackageURL.parse(params[:purl])
-      name = [purl.namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_seperator(purl.type))
+      purl_param = params[:purl].gsub('npm/@', 'npm/%40')
+      purl = PackageURL.parse(purl_param)
+      if purl.type == 'docker' && purl.namespace.nil?
+        namespace = 'library'
+      else
+        namespace = purl.namespace
+      end
+      name = [namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_seperator(purl.type))
       ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type) 
       scope = Package.where(name: name, ecosystem: ecosystem)
     else
