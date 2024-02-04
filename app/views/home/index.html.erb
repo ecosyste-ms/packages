@@ -10,18 +10,18 @@
     </div>
     <div class="card-body">
       <div class="row">
-        <div class='col-3'>
+        <div class='col-md-3'>
           Registries: <%= number_with_delimiter @registries.length %><br/>
           Packages: <%= number_with_delimiter @registries.sum(&:packages_count) %><br/>
         </div>
-        <div class='col-3'>
+        <div class='col-md-3'>
           Versions: <%= number_with_delimiter @registries.sum{|r| r.versions_count.to_i } %><br/>
           Namespaces: <%= number_with_delimiter @registries.sum(&:namespaces_count) %><br/>
         </div>
-        <div class='col-3'>
+        <div class='col-md-3'>
           Maintainers: <%= number_with_delimiter @registries.sum(&:maintainers_count) %><br/>
         </div>
-        <div class='col-3'>  
+        <div class='col-md-3'>  
           Keywords: <%= number_with_delimiter @registries.sum(&:keywords_count) %><br/>
         </div>
       </div>
