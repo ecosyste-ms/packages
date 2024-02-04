@@ -14,3 +14,9 @@ pre code.hljs{
 #readme-body img, #readme-body table{
   max-width: 100%;
 }
+
+.registry{
+  @include media-breakpoint-up(sm){
+    min-height: 200px;
+  }
+}

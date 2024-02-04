@@ -1,29 +1,31 @@
-<div class="card mb-3 registry d-flex" id="registry_<%= registry.id %>">
-  <div class="card-body pb-1">
-    <div class="d-flex">
-      
-      <div class="flex-grow-1 ms-3 text-break">
-        <h5 class='card-title'>
-          <%= link_to registry, registry_packages_path(registry.name) %>
-        </h5>
-      
-        <p class="card-subtitle mb-2 text-muted">
-          <%= number_with_delimiter registry.packages_count %> packages<br/>
-          <%= number_with_delimiter registry.versions_count %> versions
-          <% if registry.maintainers_count > 0 %>
-            <br/><%= number_with_delimiter registry.maintainers_count %> maintainers
-          <% end %>
-          <% if registry.namespaces_count > 0 %>
-            <br/><%= number_with_delimiter registry.namespaces_count %> namespaces
-          <% end %>
-          <% if registry.keywords_count > 0 %>
-            <br/><%= number_with_delimiter registry.keywords_count %> keywords
-          <% end %>
-        </p>
+<div class='col-lg-4'>
+  <div class="card mb-3 registry d-flex" id="registry_<%= registry.id %>">
+    <div class="card-body pb-1">
+      <div class="d-flex">
+        
+        <div class="flex-grow-1 ms-3 text-break">
+          <h5 class='card-title'>
+            <%= link_to registry, registry_packages_path(registry.name) %>
+          </h5>
+        
+          <p class="card-subtitle mb-2 text-muted">
+            <%= number_with_delimiter registry.packages_count %> packages<br/>
+            <%= number_with_delimiter registry.versions_count %> versions
+            <% if registry.maintainers_count > 0 %>
+              <br/><%= number_with_delimiter registry.maintainers_count %> maintainers
+            <% end %>
+            <% if registry.namespaces_count > 0 %>
+              <br/><%= number_with_delimiter registry.namespaces_count %> namespaces
+            <% end %>
+            <% if registry.keywords_count > 0 %>
+              <br/><%= number_with_delimiter registry.keywords_count %> keywords
+            <% end %>
+          </p>
+        </div>
+        <div class="flex-shrink-0">
+          <img src="<%= registry.icon_url %>" class="rounded" height='40' width='40' onerror="this.style.display='none'">
+        </div>  
       </div>
-      <div class="flex-shrink-0">
-        <img src="<%= registry.icon_url %>" class="rounded" height='40' width='40' onerror="this.style.display='none'">
-      </div>  
     </div>
   </div>
 </div>
