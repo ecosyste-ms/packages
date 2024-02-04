@@ -66,12 +66,12 @@ class Package < ApplicationRecord
   end
 
   def self.check_statuses_async
-    Package.active.order('last_synced_at asc nulls first').limit(1000).select('id').each(&:check_status_async)
+    Package..not_docker.active.where('last_synced_at < ?', 5.weeks.ago).limit(1000).select('id').each(&:check_status_async)
   end
 
   def self.sync_download_counts_async
     return if Sidekiq::Queue.new('default').size > 20_000
-    Package.active
+    Package.active.not_docker
             .where(downloads: nil)
             .where(ecosystem: ['cargo','clojars','docker','hackage','hex','homebrew','julia','npm','nuget','packagist','puppet','rubygems','pypi'])
             .limit(1000).select('id').each(&:sync_async)
@@ -79,7 +79,7 @@ class Package < ApplicationRecord
 
   def self.sync_maintainers_async
     return if Sidekiq::Queue.new('default').size > 20_000
-    Package.active
+    Package.active.not_docker
             .without_maintainerships
             .where(ecosystem: ['cargo','clojars','cocoapods','cpan','cran','elpa','hackage','hex','npm','nuget','packagist','pypi','rubygems','racket','spack'])
             .order('last_synced_at desc nulls last')
