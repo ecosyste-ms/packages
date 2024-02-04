@@ -5,7 +5,7 @@
     <%= params[:id]%> registries
   </h1>
 
-  <h4 class='mb-3'>Total packages indexed: <%= number_with_delimiter @registries.sum(&:packages_count) %> - Unique packages index: <%= number_with_delimiter Package.ecosystem(params[:id]).distinct.count(:name) %></h4>
+  <h4 class='mb-3'>Total packages indexed: <%= number_with_delimiter @registries.sum(&:packages_count) %> - Unique packages: <%= number_with_delimiter Package.ecosystem(params[:id]).distinct.count(:name) %></h4>
   
   <%= render @registries %>
 </div>
