@@ -377,6 +377,6 @@ class Registry < ApplicationRecord
   end
 
   def update_production_rankings
-    packages.production.find_each(&:update_production_ranks)
+    packages.production.each_instance(&:update_production_ranks)
   end
 end

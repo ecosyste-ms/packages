@@ -13,7 +13,7 @@ namespace :exports do
     # create a CSV file
     csv = CSV.generate do |csv|
       csv << %w[id ecosystem name description keywords]
-      packages.find_each do |package|
+      packages.each_instance do |package|
         next unless package.description_with_fallback.present?
         description = package.description_with_fallback.gsub(/[\n\r]/, ' ')
         csv << [package.id, package.ecosystem, package.name, description, package.keywords.join('|')]
@@ -31,7 +31,7 @@ namespace :exports do
 
     csv = CSV.generate do |csv|
       csv << %w[id ecosystem name normalized_licenses description readme keywords]
-      packages.find_each do |package|
+      packages.each_instance do |package|
         readme = package.fetch_readme
         next unless readme.present? && readme['plain'].present?
         description = package.description_with_fallback.to_s.gsub(/[\n\r]/, ' ')

@@ -21,7 +21,7 @@ SitemapGenerator::Sitemap.create do
     end
   end
 
-  Package.includes(:registry).active.top(1).limit(10_000).includes(:maintainers).find_each do |package|
+  Package.includes(:registry).active.top(1).limit(10_000).includes(:maintainers).each_instance do |package|
     add registry_package_path(package.registry.name, package.name), lastmod: package.updated_at
     if package.dependent_packages_count > 0
       add dependent_packages_registry_package_path(package.registry.name, package.name), lastmod: package.updated_at

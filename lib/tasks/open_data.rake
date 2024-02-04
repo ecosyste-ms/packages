@@ -48,7 +48,7 @@ namespace :open_data do
       "Advisories Count",
     ]
 
-    Package.active.includes(:registry).find_each do |package|
+    Package.active.includes(:registry).each_instance do |package|
       csv_file << [
         package.id,
         package.ecosystem,
@@ -160,7 +160,7 @@ namespace :open_data do
       "Repository Tags Count",
     ]
 
-    Package.active.includes(:registry).find_each do |package|
+    Package.active.includes(:registry).each_instance do |package|
       repo = package.repo_metadata.presence || {}
       repo = repo.with_indifferent_access
       metadata = repo.fetch(:metadata, {}).presence || {}
@@ -261,7 +261,7 @@ namespace :open_data do
       "Updated Timestamp",
     ]
 
-    Package.active.includes(:versions,:registry).find_each do |package|
+    Package.active.includes(:versions,:registry).each_instance do |package|
       package.versions.each do |version|
         csv_file << [
           version.id,
@@ -301,7 +301,7 @@ namespace :open_data do
       "Dependency Package ID",
     ]
 
-    Package.active.includes(:registry, versions: :dependencies).find_each do |package|
+    Package.active.includes(:registry, versions: :dependencies).each_instance do |package|
       package.versions.each do |version|
         version.dependencies.each do |dependency|
           csv_file << [
@@ -344,7 +344,7 @@ namespace :open_data do
       "Dependency Package ID",
     ]
 
-    Dependency.includes(version: {package: :registry}).find_each do |dependency|
+    Dependency.includes(version: {package: :registry}).each_instance do |dependency|
       version = dependency.version
       next if version.nil?
       package = version.package

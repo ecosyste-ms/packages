@@ -277,7 +277,7 @@ class Package < ApplicationRecord
 
   def update_integrities_async
     return if versions.first.try(:download_url).blank?
-    versions.find_each(&:update_integrity_async)
+    versions.each_instance(&:update_integrity_async)
   end
 
   def check_status
