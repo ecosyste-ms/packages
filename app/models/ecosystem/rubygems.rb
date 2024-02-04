@@ -69,6 +69,7 @@ module Ecosystem
       json = get_json("#{@registry_url}/api/v1/versions/#{pkg_metadata[:name]}.json")
       json.map do |v|
         number = v["platform"] == 'ruby' ? v["number"] : "#{v["number"]}-#{v["platform"]}"
+        next if existing_version_numbers.include?(number)
         {
           number: number,
           published_at: v["created_at"],
@@ -79,7 +80,7 @@ module Ecosystem
             downloads: v["downloads_count"],
           }
         }
-      end
+      end.compact
     rescue StandardError
       []
     end
