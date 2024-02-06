@@ -20,6 +20,9 @@
             <% if registry.keywords_count > 0 %>
               <br/><%= number_with_delimiter registry.keywords_count %> keywords
             <% end %>
+            <% if registry.downloads > 0 %>
+              <br/><%= number_with_delimiter registry.downloads %> downloads
+            <% end %>
           </p>
         </div>
         <div class="flex-shrink-0">

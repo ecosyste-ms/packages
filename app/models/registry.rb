@@ -224,6 +224,7 @@ class Registry < ApplicationRecord
     self.metadata['funded_packages_count'] = fetch_funded_packages_count
     self.keywords_count = count_keywords
     self.versions_count = packages.sum(:versions_count)
+    self.downloads = packages.sum(:downloads)
     save
   end
 
