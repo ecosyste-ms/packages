@@ -72,6 +72,7 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       pkg_metadata[:versions].reject{|v| existing_version_numbers.include?(v["_source"]["version"]) }.map do |version|
+        next if version["_source"]["version"].nil?
         {
           number: version["_source"]["version"],
           published_at: version["_source"]["date"],
@@ -80,7 +81,7 @@ module Ecosystem
             download_url: version["_source"]["download_url"]
           }
         }
-      end
+      end.compact
     rescue
       []
     end
