@@ -183,7 +183,7 @@ GEM
     marcel (1.0.2)
     mini_mime (1.1.5)
     mini_portile2 (2.8.5)
-    minitest (5.21.2)
+    minitest (5.22.0)
     mocha (2.1.0)
       ruby2_keywords (>= 0.0.5)
     msgpack (1.7.2)
@@ -316,7 +316,7 @@ GEM
       connection_pool (>= 2.3.0)
       rack (>= 2.2.4)
       redis-client (>= 0.19.0)
-    sidekiq-unique-jobs (8.0.6)
+    sidekiq-unique-jobs (8.0.7)
       concurrent-ruby (~> 1.0, >= 1.0.5)
       sidekiq (>= 7.0.0, < 8.0.0)
       thor (>= 1.0, < 3.0)
@@ -370,7 +370,7 @@ GEM
     websocket-extensions (0.1.5)
     xmlrpc (0.3.3)
       webrick
-    zeitwerk (2.6.12)
+    zeitwerk (2.6.13)
 
 PLATFORMS
   aarch64-linux-musl
@@ -440,4 +440,4 @@ RUBY VERSION
    ruby 3.3.0p31
 
 BUNDLED WITH
-   2.5.5
+   2.5.6
