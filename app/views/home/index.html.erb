@@ -20,6 +20,7 @@
         </div>
         <div class='col-md-3'>
           Maintainers: <%= number_with_delimiter @registries.sum(&:maintainers_count) %><br/>
+          Downloads: <%= number_with_delimiter @registries.sum(&:downloads) %><br/>
         </div>
         <div class='col-md-3'>  
           Keywords: <%= number_with_delimiter @registries.sum(&:keywords_count) %><br/>
