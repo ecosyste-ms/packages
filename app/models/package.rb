@@ -140,6 +140,10 @@ class Package < ApplicationRecord
     registry.ecosystem_instance.registry_url(self)
   end
 
+  def check_status_url
+    registry.ecosystem_instance.check_status_url(self)
+  end
+
   def documentation_url
     registry.ecosystem_instance.documentation_url(self)
   end
