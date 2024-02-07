@@ -67,7 +67,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Package'
+                  $ref: '#/components/schemas/PackageWithRegistry'
   /keywords:
     get:
       summary: list keywords
@@ -1123,6 +1123,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Maintainer'
+    PackageWithRegistry:
+      allOf:
+        - $ref: '#/components/schemas/Package'
+        - type: object
+          properties:
+            registry:
+              $ref: '#/components/schemas/Registry'
+          required:
+            - registry
     Version:
       required:
         - number
