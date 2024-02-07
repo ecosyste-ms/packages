@@ -185,6 +185,8 @@ class Registry < ApplicationRecord
     package.update_dependent_repos_count_async
     package.sync_maintainers_async if ecosystem_class.instance_methods(false).include? :maintainers_metadata
 
+    package.check_status
+
     # package.update_integrities_async
     return package
   end
