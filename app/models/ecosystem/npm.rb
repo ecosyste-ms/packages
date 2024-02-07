@@ -41,7 +41,7 @@ module Ecosystem
 
         return "deprecated" if non_prerelease_versions.length > 0 && non_prerelease_versions.all? { |v| v["deprecated"] }
 
-        if json['description'] = "security holding package"
+        if json['description'] == "security holding package"
           return "removed"
         end
       end
