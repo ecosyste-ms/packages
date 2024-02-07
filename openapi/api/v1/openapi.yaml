@@ -916,6 +916,9 @@ components:
         - default
         - packages_count
         - maintainers_count
+        - namespaces_count
+        - keywords_count
+        - downloads
         - github
         - metadata
         - created_at
@@ -946,6 +949,9 @@ components:
           type: integer
           format: int64
         keywords_count:
+          type: integer
+          format: int64
+        downloads:
           type: integer
           format: int64
         github:

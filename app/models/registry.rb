@@ -380,4 +380,8 @@ class Registry < ApplicationRecord
   def update_production_rankings
     packages.production.each_instance(&:update_production_ranks)
   end
+
+  def downloads
+    read_attribute(:downloads) || 0
+  end
 end
