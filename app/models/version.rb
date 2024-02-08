@@ -177,4 +177,27 @@ class Version < ApplicationRecord
     return unless package.repo_metadata && package.repo_metadata['tags']
     package.repo_metadata['tags'].find { |tag| tag['name'].delete_prefix('v') == number.delete_prefix('v') }
   end
+
+  def valid_number?
+    !!semantic_version
+  end
+
+  def stable?
+    valid_number? && !prerelease?
+  end
+
+  def prerelease?
+    if semantic_version && semantic_version.pre.present?
+      true
+    else
+      case package.try(:ecosystem)
+      when "rubygems"
+        !!number[/[a-zA-Z]/]
+      when "pypi"
+        !!(number =~ /(a|b|rc|dev)[-_.]?[0-9]*$/)
+      else
+        false
+      end
+    end
+  end
 end

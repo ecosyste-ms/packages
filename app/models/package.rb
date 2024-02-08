@@ -171,7 +171,11 @@ class Package < ApplicationRecord
   end
 
   def latest_version
-    @latest_version ||= versions.active.sort.first
+    @latest_version ||= (latest_stable_version || versions.active.sort.first)
+  end
+
+  def latest_stable_version
+    @latest_stable_version ||= versions.active.select(&:stable?).sort.first
   end
 
   def set_latest_release_published_at
