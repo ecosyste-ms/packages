@@ -70,6 +70,7 @@ module Ecosystem
         downloads_period: 'last-month',
         metadata: {
           "funding" => package.dig("info", "project_urls", "Funding"),
+          "documentation" => package.dig("info", "project_urls", "Documentation"),
           "classifiers" => package["info"]["classifiers"],
           "normalized_name" => package["info"]["name"].downcase.gsub('_', '-').gsub('.', '-')
         }
