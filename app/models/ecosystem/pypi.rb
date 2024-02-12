@@ -89,12 +89,19 @@ module Ecosystem
       else
         # try to parse from description
         description = package["info"]["description"].to_s
+        package_name = package["info"]["name"].to_s
         if description.present?
-          urls = URI.extract(description.gsub(/[\[\]]/, ' '), ['http', 'https']).uniq
+          urls = URI.extract(description.gsub(/[\[\]]/, ' '), ['http', 'https']).map{|u| u.chomp('.')}
+
           matches = urls.map do |url|
             UrlParser.try_all(url) rescue nil
           end.compact.group_by(&:itself).transform_values(&:count).sort_by{|k,v| v}.reverse
-          
+
+          # Prioritize URLs that contain the package name
+          matches.each do |match|
+            return match[0] if match[0].include?(package_name)
+          end
+
           return matches[0][0] if matches.any?
         end
       end

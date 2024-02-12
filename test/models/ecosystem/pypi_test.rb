@@ -157,4 +157,9 @@ class PypiTest < ActiveSupport::TestCase
     description = JSON.parse file_fixture('pypi/yiban').read
     assert_equal @ecosystem.parse_repository_url(description), 'https://github.com/DukeBode/Yiban'
   end
+
+  test 'parse_repository_url prefer package name match' do
+    description = JSON.parse file_fixture('pypi/easybuild-easyconfigs-json').read
+    assert_equal @ecosystem.parse_repository_url(description), 'https://github.com/easybuilders/easybuild-easyconfigs'
+  end
 end
