@@ -26,6 +26,7 @@ module Ecosystem
     end
 
     def documentation_url(package, version = nil)
+      return package.metadata['documentation'] if package.metadata['documentation'].present?
       "https://#{package.name}.readthedocs.io/" + (version ? "en/#{version}" : "")
     end
 

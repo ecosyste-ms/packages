@@ -34,6 +34,12 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal documentation_url, 'https://urllib3.readthedocs.io/en/1.26.8'
   end
 
+  test 'documentation_url with metadata' do
+    @package.metadata['documentation'] = 'https://docs.urllib3.com'
+    documentation_url = @ecosystem.documentation_url(@package, @version.number)
+    assert_equal documentation_url, 'https://docs.urllib3.com'
+  end
+
   test 'install_command' do
     install_command = @ecosystem.install_command(@package)
     assert_equal install_command, 'pip install urllib3 --index-url https://pypi.org/simple'
@@ -94,7 +100,7 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal package_metadata[:keywords_array], ["Yiban"]
     assert_equal package_metadata[:downloads], 18
     assert_equal package_metadata[:downloads_period], "last-month"
-    assert_equal package_metadata[:metadata], {"funding"=>nil, "classifiers"=>["Development Status :: 1 - Planning", "Intended Audience :: Developers", "Intended Audience :: Education", "License :: OSI Approved :: BSD License", "Natural Language :: Chinese (Simplified)", "Operating System :: Microsoft :: Windows :: Windows 10", "Programming Language :: Python :: 3.8", "Programming Language :: Python :: Implementation :: PyPy"], "normalized_name"=>"yiban"}
+    assert_equal package_metadata[:metadata], {"funding"=>nil, "documentation" => "https://dukebode.github.io/Yiban", "classifiers"=>["Development Status :: 1 - Planning", "Intended Audience :: Developers", "Intended Audience :: Education", "License :: OSI Approved :: BSD License", "Natural Language :: Chinese (Simplified)", "Operating System :: Microsoft :: Windows :: Windows 10", "Programming Language :: Python :: 3.8", "Programming Language :: Python :: Implementation :: PyPy"], "normalized_name"=>"yiban"}
   end
 
   test 'versions_metadata' do
