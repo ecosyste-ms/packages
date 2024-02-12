@@ -9,28 +9,52 @@
     <%= @meta_description %>
   <p>
 
-  <% @registries.each do |registry| %>
-
-    <div class="card mb-3 registry d-flex" id="registry_<%= registry.id %>">
-      <div class="card-body pb-1">
-        <div class="d-flex">
-          
-          <div class="flex-grow-1 ms-3 text-break">
-            <h5 class='card-title'>
-              <%= link_to registry.name, funding_registry_path(registry.name) %>
-            </h5>
-          
-            <p class="card-subtitle mb-2 text-muted">
-              <%= pluralize number_with_delimiter(registry.funded_packages_count), 'funded package' %>
-              (<%= registry.funded_packages_percentage.round(2) %>%)
-            </p>
+  <% @registries.group_by(&:ecosystem).each do |ecosystem, registries| %>
+    <% registry = registries.first %>
+    <% if registries.length > 1 && registries.all?{|r| r.version.present? } %>
+      
+      <div class="card mb-3 d-flex" id="registry_<%= registry.id %>">
+        <div class="card-body pb-1">
+          <div class="d-flex">
+            
+            <div class="flex-grow-1 ms-3 text-break">
+              <h5 class='card-title'>
+                <%= link_to registry.ecosystem, funding_registry_path(registry.name) %>
+              </h5>
+            
+              <p class="card-subtitle mb-2 text-muted">
+                <%= pluralize number_with_delimiter(registry.funded_packages_count), 'funded package' %>
+                (<%= registry.funded_packages_percentage.round(2) %>%)
+              </p>
+            </div>
+            <div class="flex-shrink-0">
+              <img src="<%= registry.icon_url %>" class="rounded" height='40' width='40' onerror="this.style.display='none'">
+            </div>  
           </div>
-          <div class="flex-shrink-0">
-            <img src="<%= registry.icon_url %>" class="rounded" height='40' width='40' onerror="this.style.display='none'">
-          </div>  
         </div>
       </div>
-    </div>
-
+    <% else %>
+      <div class="card mb-3 d-flex" id="registry_<%= registry.id %>">
+        <div class="card-body pb-1">
+          <div class="d-flex">
+            
+            <div class="flex-grow-1 ms-3 text-break">
+              <h5 class='card-title'>
+                <%= link_to registry.name, funding_registry_path(registry.name) %>
+              </h5>
+            
+              <p class="card-subtitle mb-2 text-muted">
+                <%= pluralize number_with_delimiter(registry.funded_packages_count), 'funded package' %>
+                (<%= registry.funded_packages_percentage.round(2) %>%)
+              </p>
+            </div>
+            <div class="flex-shrink-0">
+              <img src="<%= registry.icon_url %>" class="rounded" height='40' width='40' onerror="this.style.display='none'">
+            </div>  
+          </div>
+        </div>
+      </div>
+    
+    <% end %>
   <% end %>
 </div>
