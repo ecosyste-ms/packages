@@ -120,8 +120,7 @@ GEM
       bigdecimal
       rexml
     crass (1.0.6)
-    dalli (3.2.7)
-      base64
+    dalli (3.2.8)
     date (3.3.4)
     deb_control (0.0.1)
     debug (1.9.1)
@@ -282,7 +281,7 @@ GEM
       psych (>= 4.0.0)
     redis (5.1.0)
       redis-client (>= 0.17.0)
-    redis-client (0.19.1)
+    redis-client (0.20.0)
       connection_pool
     reline (0.4.2)
       io-console (~> 0.5)
@@ -316,7 +315,7 @@ GEM
       connection_pool (>= 2.3.0)
       rack (>= 2.2.4)
       redis-client (>= 0.19.0)
-    sidekiq-unique-jobs (8.0.7)
+    sidekiq-unique-jobs (8.0.9)
       concurrent-ruby (~> 1.0, >= 1.0.5)
       sidekiq (>= 7.0.0, < 8.0.0)
       thor (>= 1.0, < 3.0)
