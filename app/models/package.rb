@@ -66,7 +66,7 @@ class Package < ApplicationRecord
   end
 
   def self.check_statuses_async
-    Package..not_docker.active.where('last_synced_at < ?', 5.weeks.ago).limit(1000).select('id').each(&:check_status_async)
+    Package.not_docker.active.where('last_synced_at < ?', 5.weeks.ago).limit(1000).select('id').each(&:check_status_async)
   end
 
   def self.sync_download_counts_async
