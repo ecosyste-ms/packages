@@ -215,7 +215,7 @@ GEM
       bigdecimal (>= 3.0)
     ox (2.14.17)
     packageurl-ruby (0.1.0)
-    pagy (7.0.1)
+    pagy (7.0.2)
     pg (1.5.5)
     pg_query (5.1.0)
       google-protobuf (>= 3.22.3)
