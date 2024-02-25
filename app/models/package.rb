@@ -581,7 +581,7 @@ class Package < ApplicationRecord
   end
 
   def funding_domains
-    funding_links.map{|l| URI.parse(l).host }.uniq
+    funding_links.map{|l| URI.parse(l).host rescue nil }.uniq.compact
   end
 
   def package_funding_links
