@@ -15,6 +15,8 @@ class CriticalController < ApplicationController
       scope = scope.order('downloads DESC')
     end
 
+    @funding = scope.map{|p| p.funding_domains}.flatten.group_by(&:itself).map{|k, v| [k, v.count]}.to_h.sort_by{|k, v| v}.reverse.to_h
+
     @pagy, @packages = pagy(scope)
 
     @registries = Package.critical.group(:registry).count.sort_by{|r, c| r.name}

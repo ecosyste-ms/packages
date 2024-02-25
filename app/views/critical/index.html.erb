@@ -26,7 +26,21 @@
               <span class="badge bg-primary rounded-pill"><%= number_with_delimiter count%></span>
             </a>
           <% end %>
-        </ul>
+        </div>
+      </div>
+    
+      <div class="card mb-3">
+        <div class="card-header">
+          Funding Platforms
+        </div>
+        <div class="list-group list-group-flush">
+          <% @funding.each do |domain,count| %>
+            <span class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+              <%= domain %>
+              <span class="badge bg-primary rounded-pill"><%= number_with_delimiter count%></span>
+            </span>
+          <% end %>
+        </div>
       </div>
     </div>
   </div>

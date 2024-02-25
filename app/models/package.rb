@@ -580,6 +580,10 @@ class Package < ApplicationRecord
     (package_funding_links + repo_funding_links + owner_funding_links).uniq
   end
 
+  def funding_domains
+    funding_links.map{|l| URI.parse(l).host }.uniq
+  end
+
   def package_funding_links
     return [] if metadata["funding"].blank?
     funding_array = metadata["funding"].is_a?(Array) ? metadata["funding"] : [metadata["funding"]] 
