@@ -11,6 +11,7 @@
       <li><a class="dropdown-item <%= 'active' if params[:sort] == 'dependent_packages_count' %>" href="<%= url_for(request.query_parameters.merge(sort: 'dependent_packages_count', order: 'desc', keyword: params[:keyword])) %>">Dependent packages</a></li>
       <li><a class="dropdown-item <%= 'active' if params[:sort] == 'dependent_repos_count' %>" href="<%= url_for(request.query_parameters.merge(sort: 'dependent_repos_count', order: 'desc', keyword: params[:keyword])) %>">Dependent repositories</a></li>
       <li><a class="dropdown-item <%= 'active' if params[:sort] == 'downloads' %>" href="<%= url_for(request.query_parameters.merge(sort: 'downloads', order: 'desc', keyword: params[:keyword])) %>">Downloads</a></li>
+      <li><a class="dropdown-item <%= 'active' if params[:sort] == 'maintainers_count' %>" href="<%= url_for(request.query_parameters.merge(sort: 'maintainers_count', order: 'desc', keyword: params[:keyword])) %>">Maintainers</a></li>
     </ul>
   </div>
 </li>
