@@ -17,7 +17,9 @@ class CriticalController < ApplicationController
       scope = scope.order('downloads DESC')
     end
 
-    @funding = scope.map{|p| p.funding_domains}.flatten.group_by(&:itself).map{|k, v| [k, v.count]}.to_h.sort_by{|k, v| v}.reverse.to_h
+    @funding = Rails.cache.fetch("critical_funding:#{params[:registry]}", expires_in: 1.week) do
+      scope.map{|p| p.funding_domains}.flatten.group_by(&:itself).map{|k, v| [k, v.count]}.to_h.sort_by{|k, v| v}.reverse.to_h
+    end
 
     @pagy, @packages = pagy(scope)
 
