@@ -5,7 +5,7 @@ class CriticalController < ApplicationController
     scope = scope.where(registry_id: Registry.find_by(name: params[:registry]).id) if params[:registry]
 
     if params[:sort].present? || params[:order].present?
-      sort = params[:sort].presence || 'updated_at'
+      sort = params[:sort].presence || 'downloads'
       if params[:order] == 'asc'
         scope = scope.order(Arel.sql(sort).asc.nulls_last)
       else
