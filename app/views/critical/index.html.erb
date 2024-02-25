@@ -30,7 +30,7 @@
       </div>
     </div>
 
-    <% if @maintainers.any? %>
+    <% if params[:registry].present? && @maintainers.any? %>
       <div class="card mb-3">
         <div class="card-header">
           Filter by Maintainer
