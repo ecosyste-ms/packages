@@ -52,7 +52,7 @@ module Ecosystem
       names = []
       endpoints.reverse[0..segment_count].each do |endpoint|
         package_ids = get_names(endpoint)
-        package_ids.each { |id| names << id }
+        package_ids.each { |id| names << id.downcase }
       end
       return names
     rescue
@@ -157,7 +157,7 @@ module Ecosystem
 
       deps.map do |dep|
         {
-          package_name: dep[:name],
+          package_name: dep[:name].downcase,
           requirements: dep[:requirements],
           kind: "runtime",
           optional: false,

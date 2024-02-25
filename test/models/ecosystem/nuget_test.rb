@@ -68,7 +68,7 @@ class NugetTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('nuget/page15386.json') })
     all_package_names = @ecosystem.all_package_names
     assert_equal all_package_names.length, 223
-    assert_equal all_package_names.last, 'RedCounterSoftware.DataAccess.RavenDb'
+    assert_equal all_package_names.last, 'redcountersoftware.dataaccess.ravendb'
   end
 
   test 'recently_updated_package_names' do
@@ -83,12 +83,12 @@ class NugetTest < ActiveSupport::TestCase
 
   test 'package_metadata' do
     stub_request(:get, "https://api.nuget.org/v3/registration5-semver1/ogcapi.net.sqlserver/index.json")
-      .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
+      .to_return({ status: 200, body: file_fixture('nuget/OgcApi.Net.SqlServer') })
     stub_request(:get, "https://azuresearch-usnc.nuget.org/query?q=packageid:ogcapi.net.sqlserver")
-      .to_return({ status: 200, body: file_fixture('nuget/query?q=packageid:ogcapi.net.sqlserver') })
-    package_metadata = @ecosystem.package_metadata('OgcApi.Net.SqlServer')
+      .to_return({ status: 200, body: file_fixture('nuget/query?q=packageid:OgcApi.Net.SqlServer') })
+    package_metadata = @ecosystem.package_metadata('ogcapi.net.sqlserver')
     
-    assert_equal package_metadata[:name], "OgcApi.Net.SqlServer"
+    assert_equal package_metadata[:name], "ogcapi.net.sqlserver"
     assert_equal package_metadata[:description], "SQL Server provider for the OGC API Features Standard implementation"
     assert_equal package_metadata[:homepage], "https://github.com/sam-is/OgcApi.Net"
     assert_equal package_metadata[:licenses], "MIT"
@@ -100,10 +100,10 @@ class NugetTest < ActiveSupport::TestCase
 
   test 'versions_metadata' do
     stub_request(:get, "https://api.nuget.org/v3/registration5-semver1/ogcapi.net.sqlserver/index.json")
-      .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
+      .to_return({ status: 200, body: file_fixture('nuget/OgcApi.Net.SqlServer') })
     stub_request(:get, "https://azuresearch-usnc.nuget.org/query?q=packageid:ogcapi.net.sqlserver")
-      .to_return({ status: 200, body: file_fixture('nuget/query?q=packageid:ogcapi.net.sqlserver') })
-    package_metadata = @ecosystem.package_metadata('OgcApi.Net.SqlServer')
+      .to_return({ status: 200, body: file_fixture('nuget/query?q=packageid:OgcApi.Net.SqlServer') })
+    package_metadata = @ecosystem.package_metadata('ogcapi.net.sqlserver')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
@@ -114,16 +114,16 @@ class NugetTest < ActiveSupport::TestCase
 
   test 'dependencies_metadata' do
     stub_request(:get, "https://api.nuget.org/v3/registration5-semver1/ogcapi.net.sqlserver/index.json")
-      .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
+      .to_return({ status: 200, body: file_fixture('nuget/OgcApi.Net.SqlServer') })
     stub_request(:get, "https://azuresearch-usnc.nuget.org/query?q=packageid:ogcapi.net.sqlserver")
-      .to_return({ status: 200, body: file_fixture('nuget/query?q=packageid:ogcapi.net.sqlserver') })
-    package_metadata = @ecosystem.package_metadata('OgcApi.Net.SqlServer')
-    dependencies_metadata = @ecosystem.dependencies_metadata('OgcApi.Net.SqlServer', '0.3.0', package_metadata)
+      .to_return({ status: 200, body: file_fixture('nuget/query?q=packageid:OgcApi.Net.SqlServer') })
+    package_metadata = @ecosystem.package_metadata('ogcapi.net.sqlserver')
+    dependencies_metadata = @ecosystem.dependencies_metadata('ogcapi.net.sqlserver', '0.3.0', package_metadata)
 
     assert_equal dependencies_metadata, [
-      {:package_name=>"OgcApi.Net", :requirements=>">= 0.3.0", :kind=>"runtime", :optional=>false, :ecosystem=>"nuget"},
-      {:package_name=>"Microsoft.Data.SqlClient", :requirements=>">= 3.0.1", :kind=>"runtime", :optional=>false, :ecosystem=>"nuget"},
-      {:package_name=>"NetTopologySuite.IO.SqlServerBytes", :requirements=>">= 2.0.0", :kind=>"runtime", :optional=>false, :ecosystem=>"nuget"}
+      {:package_name=>"ogcapi.net", :requirements=>">= 0.3.0", :kind=>"runtime", :optional=>false, :ecosystem=>"nuget"},
+      {:package_name=>"microsoft.data.sqlclient", :requirements=>">= 3.0.1", :kind=>"runtime", :optional=>false, :ecosystem=>"nuget"},
+      {:package_name=>"nettopologysuite.io.sqlserverbytes", :requirements=>">= 2.0.0", :kind=>"runtime", :optional=>false, :ecosystem=>"nuget"}
     ]
   end
 
