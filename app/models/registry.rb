@@ -392,7 +392,7 @@ class Registry < ApplicationRecord
     return unless downloads > 0
 
     # remove all existing critical packages
-    packages.where(critical: true).update_all(critical: false)
+    packages.critical.update_all(critical: false)
 
     # find packages with more than 80% of the downloads
     target_downloads = (downloads * 0.8).round
