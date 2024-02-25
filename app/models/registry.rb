@@ -386,4 +386,26 @@ class Registry < ApplicationRecord
   def downloads
     read_attribute(:downloads) || 0
   end
+
+  def find_critical_packages
+    # support only ecosystems with download support for now
+    return unless downloads > 0
+    return unless maintainers_count > 0
+
+    # remove all existing critical packages
+    packages.where(critical: true).update_all(critical: false)
+
+    # find packages with more than 80% of the downloads
+    target_downloads = (downloads * 0.8).round
+
+    count = 0
+    critical_packages = []
+    packages.active.order('downloads desc nulls last').each_instance do |p| 
+      count += p.downloads
+      critical_packages << p
+      break if count > target_downloads
+    end
+
+    critical_packages.each{|p| p.update(critical: true)}
+  end
 end

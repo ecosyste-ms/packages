@@ -102,6 +102,9 @@ Rails.application.routes.draw do
 
   resources :keywords, only: [:index, :show], constraints: { id: /.*/ }
 
+  get :critical, to: 'critical#index'
+  get 'critical/:id', to: 'critical#show', as: :critical_registry, constraints: { id: /[^\/]+/  }
+
   get :funding, to: 'funding#index'
   get 'funding/:id', to: 'funding#show', as: :funding_registry, constraints: { id: /[^\/]+/  }
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_02_06_124019) do
+ActiveRecord::Schema[7.1].define(version: 2024_02_25_160813) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -124,6 +124,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_06_124019) do
     t.integer "docker_dependents_count"
     t.bigint "docker_downloads_count"
     t.json "issue_metadata"
+    t.boolean "critical"
     t.index "(((rankings ->> 'average'::text))::double precision)", name: "index_packages_on_rankings_average"
     t.index "lower((repository_url)::text)", name: "index_packages_on_lower_repository_url"
     t.index "registry_id, (((repo_metadata ->> 'forks_count'::text))::integer)", name: "index_packages_on_forks_count"

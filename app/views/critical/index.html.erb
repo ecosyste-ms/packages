@@ -1,0 +1,10 @@
+<% @meta_title = "Critical Open Source Packages" %>
+
+<div class="container-sm">
+  <h1 class='mb-3'>
+    Critical Open Source Packages
+  </h1>
+
+  <%= render @packages %>
+  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+</div>
