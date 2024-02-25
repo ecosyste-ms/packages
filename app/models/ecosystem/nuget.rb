@@ -104,7 +104,7 @@ module Ecosystem
       item = package[:releases].last["catalogEntry"]
 
       {
-        name: package[:name],
+        name: package[:name].try(:downcase),
         description: description(item),
         homepage: item["projectUrl"],
         keywords_array: Array(item["tags"]).reject(&:blank?),
