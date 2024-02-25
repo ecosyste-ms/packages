@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_02_25_160813) do
+ActiveRecord::Schema[7.1].define(version: 2024_02_25_175644) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -129,6 +129,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_25_160813) do
     t.index "lower((repository_url)::text)", name: "index_packages_on_lower_repository_url"
     t.index "registry_id, (((repo_metadata ->> 'forks_count'::text))::integer)", name: "index_packages_on_forks_count"
     t.index "registry_id, (((repo_metadata ->> 'stargazers_count'::text))::integer)", name: "index_packages_on_stargazers_count"
+    t.index ["critical"], name: "index_packages_on_critical", where: "(critical = true)"
     t.index ["keywords"], name: "index_packages_on_keywords", using: :gin
     t.index ["latest_release_published_at"], name: "index_packages_on_latest_release_published_at"
     t.index ["registry_id", "dependent_packages_count"], name: "index_packages_on_registry_id_and_dependent_packages_count"
