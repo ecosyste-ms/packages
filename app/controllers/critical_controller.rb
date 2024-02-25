@@ -6,6 +6,8 @@ class CriticalController < ApplicationController
 
     if params[:sort].present? || params[:order].present?
       sort = params[:sort].presence || 'downloads'
+      
+      sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'
       if params[:order] == 'asc'
         scope = scope.order(Arel.sql(sort).asc.nulls_last)
       else
