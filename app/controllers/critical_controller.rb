@@ -1,11 +1,7 @@
 class CriticalController < ApplicationController
   def index
-    scope = Package.critical.order('downloads DESC')
-    @pagy, @packages = pagy(scope)
-  end
-
-  def show
-    @registry = Registry.find_by!(name: params[:id])
-    @pagy, @packages = pagy(@registry.packages.critical.order('downloads DESC'))
+    scope = Package.critical.includes(:registry)
+    @pagy, @packages = pagy(scope.order('downloads DESC'))
+    @registries = scope.group(:registry).count.sort_by{|r, c| -c}
   end
 end
