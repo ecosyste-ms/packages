@@ -4,14 +4,6 @@ class CriticalController < ApplicationController
 
     scope = scope.where(registry_id: Registry.find_by(name: params[:registry]).id) if params[:registry]
 
-    if params[:registry].present?
-      @maintainers = scope.map(&:maintainers).flatten.group_by{|m| m }.map{|m, packages| [m, packages.length]}.to_h.sort_by{|m, c| -c}
-    end
-
-    if params[:maintainer].present?
-      scope = scope.joins(:maintainers).where(maintainers: {uuid: params[:maintainer]})
-    end
-
     if params[:sort].present? || params[:order].present?
       sort = params[:sort].presence || 'downloads'
       if params[:order] == 'asc'
