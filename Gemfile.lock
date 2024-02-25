@@ -215,7 +215,7 @@ GEM
       bigdecimal (>= 3.0)
     ox (2.14.17)
     packageurl-ruby (0.1.0)
-    pagy (7.0.5)
+    pagy (7.0.6)
     pg (1.5.5)
     pg_query (5.1.0)
       google-protobuf (>= 3.22.3)
@@ -286,7 +286,7 @@ GEM
       redis-client (>= 0.17.0)
     redis-client (0.20.0)
       connection_pool
-    reline (0.4.2)
+    reline (0.4.3)
       io-console (~> 0.5)
     request_store (1.6.0)
       rack (>= 1.4)
