@@ -15,7 +15,7 @@
       <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
     </div>
     <div class="col">
-      <div class="card">
+      <div class="card mb-3">
         <div class="card-header">
           Filter by Registry
         </div>
@@ -29,5 +29,21 @@
         </ul>
       </div>
     </div>
+
+    <% if @maintainers.any? %>
+      <div class="card mb-3">
+        <div class="card-header">
+          Filter by Maintainer
+        </div>
+        <div class="list-group list-group-flush">
+          <% @maintainers.each do |maintainer,count| %>
+            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center <%= 'active' if params[:maintainer] == maintainer.uuid %>" href="<%= url_for(request.query_parameters.merge(maintainer: (params[:maintainer] == maintainer.uuid ? nil : maintainer.uuid), page: nil)) %>">
+              <%= maintainer %>
+              <span class="badge bg-primary rounded-pill"><%= number_with_delimiter count%></span>
+            </a>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
   </div>
 </div>
