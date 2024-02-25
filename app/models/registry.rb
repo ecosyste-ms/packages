@@ -390,7 +390,6 @@ class Registry < ApplicationRecord
   def find_critical_packages
     # support only ecosystems with download support for now
     return unless downloads > 0
-    return unless maintainers_count > 0
 
     # remove all existing critical packages
     packages.where(critical: true).update_all(critical: false)
