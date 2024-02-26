@@ -17,14 +17,14 @@ class CriticalController < ApplicationController
       scope = scope.order('downloads DESC')
     end
 
-    @funding = Rails.cache.fetch("critical:funding_domains:#{params[:registry]}", expires_in: 1.hour) do
+    @funding = Rails.cache.fetch("critical:funding_domains:#{params[:registry]}", expires_in: 1.day) do
       scope.map{|p| p.funding_domains}.flatten.group_by(&:itself).map{|k, v| [k, v.count]}.to_h.sort_by{|k, v| v}.reverse.to_h
     end
 
     @pagy, @packages = pagy(scope)
 
     
-    @registries = Rails.cache.fetch("critical:registries", expires_in: 1.hour) do
+    @registries = Rails.cache.fetch("critical:registries", expires_in: 1.day) do
       Package.critical.group(:registry).count.sort_by{|r, c| c}
     end
   end
