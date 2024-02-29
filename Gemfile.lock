@@ -107,7 +107,7 @@ GEM
       autoprefixer-rails (>= 9.1.0)
       popper_js (>= 2.11.8, < 3)
     builder (3.2.4)
-    chartkick (5.0.5)
+    chartkick (5.0.6)
     citrus (3.0.2)
     commander (5.0.0)
       highline (~> 3.0.0)
