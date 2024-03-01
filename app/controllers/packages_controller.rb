@@ -65,6 +65,7 @@ class PackagesController < ApplicationController
     scope = @package.dependent_packages.includes(:registry)
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'
+      sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'
       order = params[:order] || 'desc'
       sort_options = sort.split(',').zip(order.split(',')).to_h
       scope = scope.order(sort_options)
@@ -110,6 +111,7 @@ class PackagesController < ApplicationController
     scope = @package.related_packages.includes(:registry)
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'
+      sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'
       order = params[:order] || 'desc'
       sort_options = sort.split(',').zip(order.split(',')).to_h
       scope = scope.order(sort_options)
