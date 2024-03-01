@@ -65,10 +65,12 @@ class PackagesController < ApplicationController
     scope = @package.dependent_packages.includes(:registry)
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'
-      sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'
-      order = params[:order] || 'desc'
-      sort_options = sort.split(',').zip(order.split(',')).to_h
-      scope = scope.order(sort_options)
+      sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'      
+      if params[:order] == 'asc'
+        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+      else
+        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+      end
     else
       scope = scope.order('latest_release_published_at DESC')
     end
@@ -112,9 +114,11 @@ class PackagesController < ApplicationController
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'
       sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'
-      order = params[:order] || 'desc'
-      sort_options = sort.split(',').zip(order.split(',')).to_h
-      scope = scope.order(sort_options)
+      if params[:order] == 'asc'
+        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+      else
+        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+      end
     else
       scope = scope.order('latest_release_published_at DESC')
     end

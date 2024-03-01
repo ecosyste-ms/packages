@@ -8,9 +8,11 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'
       sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'
-      order = params[:order] || 'desc'
-      sort_options = sort.split(',').zip(order.split(',')).to_h
-      scope = scope.order(sort_options)
+      if params[:order] == 'asc'
+        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+      else
+        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+      end
     end
 
     @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
@@ -30,9 +32,11 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'
       sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'
-      order = params[:order] || 'desc'
-      sort_options = sort.split(',').zip(order.split(',')).to_h
-      scope = scope.order(sort_options)
+      if params[:order] == 'asc'
+        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+      else
+        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+      end
     end
 
     @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
@@ -47,9 +51,11 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'
       sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'
-      order = params[:order] || 'desc'
-      sort_options = sort.split(',').zip(order.split(',')).to_h
-      scope = scope.order(sort_options)
+      if params[:order] == 'asc'
+        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+      else
+        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+      end
     end
 
     @pagy, @packages = pagy_countless(scope, max_items: 10000)
@@ -84,9 +90,11 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'
       sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'
-      order = params[:order] || 'desc'
-      sort_options = sort.split(',').zip(order.split(',')).to_h
-      scope = scope.order(sort_options)
+      if params[:order] == 'asc'
+        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+      else
+        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+      end
     end
 
     @pagy, @packages = pagy_countless(scope)
@@ -104,9 +112,11 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'
       sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'
-      order = params[:order] || 'desc'
-      sort_options = sort.split(',').zip(order.split(',')).to_h
-      scope = scope.order(sort_options)
+      if params[:order] == 'asc'
+        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+      else
+        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+      end
     end
 
     @pagy, @packages = pagy_countless(scope)
