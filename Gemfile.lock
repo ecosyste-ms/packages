@@ -214,7 +214,7 @@ GEM
       bigdecimal (>= 3.0)
     ox (2.14.17)
     packageurl-ruby (0.1.0)
-    pagy (7.0.8)
+    pagy (7.0.9)
     pg (1.5.6)
     pg_query (5.1.0)
       google-protobuf (>= 3.22.3)
@@ -235,7 +235,7 @@ GEM
       rack (>= 1.0, < 4)
     rack-attack-rate-limit (1.1.0)
       rack
-    rack-cors (2.0.1)
+    rack-cors (2.0.2)
       rack (>= 2.0.0)
     rack-session (2.0.0)
       rack (>= 3.0.0)
@@ -283,7 +283,7 @@ GEM
       psych (>= 4.0.0)
     redis (5.1.0)
       redis-client (>= 0.17.0)
-    redis-client (0.20.0)
+    redis-client (0.21.0)
       connection_pool
     reline (0.4.3)
       io-console (~> 0.5)
