@@ -23,6 +23,10 @@ class Maintainer < ApplicationRecord
     update(packages_count: packages.count)
   end
 
+  def update_total_downloads
+    update(total_downloads: packages.sum(:downloads))
+  end
+
   def html_url
     registry.maintainer_url(self)
   end

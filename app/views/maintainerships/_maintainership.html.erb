@@ -9,6 +9,10 @@
       <% end %>
       <small class='text-muted'>
         <%= pluralize number_with_delimiter(maintainership.maintainer.packages_count), 'package' %>
+        <% if maintainership.maintainer.total_downloads %>
+          <br/>
+          <%= pluralize number_with_delimiter(maintainership.maintainer.total_downloads), 'download' %>
+        <% end %>
       </small>
     </div>
   </div>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_02_25_175644) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_11_135604) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -67,6 +67,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_25_175644) do
     t.integer "packages_count", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "total_downloads"
     t.index ["registry_id", "login"], name: "index_maintainers_on_registry_id_and_login", unique: true
     t.index ["registry_id", "uuid"], name: "index_maintainers_on_registry_id_and_uuid", unique: true
   end

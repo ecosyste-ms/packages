@@ -5,6 +5,10 @@
     </h5>
     <small class='text-muted'>
       <%= pluralize number_with_delimiter(maintainer.packages_count), 'package' %>
+      <% if maintainer.total_downloads %>
+          <br/>
+          <%= pluralize number_with_delimiter(maintainer.total_downloads), 'download' %>
+        <% end %>
     </small>
   </div>
 </div>
