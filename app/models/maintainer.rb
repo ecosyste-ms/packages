@@ -20,11 +20,11 @@ class Maintainer < ApplicationRecord
   end
 
   def update_packages_count 
-    update(packages_count: packages.count)
+    update_column(:packages_count, packages.count)
   end
 
   def update_total_downloads
-    update(total_downloads: packages.sum(:downloads))
+    update_column(:total_downloads, packages.sum(:downloads))
   end
 
   def html_url
