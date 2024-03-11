@@ -1,7 +1,21 @@
 class MaintainersController < ApplicationController
   def index
     @registry = Registry.find_by!(name: params[:registry_id])
-    @pagy, @maintainers = pagy_countless(@registry.maintainers.order('packages_count DESC'))
+
+    scope = @registry.maintainers
+
+    if params[:sort].present? || params[:order].present?
+      sort = params[:sort].presence || 'packages_count'
+      if params[:order] == 'asc'
+        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+      else
+        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+      end
+    else
+      scope = scope.order('packages_count desc')
+    end
+
+    @pagy, @maintainers = pagy_countless(scope)
   end
 
   def show

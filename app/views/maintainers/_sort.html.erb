@@ -1,0 +1,11 @@
+<li class="nav-item ms-auto">
+  <div class="dropdown">
+    <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+      Sort
+    </button>
+    <ul class="dropdown-menu">
+      <li><a class="dropdown-item <%= 'active' if params[:sort] == 'packages_count' || params[:sort].blank? %>" href="<%= url_for(request.query_parameters.merge(sort: 'packages_count', order: 'desc')) %>">Packages</a></li>
+      <li><a class="dropdown-item <%= 'active' if params[:sort] == 'total_downloads' %>" href="<%= url_for(request.query_parameters.merge(sort: 'total_downloads', order: 'desc')) %>">Downloads</a></li>
+    </ul>
+  </div>
+</li>
