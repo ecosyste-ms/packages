@@ -279,9 +279,14 @@ class Registry < ApplicationRecord
     removed_maintainers.each do |maintainer|
       package.maintainerships.find { |rp| rp.maintainer == maintainer }.destroy
       maintainer.update_packages_count
+      maintainer.update_total_downloads
     end
     package.update_maintainers_count
-    package.maintainers.reload.each(&:update_packages_count)
+    package.maintainers.reload.each do |maintainer|
+      maintainer.update_packages_count
+      maintainer.update_total_downloads
+    end
+
   rescue ActiveRecord::RecordNotUnique
     nil
   end
