@@ -1344,6 +1344,7 @@ components:
         - updated_at
         - packages_count
         - packages_url
+        - total_downloads
         - html_url
         - role
       type: object
@@ -1372,6 +1373,8 @@ components:
           type: integer
         packages_url:
           type: string
+        total_downloads:
+          type: integer
         html_url:
           type: string
           nullable: true
