@@ -1013,6 +1013,7 @@ components:
         - usage_url
         - dependent_repositories_url
         - status
+        - funding_links
       type: object
       properties:
         name:
@@ -1119,6 +1120,13 @@ components:
           type: string
         dependent_repositories_url:
           type: string
+        status:
+          type: string
+          nullable: true
+        funding_links:
+          type: array
+          items:
+            type: string
         maintainers:
           type: array
           items:
