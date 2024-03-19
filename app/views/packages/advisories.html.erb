@@ -26,6 +26,10 @@
           Packages: <%= advisory['packages'].map{|p| p['package_name'] }.uniq.join(', ') %><br>
           Source: <%= advisory['source_kind'] %><br>
           <span title="<%= advisory['published_at'] %>">Published: <%= time_ago_in_words advisory['published_at'] %> ago</span>
+          <% if advisory['withdrawn_at'] %>
+            <br>
+            <span title="<%= advisory['withdrawn_at'] %>">Withdrawn: <%= time_ago_in_words advisory['withdrawn_at'] %> ago</span>
+          <% end %>
         </small>
       </div>
     </div>
