@@ -5,5 +5,6 @@ class Api::V1::RegistriesController < Api::V1::ApplicationController
 
   def show
     @registry = Registry.find_by_name!(params[:id])
+    fresh_when @registry, public: true
   end
 end
