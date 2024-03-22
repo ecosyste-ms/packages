@@ -2,7 +2,7 @@ class Api::V1::NamespacesController < Api::V1::ApplicationController
   def index
     @registry = Registry.find_by_name!(params[:registry_id])
     @pagy, @namespaces = pagy_array(@registry.packages.where.not(namespace: nil).group(:namespace).order('COUNT(id) desc').count.to_a)
-    fresh_when(@namespaces, public: true)
+    fresh_when(etag: @namespaces, public: true)
   end
 
   def show
