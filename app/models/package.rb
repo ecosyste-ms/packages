@@ -594,6 +594,8 @@ class Package < ApplicationRecord
     return [] if repo_metadata.blank? || repo_metadata['owner_record'].blank? ||  repo_metadata['owner_record']["metadata"].blank?
     return [] unless repo_metadata['owner_record']["metadata"]['has_sponsors_listing']
     ["https://github.com/sponsors/#{repo_metadata['owner_record']['login']}"]
+  rescue
+    []
   end
 
   def repo_funding_links
