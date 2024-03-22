@@ -22,6 +22,7 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     end
 
     @pagy, @versions = pagy_countless(scope)
+    fresh_when @versions, public: true
   end
 
   def show
