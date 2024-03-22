@@ -17,6 +17,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     end
 
     @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
+    fresh_when @packages, public: true
   end
 
   def lookup
@@ -41,6 +42,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     end
 
     @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
+    fresh_when @packages, public: true
   end
 
   def names
@@ -60,7 +62,9 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     end
 
     @pagy, @packages = pagy_countless(scope, max_items: 10000)
-    render json: @packages.pluck(:name)
+    if stale?(@packages, public: true)
+      render json: @packages.pluck(:name)
+    end
   end
 
   def show
@@ -100,6 +104,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     end
 
     @pagy, @packages = pagy_countless(scope)
+    fresh_when @packages, public: true
   end
 
   def related_packages
@@ -122,6 +127,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     end
 
     @pagy, @packages = pagy_countless(scope)
+    fresh_when @packages, public: true
   end
 
   def ping

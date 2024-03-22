@@ -15,6 +15,7 @@ class Api::V1::MaintainersController < Api::V1::ApplicationController
     end
 
     @pagy, @maintainers = pagy_countless(scope)
+    fresh_when @maintainers, public: true
   end
 
   def show
@@ -27,5 +28,6 @@ class Api::V1::MaintainersController < Api::V1::ApplicationController
     @registry = Registry.find_by_name!(params[:registry_id])
     @maintainer = @registry.maintainers.find_by_login(params[:id]) || @registry.maintainers.find_by_uuid!(params[:id])
     @pagy, @packages = pagy_countless(@maintainer.packages.includes(:registry,{maintainers: :registry}))
+    fresh_when @packages, public: true
   end
 end
