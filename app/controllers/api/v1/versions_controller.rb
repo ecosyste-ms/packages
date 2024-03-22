@@ -60,8 +60,9 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = @registry.packages.find_by_name(params[:id])
     @package = @registry.packages.find_by_name!(params[:id].downcase) if @package.nil?
-    fresh_when @package, public: true
-    numbers = @package.versions.pluck(:number)
-    render json: numbers
+    if stale?(@package, public: true)
+      numbers = @package.versions.pluck(:number)
+      render json: numbers
+    end
   end
 end
