@@ -20,6 +20,7 @@ class PackagesController < ApplicationController
     end
     
     @pagy, @packages = pagy_countless(scope)
+    fresh_when(@packages, public: true)
   end
 
   def recent_versions_data
@@ -28,6 +29,7 @@ class PackagesController < ApplicationController
       @registry.versions.where('published_at > ?', 1.month.ago.beginning_of_day).where('published_at < ?', 1.day.ago.end_of_day).group_by_day(:published_at).count
     end
     render json: @recent_versions
+    expires_in 1.hour, public: true
   end
 
   def show
@@ -45,6 +47,7 @@ class PackagesController < ApplicationController
       end
     end
     @pagy, @versions = pagy_countless(@package.versions.order('published_at DESC, created_at DESC'))
+    fresh_when(@package, public: true)
   end
 
   def dependent_packages
@@ -76,6 +79,7 @@ class PackagesController < ApplicationController
     end
 
     @pagy, @dependent_packages = pagy_countless(scope)
+    fresh_when(@dependent_packages, public: true)
   end
 
   def maintainers
@@ -92,6 +96,7 @@ class PackagesController < ApplicationController
         @package = @registry.packages.find_by_name!(params[:id].downcase)
       end
     end
+    fresh_when(@package, public: true)
     @pagy, @maintainers = pagy_countless(@package.maintainerships.includes(maintainer: :registry))
   end
 
@@ -124,6 +129,7 @@ class PackagesController < ApplicationController
     end
 
     @pagy, @related_packages = pagy_countless(scope)
+    fresh_when(@related_packages, public: true)
   end
 
   def advisories
@@ -140,6 +146,7 @@ class PackagesController < ApplicationController
         @package = @registry.packages.find_by_name!(params[:id].downcase)
       end
     end
+    fresh_when(@package, public: true)
   end
 
   def lookup

@@ -23,6 +23,7 @@ class NamespacesController < ApplicationController
     end
 
     @pagy, @packages = pagy_countless(scope)
+    fresh_when(@packages, public: true)
   end
 
   def maintainers
@@ -30,5 +31,6 @@ class NamespacesController < ApplicationController
     @namespace = params[:id]
     @scope = @registry.namespace_maintainers(@namespace)
     @pagy, @maintainers = pagy_countless(@scope)
+    fresh_when(@maintainers, public: true)
   end
 end
