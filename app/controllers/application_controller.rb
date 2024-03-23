@@ -1,6 +1,12 @@
 class ApplicationController < ActionController::Base
   include Pagy::Backend
 
+  skip_before_action :verify_authenticity_token
+
+  after_action lambda {
+    request.session_options[:skip] = true
+  }
+
   def lookup_by_purl(purl_string)
     purl_param = purl_string.gsub('npm/@', 'npm/%40')
     purl = PackageURL.parse(purl_param)
