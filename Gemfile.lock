@@ -146,13 +146,13 @@ GEM
     fuzzy_match (2.1.0)
     globalid (1.2.1)
       activesupport (>= 6.1)
-    google-protobuf (4.26.0)
+    google-protobuf (4.26.1)
       rake (>= 13)
-    google-protobuf (4.26.0-aarch64-linux)
+    google-protobuf (4.26.1-aarch64-linux)
       rake (>= 13)
-    google-protobuf (4.26.0-arm64-darwin)
+    google-protobuf (4.26.1-arm64-darwin)
       rake (>= 13)
-    google-protobuf (4.26.0-x86_64-linux)
+    google-protobuf (4.26.1-x86_64-linux)
       rake (>= 13)
     groupdate (6.4.0)
       activesupport (>= 6.1)
@@ -202,7 +202,7 @@ GEM
       net-protocol
     net-protocol (0.2.2)
       timeout
-    net-smtp (0.4.0.1)
+    net-smtp (0.5.0)
       net-protocol
     nio4r (2.7.1)
     nokogiri (1.16.3)
