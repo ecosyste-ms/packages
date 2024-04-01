@@ -31,7 +31,7 @@ gem "rack-attack-rate-limit", require: "rack/attack/rate-limit"
 gem 'rack-cors'
 gem 'rswag-api'
 gem 'rswag-ui'
-gem 'spdx', '2.0.12'
+gem 'spdx', '4.1.4'
 gem "semantic"
 gem "semantic_range"
 gem "sanitize-url"
