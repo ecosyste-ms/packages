@@ -123,7 +123,7 @@ GEM
     dalli (3.2.8)
     date (3.3.4)
     deb_control (0.0.1)
-    debug (1.9.1)
+    debug (1.9.2)
       irb (~> 1.10)
       reline (>= 0.3.8)
     drb (2.2.1)
