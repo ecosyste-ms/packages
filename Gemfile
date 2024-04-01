@@ -8,7 +8,6 @@ gem "sprockets-rails"
 gem "pg"
 gem "puma"
 gem "jbuilder"
-gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
 gem "bootsnap", require: false
 gem "sassc-rails"
 gem "counter_culture"
@@ -52,10 +51,6 @@ gem 'dalli'
 gem 'postgresql_cursor'
 gem 'rack-timeout'
 gem "lograge"
-
-group :development, :test do
-  gem "debug", platforms: %i[ mri mingw x64_mingw ]
-end
 
 group :development do
   gem "web-console"
