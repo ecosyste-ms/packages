@@ -44,8 +44,13 @@
     <%= render 'sort' %>
   </ul>
 
-
-  <%= render @related_packages %>
-  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+  <% if @related_packages.any? %>
+    <%= render @related_packages %>
+    <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+  <% else %>
+    <div class="alert alert-info" role="alert">
+      No related packages found.
+    </div>
+  <% end %>
 </div>
 

@@ -5,7 +5,13 @@
 
   <%= render 'tabs' %>
 
-  <%= render @dependent_packages %>
-  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>  
+  <% if @dependent_packages.any? %>
+    <%= render @dependent_packages %>
+    <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>  
+  <% else %>
+    <div class="alert alert-info" role="alert">
+      No dependent packages found.
+    </div>
+  <% end %>
 </div>
 
