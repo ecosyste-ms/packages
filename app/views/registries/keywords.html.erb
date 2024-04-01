@@ -53,7 +53,7 @@
         <div class="card mb-3">
           <div class="card-body">
             <h5 class="card-title">
-              <%= link_to keyword, keyword_registry_path(@registry.name, keyword.strip) %>
+              <%= link_to keyword, keyword_registry_path(@registry.name, keyword.squish) %>
             </h5>
             <p class="card-text">
               <%= number_with_delimiter count %> packages
