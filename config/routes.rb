@@ -17,7 +17,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :dependencies, only: [:index]
 
-      resources :keywords, only: [:index, :show], constraints: { id: /.*/ }
+      resources :keywords, only: [:index, :show], constraints: { id: /.*/ }, defaults: { format: :json }
 
       resources :packages, only: [:lookup] do
         collection do
@@ -90,7 +90,7 @@ Rails.application.routes.draw do
     member do
       get :versions, to: 'versions#recent'
       get :keywords, to: 'registries#keywords', as: :keywords
-      get 'keywords/:keyword', to: 'registries#keyword', as: :keyword, constraints: { keyword: /.*/ }
+      get 'keywords/:keyword', to: 'registries#keyword', as: :keyword, constraints: { keyword: /.*/ }, defaults: { format: :html }
     end
 
     collection do
@@ -100,7 +100,7 @@ Rails.application.routes.draw do
 
   get 'packages/lookup', to: 'packages#lookup'
 
-  resources :keywords, only: [:index, :show], constraints: { id: /.*/ }
+  resources :keywords, only: [:index, :show], constraints: { id: /.*/ }, defaults: { format: :html }
 
   get :critical, to: 'critical#index'
   get 'critical/:id', to: 'critical#show', as: :critical_registry, constraints: { id: /[^\/]+/  }
