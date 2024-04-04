@@ -14,7 +14,7 @@ class CriticalController < ApplicationController
         scope = scope.order(Arel.sql(sort).desc.nulls_last)
       end
     else
-      scope = scope.order('downloads DESC')
+      scope = scope.order('downloads DESC nulls last')
     end
 
     @funding = Rails.cache.fetch("critical:funding_domains:#{params[:registry]}", expires_in: 1.day) do
