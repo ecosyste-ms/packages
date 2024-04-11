@@ -122,4 +122,9 @@ namespace :packages do
   task sync_batch_registries_outdated: :environment do
     Registry.sync_in_batches_outdated
   end
+
+  desc 'calculate funding domains'
+  task calculate_funding_domains: :environment do
+    Package.funding_domains
+  end
 end

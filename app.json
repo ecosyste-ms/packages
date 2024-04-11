@@ -67,6 +67,10 @@
     {
       "command": "bundle exec rake packages:crawl_recently_updated_github_marketplace",
       "schedule": "0 */2 * * *"
+    },
+    {
+      "command": "bundle exec rake packages:calculate_funding_domains",
+      "schedule": "0 0 */6 * *"
     }
   ]
 }

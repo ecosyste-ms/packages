@@ -819,4 +819,15 @@ class Package < ApplicationRecord
   # TODO some combination of usage factors that works for all projects in an ecosystem (i.e. avg ranking)
 
   scope :critical, -> { where(critical: true) }
+
+  def self.funding_domains
+    Rails.cache.fetch("funding:domains", expires_in: 1.week) do
+      funding_domains = []
+      Package.with_funding.active.find_each do |package| 
+        funding_domains << package.funding_domains
+      end
+      
+      funding_domains.flatten.group_by(&:itself).map{|k, v| [k, v.count]}.to_h.sort_by{|k, v| v}.reverse.to_h
+    end
+  end
 end
