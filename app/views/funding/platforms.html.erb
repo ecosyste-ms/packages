@@ -26,7 +26,9 @@
             </p>
           </div>
           <div class="flex-shrink-0">
-            <img src="https://github.com/<%= domain.split('.').first %>.png" class="rounded" height='40' width='40' onerror="this.style.display='none'">
+            <% if count > 200 %>
+              <img src="https://github.com/<%= domain.split('.').first %>.png" class="rounded" height='40' width='40' onerror="this.style.display='none'">
+            <% end %>
           </div>
         </div>
       </div>
