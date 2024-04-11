@@ -8,7 +8,7 @@
     <%= @meta_description %>
     Funded packages are detected via a funding url on their registry or via a funding.yml file in their repository or the owner of the repository is part of GitHub Sponsors.
   
-  <p class='lead'>Below is a breakdown of most popular platforms and websites referenced in relation to funding of open source software packages.</p>
+  <p class='lead'>Below is a breakdown of the 100 most popular platforms and websites referenced in relation to funding of open source software packages.</p>
 
   <% @domains.each do |domain, count| %>
     <div class="card mb-3 d-flex">
@@ -22,7 +22,7 @@
 
             <p class="card-subtitle mb-2 text-muted">
               <%= pluralize number_with_delimiter(count), 'funded package' %>
-              (<%= (count.to_f/@registries.sum{|r| r.funded_packages_count }).round(2) %>%)
+              (<%= (count.to_f/@registries.sum{|r| r.funded_packages_count }*100).round(2) %>%)
             </p>
           </div>
           <div class="flex-shrink-0">
@@ -32,3 +32,5 @@
       </div>
     </div>
   <% end %>
+
+  <p class='text-muted'><i>Note: The data is updated daily and is based on the latest version of each package. A package can declare multiple funding platforms.</i></p>

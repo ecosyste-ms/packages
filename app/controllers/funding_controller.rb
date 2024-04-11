@@ -10,6 +10,6 @@ class FundingController < ApplicationController
 
   def platforms
     @registries = Registry.all.sort_by{|r| -r.funded_packages_count }
-    @domains = Package.funding_domains
+    @domains = Package.funding_domains.first(100)
   end
 end
