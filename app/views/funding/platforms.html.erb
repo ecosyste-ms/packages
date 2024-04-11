@@ -1,5 +1,5 @@
 <% @meta_description = "We've detected #{ number_with_delimiter @registries.sum{|r| r.funded_packages_count } } packages (#{ (@registries.sum{|r| r.funded_packages_count }/@registries.sum{|r| r.packages_count}.to_f*100).round(2) }%) have declared a way to fund their development via a funding platform." %>
-<% @meta_title = "Funding in Open Source" %>
+<% @meta_title = "Popular Funding Platforms in Open Source<" %>
 
 <div class="container-sm">
   <h1 class='mb-3'>Popular Funding Platforms in Open Source</h1>
