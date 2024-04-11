@@ -9,6 +9,10 @@
     <%= @meta_description %>
   <p>
 
+  <p class='lead'>
+    <%= link_to 'Click here', '/funding/platforms' %> to see the breakdown of most popular platforms and websites referenced in relation to funding of open source software packages.
+  <p>
+
   <% @registries.group_by(&:ecosystem).each do |ecosystem, registries| %>
     <% registry = registries.first %>
     <% if registries.length > 1 && registries.all?{|r| r.version.present? } %>
