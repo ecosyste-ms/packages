@@ -12,17 +12,18 @@
       <div class="row">
         <div class='col-md-3'>
           Registries: <%= number_with_delimiter @registries.length %><br/>
-          Packages: <%= number_with_delimiter @registries.sum(&:packages_count) %><br/>
+          Ecosystems: <%= number_with_delimiter @registries.map(&:ecosystem).uniq.length %><br/>
         </div>
         <div class='col-md-3'>
+          Packages: <%= number_with_delimiter @registries.sum(&:packages_count) %><br/>
           Versions: <%= number_with_delimiter @registries.sum{|r| r.versions_count.to_i } %><br/>
-          Namespaces: <%= number_with_delimiter @registries.sum(&:namespaces_count) %><br/>
         </div>
         <div class='col-md-3'>
           Maintainers: <%= number_with_delimiter @registries.sum(&:maintainers_count) %><br/>
           Downloads: <%= number_with_delimiter @registries.sum(&:downloads) %><br/>
         </div>
         <div class='col-md-3'>  
+          Namespaces: <%= number_with_delimiter @registries.sum(&:namespaces_count) %><br/>
           Keywords: <%= number_with_delimiter @registries.sum(&:keywords_count) %><br/>
         </div>
       </div>
