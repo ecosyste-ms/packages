@@ -206,6 +206,10 @@ class Registry < ApplicationRecord
   def purl(package, version = nil)
     ecosystem_instance.purl(package, version)
   end
+  
+  def purl_type
+    ecosystem_instance.purl_type
+  end
 
   def top_percentage_for(package, field)
     return nil if package.send(field).nil?

@@ -926,6 +926,7 @@ components:
         - packages_url
         - maintainers_url
         - icon_url
+        - purl_type
       type: object
       properties:
         name:
@@ -971,6 +972,8 @@ components:
         maintainers_url:
           type: string
         icon_url:
+          type: string
+        purl_type:
           type: string
     Package:
       required:
