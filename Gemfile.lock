@@ -184,7 +184,7 @@ GEM
       net-smtp
     marcel (1.0.4)
     mini_mime (1.1.5)
-    mini_portile2 (2.8.5)
+    mini_portile2 (2.8.6)
     minitest (5.22.3)
     mocha (2.2.0)
       ruby2_keywords (>= 0.0.5)
@@ -284,7 +284,7 @@ GEM
       psych (>= 4.0.0)
     redis (5.1.0)
       redis-client (>= 0.17.0)
-    redis-client (0.21.1)
+    redis-client (0.22.0)
       connection_pool
     reline (0.5.1)
       io-console (~> 0.5)
@@ -440,4 +440,4 @@ RUBY VERSION
    ruby 3.3.0p31
 
 BUNDLED WITH
-   2.5.7
+   2.5.9
