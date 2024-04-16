@@ -1,7 +1,7 @@
 class HomeController < ApplicationController
   def index
     @registries = Registry.order('packages_count desc').all
-    fresh_when(@registries, public: true)
+    expires_in 1.day, public: true
   end
 
   def recent_versions_data
