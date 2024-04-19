@@ -85,6 +85,8 @@ module Ecosystem
       return nil if json.nil?
       return nil if json['error'].present?
       json.merge('name' => name, 'repository_url' => "https://#{name}")
+    rescue
+      nil
     end
 
     def map_package_metadata(package)
