@@ -4,3 +4,4 @@ production:
     - ActionController::RoutingError
     - ActiveRecord::QueryCanceled
     - Rack::Timeout::RequestTimeoutException
+    - Faraday::ConnectionFailed 
