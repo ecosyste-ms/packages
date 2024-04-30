@@ -51,6 +51,7 @@ gem 'dalli'
 gem 'postgresql_cursor'
 gem 'rack-timeout'
 gem "lograge"
+gem 'csv'
 
 group :development do
   gem "web-console"

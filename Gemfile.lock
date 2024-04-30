@@ -120,6 +120,7 @@ GEM
       bigdecimal
       rexml
     crass (1.0.6)
+    csv (3.3.0)
     dalli (3.2.8)
     date (3.3.4)
     deb_control (0.0.1)
@@ -388,6 +389,7 @@ DEPENDENCIES
   bootstrap
   chartkick
   counter_culture
+  csv
   dalli
   faraday
   faraday-follow_redirects
