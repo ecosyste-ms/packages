@@ -1,4 +1,4 @@
-FROM ruby:3.3.0-alpine
+FROM ruby:3.3.1-alpine
 
 ENV APP_ROOT /usr/src/app
 ENV DATABASE_PORT 5432
