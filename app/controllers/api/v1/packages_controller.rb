@@ -42,6 +42,21 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     end
 
     @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
+
+    # if packages are not found, try to sync them
+    if @packages.empty?
+      if params[:purl].present?
+        purl = PackageURL.parse(params[:purl])
+        name = [purl.namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_seperator(purl.type))
+        ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type) 
+        registry = Registry.find_by_ecosystem(ecosystem)
+        registry.sync_package_async(name) if registry
+      elsif params[:ecosystem].present? && params[:name].present?
+        registry = Registry.find_by_ecosystem(params[:ecosystem])
+        registry.sync_package_async(params[:name]) if registry
+      end
+    end
+
     fresh_when @packages, public: true
   end
 
