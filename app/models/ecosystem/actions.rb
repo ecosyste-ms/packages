@@ -24,6 +24,10 @@ module Ecosystem
       return 'removed' if fetch_package_metadata(package.name).nil?
     end
 
+    def registry_url(package, _version = nil)
+      "https://github.com/#{package.name}"
+    end
+
     def fetch_package_metadata(name)
       parts = name.split('/')
       return nil if parts.length < 2

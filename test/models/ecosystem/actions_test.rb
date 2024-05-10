@@ -10,12 +10,12 @@ class ActionsTest < ActiveSupport::TestCase
 
   test 'registry_url' do
     registry_url = @ecosystem.registry_url(@package)
-    assert_nil registry_url
+    assert_equal registry_url, "https://github.com/getsentry/action-git-diff-suggestions"
   end
 
   test 'registry_url with version' do
     registry_url = @ecosystem.registry_url(@package, 'v1')
-    assert_nil registry_url
+    assert_equal registry_url, "https://github.com/getsentry/action-git-diff-suggestions"
   end
 
   test 'download_url' do
