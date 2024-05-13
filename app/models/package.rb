@@ -844,4 +844,12 @@ class Package < ApplicationRecord
       funding_domains.flatten.group_by(&:itself).map{|k, v| [k, v.count]}.to_h.sort_by{|k, v| v}.reverse.to_h
     end
   end
+
+  def clean_up_duplicate_maintainerships
+    maintainer_ids = maintainerships.group(:maintainer_id).count.select{|k,v| v > 1}.keys
+    return if maintainer_ids.blank?
+    maintainerships.where(maintainer_id: maintainer_ids).group(:maintainer_id).count.each do |maintainer_id, count|
+      maintainerships.where(maintainer_id: maintainer_id).order('created_at desc').offset(1).destroy_all
+    end
+  end
 end
