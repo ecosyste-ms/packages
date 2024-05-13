@@ -128,8 +128,16 @@ class Package < ApplicationRecord
     Dependency.where(package_id: id).joins(version: :package).pluck('distinct(packages.id)')
   end
 
+  def latest_dependent_package_ids
+    Dependency.where(package_id: id).joins(version: :package).where('versions.latest = true').pluck('distinct(packages.id)')
+  end
+
   def dependent_packages
     Package.where(id: dependent_package_ids)
+  end
+
+  def latest_dependent_packages
+    Package.where(id: latest_dependent_package_ids)
   end
 
   def install_command
@@ -165,6 +173,7 @@ class Package < ApplicationRecord
     normalize_licenses
     set_latest_release_published_at
     set_latest_release_number
+    set_latest_on_latest_version
     set_first_release_published_at
     combine_keywords_and_topics
     save if changed?
@@ -184,6 +193,11 @@ class Package < ApplicationRecord
 
   def set_latest_release_number
     self.latest_release_number = latest_version.try(:number)
+  end
+
+  def set_latest_on_latest_version
+    versions.where.not(latest: true).update_all(latest: false)
+    latest_version.update(latest: true) if latest_version
   end
 
   def first_version

@@ -103,7 +103,11 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = @registry.packages.find_by_name!(params[:id])
 
-    scope = @package.dependent_packages.includes(:registry, {maintainers: :registry})
+    if params[:latest].present?
+      scope = @package.latest_dependent_packages.includes(:registry, {maintainers: :registry})
+    else
+      scope = @package.dependent_packages.includes(:registry, {maintainers: :registry})
+    end
 
     scope = scope.created_after(params[:created_after]) if params[:created_after].present?
     scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?

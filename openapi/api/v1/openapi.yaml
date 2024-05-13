@@ -691,6 +691,12 @@ paths:
           required: false
           schema:
             type: string
+        - latest:
+          in: query
+          description: filter by latest version
+          required: false
+          schema:
+            type: boolean
       responses:
         200:
           description: OK
