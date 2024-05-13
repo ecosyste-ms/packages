@@ -1,6 +1,6 @@
 class Api::V1::DependenciesController < Api::V1::ApplicationController
   def index
-    scope = Dependency.all.includes(version: :package).order('id asc')
+    scope = Dependency.all.includes(version: {package: :registry}).order('id asc')
 
     scope = scope.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
     scope = scope.where(package_id: params[:package_id]) if params[:package_id].present?
