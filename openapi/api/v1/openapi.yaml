@@ -906,6 +906,76 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VersionWithDependencies'
+  /dependencies:
+    get:
+      summary: list dependencies
+      operationId: getDependencies
+      tags:
+        - dependencies
+      parameters:
+        - name: page
+          in: query
+          description: pagination page number 
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return 
+          required: false
+          schema:
+            type: integer
+        - name: ecosystem
+          in: query
+          description: ecosystem name
+          required: false
+          schema:
+            type: string
+        - name: package_name
+          in: query
+          description: package name
+          required: false
+          schema:
+            type: string
+        - name: package_id
+          in: query
+          description: package id
+          required: false
+          schema:
+            type: string
+        - name: requirements
+          in: query
+          description: requirements
+          required: false
+          schema:
+            type: string
+        - name: kind
+          in: query
+          description: kind
+          required: false
+          schema:
+            type: string
+        - name: optional
+          in: query
+          description: optional
+          required: false
+          schema:
+            type: boolean
+        - name: after
+          in: query
+          description: filter by id after given id
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dependency'
 components:
   schemas:
     Registry:
