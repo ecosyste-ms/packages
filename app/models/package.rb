@@ -851,5 +851,6 @@ class Package < ApplicationRecord
     maintainerships.where(maintainer_id: maintainer_ids).group(:maintainer_id).count.each do |maintainer_id, count|
       maintainerships.where(maintainer_id: maintainer_id).order('created_at desc').offset(1).destroy_all
     end
+    update_maintainers_count
   end
 end
