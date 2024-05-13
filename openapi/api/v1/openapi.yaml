@@ -1047,6 +1047,7 @@ components:
           type: string
     Package:
       required:
+        - id
         - name
         - ecosystem
         - description
@@ -1089,6 +1090,8 @@ components:
         - funding_links
       type: object
       properties:
+        id:
+          type: integer
         name:
           type: string
         ecosystem:
@@ -1215,6 +1218,7 @@ components:
             - registry
     Version:
       required:
+        - id
         - number
         - published_at
         - licenses
@@ -1228,50 +1232,53 @@ components:
         - created_at
         - updated_at
         - purl
-        - dependencies
+        - version_url
+        - related_tag
       type: object
       properties:
-          number:
-            type: string
-          published_at:
-            type: string
-            nullable: true
-          licenses:
-            type: string
-            nullable: true
-          integrity:
-            type: string
-            nullable: true
-          status:
-            type: string
-            nullable: true
-          download_url:
-            type: string
-            nullable: true
-          registry_url:
-            type: string
-            nullable: true
-          documentation_url:
-            type: string
-            nullable: true
-          install_command:
-            type: string
-            nullable: true
-          metadata:
-            type: object
-            nullable: true
-          created_at:
-            type: string
-            format: date-time
-          updated_at:
-            type: string
-            format: date-time
-          purl:
-            type: string
-          version_url:
-            type: string
-          related_tag:
-            type: object
+        id:
+          type: integer
+        number:
+          type: string
+        published_at:
+          type: string
+          nullable: true
+        licenses:
+          type: string
+          nullable: true
+        integrity:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        download_url:
+          type: string
+          nullable: true
+        registry_url:
+          type: string
+          nullable: true
+        documentation_url:
+          type: string
+          nullable: true
+        install_command:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        purl:
+          type: string
+        version_url:
+          type: string
+        related_tag:
+          type: object
     VersionWithDependencies:
       required:
         - number
@@ -1333,6 +1340,7 @@ components:
               $ref: '#/components/schemas/Dependency'
     VersionWithPackage:
       required:
+        - id
         - number
         - published_at
         - licenses
@@ -1350,6 +1358,8 @@ components:
         - dependencies
       type: object
       properties:
+        id:
+          type: integer
         number:
           type: string
         published_at:
@@ -1394,6 +1404,7 @@ components:
           $ref: '#/components/schemas/Package'
     Dependency:
       required:
+        - id
         - ecosystem
         - package_name
         - requirements
@@ -1401,6 +1412,8 @@ components:
         - optional
       type: object
       properties:
+        id:
+          type: integer
         ecosystem:
           type: string
         package_name:
