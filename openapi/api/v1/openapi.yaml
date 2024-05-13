@@ -1240,6 +1240,7 @@ components:
         - purl
         - version_url
         - related_tag
+        - latest
       type: object
       properties:
         id:
@@ -1300,9 +1301,14 @@ components:
         - created_at
         - updated_at
         - purl
+        - version_url
+        - related_tag
+        - latest
         - dependencies
       type: object
       properties:
+          id:
+            type: integer
           number:
             type: string
           published_at:
@@ -1340,6 +1346,12 @@ components:
             format: date-time
           purl:
             type: string
+          version_url:
+            type: string
+          related_tag:
+            type: object
+          latest:
+            type: boolean
           dependencies:
             type: array
             items:
@@ -1360,6 +1372,9 @@ components:
         - created_at
         - updated_at
         - purl
+        - version_url
+        - related_tag
+        - latest
         - package
         - dependencies
       type: object
@@ -1403,6 +1418,8 @@ components:
           format: date-time
         purl:
           type: string
+        latest:
+          type: boolean
         version_url:
             type: string
         package:
