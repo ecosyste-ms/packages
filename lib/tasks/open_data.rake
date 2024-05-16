@@ -2,8 +2,8 @@
 
 require "csv"
 
-EXPORT_VERSION = "1.0.0"
-EXPORT_DATE = "2023-10-17"
+@export_version = "1.0.0"
+@export_date = "2023-10-17"
 
 namespace :open_data do
   desc "Export all open data csvs"
@@ -16,7 +16,7 @@ namespace :open_data do
 
   desc "Export packages open data csv"
   task export_packages: :environment do
-    csv_file = File.open("data/packages-#{EXPORT_VERSION}-#{EXPORT_DATE}.csv", "w")
+    csv_file = File.open("data/packages-#{@export_version}-#{@export_date}.csv", "w")
     csv_file = CSV.new(csv_file)
     csv_file << [
       "ID",
@@ -83,7 +83,7 @@ namespace :open_data do
 
   desc "Export packages with repository fields open data csv"
   task export_packages_with_repository_fields: :environment do
-    csv_file = File.open("data/packages_with_repository_fields-#{EXPORT_VERSION}-#{EXPORT_DATE}.csv", "w")
+    csv_file = File.open("data/packages_with_repository_fields-#{@export_version}-#{@export_date}.csv", "w")
     csv_file = CSV.new(csv_file)
     csv_file << [
       "ID",
@@ -244,7 +244,7 @@ namespace :open_data do
 
   desc "Export versions open data csv"
   task export_versions: :environment do
-    csv_file = File.open("data/versions-#{EXPORT_VERSION}-#{EXPORT_DATE}.csv", "w")
+    csv_file = File.open("data/versions-#{@export_version}-#{@export_date}.csv", "w")
     csv_file = CSV.new(csv_file)
     csv_file << [
       "ID",
@@ -283,7 +283,7 @@ namespace :open_data do
 
   desc "Export dependencies open data csv"
   task export_dependencies: :environment do
-    csv_file = File.open("data/dependencies-#{EXPORT_VERSION}-#{EXPORT_DATE}.csv", "w")
+    csv_file = File.open("data/dependencies-#{@export_version}-#{@export_date}.csv", "w")
     csv_file = CSV.new(csv_file)
     csv_file << [
       "ID",
@@ -326,7 +326,7 @@ namespace :open_data do
 
   desc "Export dependencies open data csv"
   task export_dependencies2: :environment do
-    csv_file = File.open("data/dependencies2-#{EXPORT_VERSION}-#{EXPORT_DATE}.csv", "w")
+    csv_file = File.open("data/dependencies2-#{@export_version}-#{@export_date}.csv", "w")
     csv_file = CSV.new(csv_file)
     csv_file << [
       "ID",
@@ -369,7 +369,7 @@ namespace :open_data do
 
   desc "Export dependencies open data csv"
   task export_dependencies3: :environment do
-    csv_file = File.open("data/dependencies3-#{EXPORT_VERSION}-#{EXPORT_DATE}.csv", "w")
+    csv_file = File.open("data/dependencies3-#{@export_version}-#{@export_date}.csv", "w")
     csv_file = CSV.new(csv_file)
     csv_file << [
       "ID",

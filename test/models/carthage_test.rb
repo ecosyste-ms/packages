@@ -61,7 +61,7 @@ class CarthageTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('carthage/carthage') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
     assert_equal recently_updated_package_names.length, 0
-    assert_equal recently_updated_package_names.last, nil
+    # assert_equal recently_updated_package_names.last, nil
   end
   
   test 'package_metadata' do

@@ -85,7 +85,7 @@ class NugetTest < ActiveSupport::TestCase
     stub_request(:get, "https://api.nuget.org/v3/registration5-semver1/ogcapi.net.sqlserver/index.json")
       .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
     stub_request(:get, "https://azuresearch-usnc.nuget.org/query?q=packageid:ogcapi.net.sqlserver")
-      .to_return({ status: 200, body: file_fixture('nuget/query?q=packageid:OgcApi.Net.SqlServer') })
+      .to_return({ status: 200, body: file_fixture('nuget/query_packageid:OgcApi.Net.SqlServer') })
     package_metadata = @ecosystem.package_metadata('ogcapi.net.sqlserver')
     
     assert_equal package_metadata[:name], "ogcapi.net.sqlserver"
@@ -102,7 +102,7 @@ class NugetTest < ActiveSupport::TestCase
     stub_request(:get, "https://api.nuget.org/v3/registration5-semver1/ogcapi.net.sqlserver/index.json")
       .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
     stub_request(:get, "https://azuresearch-usnc.nuget.org/query?q=packageid:ogcapi.net.sqlserver")
-      .to_return({ status: 200, body: file_fixture('nuget/query?q=packageid:OgcApi.Net.SqlServer') })
+      .to_return({ status: 200, body: file_fixture('nuget/query_packageid:OgcApi.Net.SqlServer') })
     package_metadata = @ecosystem.package_metadata('ogcapi.net.sqlserver')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
@@ -116,7 +116,7 @@ class NugetTest < ActiveSupport::TestCase
     stub_request(:get, "https://api.nuget.org/v3/registration5-semver1/ogcapi.net.sqlserver/index.json")
       .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
     stub_request(:get, "https://azuresearch-usnc.nuget.org/query?q=packageid:ogcapi.net.sqlserver")
-      .to_return({ status: 200, body: file_fixture('nuget/query?q=packageid:OgcApi.Net.SqlServer') })
+      .to_return({ status: 200, body: file_fixture('nuget/query_packageid:OgcApi.Net.SqlServer') })
     package_metadata = @ecosystem.package_metadata('ogcapi.net.sqlserver')
     dependencies_metadata = @ecosystem.dependencies_metadata('ogcapi.net.sqlserver', '0.3.0', package_metadata)
 
