@@ -44,4 +44,4 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_HOST: localhost
           POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
-        run: bundle exec rake db:schema:load RAILS_ENV=test && bundle exec rake test
+        run: bundle exec rake db:schema:load test
