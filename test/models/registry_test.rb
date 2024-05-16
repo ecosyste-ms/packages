@@ -116,8 +116,8 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal package.name, 'rubystats'
     assert_equal package.registry, @registry
     assert_equal package.versions.length, 2
-    assert_equal package.versions.first.dependencies.length, 1
-    assert_equal package.versions.last.dependencies.length, 2
+    assert_equal package.versions.sort.first.dependencies.length, 2
+    assert_equal package.versions.sort.last.dependencies.length, 1
   end
 
   test 'sync_package_async' do
