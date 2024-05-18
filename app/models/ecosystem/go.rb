@@ -195,6 +195,7 @@ module Ecosystem
     # this is needed to follow the goproxy protocol and find versions correctly for modules with capital letters in them
     # https://go.dev/ref/mod#goproxy-protocol
     def encode_for_proxy(str)
+      return '' if str.nil?
       str.gsub(/[A-Z]/) { |s| "!#{s.downcase}" }
     end
   end
