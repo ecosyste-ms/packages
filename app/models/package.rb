@@ -196,7 +196,8 @@ class Package < ApplicationRecord
   end
 
   def set_latest_on_latest_version
-    versions.where.not(latest: true).update_all(latest: false)
+    versions.update_all(latest: false)
+    reload
     latest_version.update(latest: true) if latest_version
   end
 
