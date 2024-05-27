@@ -68,6 +68,8 @@ module Ecosystem
 
       yaml = YAML.safe_load(yaml)
 
+      return nil unless yaml.present? && yaml.is_a?(Hash)
+
       json.merge('name' => name, 'repository_url' => "https://github.com/#{full_name}", 'yaml' => yaml, 'path' => path)
     rescue
       nil
