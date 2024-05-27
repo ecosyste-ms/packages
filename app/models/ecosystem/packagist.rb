@@ -55,8 +55,8 @@ module Ecosystem
 
     def check_status(package)
       url = check_status_url(package)
-      response = Typhoeus.head(url)
-      return "removed" if [302, 404].include?(response.response_code)
+      response = Faraday.head(url)
+      return "removed" if [302, 404].include?(response.status)
 
       json = get_json("https://repo.packagist.org/p2/#{package.name}~dev.json")
       return "abandoned" if json == "404 not found, no packages here"

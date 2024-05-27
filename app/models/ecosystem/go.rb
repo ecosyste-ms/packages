@@ -27,11 +27,11 @@ module Ecosystem
 
     def check_status(package)
       url = "https://pkg.go.dev/#{package.name}"
-      response = Typhoeus.head(url)
-      if [400, 404, 410, 302, 301].include?(response.response_code)
+      response = Faraday.head(url)
+      if [400, 404, 410, 302, 301].include?(response.status)
         proxy_url = "#{@registry_url}/#{encode_for_proxy(package.name)}/@v/list"
-        response = Typhoeus.get(proxy_url)
-        if [400, 404, 410].include?(response.response_code) || response.body.length.zero?
+        response = Faraday.get(proxy_url)
+        if [400, 404, 410].include?(response.status) || response.body.length.zero?
           "removed"
         end
       end

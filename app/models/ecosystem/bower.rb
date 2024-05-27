@@ -51,8 +51,13 @@ module Ecosystem
     def check_status(package)
       pkg = packages[package.name.downcase]
       return "removed" if pkg.nil?
-      response = Typhoeus.head(pkg['url'], followlocation: true)
-      "removed" if [400, 404, 410].include?(response.response_code)
+      connection = Faraday.new do |faraday|
+        builder.use Faraday::FollowRedirects::Middleware
+        faraday.adapter Faraday.default_adapter
+      end
+
+      response = connection.head(pkg['url'])
+      "removed" if [400, 404, 410].include?(response.status)
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])

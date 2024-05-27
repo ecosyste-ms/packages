@@ -98,8 +98,13 @@ module Ecosystem
     def find_dependencies(name, version)
       begin
         url = "https://cran.rstudio.com/src/contrib/#{name}_#{version}.tar.gz"
-        head_response = Typhoeus.head(url, followlocation: true)
-        raise if head_response.code != 200
+        connection = Faraday.new do |builder|
+          builder.use Faraday::FollowRedirects::Middleware
+          builder.adapter Faraday.default_adapter
+        end
+
+        head_response = connection.head(url)
+        raise if head_response.status != 200
       rescue StandardError
         url = "https://cran.rstudio.com/src/contrib/Archive/#{name}/#{name}_#{version}.tar.gz"
       end
@@ -107,13 +112,15 @@ module Ecosystem
       folder_name = "#{name}_#{version}"
       tarball_name = "#{folder_name}.tar.gz"
       downloaded_file = File.open "/tmp/#{tarball_name}", "wb"
-      request = Typhoeus::Request.new(url)
-      request.on_headers do |response|
-        return [] if response.code != 200
+
+      connection = Faraday.new
+      response = connection.get(url)
+
+      File.open(downloaded_file, 'wb') do |file|
+        file.write(response.body)
       end
-      request.on_body { |chunk| downloaded_file.write(chunk) }
-      request.on_complete { downloaded_file.close }
-      request.run
+
+      return [] if response.status != 200
 
       cmd = `mkdir /tmp/#{folder_name} && tar xzf /tmp/#{tarball_name} -C /tmp/#{folder_name}  --strip-components 1`
 

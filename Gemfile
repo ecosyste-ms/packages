@@ -44,7 +44,7 @@ gem 'google-protobuf'
 gem "xmlrpc"
 gem 'rexml'
 gem 'appsignal'
-gem 'faraday-typhoeus'
+# gem 'faraday-typhoeus'
 gem 'packageurl-ruby'
 gem 'sitemap_generator'
 gem 'dalli'

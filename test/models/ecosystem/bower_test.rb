@@ -85,7 +85,7 @@ class BowerTest < ActiveSupport::TestCase
       :name=>"bower-angular", 
       :repository_url=>"https://github.com/angular/bower-angular", 
       :licenses=>"MIT", 
-      :keywords_array=>nil, 
+      :keywords_array=>[], 
       :homepage=>'', 
       :description=>nil
     }

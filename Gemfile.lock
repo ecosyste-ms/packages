@@ -137,9 +137,6 @@ GEM
       net-http
     faraday-retry (2.2.1)
       faraday (~> 2.0)
-    faraday-typhoeus (1.1.0)
-      faraday (~> 2.0)
-      typhoeus (~> 1.4)
     ffi (1.16.3)
     fuzzy_match (2.1.0)
     globalid (1.2.1)
@@ -400,7 +397,6 @@ DEPENDENCIES
   faraday
   faraday-follow_redirects
   faraday-retry
-  faraday-typhoeus
   google-protobuf
   groupdate
   jbuilder

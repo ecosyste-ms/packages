@@ -31,8 +31,8 @@ module Ecosystem
 
     def check_status(package)
       url = check_status_url(package)
-      response = Typhoeus.get(url)
-      return "removed" if [400, 404, 410].include?(response.response_code)
+      response = Faraday.get(url)
+      return "removed" if [400, 404, 410].include?(response.status)
       json = Oj.load(response.body)
 
       if json 

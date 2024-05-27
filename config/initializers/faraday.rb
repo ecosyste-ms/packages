@@ -1,2 +1,2 @@
-require 'faraday/typhoeus'
-Faraday.default_adapter = :typhoeus
+# require 'faraday/typhoeus'
+# Faraday.default_adapter = :typhoeus

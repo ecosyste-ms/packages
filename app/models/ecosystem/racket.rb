@@ -11,8 +11,13 @@ module Ecosystem
 
     def check_status(package)
       url = check_status_url(package)
-      response = Typhoeus.head(url, followlocation: true)
-      return "removed" if [400, 404, 410].include?(response.response_code)
+      connection = Faraday.new do |faraday|
+        faraday.use Faraday::FollowRedirects::Middleware
+        faraday.adapter Faraday.default_adapter
+      end
+
+      response = connection.head(url)
+      return "removed" if [400, 404, 410].include?(response.status)
       return 'removed' if fetch_package_metadata(package.name).nil?
     end
 

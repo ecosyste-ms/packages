@@ -22,8 +22,8 @@ module Ecosystem
 
     def check_status(package)
       url = registry_url(package)
-      response = Typhoeus.get(url)
-      return "removed" if [302, 404].include?(response.response_code)
+      response = Faraday.get(url)
+      return "removed" if [302, 404].include?(response.status)
     end
 
     def all_package_names
