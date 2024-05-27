@@ -22,6 +22,8 @@ class MaintainersController < ApplicationController
     @registry = Registry.find_by!(name: params[:registry_id])
     @maintainer = @registry.maintainers.find_by(login: params[:id]) || @registry.maintainers.find_by!(uuid: params[:id])
 
+    raise ActiveRecord::RecordNotFound if @maintainer.blank?
+
     scope = @maintainer.packages.includes(:registry)
 
     if params[:sort].present? || params[:order].present?
