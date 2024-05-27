@@ -86,10 +86,18 @@ module Ecosystem
         name: package["name"].downcase,
         repository_url: repo_fallback(package["url"], nil),
         licenses: bower_json['license'],
-        keywords_array: bower_json['keywords'].try(:reject, &:blank?),
+        keywords_array: keywords(bower_json),
         homepage: repo_fallback(nil, bower_json["homepage"]),
         description: description(bower_json["description"])
       }
+    end
+
+    def keywords(bower_json)
+      k = bower_json['keywords'].try(:reject, &:blank?)
+      
+      k = k.flatten if k.is_a?(Array)
+
+      k.present? ? k : []
     end
 
     def dependencies_metadata(name, version, package)
