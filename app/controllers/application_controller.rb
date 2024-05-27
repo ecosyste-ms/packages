@@ -23,5 +23,7 @@ class ApplicationController < ActionController::Base
       ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type) 
       Package.where(name: name, ecosystem: ecosystem)
     end
+  rescue
+    Package.none
   end
 end
