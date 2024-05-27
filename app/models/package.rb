@@ -83,7 +83,7 @@ class Package < ApplicationRecord
             .without_maintainerships
             .where(ecosystem: ['cargo','clojars','cocoapods','cpan','cran','elpa','hackage','hex','npm','nuget','packagist','pypi','rubygems','racket','spack'])
             .order('last_synced_at desc nulls last')
-            .limit(1000).select('id').each(&:sync_maintainers_async)
+            .limit(1000).select('registry_id, id').each(&:sync_maintainers_async)
   end
 
   def self.update_rankings_async
