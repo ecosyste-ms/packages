@@ -5,3 +5,4 @@ production:
     - ActiveRecord::QueryCanceled
     - Rack::Timeout::RequestTimeoutException
     - Faraday::ConnectionFailed 
+    - PackageURL::InvalidPackageURL
