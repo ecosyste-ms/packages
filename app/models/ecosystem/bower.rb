@@ -52,7 +52,7 @@ module Ecosystem
       pkg = packages[package.name.downcase]
       return "removed" if pkg.nil?
       connection = Faraday.new do |faraday|
-        builder.use Faraday::FollowRedirects::Middleware
+        faraday.use Faraday::FollowRedirects::Middleware
         faraday.adapter Faraday.default_adapter
       end
 
