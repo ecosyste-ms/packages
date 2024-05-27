@@ -205,6 +205,8 @@ class Registry < ApplicationRecord
 
   def purl(package, version = nil)
     ecosystem_instance.purl(package, version)
+  rescue
+    nil
   end
   
   def purl_type
