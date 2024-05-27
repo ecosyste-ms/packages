@@ -3,7 +3,7 @@ class Api::V1::KeywordsController < Api::V1::ApplicationController
     keywords = Package.keywords
 
     @pagy, @keywords = pagy_array(keywords)
-    fresh_when(@keywords, public: true)
+    expires_in 1.day, public: true
   end
 
   def show
