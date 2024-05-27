@@ -11,7 +11,7 @@ module Ecosystem
         type: purl_type,
         namespace: package.name.split('/')[0..1].join('/'),
         name: package.name.split('/').last,
-        version: version.try(:number).try(:encode,'iso-8859-1')
+        version: version.try(:number).try(:encode, 'iso-8859-1', invalid: :replace, undef: :replace, replace: '')
       ).to_s
     end
 
