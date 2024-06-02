@@ -58,6 +58,8 @@ module Ecosystem
 
       response = connection.head(pkg['url'])
       "removed" if [400, 404, 410].include?(response.status)
+    rescue
+      nil
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
