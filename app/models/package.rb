@@ -662,10 +662,20 @@ class Package < ApplicationRecord
   end
 
   def commits_url
-    return unless commit_stats.present?
+    return unless repo_metadata.present?
     "https://commits.ecosyste.ms/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}"
   end
 
+  def commits_api_url
+    return unless repo_metadata.present?
+    "https://commits.ecosyste.ms/api/v1/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}"
+  end
+
+  def ping_commits
+    return unless repo_metadata.present?
+    Faraday.get("#{commits_api_url}/ping")
+  end
+  
   def sync_maintainers
     registry.sync_maintainers(self)
   end
