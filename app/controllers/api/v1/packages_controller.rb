@@ -6,6 +6,10 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = scope.created_after(params[:created_after]) if params[:created_after].present?
     scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
 
+    scope = scope.created_before(params[:created_before]) if params[:created_before].present?
+    scope = scope.updated_before(params[:updated_before]) if params[:updated_before].present?
+
+
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'
       sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'
@@ -65,6 +69,8 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = @registry.packages
     scope = scope.created_after(params[:created_after]) if params[:created_after].present?
     scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
+    scope = scope.created_before(params[:created_before]) if params[:created_before].present?
+    scope = scope.updated_before(params[:updated_before]) if params[:updated_before].present?
 
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'

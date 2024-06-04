@@ -453,6 +453,20 @@ paths:
           schema:
             type: string
             format: date-time
+        - name: created_before
+          in: query
+          description: filter by created_at before given time
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: updated_before
+          in: query
+          description: filter by updated_at before given time
+          required: false
+          schema:
+            type: string
+            format: date-time
         - name: sort
           in: query
           description: field to order results by
@@ -509,6 +523,20 @@ paths:
         - name: updated_after
           in: query
           description: filter by updated_at after given time
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: created_before
+          in: query
+          description: filter by created_at before given time
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: updated_before
+          in: query
+          description: filter by updated_at before given time
           required: false
           schema:
             type: string

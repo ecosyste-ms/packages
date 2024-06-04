@@ -14,6 +14,8 @@ class Package < ApplicationRecord
   scope :namespace, ->(namespace) { where(namespace: namespace) }
   scope :created_after, ->(created_at) { where('created_at > ?', created_at) }
   scope :updated_after, ->(updated_at) { where('updated_at > ?', updated_at) }
+  scope :created_before, ->(created_at) { where('created_at < ?', created_at) }
+  scope :updated_before, ->(updated_at) { where('updated_at < ?', updated_at) }
   scope :active, -> { where(status: nil) }
   scope :with_repository_url, -> { where("repository_url <> ''") }
   scope :without_repository_url, -> { where(repository_url: [nil, '']) }
