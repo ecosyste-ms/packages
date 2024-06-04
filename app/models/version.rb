@@ -12,6 +12,8 @@ class Version < ApplicationRecord
   scope :published_after, ->(published_at) { where('published_at > ?', published_at) }
   scope :published_before, ->(published_at) { where('published_at < ?', published_at) }
   scope :updated_after, ->(updated_at) { where('updated_at > ?', updated_at) }
+  scope :created_before, ->(created_at) { where('created_at < ?', created_at) }
+  scope :updated_before, ->(updated_at) { where('updated_at < ?', updated_at) }
 
   scope :active, -> { where(status: nil) }
 

@@ -9,6 +9,8 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     scope = scope.published_after(params[:published_after]) if params[:published_after].present?
     scope = scope.published_before(params[:published_before]) if params[:published_before].present?
     scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
+    scope = scope.created_before(params[:created_before]) if params[:created_before].present?
+    scope = scope.updated_before(params[:updated_before]) if params[:updated_before].present?
 
     if params[:sort].present? || params[:order].present?
       sort = params[:sort].presence || 'published_at'
@@ -42,6 +44,8 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     scope = scope.published_after(params[:published_after]) if params[:published_after].present?
     scope = scope.published_before(params[:published_before]) if params[:published_before].present?
     scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
+    scope = scope.created_before(params[:created_before]) if params[:created_before].present?
+    scope = scope.updated_before(params[:updated_before]) if params[:updated_before].present?
 
     if params[:sort].present? || params[:order].present?
       sort = params[:sort].presence || 'published_at'
