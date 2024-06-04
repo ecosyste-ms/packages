@@ -26,12 +26,14 @@ class Package < ApplicationRecord
   scope :with_rankings, -> { where('length(rankings::text) > 2') }
   scope :without_rankings, -> { where('length(rankings::text) = 2') }
   scope :top, -> (percent = 1) { where("(rankings->>'average')::text::float < ?", percent) }
-
+ 
   scope :repository_url, ->(repository_url) { where("lower(repository_url) = ?", repository_url.try(:downcase)) }
 
   scope :outdated, -> { where('last_synced_at < ?', 1.month.ago) }
 
   scope :keyword, ->(keyword) { where("keywords @> ARRAY[?]::varchar[]", keyword) }
+  scope :without_keywords, -> { where(keywords: '{}') }
+  scope :with_keywords, -> { where.not(keywords: '{}') }
 
   scope :without_maintainerships, -> { includes(:maintainerships).where(maintainerships: {package_id: nil}) }
 
