@@ -56,7 +56,7 @@ class Package < ApplicationRecord
   end
 
   def self.keywords
-    Package.connection.select_rows("select keywords, count (keywords) as keywords_count from (select id, unnest(keywords) as keywords from packages) as foo group by keywords order by keywords_count desc, keywords asc;").reject{|k,v| k.blank?}
+    Package.connection.select_rows("SELECT keywords, COUNT(keywords) AS keywords_count FROM (SELECT id, unnest(keywords) AS keywords FROM packages WHERE status IS NULL) AS foo GROUP BY keywords ORDER BY keywords_count DESC, keywords ASC;").reject{|k,v| k.blank?}
   end
 
   def self.sync_least_recent_async
