@@ -327,12 +327,12 @@ class Registry < ApplicationRecord
 
   def keywords
     Rails.cache.fetch("registries_keywords/#{id}", expires_in: 1.week) do
-      Package.connection.select_rows("select keywords, count (keywords) as keywords_count from (select id, registry_id, unnest(keywords) as keywords from packages where registry_id = #{id}) as foo group by keywords order by keywords_count desc, keywords asc limit 50000;")
+      Package.connection.select_rows("SELECT keywords, COUNT(keywords) AS keywords_count FROM (SELECT id, registry_id, unnest(keywords) AS keywords FROM packages WHERE registry_id = #{id} AND status IS NULL) AS foo GROUP BY keywords ORDER BY keywords_count DESC, keywords ASC LIMIT 50000;")
     end
   end
 
   def count_keywords
-    Package.connection.select_rows("select count (distinct keywords) as keywords_count from (select id, registry_id, unnest(keywords) as keywords from packages where registry_id = #{id}) as foo;").first.first.to_i
+    Package.connection.select_rows("SELECT COUNT(DISTINCT keywords) AS keywords_count FROM (SELECT id, registry_id, unnest(keywords) AS keywords FROM packages WHERE registry_id = #{id} AND status IS NULL) AS foo;").first.first.to_i
   end
 
   def icon_url
