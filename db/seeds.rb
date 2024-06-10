@@ -69,7 +69,7 @@ end
 
 postmarketos_registries = []
 # TODO automate version list from http://mirror.postmarketos.org/postmarketos/
-postmarketos_versions = ['master', 'v24.06', 'v23.11', 'v23.06', 'v22.12', 'v22.06', 'v21.12', 'v21.06', 'v21.03', 'v20.05']
+postmarketos_versions = ['master', 'v24.06', 'v23.12', 'v23.06', 'v22.12', 'v22.06', 'v21.12', 'v21.06', 'v21.03', 'v20.05']
 
 postmarketos_versions.each do |version|
   postmarketos_registries << {
