@@ -236,7 +236,7 @@ GEM
     puma (6.4.2)
       nio4r (~> 2.0)
     racc (1.8.0)
-    rack (3.0.11)
+    rack (3.1.0)
     rack-attack (6.7.0)
       rack (>= 1.0, < 4)
     rack-attack-rate-limit (1.1.0)
@@ -295,7 +295,7 @@ GEM
       io-console (~> 0.5)
     request_store (1.7.0)
       rack (>= 1.4)
-    rexml (3.2.9)
+    rexml (3.3.0)
       strscan
     rswag-api (2.13.0)
       activesupport (>= 3.1, < 7.2)
