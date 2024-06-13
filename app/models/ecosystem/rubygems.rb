@@ -67,7 +67,7 @@ module Ecosystem
 
     def repository_url(pkg_metadata)
       ['source_code_uri', 'wiki_uri', 'documentation_uri', 'bug_tracker_uri', 'changelog_uri', 'homepage_uri'].map do |key|
-        repo_fallback(pkg_metadata[key].presence, nil)
+        repo_fallback(nil, pkg_metadata[key].presence)
       end.compact.reject(&:blank?).first
     end
 
