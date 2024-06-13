@@ -56,13 +56,19 @@ module Ecosystem
         description: pkg_metadata["info"],
         homepage: pkg_metadata["homepage_uri"],
         licenses: pkg_metadata.fetch("licenses", []).try(:join, ","),
-        repository_url: repo_fallback(pkg_metadata["source_code_uri"], pkg_metadata["homepage_uri"]),
+        repository_url: repository_url(pkg_metadata),
         downloads: pkg_metadata["downloads"],
         downloads_period: "total",
         metadata: {
           "funding" => pkg_metadata["funding_uri"],
         }
       }
+    end
+
+    def repository_url(pkg_metadata)
+      ['source_code_uri', 'wiki_uri', 'documentation_uri', 'bug_tracker_uri', 'changelog_uri', 'homepage_uri'].map do |key|
+        repo_fallback(pkg_metadata[key].presence, nil)
+      end.compact.reject(&:blank?).first
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
