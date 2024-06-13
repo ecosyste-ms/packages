@@ -125,7 +125,7 @@ GEM
     date (3.3.4)
     deb_control (0.0.1)
     drb (2.2.1)
-    erubi (1.12.0)
+    erubi (1.13.0)
     ethon (0.16.0)
       ffi (>= 1.15.0)
     execjs (2.9.1)
@@ -207,14 +207,14 @@ GEM
     net-smtp (0.5.0)
       net-protocol
     nio4r (2.7.3)
-    nokogiri (1.16.5)
+    nokogiri (1.16.6)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
-    nokogiri (1.16.5-aarch64-linux)
+    nokogiri (1.16.6-aarch64-linux)
       racc (~> 1.4)
-    nokogiri (1.16.5-arm64-darwin)
+    nokogiri (1.16.6-arm64-darwin)
       racc (~> 1.4)
-    nokogiri (1.16.5-x86_64-linux)
+    nokogiri (1.16.6-x86_64-linux)
       racc (~> 1.4)
     oj (3.16.4)
       bigdecimal (>= 3.0)
@@ -291,7 +291,7 @@ GEM
       redis-client (>= 0.22.0)
     redis-client (0.22.2)
       connection_pool
-    reline (0.5.8)
+    reline (0.5.9)
       io-console (~> 0.5)
     request_store (1.7.0)
       rack (>= 1.4)
@@ -341,7 +341,7 @@ GEM
       actionpack (>= 6.1)
       activesupport (>= 6.1)
       sprockets (>= 3.0.0)
-    stringio (3.1.0)
+    stringio (3.1.1)
     strings (0.2.1)
       strings-ansi (~> 0.2)
       unicode-display_width (>= 1.5, < 3.0)
@@ -447,4 +447,4 @@ RUBY VERSION
    ruby 3.3.1p55
 
 BUNDLED WITH
-   2.5.11
+   2.5.12
