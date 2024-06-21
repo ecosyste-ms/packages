@@ -33,6 +33,7 @@ module Ecosystem
     end
 
     def check_status(package)
+      begin
       return 'removed' unless all_package_names.include?(package.name)
       url = check_status_url(package)
       connection = Faraday.new do |faraday|
@@ -42,6 +43,9 @@ module Ecosystem
 
       response = connection.head(url)
       "removed" if [400, 404, 410].include?(response.status)
+      rescue Faraday::Error => e
+        nil
+      end
     end
 
     def recently_updated_package_names
