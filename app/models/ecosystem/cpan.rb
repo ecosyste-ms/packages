@@ -68,6 +68,8 @@ module Ecosystem
 
     def fetch_version_metadata(name)
       get("https://fastapi.metacpan.org/v1/release/_search?q=distribution:#{name}&size=5000")["hits"]["hits"]
+    rescue
+      []
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
