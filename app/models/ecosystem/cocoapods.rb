@@ -34,15 +34,17 @@ module Ecosystem
 
     def check_status(package)
       begin
-      return 'removed' unless all_package_names.include?(package.name)
-      url = check_status_url(package)
-      connection = Faraday.new do |faraday|
-        faraday.use Faraday::FollowRedirects::Middleware
-        faraday.adapter Faraday.default_adapter
-      end
+        return 'removed' unless all_package_names.include?(package.name)
+        url = URI.parse(check_status_url(package))
+        raise "Invalid URL" unless url.kind_of?(URI::HTTP) || url.kind_of?(URI::HTTPS)
 
-      response = connection.head(url)
-      "removed" if [400, 404, 410].include?(response.status)
+        connection = Faraday.new do |faraday|
+          faraday.use Faraday::FollowRedirects::Middleware
+          faraday.adapter Faraday.default_adapter
+        end
+
+        response = connection.head(url.request_uri)
+        "removed" if [400, 404, 410].include?(response.status)
       rescue Faraday::Error, Faraday::FollowRedirects::RedirectLimitReached => e
         nil
       end
