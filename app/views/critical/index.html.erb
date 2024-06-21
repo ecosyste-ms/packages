@@ -12,7 +12,7 @@
   <div class="row">
     <div class="col-lg-9">
       <%= render @packages %>
-      <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+      <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>  
     </div>
     <div class="col">
       <div class="card mb-3">

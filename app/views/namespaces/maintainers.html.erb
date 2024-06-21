@@ -28,5 +28,5 @@
   </ul>
 
   <%= render @maintainers %>
-  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>  
+  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>  
 </div>
