@@ -43,7 +43,7 @@ module Ecosystem
 
       response = connection.head(url)
       "removed" if [400, 404, 410].include?(response.status)
-      rescue Faraday::Error => e
+      rescue Faraday::Error, Faraday::FollowRedirects::RedirectLimitReached => e
         nil
       end
     end
