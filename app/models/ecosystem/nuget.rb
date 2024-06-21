@@ -29,6 +29,8 @@ module Ecosystem
       return "removed" if [400, 404, 410].include?(response.status)
       return "removed" if response.body.include? 'This package has been deleted from the gallery.'
       return "removed" if response.body.include? "This package's content is hidden"
+    rescue Faraday::Error => e
+      nil
     end
 
     def recently_updated_package_names
