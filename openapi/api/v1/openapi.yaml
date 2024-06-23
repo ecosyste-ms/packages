@@ -733,7 +733,7 @@ paths:
           required: false
           schema:
             type: string
-        - latest:
+        - name: latest
           in: query
           description: filter by latest version
           required: false
