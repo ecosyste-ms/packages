@@ -6,3 +6,4 @@ production:
     - Rack::Timeout::RequestTimeoutException
     - Faraday::ConnectionFailed 
     - PackageURL::InvalidPackageURL
+    - Faraday::SSLError
