@@ -43,6 +43,7 @@ Rails.application.routes.draw do
           resources :versions, only: [:index, :show], constraints: { id: /.*/ }
           member do
             get :dependent_packages, to: 'packages#dependent_packages'
+            get :dependent_package_kinds, to: 'packages#dependent_package_kinds'
             get :related_packages, to: 'packages#related_packages'
             get :ping, to: 'packages#ping'
             get :version_numbers, to: 'versions#version_numbers'

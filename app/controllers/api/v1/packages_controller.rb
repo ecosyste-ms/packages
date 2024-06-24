@@ -132,6 +132,20 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     fresh_when @packages, public: true
   end
 
+  def dependent_package_kinds
+    @registry = Registry.find_by_name!(params[:registry_id])
+    @package = @registry.packages.find_by_name!(params[:id])
+
+    if params[:latest].present?
+      @kinds = @package.latest_dependent_package_kinds
+    else
+      @kinds = @package.dependent_package_kinds
+    end
+
+    fresh_when @package, public: true
+    render json: @kinds
+  end
+
   def related_packages
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = @registry.packages.find_by_name!(params[:id])

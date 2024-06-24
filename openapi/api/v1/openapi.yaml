@@ -754,6 +754,40 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Package'
+  /registries/{registryName}/packages/{packageName}/dependent_package_kinds:
+    get:
+      summary: get a list of dependency kinds for a package
+      operationId: getRegistryPackageDependentPackageKinds
+      tags:
+        - packages
+      parameters:
+        - in: path
+          name: registryName
+          schema:
+            type: string
+          required: true
+          description: name of registry
+        - in: path
+          name: packageName
+          schema:
+            type: string
+          required: true
+          description: name of package
+        - name: latest
+          in: query
+          description: filter by latest version
+          required: false
+          schema:
+            type: boolean
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
   /registries/{registryName}/packages/{packageName}/related_packages:
     get:
       summary: get a list of packages that are related to a package
