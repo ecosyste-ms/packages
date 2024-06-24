@@ -23,7 +23,7 @@
             <% @kinds.each do |kind, count| %>
               <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center <%= 'active' if params[:kind] == kind %>" href="<%= dependent_packages_registry_package_path(@registry, @package, kind: kind) %>">
                 <%= kind %>
-                <span class='badge bg-primary rounded-pill'><%= count %></span>
+                <span class='badge bg-primary rounded-pill'><%= number_with_delimiter count %></span>
               </a>
             <% end %>
           </div>
