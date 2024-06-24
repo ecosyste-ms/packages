@@ -8,3 +8,4 @@ production:
     - PackageURL::InvalidPackageURL
     - Faraday::SSLError
     - Rack::Timeout::RequestExpiryError
+    - Faraday::TimeoutError
