@@ -65,10 +65,10 @@ class PackagesController < ApplicationController
       end
     end
 
-    if params[:latest].present?
-      scope = @package.latest_dependent_packages(kind: params[:kind]).includes(:registry)
-    else
+    if params[:latest] == 'false'
       scope = @package.dependent_packages(kind: params[:kind]).includes(:registry)
+    else
+      scope = @package.latest_dependent_packages(kind: params[:kind]).includes(:registry)
     end
 
     if params[:sort].present? || params[:order].present?
@@ -83,10 +83,10 @@ class PackagesController < ApplicationController
       scope = scope.order('latest_release_published_at DESC')
     end
 
-    if params[:latest].present?
-      @kinds = @package.latest_dependent_package_kinds
-    else
+    if params[:latest] == 'false'
       @kinds = @package.dependent_package_kinds
+    else
+      @kinds = @package.latest_dependent_package_kinds
     end
 
     @pagy, @dependent_packages = pagy_countless(scope)

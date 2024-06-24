@@ -52,6 +52,7 @@ gem 'postgresql_cursor'
 gem 'rack-timeout'
 gem "lograge"
 gem 'csv'
+gem 'bootstrap-icons-helper'
 
 group :development do
   gem "web-console"

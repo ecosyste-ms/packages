@@ -12,6 +12,23 @@
         <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>  
       </div>
       <div class='col-md-3'>
+        <div class='card mb-3'>
+          <div class='card-header'>
+            Past Dependents
+          </div>
+          <div class='card-body'>
+            <% latest = params[:latest] == 'false' ? nil : 'false' %>
+            <%= link_to dependent_packages_registry_package_path(@registry, @package, latest: latest, kind: params[:kind]), class: 'text-decoration-none text-dark' do %>
+              <% if latest %>
+                <%= bootstrap_icon "square" %> Include Past Dependents
+              <% else %>
+                <%= bootstrap_icon "check-square-fill" %> Include Past Dependents
+              <% end %>
+            <% end %>
+            <p class="mt-2 mb-0 small text-muted">Check this option to include packages that no longer depend on this package in their latest version but previously did.</p>
+          </div>
+        </div>
+
         <div class='card'>
           <div class='card-header'>
             Filter by kind

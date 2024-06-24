@@ -106,6 +106,11 @@ GEM
     bootstrap (5.3.3)
       autoprefixer-rails (>= 9.1.0)
       popper_js (>= 2.11.8, < 3)
+    bootstrap-icons (1.0.14)
+      nokogiri (~> 1)
+    bootstrap-icons-helper (2.0.2)
+      bootstrap-icons (~> 1)
+      rails (>= 7.0)
     builder (3.3.0)
     chartkick (5.0.7)
     citrus (3.0.2)
@@ -393,6 +398,7 @@ DEPENDENCIES
   bibliothecary!
   bootsnap
   bootstrap
+  bootstrap-icons-helper
   chartkick
   counter_culture
   csv
