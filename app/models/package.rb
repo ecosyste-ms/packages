@@ -128,20 +128,28 @@ class Package < ApplicationRecord
     update(maintainers_count: maintainerships.count)
   end
 
-  def dependent_package_ids
-    Dependency.where(package_id: id).joins(version: :package).pluck('distinct(packages.id)')
+  def dependent_package_ids(kind: nil)
+    scope = Dependency.where(package_id: id).joins(version: :package)
+    scope = scope.where('dependencies.kind = ?', kind) if kind.present?
+    scope.pluck('distinct(packages.id)')
   end
 
-  def latest_dependent_package_ids
-    Dependency.where(package_id: id).joins(version: :package).where('versions.latest = true').pluck('distinct(packages.id)')
+  def latest_dependent_package_ids(kind: nil)
+    scope = Dependency.where(package_id: id).joins(version: :package).where('versions.latest = true')
+    scope = scope.where('dependencies.kind = ?', kind) if kind.present?
+    scope.pluck('distinct(packages.id)')
   end
 
-  def dependent_packages
-    Package.where(id: dependent_package_ids)
+  def dependent_packages(kind: nil)
+    Package.where(id: dependent_package_ids(kind: kind))
   end
 
-  def latest_dependent_packages
-    Package.where(id: latest_dependent_package_ids)
+  def dependent_package_kinds
+    Dependency.where(package_id: id).group(:kind).joins(version: :package).count('DISTINCT packages.id')
+  end
+
+  def latest_dependent_packages(kind: nil)
+    Package.where(id: latest_dependent_package_ids(kind: kind))
   end
 
   def install_command
