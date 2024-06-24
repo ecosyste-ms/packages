@@ -3,26 +3,29 @@
 <div class="container-sm">
   <h1 class='mb-3'>Top Open Source Packages</h1>
 
-  <% @ecosystems.each do |registry| %>
-
-    <div class="card mb-3 registry d-flex" id="registry_<%= registry.id %>">
-      <div class="card-body pb-1">
-        <div class="d-flex">
-          
-          <div class="flex-grow-1 ms-3 text-break">
-            <h5 class='card-title'>
-              <%= link_to registry.ecosystem, top_ecosystem_path(registry.ecosystem) %>
-            </h5>
-          
-            <p class="card-subtitle mb-2 text-muted">
-              <%= number_with_delimiter registry.packages_count %> packages
-            </p>
+  <div class='row'>
+    <% @ecosystems.each do |registry| %>
+      <div class='col-lg-4'>
+        <div class="card mb-3 registry d-flex" id="registry_<%= registry.id %>">
+          <div class="card-body pb-1">
+            <div class="d-flex">
+              
+              <div class="flex-grow-1 ms-3 text-break">
+                <h5 class='card-title'>
+                  <%= link_to registry.ecosystem, top_ecosystem_path(registry.ecosystem) %>
+                </h5>
+              
+                <p class="card-subtitle mb-2 text-muted">
+                  <%= number_with_delimiter registry.packages_count %> packages
+                </p>
+              </div>
+              <div class="flex-shrink-0">
+                <img src="<%= registry.icon_url %>" class="rounded" height='40' width='40' onerror="this.style.display='none'">
+              </div>  
+            </div>
           </div>
-          <div class="flex-shrink-0">
-            <img src="<%= registry.icon_url %>" class="rounded" height='40' width='40' onerror="this.style.display='none'">
-          </div>  
         </div>
       </div>
-    </div>
-  <% end %>
+    <% end %>
+  </div>
 </div>
