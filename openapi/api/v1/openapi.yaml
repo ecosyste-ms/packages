@@ -739,6 +739,12 @@ paths:
           required: false
           schema:
             type: boolean
+        - name: kind
+          in: query
+          description: filter by dependency kind
+          required: false
+          schema:
+            type: string
       responses:
         200:
           description: OK
