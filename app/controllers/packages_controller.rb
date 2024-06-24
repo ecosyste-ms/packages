@@ -65,7 +65,12 @@ class PackagesController < ApplicationController
       end
     end
 
-    scope = @package.dependent_packages.includes(:registry)
+    if params[:latest].present?
+      scope = @package.latest_dependent_packages(kind: params[:kind]).includes(:registry)
+    else
+      scope = @package.dependent_packages(kind: params[:kind]).includes(:registry)
+    end
+
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'
       sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'      
@@ -77,6 +82,8 @@ class PackagesController < ApplicationController
     else
       scope = scope.order('latest_release_published_at DESC')
     end
+
+    @kinds = @package.dependent_package_kinds
 
     @pagy, @dependent_packages = pagy_countless(scope)
     fresh_when(@dependent_packages, public: true)
