@@ -148,6 +148,10 @@ class Package < ApplicationRecord
     Dependency.where(package_id: id).group(:kind).joins(version: :package).count('DISTINCT packages.id')
   end
 
+  def latest_dependent_package_kinds
+    Dependency.where(package_id: id).group(:kind).joins(version: :package).where('versions.latest = true').count('DISTINCT packages.id')
+  end
+
   def latest_dependent_packages(kind: nil)
     Package.where(id: latest_dependent_package_ids(kind: kind))
   end

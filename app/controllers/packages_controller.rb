@@ -83,7 +83,11 @@ class PackagesController < ApplicationController
       scope = scope.order('latest_release_published_at DESC')
     end
 
-    @kinds = @package.dependent_package_kinds
+    if params[:latest].present?
+      @kinds = @package.latest_dependent_package_kinds
+    else
+      @kinds = @package.dependent_package_kinds
+    end
 
     @pagy, @dependent_packages = pagy_countless(scope)
     fresh_when(@dependent_packages, public: true)
