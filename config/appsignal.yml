@@ -7,3 +7,4 @@ production:
     - Faraday::ConnectionFailed 
     - PackageURL::InvalidPackageURL
     - Faraday::SSLError
+    - Rack::Timeout::RequestExpiryError
