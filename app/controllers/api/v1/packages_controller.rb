@@ -142,8 +142,9 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       @kinds = @package.dependent_package_kinds
     end
 
-    fresh_when @package, public: true
-    render json: @kinds
+    if stale?(@package, public: true)
+      render json: @kinds
+    end
   end
 
   def related_packages
