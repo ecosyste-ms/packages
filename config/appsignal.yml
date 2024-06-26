@@ -10,3 +10,6 @@ production:
     - Rack::Timeout::RequestExpiryError
     - Faraday::TimeoutError
     - Oj::ParseError
+    - Pagy::VariableError
+    - Pagy::OverflowError 
+    - ActiveRecord::StatementInvalid
