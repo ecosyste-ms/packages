@@ -880,4 +880,19 @@ class Package < ApplicationRecord
     end
     update_maintainers_count
   end
+
+  def scorecard_slug
+    return unless repository_url.present?
+    repository_url.gsub('https://', '').gsub('http://', '').gsub('www.', '')
+  end
+
+  def scorecard_api_url
+    return unless scorecard_slug.present?
+    "https://api.scorecard.dev/projects/#{scorecard_slug}"
+  end
+
+  def scorecard_url
+    return unless scorecard_slug.present?
+    "https://scorecard.dev/viewer/?uri=#{scorecard_slug}"
+  end
 end
