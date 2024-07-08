@@ -44,6 +44,8 @@ class Package < ApplicationRecord
 
   scope :not_docker, -> { where.not(ecosystem: 'docker') }
 
+  scope :repository_owner, ->(owner) { where("repo_metadata->'owner_record'->>'login' = ?", owner) }
+
   after_create :update_rankings_async
 
   def self.find_by_normalized_name(name)
