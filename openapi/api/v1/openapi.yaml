@@ -6,7 +6,7 @@ info:
     name: Ecosyste.ms
     email: support@ecosyste.ms
     url: https://ecosyste.ms 
-  version: 1.0.1
+  version: 1.1.0
   license:
     name: CC-BY-SA-4.0
     url: https://creativecommons.org/licenses/by-sa/4.0/
@@ -1471,8 +1471,7 @@ components:
         - version_url
         - related_tag
         - latest
-        - package
-        - dependencies
+        - package_url
       type: object
       properties:
         id:
@@ -1518,9 +1517,8 @@ components:
           type: boolean
         version_url:
             type: string
-        package:
-          type: object
-          $ref: '#/components/schemas/Package'
+        package_url:
+          type: string
     Dependency:
       required:
         - id
