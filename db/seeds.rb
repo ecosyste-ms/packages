@@ -1,7 +1,7 @@
 default_registries = [
   {name: 'bower.io', url: 'https://bower.io', ecosystem: 'bower', github: 'bower', default: true},
   {name: 'crates.io', url: 'https://crates.io', ecosystem: 'cargo', github: 'rust-lang', default: true},
-  {name: 'cocoapod.org', url: 'https://cocoapods.org', ecosystem: 'cocoapods', github: 'cocoapods', default: true},
+  {name: 'cocoapods.org', url: 'https://cocoapods.org', ecosystem: 'cocoapods', github: 'cocoapods', default: true},
   {name: 'metacpan.org', url: 'https://metacpan.org', ecosystem: 'cpan', github: 'metacpan', default: true},
   {name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go', github: 'golang', default: true},
   {name: 'hex.pm', url: 'https://hex.pm', ecosystem: 'hex', github: 'hexpm', default: true},
