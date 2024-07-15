@@ -1,11 +1,11 @@
 class NamespacesController < ApplicationController
   def index
-    @registry = Registry.find_by!(name: params[:registry_id])
+    @registry = Registry.find_by_name!(params[:registry_id])
     @pagy, @namespaces = pagy_array(@registry.packages.where.not(namespace: nil).group(:namespace).order('COUNT(id) desc').count.to_a)
   end
 
   def show
-    @registry = Registry.find_by!(name: params[:registry_id])
+    @registry = Registry.find_by_name!(params[:registry_id])
     @namespace = params[:id]
 
     scope = @registry.packages.namespace(@namespace)
@@ -27,7 +27,7 @@ class NamespacesController < ApplicationController
   end
 
   def maintainers
-    @registry = Registry.find_by!(name: params[:registry_id])
+    @registry = Registry.find_by_name!(params[:registry_id])
     @namespace = params[:id]
     @scope = @registry.namespace_maintainers(@namespace)
     @pagy, @maintainers = pagy_countless(@scope)

@@ -4,7 +4,7 @@ class FundingController < ApplicationController
   end
 
   def show
-    @registry = Registry.find_by!(name: params[:id])
+    @registry = Registry.find_by_name!(params[:id])
     @pagy, @packages = pagy_countless(@registry.packages.with_funding.active.order(Arel.sql("(rankings->>'average')::text::float").asc))
   end
 

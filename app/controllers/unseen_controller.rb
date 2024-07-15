@@ -7,7 +7,7 @@ class UnseenController < ApplicationController
     @registries = @registry_ids.map{|id, count| [@all_registries.find{|r| r.id == id}, count]}.sort_by{|r, count| -count}
 
     if params[:registry]
-      @registry = Registry.find_by!(name: params[:registry])
+      @registry = Registry.find_by_name!(params[:registry])
       @scope = @scope.where(registry_id: @registry.id)
     end
 
