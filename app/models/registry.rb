@@ -9,6 +9,11 @@ class Registry < ApplicationRecord
 
   scope :not_docker, -> { where.not(ecosystem: 'docker') }
 
+  def self.find_by_name!(name)
+    name = 'cocoapods.org' if name == 'cocoapod.org'
+    Registry.find_by!(name: name)
+  end
+
   def self.update_extra_counts
     all.each(&:update_extra_counts)
   end
