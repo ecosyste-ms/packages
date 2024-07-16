@@ -15,13 +15,6 @@ GIT
       tomlrb
       typhoeus
 
-GIT
-  remote: https://github.com/ruby/net-pop.git
-  revision: e8d0afe2773b9eb6a23c39e9e437f6fc0fc7c733
-  specs:
-    net-pop (0.1.2)
-      net-protocol
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -101,7 +94,7 @@ GEM
       tzinfo (~> 2.0)
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
-    appsignal (3.10.0)
+    appsignal (3.11.0)
       rack
     autoprefixer-rails (10.4.16.0)
       execjs (~> 2)
@@ -214,6 +207,8 @@ GEM
     net-imap (0.4.14)
       date
       net-protocol
+    net-pop (0.1.2)
+      net-protocol
     net-protocol (0.2.2)
       timeout
     net-smtp (0.5.0)
@@ -307,7 +302,7 @@ GEM
       io-console (~> 0.5)
     request_store (1.7.0)
       rack (>= 1.4)
-    rexml (3.3.1)
+    rexml (3.3.2)
       strscan
     rswag-api (2.13.0)
       activesupport (>= 3.1, < 7.2)
@@ -420,7 +415,6 @@ DEPENDENCIES
   jquery-rails
   lograge
   mocha
-  net-pop!
   nokogiri
   oj
   ox
@@ -459,7 +453,7 @@ DEPENDENCIES
   xmlrpc
 
 RUBY VERSION
-   ruby 3.3.3p89
+   ruby 3.3.4p89
 
 BUNDLED WITH
    2.5.15
