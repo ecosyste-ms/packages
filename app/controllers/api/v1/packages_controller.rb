@@ -82,7 +82,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       end
     end
 
-    @pagy, @packages = pagy_countless(scope, max_items: 10000)
+    @pagy, @packages = pagy_countless(scope, limit_max: 10000)
     if stale?(@packages, public: true)
       render json: @packages.pluck(:name)
     end
