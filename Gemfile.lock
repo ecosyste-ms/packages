@@ -227,7 +227,7 @@ GEM
       bigdecimal (>= 3.0)
     ox (2.14.18)
     packageurl-ruby (0.1.0)
-    pagy (8.6.3)
+    pagy (9.0.2)
     pg (1.5.6)
     pg_query (5.1.0)
       google-protobuf (>= 3.22.3)
@@ -419,7 +419,7 @@ DEPENDENCIES
   oj
   ox
   packageurl-ruby
-  pagy (= 8.6.3)
+  pagy (= 9.0.2)
   pg
   pg_query
   pghero
