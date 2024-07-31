@@ -94,7 +94,7 @@ GEM
       tzinfo (~> 2.0)
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
-    appsignal (3.12.2)
+    appsignal (3.12.3)
       rack
     autoprefixer-rails (10.4.16.0)
       execjs (~> 2)
