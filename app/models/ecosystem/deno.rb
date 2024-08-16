@@ -28,7 +28,7 @@ module Ecosystem
       packages = []
       loop do
         r = get("https://apiland.deno.dev/v2/modules?page=#{page}&limit=100")['items']
-        break if r == []
+        break if r.nil? || r == []
 
         packages += r
         page += 1
