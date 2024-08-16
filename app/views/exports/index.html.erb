@@ -1,7 +1,12 @@
 <% @meta_title = "Open Data Releases" %>
+<% @meta_description = "Access the latest open data releases from the packages database, providing valuable insights and information for developers and researchers." %>
 
 <div class="container-sm">
   <h1>Open Data Releases</h1>
+
+  <p class='lead'>
+    Access the latest open data releases from the packages database, providing valuable insights and information for developers and researchers.
+  </p>
 
   <% if @exports.any? %>
     <%= render @exports %>
