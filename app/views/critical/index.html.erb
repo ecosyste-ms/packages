@@ -1,9 +1,14 @@
-<% @meta_title = "Critical Open Source Packages" %>
+<% @meta_title = "Critical Open Source #{@registry.try(:ecosystem).try(:humanize)} Packages" %>
+<% @meta_description = "Find key open source #{@registry.try(:ecosystem)} software packages that are crucial to most projects, representing 80% of all downloads in their ecosystems." %>
 
 <div class="container-sm">
   <h1 class='mb-3'>
-    Critical Open Source Packages
+    Critical Open Source <%= @registry.try(:ecosystem).try(:humanize) %> Packages
   </h1>
+
+  <p class='lead'>
+    Find key open source <%= @registry.try(:ecosystem) %> software packages that are crucial to most projects, representing 80% of all downloads in their ecosystems.
+  </p>
 
   <ul class="nav nav-tabs my-3">
     <%= render 'packages/sort' %>
