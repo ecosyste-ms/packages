@@ -1,4 +1,5 @@
 <% @meta_title = "#{@maintainer} namespaces | #{@registry} maintainers" %>
+<% @meta_description = "View the namespaces maintained by #{@maintainer} on the #{@registry} package registry, including their packages and contributions." %>
 
 <div class="container-sm">
   <h1 class='mb-3'>
@@ -9,6 +10,10 @@
       <%= @maintainer %>
     <% end %>
   </h1>
+
+  <p class='lead'>
+    View the namespaces maintained by <%= @maintainer %> on the <%= @registry %> package registry, including their packages and contributions.
+  </p>
 
   <ul class="nav nav-tabs my-3">
     <li class="nav-item">
