@@ -16,7 +16,7 @@
   <br/><br/>
 
   <% @registries.each do |registry|%>
-    <% next unless registry.outdated_packages_count > 0 %>
+    <% next unless registry.outdated_packages_count > 100 %>
     <div class="card mb-3 d-flex" id="registry_<%= registry.id %>">
       <div class="card-body pb-1">
         <div class="d-flex">
