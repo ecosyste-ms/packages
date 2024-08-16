@@ -1,11 +1,16 @@
 <% @meta_title = "#{@registry.name} recent versions" %>
+<% @meta_description = "View the recent versions of packages on the #{@registry.name} package registry." %>
 
 <div class="container-sm">
   <h2>
-  <%= @registry %> recent versions
-</h2>
+    <%= @registry %> recent versions
+  </h2>
 
-<%= render partial: "version_with_package", collection: @versions, as: :version %>
+  <p class='lead'>
+    View the recent versions of packages on the <%= @registry %> package registry.
+  </p>
 
-<%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>  
+  <%= render partial: "version_with_package", collection: @versions, as: :version %>
+
+  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>  
 </div>

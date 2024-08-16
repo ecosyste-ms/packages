@@ -1,7 +1,12 @@
 <% @meta_title = "Top #{@registry.ecosystem} packages on #{@registry.name} by #{@sort_name}"%>
+<% @meta_description = "View the top #{@registry} packages by #{@sort_name}, including their downloads, dependent packages, dependent repositories, stars, forks, versions, maintainers, and average ranking." %>
 
 <div class="container-sm">
   <h1 class='mb-3'><%= @meta_title  %></h1>
+
+  <p class='lead'>
+    View the top <%= @registry %> packages by <%= @sort_name %>, including their downloads, dependent packages, dependent repositories, stars, forks, versions, maintainers, and average ranking.
+  </p>
 
   <p>
     Top by:

@@ -1,4 +1,5 @@
 <% @meta_title = "#{@version} | #{@package.name} | #{@registry.name}" %>
+<% @meta_description = @package.description_with_fallback %>
 
 <div class="container-sm">
   <h2><%= link_to @registry.name, registry_packages_path(@registry.name) %> : <%= link_to @package.name, registry_package_path(@registry.name, @package.name) %> : <%= @version.number %></h2>

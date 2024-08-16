@@ -1,5 +1,5 @@
-<% @meta_description = "TBC" %>
-<% @meta_title = "underproduction in #{@registry.name}" %>
+<% @meta_title = "Underproduction in #{@registry.name}" %>
+<% @meta_description = "View the underproduction packages on the #{@registry} package registry, including their maintainers and dependencies." %>
 
 <div class="container-sm">
   <h1 class='mb-3'>
@@ -7,7 +7,7 @@
   </h1>
 
   <p class='lead'>
-
+    <%= @meta_description %>
   <p>
   
   <% @packages.each do |package| %>
