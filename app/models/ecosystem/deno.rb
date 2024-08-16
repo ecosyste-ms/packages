@@ -12,6 +12,10 @@ module Ecosystem
       end
     end
 
+    def check_status_url(package)
+      "https://apiland.deno.dev/v2/modules/#{package.name}"
+    end
+
     def check_status(package)
       url = check_status_url(package)
       connection = Faraday.new do |faraday|
@@ -19,7 +23,7 @@ module Ecosystem
         faraday.adapter Faraday.default_adapter
       end
 
-      response = connection.head(url)
+      response = connection.get(url)
       "removed" if [400, 404, 410].include?(response.status)
     end
 
