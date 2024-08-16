@@ -1,4 +1,5 @@
 <% @meta_title = "#{@keyword} | #{@registry} keywords" %>
+<% @meta_description = "View the packages on the #{@registry} package registry that are tagged with the #{@keyword} keyword." %>
 
 <div class="container-sm">
   <h2>
@@ -6,6 +7,10 @@
     "<%= @keyword %>"
     keyword
   </h2>
+
+  <p class='lead'>
+    View the packages on the <%= @registry %> package registry that are tagged with the "<%= @keyword %>" keyword.
+  </p>
 
   <ul class="nav nav-tabs my-3">
     <li class="nav-item">

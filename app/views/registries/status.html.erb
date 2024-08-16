@@ -1,5 +1,12 @@
+<% @meta_title = "Registry Statuses" %>
+<% @meta_description = "View the status of all registries, including the number of packages, active packages, and outdated packages." %>
+
 <div class="container-sm">
-  <h4 class='mb-3'>Registry Statuses</h4>
+  <h1 class='mb-3'>Registry Statuses</h1>
+
+  <p class='lead'>
+    View the status of all registries, including the number of packages, active packages, and outdated packages.
+  </p>
 
   Total registries: <%= number_with_delimiter @registries.count %><br/>
   Total packages: <%= number_with_delimiter @registries.sum(&:packages_count) %><br/>
