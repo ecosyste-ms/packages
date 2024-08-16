@@ -1,9 +1,14 @@
 <% @meta_title = "#{@namespace} | #{@registry} namespaces" %>
+<% @meta_description = "View the packages within the #{@namespace} namespace on the #{@registry} package registry, including their maintainers and dependencies." %>
 
 <div class="container-sm">
   <h1 class='mb-3'>
     <%= link_to @registry.name, registry_namespaces_path %> namespaces: <%= @namespace %>
   </h1>
+
+  <p class='lead'>
+    View the packages within the <%= @namespace %> namespace on the <%= @registry %> package registry, including their maintainers and dependencies.
+  </p>
 
   <ul class="nav nav-tabs my-3">
     <li class="nav-item">
