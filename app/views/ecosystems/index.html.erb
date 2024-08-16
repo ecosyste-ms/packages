@@ -1,8 +1,14 @@
 <% @meta_title = "#{params[:id]} registries" %>
+<% @meta_description = "A list of package registries within the #{params[:id]} ecosystem, offering access to essential tools and libraries." %>
 
 <div class="container-sm">
   <h1 class='mb-3'>
     <%= params[:id]%> registries
   </h1>
+
+  <p class='lead'>
+    A list of package registries within the <%= params[:id] %> ecosystem, offering access to essential tools and libraries.
+  </p>
+
   <%= render @registries %>
 </div>
