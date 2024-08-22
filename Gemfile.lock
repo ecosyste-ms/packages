@@ -304,7 +304,7 @@ GEM
       io-console (~> 0.5)
     request_store (1.7.0)
       rack (>= 1.4)
-    rexml (3.3.5)
+    rexml (3.3.6)
       strscan
     rswag-api (2.14.0)
       activesupport (>= 5.2, < 8.0)
