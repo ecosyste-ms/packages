@@ -45,7 +45,7 @@ class DenoTest < ActiveSupport::TestCase
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url,  "https://deno.land/x/deno_es"
+    assert_equal check_status_url,  "https://apiland.deno.dev/v2/modules/deno_es"
   end
 
   test 'purl' do
