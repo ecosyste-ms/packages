@@ -41,6 +41,9 @@ Rails.application.routes.draw do
 
         resources :packages, constraints: { id: /.*/ }, only: [:index, :show] do 
           resources :versions, only: [:index, :show], constraints: { id: /.*/ }
+          collection do
+            get :lookup, to: 'packages#lookup'
+          end
           member do
             get :dependent_packages, to: 'packages#dependent_packages'
             get :dependent_package_kinds, to: 'packages#dependent_package_kinds'

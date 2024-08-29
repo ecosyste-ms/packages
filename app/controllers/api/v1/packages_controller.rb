@@ -25,14 +25,20 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
   end
 
   def lookup
+    scope = Package.all
+    if params[:registry_id].present?
+      @registry = Registry.find_by_name!(params[:registry_id])
+      scope = @registry.packages
+    end
+
     if params[:repository_url].present?
-      scope = Package.repository_url(params[:repository_url])
+      scope = scope.repository_url(params[:repository_url])
       scope = scope.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
     elsif params[:purl].present?
       scope = lookup_by_purl(params[:purl])
     else
       params[:name] = "library/#{params[:name]}" if params[:ecosystem] == 'docker' && !params[:name].include?('/')
-      scope = Package.where(name: params[:name])
+      scope = scope.where(name: params[:name])
       scope = scope.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
     end
 

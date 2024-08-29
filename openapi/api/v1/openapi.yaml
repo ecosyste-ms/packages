@@ -18,7 +18,7 @@ servers:
 paths:
   /packages/lookup:
     get:
-      summary: lookup a package by repository URL, purl or ecosystem and name
+      summary: lookup a package by repository URL, purl or ecosystem+name
       operationId: lookupPackage
       tags:
         - packages
@@ -188,6 +188,64 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Registry'
+  /registries/{registryName}/packages/lookup:
+    get:
+      summary: lookup a package within a registry by repository URL, purl or ecosystem+name
+      operationId: lookupRegistryPackage
+      tags:
+        - packages
+      parameters:
+        - in: path
+          name: registryName
+          schema:
+            type: string
+          required: true
+          description: name of registry
+        - name: repository_url
+          in: query
+          description: repository URL
+          required: false
+          schema:
+            type: string
+        - name: purl
+          in: query
+          description: package URL
+          required: false
+          schema:
+            type: string
+        - name: ecosystem
+          in: query
+          description: ecosystem name
+          required: false
+          schema:
+            type: string
+        - name: name
+          in: query
+          description: package name
+          required: false
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: field to sort results by
+          required: false
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: direction to sort results by
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PackageWithRegistry'
   /registries/{registryName}/maintainers:
     get:
       summary: get a list of maintainers from a registry
