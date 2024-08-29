@@ -262,8 +262,8 @@ class Package < ApplicationRecord
       .downcase
       .sub(/^\(/, "")
       .sub(/\)$/, "")
-      .split("or")
-      .flat_map { |l| l.split("and") }
+      .split(" or ")
+      .flat_map { |l| l.split(" and ") }
       .map { |l| manual_license_format(l) }
       .flat_map { |l| l.split(/[,\/]/) }
       .map(&Spdx.method(:find))
