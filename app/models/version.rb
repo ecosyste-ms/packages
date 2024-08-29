@@ -18,7 +18,7 @@ class Version < ApplicationRecord
   scope :active, -> { where(status: nil) }
 
   def to_param
-    number
+    number.gsub(/(\r\n|\n)/, "%0A")
   end
 
   def download_url

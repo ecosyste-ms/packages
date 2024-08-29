@@ -2,7 +2,7 @@
   <div class="card-body">
     <h5 class="card-title">
       <%= link_to version.package.name, registry_package_path(version.package.registry.name, version.package.name) %>
-      <%= link_to version.number, registry_package_version_path(registry_id: @registry.name, package_id: version.package.name, id: version.number) %>
+      <%= link_to version.number, registry_package_version_path(registry_id: @registry.name, package_id: version.package.name, id: version) %>
     </h5>
 
     <%= truncate version.package.description_with_fallback, :length => 100 %><br/>
