@@ -27,6 +27,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
   def lookup
     if params[:repository_url].present?
       scope = Package.repository_url(params[:repository_url])
+      scope = scope.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
     elsif params[:purl].present?
       scope = lookup_by_purl(params[:purl])
     else
