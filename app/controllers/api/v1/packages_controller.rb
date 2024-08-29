@@ -26,8 +26,8 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
 
   def lookup
     scope = Package.all
-    if params[:registry_id].present?
-      @registry = Registry.find_by_name!(params[:registry_id])
+    if params[:id].present?
+      @registry = Registry.find_by_name!(params[:id])
       scope = @registry.packages
     end
 

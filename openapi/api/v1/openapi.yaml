@@ -188,7 +188,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Registry'
-  /registries/{registryName}/packages/lookup:
+  /registries/{registryName}/lookup:
     get:
       summary: lookup a package within a registry by repository URL, purl or ecosystem+name
       operationId: lookupRegistryPackage
