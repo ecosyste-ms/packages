@@ -323,7 +323,7 @@ GEM
     shoulda-context (2.0.0)
     shoulda-matchers (6.4.0)
       activesupport (>= 5.2.0)
-    sidekiq (7.3.1)
+    sidekiq (7.3.2)
       concurrent-ruby (< 2)
       connection_pool (>= 2.3.0)
       logger
