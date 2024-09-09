@@ -237,8 +237,8 @@ class Registry < ApplicationRecord
     self.metadata['funded_packages_count'] = fetch_funded_packages_count
     self.keywords_count = count_keywords
     self.versions_count = packages.sum(:versions_count)
-    self.downloads = packages.sum(:downloads)
-    self.dependent_repos_count = packages.sum(:dependent_repos_count)
+    self.downloads = packages.where.not(status: ['removed', 'unpublished']).sum(:downloads)
+    self.dependent_repos_count = packages.where.not(status: ['removed', 'unpublished']).sum(:dependent_repos_count)
     save
   end
 
