@@ -16,6 +16,17 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.length, 1
   end
 
+  test 'list critical packages for a registry' do
+    @critical_package = @registry.packages.create(ecosystem: 'cargo', name: 'semver', critical: true)
+    get api_v1_registry_packages_path(registry_id: @registry.name, critical: true)
+    assert_response :success
+    assert_template 'packages/index', file: 'packages/index.json.jbuilder'
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal actual_response.length, 1
+  end
+
   test 'list package names for a registry' do
     get package_names_api_v1_registry_path(id: @registry.name)
     assert_response :success
