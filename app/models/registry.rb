@@ -423,7 +423,9 @@ class Registry < ApplicationRecord
         break if count > target_downloads
       end
 
-      critical_packages.each{|p| p.update(critical: true)}
+      critical_packages.map(&:id).in_groups_of(1000, false) do |group|
+        Package.where(id: group).update_all(critical: true)
+      end
     elsif dependent_repos_count > 0
 
       # remove all existing critical packages
@@ -440,7 +442,9 @@ class Registry < ApplicationRecord
         break if count > target_dependent_repos_count
       end
 
-      critical_packages.each{|p| p.update(critical: true)}
+      critical_packages.map(&:id).in_groups_of(1000, false) do |group|
+        Package.where(id: group).update_all(critical: true)
+      end
     end
   end
 end
