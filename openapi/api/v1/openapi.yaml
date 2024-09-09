@@ -1254,6 +1254,7 @@ components:
         - dependent_repositories_url
         - status
         - funding_links
+        - critical
       type: object
       properties:
         id:
@@ -1373,6 +1374,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Maintainer'
+        critical:
+          type: boolean
     PackageWithRegistry:
       allOf:
         - $ref: '#/components/schemas/Package'
