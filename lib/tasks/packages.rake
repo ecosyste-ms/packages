@@ -127,4 +127,11 @@ namespace :packages do
   task calculate_funding_domains: :environment do
     Package.funding_domains
   end
+
+  desc 'update critical packages'
+  task update_critical: :environment do
+    Registry.all.find_each do |registry|
+      registry.find_critical_packages
+    end
+  end
 end
