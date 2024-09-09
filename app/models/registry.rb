@@ -238,6 +238,7 @@ class Registry < ApplicationRecord
     self.keywords_count = count_keywords
     self.versions_count = packages.sum(:versions_count)
     self.downloads = packages.sum(:downloads)
+    self.dependent_repos_count = packages.sum(:dependent_repos_count)
     save
   end
 

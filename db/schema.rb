@@ -10,9 +10,31 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_05_13_150011) do
+ActiveRecord::Schema[7.2].define(version: 2024_09_09_155640) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "advisories", force: :cascade do |t|
+    t.bigint "source_id", null: false
+    t.string "uuid"
+    t.string "url"
+    t.string "title"
+    t.text "description"
+    t.string "origin"
+    t.string "severity"
+    t.datetime "published_at"
+    t.datetime "withdrawn_at"
+    t.string "classification"
+    t.float "cvss_score"
+    t.string "cvss_vector"
+    t.string "references", default: [], array: true
+    t.string "source_kind"
+    t.string "identifiers", default: [], array: true
+    t.json "packages", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["source_id"], name: "index_advisories_on_source_id"
+  end
 
   create_table "dependencies", force: :cascade do |t|
     t.integer "package_id"
@@ -60,6 +82,15 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_13_150011) do
     t.index ["maintainer_id"], name: "index_maintainerships_on_maintainer_id"
     t.index ["package_id", "maintainer_id"], name: "index_maintainerships_on_package_id_and_maintainer_id", unique: true
     t.index ["package_id"], name: "index_maintainerships_on_package_id"
+  end
+
+  create_table "mentions", force: :cascade do |t|
+    t.integer "paper_id"
+    t.integer "project_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["paper_id"], name: "index_mentions_on_paper_id"
+    t.index ["project_id"], name: "index_mentions_on_project_id"
   end
 
   create_table "packages", force: :cascade do |t|
@@ -115,6 +146,29 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_13_150011) do
     t.index ["status", "last_synced_at"], name: "index_packages_on_status_and_last_synced_at"
   end
 
+  create_table "papers", force: :cascade do |t|
+    t.string "doi"
+    t.string "openalex_id"
+    t.string "title"
+    t.datetime "publication_date"
+    t.json "openalex_data"
+    t.integer "mentions_count"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["doi"], name: "index_papers_on_doi"
+  end
+
+  create_table "projects", force: :cascade do |t|
+    t.string "czi_id"
+    t.string "ecosystem"
+    t.string "name"
+    t.json "package"
+    t.integer "mentions_count"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ecosystem", "name"], name: "index_projects_on_ecosystem_and_name"
+  end
+
   create_table "registries", force: :cascade do |t|
     t.string "name"
     t.string "url"
@@ -131,6 +185,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_13_150011) do
     t.integer "keywords_count", default: 0
     t.integer "versions_count"
     t.bigint "downloads"
+    t.bigint "dependent_repos_count", default: 0
+  end
+
+  create_table "sources", force: :cascade do |t|
+    t.string "name"
+    t.string "kind"
+    t.string "url"
+    t.integer "advisories_count", default: 0
+    t.json "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "versions", force: :cascade do |t|
@@ -151,4 +216,5 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_13_150011) do
     t.index ["registry_id"], name: "index_versions_on_registry_id"
   end
 
+  add_foreign_key "advisories", "sources"
 end
