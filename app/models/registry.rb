@@ -407,22 +407,40 @@ class Registry < ApplicationRecord
 
   def find_critical_packages
     # support only ecosystems with download support for now
-    return unless downloads > 0
+    if downloads > 0
 
-    # remove all existing critical packages
-    packages.critical.update_all(critical: false)
+      # remove all existing critical packages
+      packages.critical.update_all(critical: false)
 
-    # find packages with more than 80% of the downloads
-    target_downloads = (downloads * 0.8).round
+      # find packages with more than 80% of the downloads
+      target_downloads = (downloads * 0.8).round
 
-    count = 0
-    critical_packages = []
-    packages.active.order('downloads desc nulls last').each_instance do |p| 
-      count += p.downloads
-      critical_packages << p
-      break if count > target_downloads
+      count = 0
+      critical_packages = []
+      packages.active.order('downloads desc nulls last').each_instance do |p| 
+        count += p.downloads
+        critical_packages << p
+        break if count > target_downloads
+      end
+
+      critical_packages.each{|p| p.update(critical: true)}
+    elsif dependent_repos_count > 0
+
+      # remove all existing critical packages
+      packages.critical.update_all(critical: false)
+
+      # find packages with more than 80% of the dependent repos
+      target_dependent_repos_count = (dependent_repos_count * 0.8).round
+
+      count = 0
+      critical_packages = []
+      packages.active.order('dependent_repos_count desc nulls last').each_instance do |p|
+        count += p.dependent_repos_count
+        critical_packages << p
+        break if count > target_dependent_repos_count
+      end
+
+      critical_packages.each{|p| p.update(critical: true)}
     end
-
-    critical_packages.each{|p| p.update(critical: true)}
   end
 end
