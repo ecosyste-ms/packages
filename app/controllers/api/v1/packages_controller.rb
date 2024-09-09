@@ -9,6 +9,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = scope.created_before(params[:created_before]) if params[:created_before].present?
     scope = scope.updated_before(params[:updated_before]) if params[:updated_before].present?
 
+    scope = scope.critical if params[:critical].present?
 
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'

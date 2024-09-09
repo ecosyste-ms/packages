@@ -525,6 +525,12 @@ paths:
           schema:
             type: string
             format: date-time
+        - name: critical
+          in: query
+          description: filter by critical packages
+          required: false
+          schema:
+            type: boolean
         - name: sort
           in: query
           description: field to order results by
