@@ -406,10 +406,13 @@ class Registry < ApplicationRecord
   end
 
   def find_critical_packages
+    # only calculate critical packages for registries with more than 4000 packages
+    return if packages_count < 4_000 
+
     largest_registry_downloads = Registry.maximum(:downloads)
     largest_registry_dependent_repos_count = Registry.maximum(:dependent_repos_count)
   
-    if downloads > 0
+    if downloads > 0 && ecosystem != 'hackage'
   
       # remove all existing critical packages
       packages.critical.update_all(critical: false)
