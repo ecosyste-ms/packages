@@ -21,8 +21,6 @@ class CriticalController < ApplicationController
 
     @pagy, @packages = pagy(scope)
     
-    @registries = Rails.cache.fetch("critical:registries", expires_in: 1.day) do
-      Package.critical.group(:registry).count.sort_by{|r, c| c}
-    end
+    Package.critical.group(:registry).count.sort_by{|r, c| c}
   end
 end
