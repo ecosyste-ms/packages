@@ -408,21 +408,13 @@ class Registry < ApplicationRecord
   def find_critical_packages
     # only calculate critical packages for registries with more than 4000 packages
     return if packages_count < 4_000 
-
-    largest_registry_downloads = Registry.maximum(:downloads)
-    largest_registry_dependent_repos_count = Registry.maximum(:dependent_repos_count)
   
-    if downloads > 0 && ecosystem != 'hackage'
+    if downloads > 0 && ecosystem != 'hackage' # hackage download numbers are not reliable
   
       # remove all existing critical packages
       packages.critical.update_all(critical: false)
   
-      # Calculate scaling factor and dynamic threshold for downloads
-      scaling_factor_downloads = Math.log(downloads + 1) / Math.log(largest_registry_downloads + 1)
-      dynamic_threshold_downloads = 0.8 * scaling_factor_downloads
-  
-      # Find packages with more than the dynamic threshold of downloads
-      target_downloads = (downloads * dynamic_threshold_downloads).round
+      target_downloads = (downloads * 0.8).round
   
       count = 0
       critical_packages = []
@@ -441,12 +433,7 @@ class Registry < ApplicationRecord
       # remove all existing critical packages
       packages.critical.update_all(critical: false)
   
-      # Calculate scaling factor and dynamic threshold for dependent_repos_count
-      scaling_factor_dependent_repos = Math.log(dependent_repos_count + 1) / Math.log(largest_registry_dependent_repos_count + 1)
-      dynamic_threshold_dependent_repos = 0.8 * scaling_factor_dependent_repos
-  
-      # Find packages with more than the dynamic threshold of dependent repos
-      target_dependent_repos_count = (dependent_repos_count * dynamic_threshold_dependent_repos).round
+      target_dependent_repos_count = (dependent_repos_count * 0.8).round
   
       count = 0
       critical_packages = []
