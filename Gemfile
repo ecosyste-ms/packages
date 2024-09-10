@@ -53,6 +53,7 @@ gem 'rack-timeout'
 gem "lograge"
 gem 'csv'
 gem 'bootstrap-icons-helper'
+gem 'ostruct'
 
 group :development do
   gem "web-console"

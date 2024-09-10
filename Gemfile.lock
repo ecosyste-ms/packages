@@ -414,6 +414,7 @@ DEPENDENCIES
   mocha
   nokogiri
   oj
+  ostruct
   ox
   packageurl-ruby
   pagy
