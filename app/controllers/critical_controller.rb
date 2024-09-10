@@ -21,6 +21,6 @@ class CriticalController < ApplicationController
 
     @pagy, @packages = pagy(scope)
     
-    Package.critical.group(:registry).count.sort_by{|r, c| c}
+    @registries = Package.critical.group(:registry).count.sort_by{|r, c| c}
   end
 end
