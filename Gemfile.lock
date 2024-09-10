@@ -451,7 +451,7 @@ DEPENDENCIES
   xmlrpc
 
 RUBY VERSION
-   ruby 3.3.4p89
+   ruby 3.3.5p89
 
 BUNDLED WITH
    2.5.18
