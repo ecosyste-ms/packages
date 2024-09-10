@@ -406,15 +406,21 @@ class Registry < ApplicationRecord
   end
 
   def find_critical_packages
-    # support only ecosystems with download support for now
+    largest_registry_downloads = Registry.maximum(:downloads)
+    largest_registry_dependent_repos_count = Registry.maximum(:dependent_repos_count)
+  
     if downloads > 0
-
+  
       # remove all existing critical packages
       packages.critical.update_all(critical: false)
-
-      # find packages with more than 80% of the downloads
-      target_downloads = (downloads * 0.8).round
-
+  
+      # Calculate scaling factor and dynamic threshold for downloads
+      scaling_factor_downloads = Math.log(downloads + 1) / Math.log(largest_registry_downloads + 1)
+      dynamic_threshold_downloads = 0.8 * scaling_factor_downloads
+  
+      # Find packages with more than the dynamic threshold of downloads
+      target_downloads = (downloads * dynamic_threshold_downloads).round
+  
       count = 0
       critical_packages = []
       packages.active.order('downloads desc nulls last').each_instance do |p| 
@@ -422,18 +428,23 @@ class Registry < ApplicationRecord
         critical_packages << p
         break if count > target_downloads
       end
-
+  
       critical_packages.map(&:id).in_groups_of(1000, false) do |group|
         Package.where(id: group).update_all(critical: true)
       end
+  
     elsif dependent_repos_count > 0
-
+  
       # remove all existing critical packages
       packages.critical.update_all(critical: false)
-
-      # find packages with more than 80% of the dependent repos
-      target_dependent_repos_count = (dependent_repos_count * 0.8).round
-
+  
+      # Calculate scaling factor and dynamic threshold for dependent_repos_count
+      scaling_factor_dependent_repos = Math.log(dependent_repos_count + 1) / Math.log(largest_registry_dependent_repos_count + 1)
+      dynamic_threshold_dependent_repos = 0.8 * scaling_factor_dependent_repos
+  
+      # Find packages with more than the dynamic threshold of dependent repos
+      target_dependent_repos_count = (dependent_repos_count * dynamic_threshold_dependent_repos).round
+  
       count = 0
       critical_packages = []
       packages.active.order('dependent_repos_count desc nulls last').each_instance do |p|
@@ -441,7 +452,7 @@ class Registry < ApplicationRecord
         critical_packages << p
         break if count > target_dependent_repos_count
       end
-
+  
       critical_packages.map(&:id).in_groups_of(1000, false) do |group|
         Package.where(id: group).update_all(critical: true)
       end
