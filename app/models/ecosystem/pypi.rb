@@ -97,7 +97,7 @@ module Ecosystem
 
           matches = urls.map do |url|
             UrlParser.try_all(url) rescue nil
-          end.compact.group_by(&:itself).transform_values(&:count).sort_by{|k,v| v}.reverse
+          end.compact.reject{|u| u.include?('github.com/sponsors') }.group_by(&:itself).transform_values(&:count).sort_by{|k,v| v}.reverse
 
           # Prioritize URLs that contain the package name
           matches.each do |match|
