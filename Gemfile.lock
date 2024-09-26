@@ -90,7 +90,7 @@ GEM
       tzinfo (~> 2.0, >= 2.0.5)
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
-    appsignal (4.0.9)
+    appsignal (4.1.0)
       logger
       rack
     autoprefixer-rails (10.4.19.0)
