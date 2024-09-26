@@ -140,7 +140,7 @@ module Ecosystem
       return nil if urls.nil?
       urls.map do |url|
         UrlParser.try_all(url) rescue nil
-      end.compact.first
+      end.compact.reject{|u| u.include?('github.com/sponsors') }.first
     end
 
     def package_find_names(package_name)
