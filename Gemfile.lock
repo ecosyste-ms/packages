@@ -90,7 +90,7 @@ GEM
       tzinfo (~> 2.0, >= 2.0.5)
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
-    appsignal (4.1.0)
+    appsignal (4.1.1)
       logger
       rack
     autoprefixer-rails (10.4.19.0)
@@ -302,7 +302,7 @@ GEM
       io-console (~> 0.5)
     request_store (1.7.0)
       rack (>= 1.4)
-    rexml (3.3.7)
+    rexml (3.3.8)
     rswag-api (2.14.0)
       activesupport (>= 5.2, < 8.0)
       railties (>= 5.2, < 8.0)
