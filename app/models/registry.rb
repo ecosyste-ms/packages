@@ -59,10 +59,11 @@ class Registry < ApplicationRecord
   end
 
   def recently_updated_package_names
-    ecosystem_instance.recently_updated_package_names.first(100)
+    ecosystem_instance.recently_updated_package_names.first(100).to_a
   end
 
   def recently_updated_package_names_excluding_recently_synced
+    puts name
     existing_packages = packages.where(name: recently_updated_package_names)
     missing_names = recently_updated_package_names - existing_packages.map(&:name) 
     existing_packages.where("last_synced_at < ?", 10.minutes.ago).pluck(:name) + missing_names
