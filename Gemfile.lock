@@ -243,7 +243,7 @@ GEM
     puma (6.4.3)
       nio4r (~> 2.0)
     racc (1.8.1)
-    rack (3.1.7)
+    rack (3.1.8)
     rack-attack (6.7.0)
       rack (>= 1.0, < 4)
     rack-attack-rate-limit (1.1.0)
