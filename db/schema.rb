@@ -10,8 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_10_14_142042) do
+ActiveRecord::Schema[7.2].define(version: 2024_10_14_143423) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
 
   create_table "advisories", force: :cascade do |t|
@@ -131,6 +132,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_14_142042) do
     t.index "lower((repository_url)::text)", name: "index_packages_on_lower_repository_url"
     t.index "registry_id, (((repo_metadata ->> 'forks_count'::text))::integer)", name: "index_packages_on_forks_count"
     t.index "registry_id, (((repo_metadata ->> 'stargazers_count'::text))::integer)", name: "index_packages_on_stargazers_count"
+    t.index "registry_id, ((metadata ->> 'normalized_name'::text))", name: "index_packages_on_registry_id_and_normalized_name", where: "((metadata ->> 'normalized_name'::text) IS NOT NULL)"
     t.index ["critical"], name: "index_packages_on_critical", where: "(critical = true)"
     t.index ["keywords"], name: "index_packages_on_keywords", using: :gin
     t.index ["latest_release_published_at"], name: "index_packages_on_latest_release_published_at"
