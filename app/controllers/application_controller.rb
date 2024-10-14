@@ -21,7 +21,8 @@ class ApplicationController < ActionController::Base
     else
       name = [namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_seperator(purl.type))
       ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type) 
-      Package.where(name: name, ecosystem: ecosystem)
+      registry_ids = Registry.where(ecosystem: ecosystem).pluck(:id)
+      Package.where(name: name, registry_id: registry_ids)
     end
   rescue
     Package.none
