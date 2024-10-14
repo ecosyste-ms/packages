@@ -50,8 +50,12 @@ class Package < ApplicationRecord
   after_create :update_rankings_async
 
   def self.find_by_normalized_name(name)
+    normalized_name = name.downcase.gsub('_', '-').gsub('.', '-')
+    pkg = where(name: name).first
+    pkg = where(name: normalized_name).first if pkg.nil?
     # for pypi
-    where("metadata->>'normalized_name' = ?", name.downcase.gsub('_', '-').gsub('.', '-')).first
+    pkg = where("metadata->>'normalized_name' = ?", name.downcase.gsub('_', '-').gsub('.', '-')).first if pkg.nil?
+    pkg
   end
 
   def self.find_by_normalized_name!(name)
