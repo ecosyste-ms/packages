@@ -43,7 +43,7 @@ class Package < ApplicationRecord
   scope :with_issue_metadata, -> { where('length(issue_metadata::text) > 2') }
   scope :without_issue_metadata, -> { where(issue_metadata: nil) }
 
-  scope :not_docker, -> { where.not(ecosystem: 'docker') }
+  scope :not_docker, -> { joins(:registry).where.not(registries: { ecosystem: 'docker' }) }
 
   scope :repository_owner, ->(owner) { where("repo_metadata->'owner_record'->>'login' = ?", owner) }
 
