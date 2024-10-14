@@ -171,7 +171,7 @@ class PackagesController < ApplicationController
       scope = scope.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
     end
 
-    @package = scope.first
+    @package = scope.limit(1).take
     if @package.nil?
       raise ActiveRecord::RecordNotFound
     else
