@@ -168,7 +168,10 @@ class PackagesController < ApplicationController
     else
       params[:name] = "library/#{params[:name]}" if params[:ecosystem] == 'docker' && !params[:name].include?('/')
       scope = Package.where(name: params[:name])
-      scope = scope.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
+      if params[:ecosystem].present?
+        registry_ids = Registry.where(ecosystem: params[:ecosystem]).pluck(:id)
+        scope = scope.where(registry_id: registry_ids)
+      end
     end
 
     @package = scope.limit(1).take
