@@ -109,7 +109,7 @@ GEM
       bootstrap-icons (~> 1)
       rails (>= 7.0)
     builder (3.3.0)
-    chartkick (5.1.0)
+    chartkick (5.1.1)
     citrus (3.0.2)
     commander (5.0.0)
       highline (~> 3.0.0)
