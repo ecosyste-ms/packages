@@ -69,15 +69,15 @@ class Package < ApplicationRecord
   end
 
   def self.sync_least_recent_async
-    Package.active.outdated.not_docker.order('RANDOM()').limit(3000).select('id, last_synced_at').each(&:sync_async)
+    Package.active.outdated.not_docker.order('RANDOM()').limit(3000).select('packages.id, packages.last_synced_at').each(&:sync_async)
   end
 
   def self.sync_least_recent_top_async
-    Package.active.not_docker..order('RANDOM()').top(2).where('last_synced_at < ?', 12.hours.ago).select('id, last_synced_at').limit(3_000).each(&:sync_async)
+    Package.active.not_docker..order('RANDOM()').top(2).where('packages.last_synced_at < ?', 12.hours.ago).select('packages.id, packages.last_synced_at').limit(3_000).each(&:sync_async)
   end
 
   def self.check_statuses_async
-    Package.not_docker.active.where('last_synced_at < ?', 5.weeks.ago).limit(1000).select('id').each(&:check_status_async)
+    Package.not_docker.active.where('last_synced_at < ?', 5.weeks.ago).limit(1000).select('packages.id').each(&:check_status_async)
   end
 
   def self.sync_download_counts_async
@@ -85,7 +85,7 @@ class Package < ApplicationRecord
     Package.active.not_docker
             .where(downloads: nil)
             .where(ecosystem: ['cargo','clojars','docker','hackage','hex','homebrew','julia','npm','nuget','packagist','puppet','rubygems','pypi'])
-            .limit(1000).select('id').each(&:sync_async)
+            .limit(1000).select('packages.id').each(&:sync_async)
   end
 
   def self.sync_maintainers_async
@@ -99,7 +99,7 @@ class Package < ApplicationRecord
 
   def self.update_rankings_async
     return if Sidekiq::Queue.new('default').size > 20_000
-    Package.active.without_rankings.order('last_synced_at desc nulls last').limit(1000).select('id').each(&:update_rankings_async)
+    Package.active.without_rankings.order('last_synced_at desc nulls last').limit(1000).select('packages.id').each(&:update_rankings_async)
   end
 
   def to_param
@@ -340,7 +340,7 @@ class Package < ApplicationRecord
   end
 
   def self.update_repo_metadata_async
-    Package.with_repository_or_homepage_url.order('repo_metadata_updated_at DESC nulls first').limit(400).select('id, repository_url, homepage').each(&:update_repo_metadata_async)
+    Package.with_repository_or_homepage_url.order('repo_metadata_updated_at DESC nulls first').limit(400).select('packages.id, packages.repository_url, packages.homepage').each(&:update_repo_metadata_async)
   end
 
   def update_repo_metadata_async
