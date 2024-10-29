@@ -8,10 +8,10 @@
     View the status of all registries, including the number of packages, active packages, and outdated packages.
   </p>
 
-  Total registries: <%= number_with_delimiter @registries.count %><br/>
+  Total registries: <%= number_with_delimiter @registries.length %><br/>
   Total packages: <%= number_with_delimiter @registries.sum(&:packages_count) %><br/>
   Total active packages: <%= number_with_delimiter @registries.sum(&:active_packages_count) %><br/>
-  Outdated registries: <%= number_with_delimiter @registries.select{|r| r.outdated_packages_count > 100 }.count %> (<%= (@registries.select{|r| r.outdated_packages_count > 100 }.count / @registries.count.to_f * 100).round(2) %>%)<br/>
+  Outdated registries: <%= number_with_delimiter @registries.select{|r| r.outdated_packages_count > 100 }.length %> (<%= (@registries.select{|r| r.outdated_packages_count > 100 }.length / @registries.length.to_f * 100).round(2) %>%)<br/>
   Total outdated packages: <%= number_with_delimiter @registries.sum(&:outdated_packages_count) %> (<%= (@registries.sum(&:outdated_packages_count).to_f/@registries.sum(&:active_packages_count)*100).round(2) %>%)<br/>
   Total outdated w/o docker: <%= number_with_delimiter @registries.reject{|r| r.ecosystem == 'docker' }.sum(&:outdated_packages_count) %> (<%= (@registries.reject{|r| r.ecosystem == 'docker' }.sum(&:outdated_packages_count).to_f/@registries.reject{|r| r.ecosystem == 'docker' }.sum(&:active_packages_count)*100).round(2) %>%)
   <br/><br/>
