@@ -211,7 +211,7 @@ GEM
       timeout
     net-smtp (0.5.0)
       net-protocol
-    nio4r (2.7.3)
+    nio4r (2.7.4)
     nokogiri (1.16.7)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
@@ -227,7 +227,7 @@ GEM
     ostruct (0.6.0)
     ox (2.14.18)
     packageurl-ruby (0.1.0)
-    pagy (9.1.0)
+    pagy (9.1.1)
     pg (1.5.9)
     pg_query (5.1.0)
       google-protobuf (>= 3.22.3)
