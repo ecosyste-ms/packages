@@ -376,7 +376,7 @@ class Registry < ApplicationRecord
 
   def one_percent_of_packages_count
     count = (active_packages_count * 0.01).ceil
-    return 3000 if count > 3000
+    return 1000 if count > 1000
     return 100 if count < 100
     count
   end
