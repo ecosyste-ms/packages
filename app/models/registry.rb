@@ -364,6 +364,7 @@ class Registry < ApplicationRecord
   end
 
   def least_recently_synced_package_id
+    return nil if outdated_packages_count.zero?
     Rails.cache.fetch("least_recently_synced_package_id/#{id}", expires_in: 15.minutes) do
       packages.active.outdated.order('last_synced_at asc').first.try(:id)
     end
