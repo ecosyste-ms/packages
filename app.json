@@ -71,6 +71,10 @@
     {
       "command": "bundle exec rake packages:calculate_funding_domains",
       "schedule": "0 0 */6 * *"
+    },
+    {
+      "command": "bundle exec rake packages:clean_up_sidekiq_unique_jobs",
+      "schedule": "0 0 * * 0"
     }
   ]
 }

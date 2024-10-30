@@ -134,4 +134,9 @@ namespace :packages do
       registry.find_critical_packages
     end
   end
+
+  desc 'clean up sidekiq unique jobs'
+  task clean_up_sidekiq_unique_jobs: :environment do
+    REDIS.del('uniquejobs:digests')
+  end
 end
