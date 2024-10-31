@@ -234,6 +234,7 @@ class Registry < ApplicationRecord
   end
 
   def update_extra_counts
+    self.active_packages_count = packages.active.count
     self.namespaces_count = packages.where.not(namespace: nil).distinct.count(:namespace)
     self.metadata['funded_packages_count'] = fetch_funded_packages_count
     self.keywords_count = count_keywords
@@ -349,12 +350,6 @@ class Registry < ApplicationRecord
   def outdated_packages_count
     Rails.cache.fetch("outdated_packages_count/#{id}", expires_in: 15.minutes) do
       packages.active.outdated.count
-    end
-  end
-
-  def active_packages_count
-    Rails.cache.fetch("active_packages_count/#{id}", expires_in: 15.minutes) do
-      packages.active.count
     end
   end
 
