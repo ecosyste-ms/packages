@@ -229,7 +229,7 @@ GEM
     ostruct (0.6.0)
     ox (2.14.18)
     packageurl-ruby (0.1.0)
-    pagy (9.1.1)
+    pagy (9.2.0)
     pg (1.5.9)
     pg_query (5.1.0)
       google-protobuf (>= 3.22.3)
