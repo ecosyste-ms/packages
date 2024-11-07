@@ -110,13 +110,31 @@ module Ecosystem
         description: description(item),
         homepage: item["projectUrl"],
         keywords_array: Array(item["tags"]).reject(&:blank?),
-        repository_url: repo_fallback("", item["packageUrl"]),
+        repository_url: repo_fallback(item["projectUrl"], item["licenseUrl"], item["packageUrl"]),
         releases: package[:releases],
         licenses: item["licenseExpression"],
         downloads: package[:download_stats]['data'].try(:first).try(:fetch,'totalDownloads'),
         downloads_period: 'total',
         download_stats: package[:download_stats],
       }
+    end
+
+    def repo_fallback(repo, license, homepage)
+      repo = "" if repo.nil?
+      homepage = "" if homepage.nil?
+      license = "" if license.nil?
+      repo_url = UrlParser.try_all(repo) rescue ""
+      homepage_url = UrlParser.try_all(homepage) rescue ""
+      license_url = UrlParser.try_all(license) rescue ""
+      if repo_url.present?
+        repo_url
+      elsif homepage_url.present?
+        homepage_url
+      elsif license_url.present?
+        license_url
+      else
+        ""
+      end
     end
 
     def description(item)
