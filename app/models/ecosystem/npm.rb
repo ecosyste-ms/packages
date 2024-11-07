@@ -102,6 +102,15 @@ module Ecosystem
         metadata: {
           "funding" => latest_version["funding"],
           "dist-tags" => package["dist-tags"],
+          "_npmUser" => latest_version["_npmUser"],
+          "dist" => latest_version["dist"],
+          "gitHead" => latest_version["gitHead"],
+          "main" => latest_version["main"],
+          "scripts" => latest_version["scripts"],
+          "_npmVersion" => latest_version["_npmVersion"],
+          "_nodeVersion" => latest_version["_nodeVersion"],
+          "_hasShrinkwrap" => latest_version["_hasShrinkwrap"],
+          "directories" => latest_version["directories"]
         }
       }
 
