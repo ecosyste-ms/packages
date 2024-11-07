@@ -92,7 +92,7 @@ class NugetTest < ActiveSupport::TestCase
     assert_equal package_metadata[:description], "SQL Server provider for the OGC API Features Standard implementation"
     assert_equal package_metadata[:homepage], "https://github.com/sam-is/OgcApi.Net"
     assert_equal package_metadata[:licenses], "MIT"
-    assert_equal package_metadata[:repository_url], ""
+    assert_equal package_metadata[:repository_url], "https://github.com/sam-is/OgcApi.Net"
     assert_equal package_metadata[:keywords_array], []
     assert_equal package_metadata[:downloads], 1331
     assert_equal package_metadata[:downloads_period], "total"
