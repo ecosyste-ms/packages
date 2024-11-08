@@ -312,9 +312,15 @@ class Package < ApplicationRecord
         v.assign_attributes(version) 
         v.save(validate: false)
       else
-        versions.create(version)
+        begin
+          versions.create(version)
+        rescue ActiveRecord::RecordNotUnique
+          # Handle the error, e.g., log it or retry
+          Rails.logger.warn("Version not unique: #{version[:number]}")
+        end
       end
     end
+    update_columns(versions_count: versions.count, versions_updated_at: Time.now)
   end
 
   def update_versions_async
