@@ -226,7 +226,7 @@ GEM
     oj (3.16.7)
       bigdecimal (>= 3.0)
       ostruct (>= 0.2)
-    ostruct (0.6.0)
+    ostruct (0.6.1)
     ox (2.14.18)
     packageurl-ruby (0.1.0)
     pagy (9.2.0)
