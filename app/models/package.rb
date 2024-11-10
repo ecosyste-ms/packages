@@ -307,17 +307,16 @@ class Package < ApplicationRecord
       else
         v = versions.find{|ver| ver.number == version[:number] }
       end
-      if v
-        v.registry_id = registry_id
-        v.assign_attributes(version) 
-        v.save(validate: false)
-      else
-        begin
+      begin
+        if v
+          v.registry_id = registry_id
+          v.assign_attributes(version) 
+          v.save(validate: false)
+        else        
           versions.create(version)
-        rescue ActiveRecord::RecordNotUnique
-          # Handle the error, e.g., log it or retry
-          Rails.logger.warn("Version not unique: #{version[:number]}")
         end
+      rescue ActiveRecord::RecordNotUnique
+        Rails.logger.warn("Version not unique: #{version[:number]}")
       end
     end
     update_columns(versions_count: versions.count, versions_updated_at: Time.now)
