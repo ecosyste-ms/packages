@@ -59,6 +59,17 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.first['name'], @package.name
   end
 
+  test 'lookup by purl with missing type' do
+    invalid_purl = 'pkg:/software.amazon.awssdk%3Ametrics-spi'
+  
+    get lookup_api_v1_packages_path(purl: invalid_purl)
+  
+    assert_response :unprocessable_entity
+    actual_response = Oj.load(@response.body)
+  
+    assert_equal 'Invalid PURL format (type is required): pkg:/software.amazon.awssdk%3Ametrics-spi', actual_response['error']
+  end
+
   test 'lookup by purl github actions' do
     @registry = Registry.create(name: 'github actions', url: 'https://github.com/marketplace/actions/', ecosystem: 'actions')
     @package = @registry.packages.create(ecosystem: 'actions', name: 'actions/checkout')

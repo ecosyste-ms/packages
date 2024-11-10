@@ -58,11 +58,21 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     # if packages are not found, try to sync them
     if @packages.empty?
       if params[:purl].present?
-        purl = PackageURL.parse(params[:purl])
-        name = [purl.namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_seperator(purl.type))
-        ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type) 
-        registry = Registry.find_by_ecosystem(ecosystem)
-        registry.sync_package_async(name) if registry
+        begin
+          purl = PackageURL.parse(params[:purl])
+          name = [purl.namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_seperator(purl.type))
+          ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type)
+          registry = Registry.find_by_ecosystem(ecosystem)
+          registry.sync_package_async(name) if registry
+        rescue ArgumentError => e
+          Rails.logger.error("ArgumentError in PURL parsing: #{e.message}")
+          if e.message.include?("type is required")
+            render json: { error: "Invalid PURL format (type is required): #{params[:purl]}" }, status: :unprocessable_entity and return
+          elsif e.message.downcase.include?('invalid')
+            render json: { error: "Invalid PURL format: #{params[:purl]}" }, status: :unprocessable_entity and return
+          end
+          raise e
+        end
       elsif params[:ecosystem].present? && params[:name].present?
         registry = Registry.find_by_ecosystem(params[:ecosystem])
         registry.sync_package_async(params[:name]) if registry
