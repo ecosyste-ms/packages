@@ -63,10 +63,19 @@ class Registry < ApplicationRecord
   end
 
   def recently_updated_package_names_excluding_recently_synced
-    puts name
-    existing_packages = packages.where(name: recently_updated_package_names)
-    missing_names = recently_updated_package_names - existing_packages.map(&:name) 
-    existing_packages.where("last_synced_at < ?", 10.minutes.ago).pluck(:name) + missing_names
+    package_names = Array(recently_updated_package_names).compact.map(&:to_s)
+    return [] if package_names.empty?
+    existing_packages = packages.where(name: package_names)
+    existing_package_names = existing_packages.map(&:name).compact.map(&:to_s)
+
+    missing_names = package_names - existing_package_names
+
+    outdated_package_names = existing_packages
+                              .where("last_synced_at < ?", 10.minutes.ago)
+                              .pluck(:name)
+                              .compact
+
+    outdated_package_names.map(&:to_s) + missing_names
   end
 
   def existing_package_names
