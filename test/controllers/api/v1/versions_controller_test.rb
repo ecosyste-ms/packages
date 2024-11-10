@@ -42,6 +42,20 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal first_version['metadata'], {"foo"=>"bar"}
   end
 
+  test 'get recent versions excludes versions with invalid package_id' do
+    dangling_version = @registry.versions.new(number: '2.0.0', package_id: 999_999, registry_id: @registry.id)
+    dangling_version.save(validate: false)
+  
+    get versions_api_v1_registry_path(id: @registry.name)
+    assert_response :success
+    actual_response = Oj.load(@response.body)
+  
+    assert_equal 1, actual_response.length
+    first_version = actual_response.first
+    assert_equal first_version['number'], '1.0.0'
+    assert_equal first_version['metadata'], { 'foo' => 'bar' }
+  end
+
   test 'get version numbers' do
     get version_numbers_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
     assert_response :success

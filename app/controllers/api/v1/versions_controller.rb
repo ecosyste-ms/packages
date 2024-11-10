@@ -38,7 +38,7 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
   def recent
     @registry = Registry.find_by_name!(params[:id])
 
-    scope = @registry.versions.includes(package: :registry)
+    scope = @registry.versions.includes(package: :registry).where("EXISTS (SELECT 1 FROM packages WHERE packages.id = versions.package_id)")
 
     scope = scope.created_after(params[:created_after]) if params[:created_after].present?
     scope = scope.published_after(params[:published_after]) if params[:published_after].present?
