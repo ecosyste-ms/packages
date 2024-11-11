@@ -193,10 +193,10 @@ class Package < ApplicationRecord
   end
 
   def update_details
+    set_latest_on_latest_version
     normalize_licenses
     set_latest_release_published_at
     set_latest_release_number
-    set_latest_on_latest_version
     set_first_release_published_at
     combine_keywords_and_topics
     save if changed?
