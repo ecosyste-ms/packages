@@ -285,7 +285,7 @@ class Package < ApplicationRecord
   def sync
     result = registry.sync_package(name)
     if result
-      update_versions_async if versions_updated_at.nil? && ecosystem == 'npm'
+      update_versions_async if versions_updated_at.nil? && ecosystem == 'npm' # TODO remove me after npm is fully updated
       update_dependent_repos_count_async
     else
       check_status
