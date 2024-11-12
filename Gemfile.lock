@@ -164,7 +164,7 @@ GEM
       rake (>= 13)
     groupdate (6.5.1)
       activesupport (>= 7)
-    hashdiff (1.1.1)
+    hashdiff (1.1.2)
     highline (3.0.1)
     i18n (1.14.6)
       concurrent-ruby (~> 1.0)
