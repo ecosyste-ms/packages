@@ -202,6 +202,10 @@ class Package < ApplicationRecord
     save if changed?
   end
 
+  def update_details_async
+    UpdateDetailsWorker.perform_async(id)
+  end
+
   def latest_version
     @latest_version ||= (latest_stable_version || versions.active.sort.first)
   end
