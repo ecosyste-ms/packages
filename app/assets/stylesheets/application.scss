@@ -113,9 +113,15 @@ $color-white: #FFFFFF;
 }
 
 .footer-links {
- 
+  margin-top: 1rem;
   @include media-breakpoint-up(md) {
     text-align: right;
+  }
+  a {
+    text-decoration: none;
+  }
+  li {
+    margin-bottom: 0.25rem;
   }
 }
 
