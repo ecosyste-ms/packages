@@ -257,7 +257,7 @@ GEM
     rack-test (2.1.0)
       rack (>= 1.3)
     rack-timeout (0.7.0)
-    rackup (2.2.0)
+    rackup (2.2.1)
       rack (>= 3)
     rails (7.2.2)
       actioncable (= 7.2.2)
