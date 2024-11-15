@@ -19,7 +19,7 @@ Rails.application.routes.draw do
 
       resources :keywords, only: [:index, :show], constraints: { id: /.*/ }, defaults: { format: :json }
 
-      resources :packages, only: [:lookup] do
+      resources :packages do
         collection do
           get :lookup, to: 'packages#lookup'
           get :ping, to: 'packages#ping_all'
