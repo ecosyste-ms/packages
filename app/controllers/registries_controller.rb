@@ -4,7 +4,7 @@ class RegistriesController < ApplicationController
   end
 
   def status
-    @registries = Registry.all.sort_by(&:outdated_percentage).reverse
+    @registries = Registry.not_docker.all.sort_by(&:outdated_percentage).reverse
   end
 
   def show
