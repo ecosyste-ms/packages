@@ -1,0 +1,19 @@
+name: Upgrade Ruby
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0" # Runs weekly
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  upgrade-ruby:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: andrew/ruby-upgrade-action@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
