@@ -4,7 +4,7 @@ class RegistriesController < ApplicationController
   end
 
   def status
-    @registries = Registry.not_docker.all.sort_by(&:outdated_percentage).reverse
+    @registries = Registry.not_docker.all.sort_by(&:outdated_percentage).reverse.select{|r| r.outdated_packages_count > 500 }
   end
 
   def show

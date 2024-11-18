@@ -11,12 +11,11 @@
   Total registries: <%= number_with_delimiter @registries.length %><br/>
   Total packages: <%= number_with_delimiter @registries.sum(&:packages_count) %><br/>
   Total active packages: <%= number_with_delimiter @registries.sum(&:active_packages_count) %><br/>
-  Outdated registries: <%= number_with_delimiter @registries.select{|r| r.outdated_packages_count > 100 }.length %> (<%= (@registries.select{|r| r.outdated_packages_count > 100 }.length / @registries.length.to_f * 100).round(2) %>%)<br/>
+  Outdated registries: <%= number_with_delimiter @registries.length %> (<%= (@registries.length / @registries.length.to_f * 100).round(2) %>%)<br/>
   Total outdated packages: <%= number_with_delimiter @registries.sum(&:outdated_packages_count) %> (<%= (@registries.sum(&:outdated_packages_count).to_f/@registries.sum(&:active_packages_count)*100).round(2) %>%)<br/>
   <br/><br/>
 
   <% @registries.each do |registry|%>
-    <% next unless registry.outdated_packages_count > 100 %>
     <div class="card mb-3 d-flex" id="registry_<%= registry.id %>">
       <div class="card-body pb-1">
         <div class="d-flex">
