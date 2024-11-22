@@ -22,8 +22,8 @@ class Package < ApplicationRecord
   scope :without_repository_url, -> { where(repository_url: [nil, '']) }
   scope :with_homepage, -> { where("homepage <> ''") }
   scope :with_repository_or_homepage_url, -> { where("repository_url <> '' OR homepage <> ''") }
-  scope :with_repo_metadata, -> { where('length(repo_metadata::text) > 2') }
-  scope :without_repo_metadata, -> { where('length(repo_metadata::text) = 2') }
+  scope :with_repo_metadata, -> { where('length(packages.repo_metadata::text) > 2') }
+  scope :without_repo_metadata, -> { where('length(packages.repo_metadata::text) = 2') }
   scope :with_rankings, -> { where('length(rankings::text) > 2') }
   scope :without_rankings, -> { where('length(rankings::text) = 2') }
   scope :top, -> (percent = 1) { where("(rankings->>'average')::text::float < ?", percent) }
@@ -38,7 +38,7 @@ class Package < ApplicationRecord
 
   scope :without_maintainerships, -> { includes(:maintainerships).where(maintainerships: {package_id: nil}) }
 
-  scope :with_funding, -> { where("length(metadata ->> 'funding') > 2 OR length(repo_metadata -> 'metadata' ->> 'funding') > 2 OR repo_metadata -> 'owner_record' -> 'metadata' ->> 'has_sponsors_listing' = 'true'") }
+  scope :with_funding, -> { where("length(packages.metadata ->> 'funding') > 2 OR length(packages.repo_metadata -> 'metadata' ->> 'funding') > 2 OR repo_metadata -> 'owner_record' -> 'metadata' ->> 'has_sponsors_listing' = 'true'") }
 
   scope :with_issue_metadata, -> { where('length(issue_metadata::text) > 2') }
   scope :without_issue_metadata, -> { where(issue_metadata: nil) }
