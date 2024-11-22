@@ -1,6 +1,6 @@
 class UpdateDependentReposCountWorker
   include Sidekiq::Worker
-  sidekiq_options queue: :low, lock: :until_executed
+  sidekiq_options queue: :low, lock: :until_executed, lock_expiration: 2.hours.to_i
 
   def perform(package_id)
     # TODO noop empty whilst emptying the queue
