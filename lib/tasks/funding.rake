@@ -103,17 +103,17 @@ def fetch_opencollective_data_from_api(oc_slug)
   end
 end
 
-@sponors = File.read('lib/tasks/sponsors.json')
-sponsors = JSON.parse(@sponors)
+# @sponors = File.read('lib/tasks/sponsors.json')
+# sponsors = JSON.parse(@sponors)
 
-csv = CSV.generate do |csv|
-  csv << ['username', 'total_sponsors', 'current_sponsors', 'past_sponsors']
-  gh_usernames.each do |username|
-    gh = sponsors.find{|s| s['username'] == username }
-    if gh.present?
-      gh['total_sponsors'] = (gh['current_sponsors'].to_i ||0) + (gh['past_sponsors'].to_i || 0)
-      csv << [gh['username'], gh['total_sponsors'],( gh['current_sponsors'].to_i || 0), (gh['past_sponsors'].to_i || 0 )]
-    end
+# csv = CSV.generate do |csv|
+#   csv << ['username', 'total_sponsors', 'current_sponsors', 'past_sponsors']
+#   gh_usernames.each do |username|
+#     gh = sponsors.find{|s| s['username'] == username }
+#     if gh.present?
+#       gh['total_sponsors'] = (gh['current_sponsors'].to_i ||0) + (gh['past_sponsors'].to_i || 0)
+#       csv << [gh['username'], gh['total_sponsors'],( gh['current_sponsors'].to_i || 0), (gh['past_sponsors'].to_i || 0 )]
+#     end
 
-  end
-end 
+#   end
+# end 
