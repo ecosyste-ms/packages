@@ -4,6 +4,8 @@ class UpdateDetailsWorker
   sidekiq_options queue: 'default'
 
   def perform(package_id)
-    Package.find_by_id(package_id).try(:update_details)
+    package = Package.find_by_id(package_id)
+    package.try(:update_details)
+    package.try(:touch)
   end
 end
