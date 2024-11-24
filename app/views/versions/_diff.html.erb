@@ -1,0 +1,17 @@
+<% if @version.download_url.present? && @package.versions_count > 1 %>
+  <div class="dropdown mb-3">
+    <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+      Diff between versions
+    </a>
+
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+      <% @package.versions.sort.each do |version| %>
+        <% next if version == @version %>
+        <% next if version.download_url.blank? %>
+        <li>
+          <%= link_to version, @version.diff_url(version), class: 'dropdown-item', target: :_blank %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
