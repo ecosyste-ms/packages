@@ -73,7 +73,7 @@ class Package < ApplicationRecord
   end
 
   def self.sync_least_recent_top_async
-    Package.active.not_docker..order('RANDOM()').top(2).where('packages.last_synced_at < ?', 12.hours.ago).select('packages.id, packages.last_synced_at').limit(3_000).each(&:sync_async)
+    Package.active.not_docker.order('RANDOM()').top(2).where('packages.last_synced_at < ?', 12.hours.ago).select('packages.id, packages.last_synced_at').limit(3_000).each(&:sync_async)
   end
 
   def self.check_statuses_async
