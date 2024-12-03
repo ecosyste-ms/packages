@@ -126,7 +126,7 @@ GEM
     crass (1.0.6)
     csv (3.3.0)
     dalli (3.2.8)
-    date (3.4.0)
+    date (3.4.1)
     deb_control (0.0.1)
     drb (2.2.1)
     erubi (1.13.0)
