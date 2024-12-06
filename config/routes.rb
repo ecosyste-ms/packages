@@ -21,6 +21,7 @@ Rails.application.routes.draw do
 
       resources :packages do
         collection do
+          get :critical, to: 'packages#critical'
           get :lookup, to: 'packages#lookup'
           get :ping, to: 'packages#ping_all'
         end
