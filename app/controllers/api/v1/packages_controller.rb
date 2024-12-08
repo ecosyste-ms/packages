@@ -44,8 +44,9 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     end
 
     @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
-    fresh_when @packages, public: true
-    render :index
+    if stale?(@packages, public: true)
+      render :index
+    end
   end
 
   def lookup
