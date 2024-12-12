@@ -82,7 +82,7 @@ class NugetTest < ActiveSupport::TestCase
   end
 
   test 'package_metadata' do
-    stub_request(:get, "https://api.nuget.org/v3/registration5-semver1/ogcapi.net.sqlserver/index.json")
+    stub_request(:get, "https://api.nuget.org/v3/registration5-gz-semver2/ogcapi.net.sqlserver/index.json")
       .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
     stub_request(:get, "https://azuresearch-usnc.nuget.org/query?q=packageid:ogcapi.net.sqlserver")
       .to_return({ status: 200, body: file_fixture('nuget/query_packageid:OgcApi.Net.SqlServer') })
@@ -99,7 +99,7 @@ class NugetTest < ActiveSupport::TestCase
   end
 
   test 'versions_metadata' do
-    stub_request(:get, "https://api.nuget.org/v3/registration5-semver1/ogcapi.net.sqlserver/index.json")
+    stub_request(:get, "https://api.nuget.org/v3/registration5-gz-semver2/ogcapi.net.sqlserver/index.json")
       .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
     stub_request(:get, "https://azuresearch-usnc.nuget.org/query?q=packageid:ogcapi.net.sqlserver")
       .to_return({ status: 200, body: file_fixture('nuget/query_packageid:OgcApi.Net.SqlServer') })
@@ -113,7 +113,7 @@ class NugetTest < ActiveSupport::TestCase
   end
 
   test 'dependencies_metadata' do
-    stub_request(:get, "https://api.nuget.org/v3/registration5-semver1/ogcapi.net.sqlserver/index.json")
+    stub_request(:get, "https://api.nuget.org/v3/registration5-gz-semver2/ogcapi.net.sqlserver/index.json")
       .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
     stub_request(:get, "https://azuresearch-usnc.nuget.org/query?q=packageid:ogcapi.net.sqlserver")
       .to_return({ status: 200, body: file_fixture('nuget/query_packageid:OgcApi.Net.SqlServer') })
