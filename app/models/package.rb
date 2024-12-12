@@ -69,7 +69,7 @@ class Package < ApplicationRecord
   end
 
   def self.sync_least_recent_async
-    Package.active.outdated.not_docker.order('RANDOM()').limit(3000).select('packages.id, packages.last_synced_at').each(&:sync_async)
+    Package.active.outdated.not_docker.order('RANDOM()').limit(4000).select('packages.id, packages.last_synced_at').each(&:sync_async)
   end
 
   def self.sync_least_recent_top_async
