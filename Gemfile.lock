@@ -239,7 +239,7 @@ GEM
     popper_js (2.11.8)
     postgresql_cursor (0.6.9)
       activerecord (>= 6.0)
-    psych (5.2.1)
+    psych (5.2.2)
       date
       stringio
     public_suffix (6.0.1)
