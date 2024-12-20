@@ -129,7 +129,7 @@ GEM
     date (3.4.1)
     deb_control (0.0.1)
     drb (2.2.1)
-    erubi (1.13.0)
+    erubi (1.13.1)
     ethon (0.16.0)
       ffi (>= 1.15.0)
     execjs (2.10.0)
