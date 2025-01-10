@@ -174,7 +174,7 @@ GEM
       thor (>= 0.14, < 2.0)
     json (2.9.1)
     librariesio-gem-parser (1.0.0)
-    logger (1.6.4)
+    logger (1.6.5)
     lograge (0.14.0)
       actionpack (>= 4)
       activesupport (>= 4)
@@ -519,7 +519,7 @@ CHECKSUMS
   jquery-rails (4.6.0) sha256=3c4e6bf47274340b44d836b8aa1b5472c6d451e2739af5ec094421f39025a7e2
   json (2.9.1) sha256=d2bdef4644052fad91c1785d48263756fe32fcac08b96a20bb15840e96550d11
   librariesio-gem-parser (1.0.0) sha256=e9ef327f1e9ef03425cc8687f93021857057452f491fcd632a20e30505f13a95
-  logger (1.6.4) sha256=b627b91c922231050932e7bf8ee886fe54790ba2238a468ead52ba21911f2ee7
+  logger (1.6.5) sha256=c3cfe56d01656490ddd103d38b8993d73d86296adebc5f58cefc9ec03741e56b
   lograge (0.14.0) sha256=42371a75823775f166f727639f5ddce73dd149452a55fc94b90c303213dc9ae1
   loofah (2.24.0) sha256=61e6a710883abb8210887f3dc868cf3ed66594c509d9ff6987621efa6651ee1e
   mail (2.8.1) sha256=ec3b9fadcf2b3755c78785cb17bc9a0ca9ee9857108a64b6f5cfc9c0b5bfc9ad
