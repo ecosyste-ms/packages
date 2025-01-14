@@ -364,7 +364,7 @@ GEM
       unicode_utils (~> 1.4)
     strings-ansi (0.2.0)
     thor (1.3.2)
-    tilt (2.5.0)
+    tilt (2.6.0)
     timeout (0.4.3)
     toml-rb (3.0.1)
       citrus (~> 3.0, > 3.0)
@@ -611,7 +611,7 @@ CHECKSUMS
   strings (0.2.1) sha256=933293b3c95cf85b81eb44b3cf673e3087661ba739bbadfeadf442083158d6fb
   strings-ansi (0.2.0) sha256=90262d760ea4a94cc2ae8d58205277a343409c288cbe7c29416b1826bd511c88
   thor (1.3.2) sha256=eef0293b9e24158ccad7ab383ae83534b7ad4ed99c09f96f1a6b036550abbeda
-  tilt (2.5.0) sha256=3c871a9ffb0fd8191944d8bbd776a371ba1eeb683483cecf1b2572b292293b15
+  tilt (2.6.0) sha256=263d748466e0d83e510aa1a2e2281eff547937f0ef06be33d3632721e255f76b
   timeout (0.4.3) sha256=9509f079b2b55fe4236d79633bd75e34c1c1e7e3fb4b56cb5fda61f80a0fe30e
   toml-rb (3.0.1) sha256=a3a764dcdd85e7b51207f72b0743f109474bb1bea3c54a392ae32903263200b2
   tomlrb (2.0.3) sha256=c2736acf24919f793334023a4ff396c0647d93fce702a73c9d348deaa815d4f7
