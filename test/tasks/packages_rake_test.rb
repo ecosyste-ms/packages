@@ -3,7 +3,7 @@ require 'rake'
 
 class PackagesRakeTest < ActiveSupport::TestCase
   setup do
-    Packages::Application.load_tasks if Rake::Task.tasks.empty?
+    Packages::Application.load_tasks if Rake::Task.tasks.empty? 
   end
 
   test "should sync recent packages" do

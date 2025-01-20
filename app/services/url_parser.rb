@@ -4,7 +4,7 @@ class UrlParser
   end
 
   def initialize(url)
-    @url = url.to_s
+    @url = url.to_s.dup
   end
 
   def parse
@@ -103,11 +103,11 @@ class UrlParser
   end
 
   def remove_anchors
-    url.gsub!(/(#\S*)$/i, '')
+    self.url = url.dup.gsub(/(#\S*)$/i, '')
   end
 
   def remove_auth_user
-    self.url = url.split('@')[-1]
+    self.url = url.dup.split('@')[-1]
   end
 
   def remove_domain
@@ -115,38 +115,38 @@ class UrlParser
   end
 
   def remove_brackets
-    url.gsub!(/>|<|\(|\)|\[|\]/, '')
+    self.url = url.dup.gsub(/>|<|\(|\)|\[|\]/, '')
   end
 
   def remove_equals_sign
-    self.url = url.split('=')[-1]
+    self.url = url.dup.split('=')[-1]
   end
 
   def remove_extra_segments
-    self.url = url.split('/').reject(&:blank?)[0..1]
+    self.url = url.dup.split('/').reject(&:blank?)[0..1]
   end
 
   def remove_git_extension
-    url.gsub!(/(\.git|\/)$/i, '')
+    self.url = url.dup.gsub(/(\.git|\/)$/i, '')
   end
 
   def remove_git_scheme
-    url.gsub!(/git\/\//i, '')
+    self.url = url.dup.gsub(/git\/\//i, '')
   end
 
   def remove_querystring
-    url.gsub!(/(\?\S*)$/i, '')
+    self.url = url.dup.gsub(/(\?\S*)$/i, '')
   end
 
   def remove_scheme
-    url.gsub!(/(((git\+https|git|ssh|hg|svn|scm|http|https)+?:)+?)/i, '')
+    self.url = url.dup.gsub(/(((git\+https|git|ssh|hg|svn|scm|http|https)+?:)+?)/i, '')
   end
 
   def remove_subdomain
-    url.gsub!(/(www|ssh|raw|git|wiki)+?\./i, '')
+    self.url = url.dup.gsub(/(www|ssh|raw|git|wiki)+?\./i, '')
   end
 
   def remove_whitespace
-    url.gsub!(/\s/, '')
+    self.url = url.dup.gsub(/\s/, '')
   end
 end

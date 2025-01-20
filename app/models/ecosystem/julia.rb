@@ -8,11 +8,10 @@ module Ecosystem
     end
 
     def registry_url(package, version = nil)
-      "#{@registry_url}/ui/Packages/#{package.name}/#{package.metadata['slug']}/#{version}"
+      "#{@registry_url}/ui/Packages/General/#{package.name}/#{version}"
     end
 
     def check_status(package)
-      return "removed" if package.metadata['slug'].blank?
       url = check_status_url(package)
       connection = Faraday.new do |faraday|
         faraday.use Faraday::FollowRedirects::Middleware
@@ -24,7 +23,7 @@ module Ecosystem
     end
 
     def check_status_url(package)
-      "#{@registry_url}/docs/#{package['name']}/#{package.metadata['slug']}/pkg.json"
+      "#{@registry_url}/docs/General/#{package['name']}/stable/pkg.json"
     end
 
     def download_url(package, version = nil)
@@ -39,13 +38,9 @@ module Ecosystem
       end
     end
 
-    def documentation_url(package, version = nil)
-      "https://docs.juliahub.com/#{package.name}/#{package.metadata['slug']}/#{version}"
-    end
-
     def install_command(package, version = nil)
       if version
-        "Pkg.add(Pkg.PackageSpec(;name=\"#{package.name}\", version=\"#{version}\"))"
+        "Pkg.add(\"#{package.name}@#{version}\")"
       else
         "Pkg.add(\"#{package.name}\")"
       end
@@ -77,23 +72,21 @@ module Ecosystem
 
     def map_package_metadata(package)
       return false unless package
-      return false unless package['metadata']['docslink']
-      slug = package['metadata']['docslink'].split('/')[2]
-      json = get_json("#{@registry_url}/docs/#{package['name']}/#{slug}/pkg.json") rescue nil
+      package_name = "General/#{package['name']}"
+      slug = 'stable'
+      json = get_json("#{@registry_url}/docs/#{package_name}/#{slug}/pkg.json") rescue nil
       json = {} if json.nil?
       {
         name: package['name'],
-        description: package['metadata']['description'],
+        description: json['description'],
         homepage: json['homepage'],
-        repository_url: repo_fallback(package['metadata']['repo'], json['homepage']),
-        keywords_array: package['metadata']['tags'],
-        versions: package['metadata']['versions'],
-        licenses: package['license'],
+        repository_url: repo_fallback(json['url'], json['homepage']),
+        keywords_array: json['tags'],
+        licenses: json['license'],
         downloads: fetch_downloads(package),
         downloads_period: 'total',
         metadata: {
-          uuid: package['uuid'],
-          slug: slug
+          uuid: json['uuid']
         }
       }
     end
@@ -106,36 +99,24 @@ module Ecosystem
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
-      begin
-        repo_json = get_json("https://repos.ecosyste.ms/api/v1/repositories/lookup?url=#{CGI.escape(pkg_metadata[:repository_url])}")
-        tags_json = get_json("https://repos.ecosyste.ms/api/v1/hosts/#{repo_json['host']['name']}/repositories/#{repo_json['full_name']}/tags")
-      rescue
-        tags_json = []
-      end
-      pkg_metadata[:versions].map do |v|
-        hash = {
-          number: v,
-          published_at: nil,
-          metadata: {}
+      version_numbers = get_json("#{@registry_url}/docs/General/#{pkg_metadata[:name]}/versions.json")
+      version_numbers.map do |v|
+        version_json = get_json("#{@registry_url}/docs/General/#{pkg_metadata[:name]}/#{v}/pkg.json")
+        next if version_json.nil?
+        {
+          number: version_json['version'],
+          published_at: version_json['release_date'],
+          licenses: version_json['license'],
+          metadata: {
+            slug: version_json['slug'],
+            uuid: version_json['uuid'],
+          }
         }
-        
-        if tags_json.any?
-          tag = tags_json.find{|t| t['name'].to_s.downcase.delete_prefix('v') == v}
-          if tag
-            hash[:published_at] = tag['published_at']
-            hash[:metadata] = {
-              sha: tag['sha'],
-              download_url: tag['download_url']
-            }
-          end
-        end
-
-        hash
-      end
+      end.compact
     end
 
     def dependencies_metadata(name, version, package)
-      json = get_json("#{@registry_url}/docs/#{package[:name]}/#{package[:metadata][:slug]}/#{version}/pkg.json")
+      json = get_json("#{@registry_url}/docs/General/#{package[:name]}/#{version}/pkg.json")
       json['deps'].map do |dep|
         next if dep['direct'] == false
         next if dep['versions'].join(',') == '*' # skip std libraries

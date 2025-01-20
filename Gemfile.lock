@@ -143,6 +143,9 @@ GEM
       net-http (>= 0.5.0)
     faraday-retry (2.2.1)
       faraday (~> 2.0)
+    faraday-typhoeus (1.1.0)
+      faraday (~> 2.0)
+      typhoeus (~> 1.4)
     ffi (1.17.1)
     ffi (1.17.1-aarch64-linux-musl)
     ffi (1.17.1-arm-linux-gnu)
@@ -420,6 +423,7 @@ DEPENDENCIES
   faraday
   faraday-follow_redirects
   faraday-retry
+  faraday-typhoeus
   google-protobuf
   groupdate
   jbuilder
@@ -509,6 +513,7 @@ CHECKSUMS
   faraday-follow_redirects (0.3.0) sha256=d92d975635e2c7fe525dd494fcd4b9bb7f0a4a0ec0d5f4c15c729530fdb807f9
   faraday-net_http (3.4.0) sha256=a1f1e4cd6a2cf21599c8221595e27582d9936819977bbd4089a601f24c64e54a
   faraday-retry (2.2.1) sha256=4146fed14549c0580bf14591fca419a40717de0dd24f267a8ec2d9a728677608
+  faraday-typhoeus (1.1.0) sha256=24c6147c213818dde3ebc50ae47ab92f9a7e554903aa362707126f749c6890e7
   ffi (1.17.1) sha256=26f6b0dbd1101e6ffc09d3ca640b2a21840cc52731ad8a7ded9fb89e5fb0fc39
   ffi (1.17.1-aarch64-linux-musl) sha256=88b9d6ae905d21142df27c94bb300042c1aae41b67291885f600eaad16326b1d
   ffi (1.17.1-arm-linux-gnu) sha256=fe14f5ece94082f3b0e651a09008113281f2764e7ea95f522b64e2fe32e11504
