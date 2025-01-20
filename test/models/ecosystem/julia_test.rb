@@ -25,12 +25,12 @@ class JuliaTest < ActiveSupport::TestCase
 
   test 'documentation_url' do
     documentation_url = @ecosystem.documentation_url(@package)
-    assert_nil documentation_url
+    assert_equal documentation_url, "https://docs.juliahub.com/General/Inequality/stable/"
   end
 
   test 'documentation_url with version' do
     documentation_url = @ecosystem.documentation_url(@package, @version.number)
-    assert_nil documentation_url
+    assert_equal documentation_url, "https://docs.juliahub.com/General/Inequality/0.0.4/"
   end
 
   test 'install_command' do
@@ -83,6 +83,8 @@ class JuliaTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('julia/pkg.json') })
     stub_request(:get, "https://pkgs.genieframework.com/api/v1/badge/Inequality")
       .to_return({ status: 200, body: file_fixture('julia/Inequality') })
+    stub_request(:post, "https://juliahub.com/v1/graphql").
+      to_return(status: 200, body: "", headers: {})
 
     package_metadata = @ecosystem.package_metadata('Inequality')
     
@@ -109,6 +111,8 @@ class JuliaTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('julia/versions.json') })
     stub_request(:get, "https://juliahub.com/docs/General/Inequality/0.0.4/pkg.json")
       .to_return({ status: 200, body: file_fixture('julia/0.0.4.pkg.json') })
+    stub_request(:post, "https://juliahub.com/v1/graphql").
+      to_return(status: 200, body: "", headers: {})
     package_metadata = @ecosystem.package_metadata('Inequality')
 
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
@@ -125,6 +129,8 @@ class JuliaTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('julia/pkg.json') })
     stub_request(:get, "https://juliahub.com/docs/General/Inequality/0.0.4/pkg.json")
       .to_return({ status: 200, body: file_fixture('julia/0.0.4.pkg.json') })
+    stub_request(:post, "https://juliahub.com/v1/graphql").
+      to_return(status: 200, body: "", headers: {})
     package_metadata = @ecosystem.package_metadata('Inequality')
     dependencies_metadata = @ecosystem.dependencies_metadata('Inequality', '0.0.4', package_metadata)
 

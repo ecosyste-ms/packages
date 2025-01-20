@@ -38,6 +38,10 @@ module Ecosystem
       end
     end
 
+    def documentation_url(package, version = nil)
+      "https://docs.juliahub.com/General/#{package.name}/#{version ? version : 'stable'}/"
+    end
+
     def install_command(package, version = nil)
       if version
         "Pkg.add(\"#{package.name}@#{version}\")"
