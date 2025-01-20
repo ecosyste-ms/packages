@@ -83,7 +83,7 @@ module Ecosystem
         repository_url: repo_fallback(json['url'], json['homepage']),
         keywords_array: json['tags'],
         licenses: json['license'],
-        downloads: fetch_downloads(package),
+        downloads: fetch_downloads(package['name']),
         downloads_period: 'total',
         metadata: {
           uuid: json['uuid']
@@ -91,9 +91,36 @@ module Ecosystem
       }
     end
 
-    def fetch_downloads(package)
-      j = get_json("https://pkgs.genieframework.com/api/v1/badge/#{package['name']}")
-      j['message'].to_i
+    def fetch_downloads(package_name)
+      url = "https://juliahub.com/v1/graphql"
+      query = {
+        operationName: "PackageStats",
+        variables: { name: package_name },
+        query: <<~GRAPHQL
+          query PackageStats($name: String!) {
+            packageStats: packagestats(where: {package: {name: {_eq: $name}}}) {
+              downloads
+              users
+              uuid
+              package {
+                name
+              }
+            }
+          }
+        GRAPHQL
+      }
+
+      response = Faraday.post(url) do |req|
+        req.headers['Content-Type'] = 'application/json'
+        req.headers['Accept'] = '*/*'
+        req.headers['x-hasura-role'] = 'anonymous'
+        req.headers['x-juliahub-ensure-js'] = 'true'
+        req.body = query.to_json
+      end
+    
+      json = JSON.parse(response.body) rescue {}
+
+      json.dig('data', 'packageStats')&.first&.fetch('users', nil)
     rescue
       nil
     end
