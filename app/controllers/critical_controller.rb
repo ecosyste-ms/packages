@@ -27,7 +27,7 @@ class CriticalController < ApplicationController
   end
 
   def scatter
-    scope = Package.critical.not_docker.where('packages.downloads is not null').includes(:registry)
+    scope = Package.critical.not_docker.where('packages.downloads is not null').includes(:registry).select('registry_id, packages.downloads, packages.dependent_repos_count, packages.dependent_packages_count, packages.docker_downloads_count, packages.docker_dependents_count, packages.repo_metadata')
 
     @registry = Registry.find_by_name!(params[:registry]) if params[:registry]
 
