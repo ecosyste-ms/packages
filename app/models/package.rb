@@ -890,6 +890,15 @@ class Package < ApplicationRecord
     end
   end
 
+  def self.critical_funding_domains
+    funding_domains = []
+    Package.critical.with_funding.active.find_each do |package| 
+      funding_domains << package.funding_domains
+    end
+    
+    funding_domains.flatten.group_by(&:itself).map{|k, v| [k, v.count]}.to_h.sort_by{|k, v| v}.reverse.to_h
+  end
+
   def clean_up_duplicate_maintainerships
     maintainer_ids = maintainerships.group(:maintainer_id).count.select{|k,v| v > 1}.keys
     return if maintainer_ids.blank?
