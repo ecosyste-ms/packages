@@ -56,7 +56,7 @@ class CriticalController < ApplicationController
       return render json: { error: 'Invalid comparison field' }, status: :bad_request
     end
 
-    values = @packages.map { |pkg| [pkg.downloads, pkg.send(@comparison_field)] }.reject { |x, y| x.nil? || y.nil? }
+    values = @packages.map { |pkg| [pkg.downloads, pkg.send(@comparison_field)] }.reject { |x, y| x.nil? || y.nil? || x == 0 || y == 0 }
 
     if values.size >= 2
       x_values, y_values = values.transpose
