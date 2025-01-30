@@ -27,7 +27,8 @@ class CriticalController < ApplicationController
   end
 
   def scatter
-    scope = Package.critical.not_docker.where('packages.downloads > 0').includes(:registry).select('registry_id, packages.downloads, packages.dependent_repos_count, packages.dependent_packages_count, packages.docker_downloads_count, packages.docker_dependents_count, packages.repo_metadata')
+    excluded_ecosystems = ['puppet', 'homebrew', 'nuget']
+    scope = Package.critical.not_docker.where.not(ecosystem: excluded_ecosystems).where('packages.downloads > 0').includes(:registry).select('registry_id, packages.downloads, packages.dependent_repos_count, packages.dependent_packages_count, packages.docker_downloads_count, packages.docker_dependents_count, packages.repo_metadata')
 
     @registry = Registry.find_by_name!(params[:registry]) if params[:registry]
 
@@ -72,7 +73,7 @@ class CriticalController < ApplicationController
       @correlation_coefficient = nil
     end
 
-    @registries = Package.not_docker.critical.where('packages.downloads > 0').group(:registry).count.sort_by{|r, c| c}
+    @registries = Package.not_docker.where.not(ecosystem: excluded_ecosystems).critical.where('packages.downloads > 0').group(:registry).count.sort_by{|r, c| c}
   end
 
   def permit_scatter_params
