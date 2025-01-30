@@ -54,6 +54,7 @@ gem "lograge"
 gem 'csv'
 gem 'bootstrap-icons-helper'
 gem 'ostruct'
+gem 'matrix'
 
 group :development do
   gem "web-console"

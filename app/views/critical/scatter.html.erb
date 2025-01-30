@@ -1,0 +1,64 @@
+<% @meta_title = "Critical Open Source #{@registry.try(:ecosystem).try(:humanize)} Packages" %>
+<% @meta_description = "Find key open source #{@registry.try(:ecosystem)} software packages that are crucial to most projects, representing 80% of all downloads or dependent repositories in their ecosystems." %>
+
+<div class="container-sm">
+  <h1 class='mb-3'>
+    Critical Open Source <%= @registry.try(:ecosystem).try(:humanize) %> Packages
+  </h1>
+
+  <div class="row">
+    <div class="col-lg-9">
+
+      <div class="mb-3">
+        <strong>Compare:</strong>
+        <% @valid_fields.each do |field| %>
+            <a href="<%= url_for(request.params.merge(comparison_field: field)) %>"
+             class="btn btn-sm <%= field == @comparison_field ? 'btn-primary' : 'btn-outline-primary' %>">
+            <%= field.humanize.gsub(' count', '') %>
+          </a>
+        <% end %>
+      </div>
+
+      <div class="mb-4">
+<%= scatter_chart @packages.map { |p| [p.downloads, p.send(@comparison_field)] }.reject { |x, y| x.nil? || y.nil? },
+  xtitle: "Downloads",
+  ytitle: @comparison_field.humanize.gsub(' count', ''),
+  height: "700px",
+  library: {
+    elements: {
+      point: {
+        backgroundColor: "#7878EF",  # Blue color for points
+        borderColor: "#7878EF",
+        radius: 2,
+        hoverRadius: 8
+      }
+    }
+  }
+%>
+      </div>
+
+      <% if @correlation_coefficient %>
+        <p class="text-muted">
+          Pearson Correlation Coefficient: <%= @correlation_coefficient.round(3) %>
+        </p>
+      <% end %>
+
+    </div>
+
+    <div class="col">
+      <div class="card mb-3">
+        <div class="card-header">
+          Filter by Registry
+        </div>
+        <div class="list-group list-group-flush">
+          <% @registries.each do |registry, count| %>
+            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center <%= 'active' if params[:registry] == registry.name %>" href="<%= url_for(registry: (params[:registry] == registry.name ? nil : registry.name), page: nil, comparison_field: params[:comparison_field]) %>">
+              <%= registry %>
+              <span class="badge bg-primary rounded-pill"><%= number_with_delimiter count %></span>
+            </a>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

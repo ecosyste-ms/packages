@@ -687,9 +687,13 @@ class Package < ApplicationRecord
     repo_metadata['stargazers_count'] if repo_metadata.present?
   end
 
+  alias_method :stargazers_count, :stars
+
   def forks
     repo_metadata['forks_count'] if repo_metadata.present?
   end
+
+  alias_method :forks_count, :forks
 
   def commit_stats
     repo_metadata['commit_stats'] if repo_metadata.present?
