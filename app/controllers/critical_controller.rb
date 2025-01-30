@@ -27,7 +27,7 @@ class CriticalController < ApplicationController
   end
 
   def scatter
-    scope = Package.critical.includes(:registry)
+    scope = Package.critical.not_docker.where('packages.downloads is not null').includes(:registry)
 
     @registry = Registry.find_by_name!(params[:registry]) if params[:registry]
 
@@ -44,10 +44,10 @@ class CriticalController < ApplicationController
         scope = scope.order(Arel.sql(sort).desc.nulls_last)
       end
     else
-      scope = scope.order('downloads DESC nulls last')
+      scope = scope.order('packages.downloads DESC nulls last')
     end
 
-    @packages = scope.limit(1000)
+    @packages = scope.limit(9000)
     
     @comparison_field = params[:comparison_field].presence || 'dependent_repos_count'
     @valid_fields = ['dependent_repos_count', 'stargazers_count', 'forks_count', 'dependent_packages_count', 'docker_downloads_count', 'docker_dependents_count']
@@ -72,7 +72,7 @@ class CriticalController < ApplicationController
       @correlation_coefficient = nil
     end
 
-    @registries = Package.critical.group(:registry).count.sort_by{|r, c| c}
+    @registries = Package.not_docker.critical.group(:registry).count.sort_by{|r, c| c}
   end
 
   def permit_scatter_params

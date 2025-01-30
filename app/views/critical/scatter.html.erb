@@ -20,21 +20,21 @@
       </div>
 
       <div class="mb-4">
-<%= scatter_chart @packages.map { |p| [p.downloads, p.send(@comparison_field)] }.reject { |x, y| x.nil? || y.nil? },
-  xtitle: "Downloads",
-  ytitle: @comparison_field.humanize.gsub(' count', ''),
-  height: "700px",
-  library: {
-    elements: {
-      point: {
-        backgroundColor: "#7878EF",  # Blue color for points
-        borderColor: "#7878EF",
-        radius: 2,
-        hoverRadius: 8
-      }
-    }
-  }
-%>
+        <%= scatter_chart @packages.map { |p| [p.downloads, p.send(@comparison_field)] }.reject { |x, y| x.nil? || y.nil? },
+          xtitle: "Downloads",
+          ytitle: @comparison_field.humanize.gsub(' count', ''),
+          height: "700px",
+          library: {
+            elements: {
+              point: {
+                backgroundColor: "#7878EF",  # Blue color for points
+                borderColor: "#7878EF",
+                radius: 2,
+                hoverRadius: 8
+              }
+            }
+          }
+        %>
       </div>
 
       <% if @correlation_coefficient %>
