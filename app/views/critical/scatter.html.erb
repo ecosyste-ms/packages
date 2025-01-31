@@ -20,21 +20,25 @@
       </div>
 
       <div class="mb-4">
-        <%= scatter_chart @packages.map { |p| [p.downloads, p.send(@comparison_field)] }.reject { |x, y| x.nil? || y.nil? },
-          xtitle: "Downloads",
-          ytitle: @comparison_field.humanize.gsub(' count', ''),
-          height: "700px",
-          library: {
-            elements: {
-              point: {
-                backgroundColor: "#7878EF",  # Blue color for points
-                borderColor: "#7878EF",
-                radius: 2,
-                hoverRadius: 8
-              }
-            }
-          }
-        %>
+<%= scatter_chart @packages.map { |p| [p.downloads, p.send(@comparison_field)] }.reject { |x, y| x.nil? || y.nil? },
+  xtitle: "Downloads",
+  ytitle: @comparison_field.humanize.gsub(' count', ''),
+  height: "700px",
+  library: {
+    elements: {
+      point: {
+        backgroundColor: "#7878EF",  # Blue color for points
+        borderColor: "#7878EF",
+        radius: 2,
+        hoverRadius: 8
+      }
+    },
+    scales: {
+      x: { display: params[:hide_axis] != "true" },
+      y: { display: params[:hide_axis] != "true" }
+    }
+  }
+%>
       </div>
 
       <% if @correlation_coefficient %>
@@ -42,6 +46,14 @@
           Pearson Correlation Coefficient: <%= @correlation_coefficient.round(3) %>
         </p>
       <% end %>
+
+    <div class="mb-3">
+  <% hide_axis = params[:hide_axis] == "true" %>
+  <a href="<%= url_for(request.params.merge(hide_axis: hide_axis ? nil : "true")) %>" 
+     class="btn btn-sm <%= hide_axis ? 'btn-danger' : 'btn-outline-danger' %>">
+    <%= hide_axis ? "Show Axis" : "Hide Axis" %>
+  </a>
+</div>
 
     </div>
 
