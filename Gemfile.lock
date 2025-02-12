@@ -239,7 +239,7 @@ GEM
       bigdecimal (>= 3.0)
       ostruct (>= 0.2)
     ostruct (0.6.1)
-    ox (2.14.21)
+    ox (2.14.22)
       bigdecimal (>= 3.0)
     packageurl-ruby (0.1.0)
     pagy (9.3.3)
@@ -262,7 +262,7 @@ GEM
     puma (6.6.0)
       nio4r (~> 2.0)
     racc (1.8.1)
-    rack (3.1.9)
+    rack (3.1.10)
     rack-attack (6.7.0)
       rack (>= 1.0, < 4)
     rack-attack-rate-limit (1.1.0)
@@ -570,7 +570,7 @@ CHECKSUMS
   nokogiri (1.18.2-x86_64-linux-gnu) sha256=9330ced4a976604865c2a76ce158e2bc608fa83999552e85a32ec06f85f427db
   oj (3.16.9) sha256=6fc5c153edd88a723e8d4dd3068d3f66faab9ba28a063b4de6d1e5d0b65a3324
   ostruct (0.6.1) sha256=09a3fb7ecc1fa4039f25418cc05ae9c82bd520472c5c6a6f515f03e4988cb817
-  ox (2.14.21) sha256=2cc77af97bdcab1a61df5463bd790ebbc39fb09e0eab9fc843d86f8db6bca0b9
+  ox (2.14.22) sha256=0bbc4a40d109e4b76295c4927b5f2d453070eb5af221e5b05ec0ff58e291c6a9
   packageurl-ruby (0.1.0) sha256=3edfa1ce355200fde2a1d2cf625dafdf28d0cc9472eb99493325bf3d88e9daa3
   pagy (9.3.3) sha256=4831418eb4ec7cc5658ea57de559cc3a960286db36f98d4c1c65e19db0e2bb60
   pg (1.5.9) sha256=761efbdf73b66516f0c26fcbe6515dc7500c3f0aa1a1b853feae245433c64fdc
@@ -585,7 +585,7 @@ CHECKSUMS
   public_suffix (6.0.1) sha256=61d44e1cab5cbbbe5b31068481cf16976dd0dc1b6b07bd95617ef8c5e3e00c6f
   puma (6.6.0) sha256=f25c06873eb3d5de5f0a4ebc783acc81a4ccfe580c760cfe323497798018ad87
   racc (1.8.1) sha256=4a7f6929691dbec8b5209a0b373bc2614882b55fc5d2e447a21aaa691303d62f
-  rack (3.1.9) sha256=3d0a390444dcc753ced32978159463f92ac920ae28d7058b6fd633abb9dd349d
+  rack (3.1.10) sha256=5e873127d04704c8121528b1ce04c551b5493a78291cace896b059a2a44bcb12
   rack-attack (6.7.0) sha256=3ca47e8f66cd33b2c96af53ea4754525cd928ed3fa8da10ee6dad0277791d77c
   rack-attack-rate-limit (1.1.0) sha256=04bbe6985406ac30b5aba03ca662b7f90cc02dca626f7c2d9c512c4efe323a69
   rack-cors (2.0.2) sha256=415d4e1599891760c5dc9ef0349c7fecdf94f7c6a03e75b2e7c2b54b82adda1b
