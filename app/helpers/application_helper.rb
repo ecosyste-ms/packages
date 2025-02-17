@@ -18,11 +18,19 @@ module ApplicationHelper
   end
 
   def meta_description
-    @meta_description || "An open API service providing package, version and dependency metadata of many open source software ecosystems and registries."
+    @meta_description || app_description
   end
 
   def meta_title
     [@meta_title, "Ecosyste.ms: Packages"].compact.join(" | ")
+  end
+
+  def app_name
+    "Packages"
+  end
+
+  def app_description
+    "An open API service providing package, version and dependency metadata of many open source software ecosystems and registries."
   end
 
   def severity_class(severity)

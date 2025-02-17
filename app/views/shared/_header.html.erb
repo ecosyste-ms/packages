@@ -1,0 +1,55 @@
+<header class="header">
+  <div class="header__global">
+    <div class="container">
+      <div class="row mb-4">
+        <div class="col-md-6 header__global__site-logo-wrapper">
+          <h1>
+            <a class="site-logo" href="/">ecosyste.ms</a>
+          </h1>
+        </div>
+        <div class="col-md-6 text-end  ">
+			<a class="header__global__menu-link" role="button" aria-expanded="false" aria-controls="header__global__menu" data-bs-toggle="collapse" href="#header__global__menu"><strong>ecosyste.ms</strong> services <%= bootstrap_icon 'caret-down-fill', width: 12, height: 12 %></a>
+        </div>
+      </div>
+      
+      <div id="header__global__menu" class="collapse header__global__menu">
+        <% ecosystems_services.each do |category, services| %>
+          <div class="header__global__menu__category">
+            <h2 class="header__global__menu__category-title"><%= category %></h2>
+            <ul class="header__global__menu__category-links">
+              <% services.each do |service| %>
+                <li>
+                  <a href="<%= service[:url] %>" target="_blank" class="<%= 'active' if service[:url] == request.base_url %>">
+                    <%= service[:name] %>
+                  </a>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="header__local pt-3">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-3 col-md-4">
+          <h1 class="h3 header__local__sitename">
+            <a class="header__local__homelink" href="/">
+              <%= app_name %>
+            </a>
+          </h1>
+        </div>
+        <div class="col-lg-5 col-md-8">
+          <p class="header__local__description">
+            <%= app_description %>
+          </p>
+        </div>
+        <div class="col-lg-4 col-md-12">
+          <%= render 'shared/menu' %>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
