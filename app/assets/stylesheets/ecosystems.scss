@@ -475,19 +475,6 @@ body {
   }
 }
 
-/* Callout box used for link to announcement */
-.callout {
-  border: 0;
-  border-radius: 1.5rem;
-  line-height: 1em;
-  height: 7.5rem;
-  padding: 0.25em 1.5em 0;
-  display: flex;
-  align-items: center; 
-  justify-content: center; 
-  box-shadow: 0px 7px 24px $color-purple-light;
-}
-
 .spesh-link {
   @include spesh-link();
 }
@@ -496,80 +483,13 @@ body {
   box-shadow: inset 0 -0.3em 0 transparentize($color-green, 1);
 }
 
-
-.fund-card {
-  border: 0;
-  border-radius: 1.5rem;
-  img {
-    border-radius: 0;
-  }
-  &:hover {
-    box-shadow: 0px 7px 24px $color-purple-light;
-  }
-}
-
 .label {
   display: block;
   @include font-size(0.875rem);
 }
 
-.fund-card--small {
-  padding-bottom: 1.5rem;
-  border-radius: 1rem;
-  .card-body {
-    padding-left: 0.25rem;
-    padding-right: 0.25rem;
-  }
-  .card-title {
-    @include font-size(1rem);
-    margin-bottom: 0;
-  }
-  a {
-    text-decoration: none;
-    color: $color-black;
-  }
-  .card-img-top {
-    max-width: 100px;
-    max-height: 100px;
-    margin: 1.5rem auto;
-  }
-}
-
 .grey-grad-bg  {
   background: linear-gradient(180deg, #FFFFFF 0%, #F5F5FF 100%);
-}
-
-/* all the nasty code for the homepage funds section */
-.fund-promo-section {
-  position: relative;
-  margin-bottom: -100px;
-  &::after {
-    content: '';      
-    display: block;
-    width: 100%;
-    height: 254px;
-    background-image: linear-gradient(to bottom, #ffffff00 0%, $color-grey-light 70%);
-    z-index: 2;
-    position: absolute;
-    bottom: 0;
-  }
-}
-
-.how-it-works {
-  > div {
-    @include media-breakpoint-up(xl) {
-      padding-right: 2.5em;
-    }
-  }
-}
-
-.flex-payments {
-  margin-top: 4rem;
-  margin-bottom: 4rem;
-  @include media-breakpoint-up(md) {
-    margin-top: 8rem;
-    margin-bottom: 8rem;
-  }
 }
 
 .block-link {
@@ -609,44 +529,6 @@ body {
   font-weight: 800;
 }
 
-.fund-stat-bar--allocation-stat-bar {
-  .stat-card {
-    @include media-breakpoint-up(xl) {
-      display: block;
-      margin-right: 0;
-    }
-  }
-  .stat-card-title {
-    @include font-size(1.625rem);
-  }
-}
-
-.fund-section-header {
-  border-bottom: 3px solid $color-purple-light;
-  .badge {
-    @include font-size(0.875rem);
-    margin-left: 1rem;
-    position: relative;
-    top: -0.7rem;
-  }
-}
-
-.fund-header {
-  .container {
-    position: relative;
-  }
-}
-
-.fund-logo {
-  max-width: 100px;
-  border-radius: 8px;
-  padding: 0.5rem;
-  background-color: $color-white;
-  @include media-breakpoint-up(md) {
-    max-width: 100%;
-  }
-}
-
 .badge {
   background-color: $color-purple-light;
   font-weight: normal;
@@ -664,10 +546,9 @@ body {
     margin-bottom: 0.6667rem;
   }
 
-a {
-  @include spesh-link();
-}
-  
+	a {
+	@include spesh-link();
+	}
 }
 
 .page-content__title {
@@ -763,43 +644,6 @@ a {
   margin-right: auto;
 }
 
-.row-rejected {
-  background-color: #f8f9fa; 
-  color: #6c757d; 
-  opacity: 0.6; 
-  text-decoration: line-through;
-}
-
-.fund-funder {
-  max-width: 15rem;
-  border: 0;
-  background-color: $color-grey-light;
-  border-radius: 1.5rem;
-  padding-top: var(--bs-card-spacer-y);
-  padding-bottom: var(--bs-card-spacer-y);
-  margin-bottom: var(--bs-card-spacer-y);
-  box-shadow: 0px 7px 24px $color-purple-light;
-  h3 a {
-    @include spesh-link();
-  }
-}
-
-.fund-funder__name {
-  @include font-size(1rem);
-}
-
-.fund-funder__avatar {
-  img {
-    max-width: 150px;
-    margin-left: var(--bs-card-spacer-x);
-    margin-right: var(--bs-card-spacer-x);
-  }
-}
-
-.dark-shadow {
-  box-shadow: 0px 7px 24px rgba(56, 56, 192, 0.6);
-}
-
 .table-wrapper {
   /* Add a shadow to indicate there's more to see if you scroll */
   background: 
@@ -817,43 +661,37 @@ a {
   }
 }
 
-.invitation-status{
-  border-radius: 5px;
-  color: $color-white;
-  padding: 0.25rem 0.5rem;
-}
-
-.label-rejected{
+.label-rejected {
   background-color: $color-orange-dark; 
 }
 
-.label-accepted{
+.label-accepted {
   background-color: $color-green-dark; 
 }
 
-.label-pending{
+.label-pending {
   background-color: $color-grey-dark
 }
 
 .tooltip {
 	max-width: 400px !important;
 	white-space: normal; 
-  }
+}
   
-  .tooltip-inner {
+.tooltip-inner {
 	max-width: 400px !important; 
 	text-align: left; 
-  }
+}
   
-  .logo-grid {
-	  img {
-		  max-height: 60px; 
-			width: auto;
-			object-fit: contain;
-	  }
+.logo-grid {
+  img {
+    max-height: 60px; 
+    width: auto;
+    object-fit: contain;
   }
+}
   
-  .logo-grid {
+.logo-grid {
 	display: flex;
 	justify-content: space-around;
 	align-items: center; /* Align logos vertically */
@@ -866,11 +704,11 @@ a {
 	a {
 	  display: block;
 	}
-  }
+}
   
-  .logo-grid__logo {
+.logo-grid__logo {
 	max-width: 150px;
-  }
+}
 
 
 //pagination 

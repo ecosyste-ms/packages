@@ -1,5 +1,3 @@
-Sitemap: https://packages.ecosyste.ms/sitemap/sitemap.xml.gz
-
 User-agent: GPTBot
 Disallow: /
 
