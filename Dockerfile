@@ -1,7 +1,7 @@
 FROM ruby:3.4.2-alpine
 
-ENV APP_ROOT /usr/src/app
-ENV DATABASE_PORT 5432
+ENV APP_ROOT=/usr/src/app
+ENV DATABASE_PORT=5432
 WORKDIR $APP_ROOT
 
 # * Setup system
@@ -16,6 +16,8 @@ RUN apk add --update \
     curl-dev \
     libc6-compat \
     bash \
+    yaml-dev \
+    libffi-dev \
  && rm -rf /var/cache/apk/* 
 
 # Will invalidate cache as soon as the Gemfile changes
