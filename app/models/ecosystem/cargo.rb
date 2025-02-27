@@ -92,6 +92,7 @@ module Ecosystem
     end
 
     def dependencies_metadata(name, version, _package)
+      sleep 1
       deps = get("#{@registry_url}/api/v1/crates/#{name}/#{version}/dependencies")["dependencies"]
       return [] if deps.nil?
 
