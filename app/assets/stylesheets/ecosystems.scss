@@ -21,39 +21,14 @@ $color-grey: #DCDCE0;
 $color-grey-dark: #4C4C61;
 
 /* Tokens to override bootstrap colours */
-$bootstrap-primary: $color-purple;
-$bootstrap-secondary: $color-grey;
-$bootstrap-success: $color-green;
-$bootstrap-info: $color-purple-light;
-$bootstrap-warning: $color-orange-light;
-$bootstrap-danger: $color-orange-dark;
-$bootstrap-light: $color-grey-light;
-$bootstrap-dark: $color-black;
-
-/* Bootstrap SCSS colour variables */
-$theme-colors: (
-  "primary":    $bootstrap-primary,
-  "secondary":  $bootstrap-secondary,
-  "success":    $bootstrap-success,
-  "info":       $bootstrap-info,
-  "warning":    $bootstrap-warning,
-  "danger":     $bootstrap-danger,
-  "light":      $bootstrap-light,
-  "dark":       $bootstrap-dark
-);
-
-/* Bootstrap CSS colour variables */
-:root {
-  --bs-primary: $bootstrap-primary;
-  --bs-success: $bootstrap-success;
-  --bs-danger:  $bootstrap-danger;
-  --bs-warning: $bootstrap-warning;
-  --bs-info:    $bootstrap-info;
-  --bs-light:   $bootstrap-light;
-  --bs-dark:    $bootstrap-dark;
-  --bs-list-group-border-color: $color-purple-light;
-  --bs-pagination-color: $color-purple-dark;
-}
+$primary: $color-purple;
+$secondary: $color-grey;
+$success: $color-green;
+$info: $color-purple-light;
+$warning: $color-orange-light;
+$danger: $color-orange-dark;
+$light: $color-grey-light;
+$dark: $color-black;
 
 /* Typography */
 $font-family-base: "Inter", sans-serif;
@@ -73,12 +48,18 @@ $headings-font-weight: 700;
 $display-font-weight: 900;
 $lead-font-weight: 400;
 
+$link-color: $color-purple-dark;
+$link-hover-color: $color-purple;
+
 $transition-collapse: height .35s ease;
 
 $btn-padding-y: 0.5em;
 $btn-padding-x: 1em;
 $btn-font-weight: 600;
 $btn-color: $color-white;
+
+$badge-font-weight: 400;
+$badge-padding-y: 0.4em;
 
 @import "bootstrap"; 
 
@@ -210,44 +191,12 @@ $btn-color: $color-white;
   border: 0;
 }
 
-.alert-primary {
-  background-color: lighten($color-purple-light, 4%);
-  color: $color-black;
-}
-
-.alert-secondary {
-  background-color: $color-grey-light;
-  color: $color-black;
-}
-
-.alert-success {
-  background-color: lighten($color-green-light, 8%);
-  color: darken( $color-green-dark, 25%);
-}
-
-.alert-danger {
-  background-color: lighten($color-orange-light, 4%);
-  color: darken( $color-orange-dark, 45%);
-}
-
-.alert-warning {
-  background-color: lighten($color-orange-light, 12%);
-  color: darken( $color-orange-dark, 23%);
-}
-
-.alert-info {
-  background-color: lighten($color-purple-light, 12%);
-  color: darken( $color-purple-dark, 33%);
-}
-
-.alert-light {
-  background-color: $color-grey-light;
-  color: lighten( $color-black, 33%);
-}
-
 .alert-dark {
   background-color: $color-grey-dark;
   color: $color-white;
+	a {
+		color: $color-white;
+	}
 }
 
 hr {
@@ -271,7 +220,6 @@ hr {
 body {
   font-optical-sizing: auto;
 }
-
 
 .header__global {
   width: 100%;
@@ -529,12 +477,6 @@ body {
   font-weight: 800;
 }
 
-.badge {
-  background-color: $color-purple-light;
-  font-weight: normal;
-  color: $color-black;
-}
-
 .well {
   background-color: $color-grey-light;
   border-radius: $border-radius;
@@ -710,35 +652,122 @@ body {
 	max-width: 150px;
 }
 
+.bg-secondary {
+	color: $color-black;
+}
 
-//pagination 
-.page-link {
-	color: $color-purple-dark;
-	border-color: $color-grey;
-	&:hover {
-	  color: $color-purple;
+.listing {
+	border: 0;
+	border-radius: 0;
+	border-bottom: 3px solid $color-purple-light;
+	padding: 0;
+}
+  
+  
+.listing__title {
+	@include font-size(1rem);
+	a {
+	  text-decoration: none;
+	  color: $color-black;
 	}
+}
+  
+.listing__meta {
+  font-weight: normal;
+  color: $color-grey-dark;
+  @include font-size(0.875rem);
+}
+  
+.listing__details {
+	@include font-size(0.875rem);
+}
+  
+.listing__time {
+	margin-top: 0.3888888889; //gross number but it aligns the baseline with the severity badge
+	@include font-size(0.7777777778rem);
+}
+  
+.listing-filters {
+	.list-group-item {
+	  @include font-size(0.875rem);
+	  border-color: $color-grey;
+	  word-break: break-word;
+	}
+}
+  
+.listing-controls {
+  background-color: $color-grey-light;
+  p {
+    line-height: 2.2222222222rem;
   }
-  .page-link.active, .active > .page-link {
-	background-color: $color-purple-dark;
-	border-color: $color-purple-dark;
+	.dropdown-item.active,
+	.dropdown-item:active {
+	  background-color: $color-purple;
+	}
+}
+  
+.listing-header__meta__text {
+	@include font-size(1rem);
+	line-height: 1.4rem;
+}
+  
+.listing-header__title {
+	line-break: anywhere;
+}
+
+.rounded-input-group {
+	.form-control {
+		border-top-left-radius: 800px; //magic number, but it's consistent with bootstrap
+		border-bottom-left-radius: 800px;
+	}
+	.btn {
+		border-top-right-radius: 800px;
+		border-bottom-right-radius: 800px;
+	}
+}
+
+
+// Form validation
+.invalid-feedback {
+	color: $color-orange-dark;
+}
+
+.was-validated .form-control:valid,
+.form-control.is-valid {
+  border-color: $color-green-dark;
+}
+
+.valid-feedback {
+	color: $color-green-darker;
+}
+
+.sidebar {
+	background-color: $color-grey-light;
+	p { 
+		@include font-size(1rem);
+	}
+	h2 {
+		@include font-size(1.25rem);
+
+    border-top: 1px solid $color-purple-light;
+    padding-top: 1rem;
+    &:first-of-type {
+      border-top: 0;
+      padding-top: 0;
+    }
+	}
+
+	h3 {
+		@include font-size(1rem);
+    
+	}
+
+  code {
+    color: $color-purple-dark;
   }
 
-  .badge-warning {
-	background-color: $bootstrap-warning;
+  a {
+    @include spesh-link();
+    line-break: anywhere;
   }
-  
-  .badge-danger {
-	background-color: $bootstrap-danger;
-	color: $color-white;
-  }
-  
-  .badge-dark {
-	background-color: $color-black;
-	color: $color-white;
-  }
-  
-  .badge-light {
-	background-color: $color-grey-light;
-  }
-  
+}

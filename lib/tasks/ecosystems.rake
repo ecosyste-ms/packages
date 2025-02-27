@@ -1,6 +1,6 @@
 namespace :ecosystems do
   task :update_shared_assets do
-    shared_asset_repo = "https://github.com/ecosyste-ms/advisories"
+    shared_asset_repo = "https://github.com/ecosyste-ms/documentation"
     branch = "main"
     temp_dir = "tmp/ecosystems_assets"
     ecosystems_rake_path = "lib/tasks/ecosystems.rake"
