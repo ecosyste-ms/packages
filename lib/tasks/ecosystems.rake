@@ -37,7 +37,6 @@ namespace :ecosystems do
 
     # Copy required files
     `cp #{temp_rake_file} #{ecosystems_rake_path}`
-    `cp #{temp_dir}/app/views/shared/_header.html.erb app/views/shared/` 
     `cp #{temp_dir}/app/views/shared/_footer.html.erb app/views/shared/`
     `cp #{temp_dir}/app/views/layouts/application.html.erb app/views/layouts/`
     `cp #{temp_dir}/app/assets/stylesheets/ecosystems.scss app/assets/stylesheets/`
@@ -50,7 +49,13 @@ namespace :ecosystems do
     unless File.exist?(menu_file)
       `cp #{temp_dir}/app/views/shared/_menu.html.erb #{menu_file}`
     end
-    
+
+    # Copy _header.html.erb only if it does not already exist
+    header_file = "app/views/shared/_header.html.erb"
+    unless File.exist?(header_file)
+      `cp #{temp_dir}/app/views/shared/_header.html.erb #{header_file}`
+    end
+
     # Cleanup
     `rm -rf #{temp_dir}`
 
