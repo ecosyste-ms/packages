@@ -176,7 +176,7 @@ class Version < ApplicationRecord
   end
 
   def related_tag
-    return unless package.repo_metadata && package.repo_metadata['tags']
+    return unless package.repo_metadata && package.repo_metadata['tags'] && package.repo_metadata['tags'].is_a?(Array)
     package.repo_metadata['tags'].find { |tag| tag['name'].delete_prefix('v') == number.delete_prefix('v') }
   end
 
