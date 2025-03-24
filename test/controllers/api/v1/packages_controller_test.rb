@@ -67,7 +67,7 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
     actual_response = Oj.load(@response.body)
   
-    assert_equal 'Invalid PURL format (type is required): pkg:/software.amazon.awssdk%3Ametrics-spi', actual_response['error']
+    assert_equal 'Invalid PURL format: pkg:/software.amazon.awssdk%3Ametrics-spi', actual_response['error']
   end
 
   test 'lookup by purl github actions' do
