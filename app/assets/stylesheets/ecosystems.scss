@@ -346,11 +346,11 @@ body {
   li {
     padding: var(--bs-nav-link-padding-y) var(--bs-nav-link-padding-x);
   }
-}
 
 .nav {
-  @include media-breakpoint-up(lg) {
-    justify-content: end;
+	@include media-breakpoint-up(lg) {
+	  justify-content: end;
+	}
   }
 }
 
@@ -472,10 +472,24 @@ body {
   display: inline-block
 }
 
+.stat-card-text--small {
+  font-size: 1rem;
+}
+
 .stat-card-title {
   @include font-size(2.1875rem);
   font-weight: 800;
 }
+
+.stat-card-title--large {
+  font-size: $h1-font-size;
+}
+
+.stat-card-title--small {
+  font-size: $h3-font-size;
+}
+
+
 
 .well {
   background-color: $color-grey-light;
@@ -513,7 +527,7 @@ body {
 
 .purple-grad-bg  {
   background-color: $color-purple-dark;
-  background: linear-gradient(0deg, $color-purple-dark 50%, $color-purple 100%);
+  background: linear-gradient(0deg, $color-purple-dark 0%, $color-purple 50%);
   color: $color-white;
 }
 
@@ -603,6 +617,12 @@ body {
   }
 }
 
+.table {
+	tr {
+		vertical-align: middle;
+	}
+}
+
 .label-rejected {
   background-color: $color-orange-dark; 
 }
@@ -613,6 +633,19 @@ body {
 
 .label-pending {
   background-color: $color-grey-dark
+}
+
+.label-deleted{
+  background-color: $color-grey;
+  color: $color-black !important;
+}
+
+.label-info {
+  background-color: $color-orange;
+  a {
+    // remove box shadow
+    box-shadow: none;
+  }
 }
 
 .tooltip {
@@ -669,6 +702,12 @@ body {
 	a {
 	  text-decoration: none;
 	  color: $color-black;
+    &:hover,
+    &:active,
+    &:focus {
+      color: $color-purple-dark;
+      text-decoration: underline;
+    }
 	}
 }
   
@@ -680,6 +719,9 @@ body {
   
 .listing__details {
 	@include font-size(0.875rem);
+  .badge {
+    @include font-size(1em);
+  }
 }
   
 .listing__time {
