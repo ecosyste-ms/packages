@@ -1,6 +1,11 @@
 <% @meta_description = @package.description_with_fallback %>
 <% @meta_title = "#{@package.name} | #{@registry.name}" %>
 
+<% content_for :head do %>
+  <link rel="stylesheet" href="//unpkg.com/@highlightjs/cdn-assets@11.5.1/styles/github.min.css">
+  <script defer src="//unpkg.com/@highlightjs/cdn-assets@11.5.1/highlight.min.js"></script>
+<% end %>
+
 <div class="container-sm">
 
   <%= render 'details' %>
