@@ -95,7 +95,7 @@ GEM
     appsignal (4.5.9)
       logger
       rack (>= 2.0.0)
-    autoprefixer-rails (10.4.19.0)
+    autoprefixer-rails (10.4.21.0)
       execjs (~> 2)
     base64 (0.2.0)
     benchmark (0.4.0)
@@ -125,7 +125,7 @@ GEM
       bigdecimal
       rexml
     crass (1.0.6)
-    csv (3.3.3)
+    csv (3.3.4)
     dalli (3.2.8)
     date (3.4.1)
     deb_control (0.0.1)
@@ -262,7 +262,7 @@ GEM
     puma (6.6.0)
       nio4r (~> 2.0)
     racc (1.8.1)
-    rack (3.1.12)
+    rack (3.1.13)
     rack-attack (6.7.0)
       rack (>= 1.0, < 4)
     rack-attack-rate-limit (1.1.0)
@@ -491,7 +491,7 @@ CHECKSUMS
   activesupport (8.0.2) sha256=8565cddba31b900cdc17682fd66ecd020441e3eef320a9930285394e8c07a45e
   addressable (2.8.7) sha256=462986537cf3735ab5f3c0f557f14155d778f4b43ea4f485a9deb9c8f7c58232
   appsignal (4.5.9) sha256=16833c436cddd5e6b38c0b1a83e47256db10e6de2e6338a909c9b8cbfb0b35e1
-  autoprefixer-rails (10.4.19.0) sha256=ccd21f47e5a07a581c7d239025e0d8d06a005825e96e06f72382d818fe665f4e
+  autoprefixer-rails (10.4.21.0) sha256=71b48caf850fc25275abd96f0b1fdd51c82e1c9b99cd30085cacb05da9c70235
   base64 (0.2.0) sha256=0f25e9b21a02a0cc0cea8ef92b2041035d39350946e8789c562b2d1a3da01507
   benchmark (0.4.0) sha256=0f12f8c495545e3710c3e4f0480f63f06b4c842cc94cec7f33a956f5180e874a
   bibliothecary (9.1.0)
@@ -510,7 +510,7 @@ CHECKSUMS
   counter_culture (3.9.0) sha256=f8b6aa6949ce57809a90f2702e5283fbb1d1e33bdfa67f645950556f2c4d64c2
   crack (1.0.0) sha256=c83aefdb428cdc7b66c7f287e488c796f055c0839e6e545fec2c7047743c4a49
   crass (1.0.6) sha256=dc516022a56e7b3b156099abc81b6d2b08ea1ed12676ac7a5657617f012bd45d
-  csv (3.3.3) sha256=7e2966befb7bdaf7d5e9b36e1de73e6a5e7a72f584f180a1726aec88a1b0a900
+  csv (3.3.4) sha256=e96ecd5a8c3494aa5b596282249daba5c6033203c199248e6146e36d2a78d8cd
   dalli (3.2.8) sha256=2e63595084d91fae2655514a02c5d4fc0f16c0799893794abe23bf628bebaaa5
   date (3.4.1) sha256=bf268e14ef7158009bfeaec40b5fa3c7271906e88b196d958a89d4b408abe64f
   deb_control (0.0.1) sha256=4ddb6c8ece9c57d93e45edc20340f72fcbff8a1d65b5daa8a45b5d990cd51532
@@ -585,7 +585,7 @@ CHECKSUMS
   public_suffix (6.0.1) sha256=61d44e1cab5cbbbe5b31068481cf16976dd0dc1b6b07bd95617ef8c5e3e00c6f
   puma (6.6.0) sha256=f25c06873eb3d5de5f0a4ebc783acc81a4ccfe580c760cfe323497798018ad87
   racc (1.8.1) sha256=4a7f6929691dbec8b5209a0b373bc2614882b55fc5d2e447a21aaa691303d62f
-  rack (3.1.12) sha256=00d83055c89273eb13679ab562767b8826955aa6c4371d7d161deb975c50c540
+  rack (3.1.13) sha256=170c79db621882884d9a28d9cd5bd228c663fddcd367c4dea22c9a1808645792
   rack-attack (6.7.0) sha256=3ca47e8f66cd33b2c96af53ea4754525cd928ed3fa8da10ee6dad0277791d77c
   rack-attack-rate-limit (1.1.0) sha256=04bbe6985406ac30b5aba03ca662b7f90cc02dca626f7c2d9c512c4efe323a69
   rack-cors (2.0.2) sha256=415d4e1599891760c5dc9ef0349c7fecdf94f7c6a03e75b2e7c2b54b82adda1b
@@ -651,4 +651,4 @@ RUBY VERSION
    ruby 3.4.2p28
 
 BUNDLED WITH
-   2.6.7
+   2.6.8
