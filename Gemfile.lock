@@ -361,8 +361,9 @@ GEM
     spdx (2.0.12)
       fuzzy_match (~> 2.1)
       treetop (~> 1.6)
-    sprockets (4.2.1)
+    sprockets (4.2.2)
       concurrent-ruby (~> 1.0)
+      logger
       rack (>= 2.2.4, < 4)
     sprockets-rails (3.5.2)
       actionpack (>= 6.1)
@@ -622,7 +623,7 @@ CHECKSUMS
   simple-rss (1.3.3) sha256=c96e09218473b29e49ede37e0bc17091ea178d47e69300b367e10d325381c18e
   sitemap_generator (6.3.0) sha256=1d803cbf03c44736bea05b9e3363d3523fec4e24f3abedad294d9c57cab994f3
   spdx (2.0.12) sha256=c44ad4b9fbfa8138bfc1e8065fc7cf531207b63dccd2b63b0b61df7c5bdf80a6
-  sprockets (4.2.1) sha256=951b13dd2f2fcae840a7184722689a803e0ff9d2702d902bd844b196da773f97
+  sprockets (4.2.2) sha256=761e5a49f1c288704763f73139763564c845a8f856d52fba013458f8af1b59b1
   sprockets-rails (3.5.2) sha256=a9e88e6ce9f8c912d349aa5401509165ec42326baf9e942a85de4b76dbc4119e
   stringio (3.1.6) sha256=292c495d1657adfcdf0a32eecf12a60e6691317a500c3112ad3b2e31068274f5
   strings (0.2.1) sha256=933293b3c95cf85b81eb44b3cf673e3087661ba739bbadfeadf442083158d6fb
