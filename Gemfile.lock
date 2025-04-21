@@ -95,16 +95,13 @@ GEM
     appsignal (4.5.9)
       logger
       rack (>= 2.0.0)
-    autoprefixer-rails (10.4.21.0)
-      execjs (~> 2)
     base64 (0.2.0)
     benchmark (0.4.0)
     bigdecimal (3.1.9)
     bindex (0.8.1)
     bootsnap (1.18.4)
       msgpack (~> 1.2)
-    bootstrap (5.3.3)
-      autoprefixer-rails (>= 9.1.0)
+    bootstrap (5.3.5)
       popper_js (>= 2.11.8, < 3)
     bootstrap-icons (1.0.14)
       nokogiri (~> 1)
@@ -133,7 +130,6 @@ GEM
     erubi (1.13.1)
     ethon (0.16.0)
       ffi (>= 1.15.0)
-    execjs (2.10.0)
     faraday (2.13.0)
       faraday-net_http (>= 2.0, < 3.5)
       json
@@ -491,14 +487,13 @@ CHECKSUMS
   activesupport (8.0.2) sha256=8565cddba31b900cdc17682fd66ecd020441e3eef320a9930285394e8c07a45e
   addressable (2.8.7) sha256=462986537cf3735ab5f3c0f557f14155d778f4b43ea4f485a9deb9c8f7c58232
   appsignal (4.5.9) sha256=16833c436cddd5e6b38c0b1a83e47256db10e6de2e6338a909c9b8cbfb0b35e1
-  autoprefixer-rails (10.4.21.0) sha256=71b48caf850fc25275abd96f0b1fdd51c82e1c9b99cd30085cacb05da9c70235
   base64 (0.2.0) sha256=0f25e9b21a02a0cc0cea8ef92b2041035d39350946e8789c562b2d1a3da01507
   benchmark (0.4.0) sha256=0f12f8c495545e3710c3e4f0480f63f06b4c842cc94cec7f33a956f5180e874a
   bibliothecary (9.1.0)
   bigdecimal (3.1.9) sha256=2ffc742031521ad69c2dfc815a98e426a230a3d22aeac1995826a75dabfad8cc
   bindex (0.8.1) sha256=7b1ecc9dc539ed8bccfc8cb4d2732046227b09d6f37582ff12e50a5047ceb17e
   bootsnap (1.18.4) sha256=ac4c42af397f7ee15521820198daeff545e4c360d2772c601fbdc2c07d92af55
-  bootstrap (5.3.3) sha256=008a93c37c42f1490d59a67b1d13f6063951ef66bab44b43dfd3590b66f0d05c
+  bootstrap (5.3.5) sha256=d57c9b7a21eaf2182c32fe93d1c0eaa0e1ebe82c46676c5a1fd66dd3a6ac41f8
   bootstrap-icons (1.0.14) sha256=b289aa9b6ce012dd45c9c1c64f06f89f006f792dbedcc6c6f3405e3212bd6e5a
   bootstrap-icons-helper (2.0.2) sha256=ad8afdfe80806c29831a989cd1cb703d88a629b5297d5c8e61cfcbc91f4d8327
   builder (3.3.0) sha256=497918d2f9dca528fdca4b88d84e4ef4387256d984b8154e9d5d3fe5a9c8835f
@@ -517,7 +512,6 @@ CHECKSUMS
   drb (2.2.1) sha256=e9d472bf785f558b96b25358bae115646da0dbfd45107ad858b0bc0d935cb340
   erubi (1.13.1) sha256=a082103b0885dbc5ecf1172fede897f9ebdb745a4b97a5e8dc63953db1ee4ad9
   ethon (0.16.0) sha256=bba0da1cea8ac3e1f5cdd7cb1cb5fc78d7ac562c33736f18f0c3eb2b63053d9e
-  execjs (2.10.0) sha256=6bcb8be8f0052ff9d370b65d1c080f2406656e150452a0abdb185a133048450d
   faraday (2.13.0) sha256=f2697cd61a434dc446ee035f0370de654c2ad64707c4fc2541eb2338702e9614
   faraday-follow_redirects (0.3.0) sha256=d92d975635e2c7fe525dd494fcd4b9bb7f0a4a0ec0d5f4c15c729530fdb807f9
   faraday-net_http (3.4.0) sha256=a1f1e4cd6a2cf21599c8221595e27582d9936819977bbd4089a601f24c64e54a
