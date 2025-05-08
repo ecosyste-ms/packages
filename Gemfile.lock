@@ -92,7 +92,7 @@ GEM
       uri (>= 0.13.1)
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
-    appsignal (4.5.9)
+    appsignal (4.5.11)
       logger
       rack (>= 2.0.0)
     base64 (0.2.0)
@@ -258,14 +258,14 @@ GEM
     puma (6.6.0)
       nio4r (~> 2.0)
     racc (1.8.1)
-    rack (3.1.13)
+    rack (3.1.14)
     rack-attack (6.7.0)
       rack (>= 1.0, < 4)
     rack-attack-rate-limit (1.1.0)
       rack
     rack-cors (2.0.2)
       rack (>= 2.0.0)
-    rack-session (2.1.0)
+    rack-session (2.1.1)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
     rack-test (2.2.0)
@@ -487,7 +487,7 @@ CHECKSUMS
   activestorage (8.0.2) sha256=f83d221e0f06ae38f2200e55490bd155c76d0add330f6e300e8646048d672977
   activesupport (8.0.2) sha256=8565cddba31b900cdc17682fd66ecd020441e3eef320a9930285394e8c07a45e
   addressable (2.8.7) sha256=462986537cf3735ab5f3c0f557f14155d778f4b43ea4f485a9deb9c8f7c58232
-  appsignal (4.5.9) sha256=16833c436cddd5e6b38c0b1a83e47256db10e6de2e6338a909c9b8cbfb0b35e1
+  appsignal (4.5.11) sha256=cf6141caf9e969507faba127ecb5f317685b621caef7d89568007cef21a967ae
   base64 (0.2.0) sha256=0f25e9b21a02a0cc0cea8ef92b2041035d39350946e8789c562b2d1a3da01507
   benchmark (0.4.0) sha256=0f12f8c495545e3710c3e4f0480f63f06b4c842cc94cec7f33a956f5180e874a
   bibliothecary (9.1.0)
@@ -580,11 +580,11 @@ CHECKSUMS
   public_suffix (6.0.2) sha256=bfa7cd5108066f8c9602e0d6d4114999a5df5839a63149d3e8b0f9c1d3558394
   puma (6.6.0) sha256=f25c06873eb3d5de5f0a4ebc783acc81a4ccfe580c760cfe323497798018ad87
   racc (1.8.1) sha256=4a7f6929691dbec8b5209a0b373bc2614882b55fc5d2e447a21aaa691303d62f
-  rack (3.1.13) sha256=170c79db621882884d9a28d9cd5bd228c663fddcd367c4dea22c9a1808645792
+  rack (3.1.14) sha256=84613c2a8df193bb6711d9c14ecc6d5a65a7cb4312379a65e793562608944b44
   rack-attack (6.7.0) sha256=3ca47e8f66cd33b2c96af53ea4754525cd928ed3fa8da10ee6dad0277791d77c
   rack-attack-rate-limit (1.1.0) sha256=04bbe6985406ac30b5aba03ca662b7f90cc02dca626f7c2d9c512c4efe323a69
   rack-cors (2.0.2) sha256=415d4e1599891760c5dc9ef0349c7fecdf94f7c6a03e75b2e7c2b54b82adda1b
-  rack-session (2.1.0) sha256=437c3916535b58ef71c816ce4a2dee0a01c8a52ae6077dc2b6cd19085760a290
+  rack-session (2.1.1) sha256=0b6dc07dea7e4b583f58a48e8b806d4c9f1c6c9214ebc202ec94562cbea2e4e9
   rack-test (2.2.0) sha256=005a36692c306ac0b4a9350355ee080fd09ddef1148a5f8b2ac636c720f5c463
   rack-timeout (0.7.0) sha256=757337e9793cca999bb73a61fe2a7d4280aa9eefbaf787ce3b98d860749c87d9
   rackup (2.2.1) sha256=f737191fd5c5b348b7f0a4412a3b86383f88c43e13b8217b63d4c8d90b9e798d
