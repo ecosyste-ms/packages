@@ -108,6 +108,18 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     fresh_when @packages, public: true
   end
 
+  def bulk_lookup
+    if params[:repository_urls].present?
+      @packages = Package.repository_url(params[:repository_urls]).limit(1000)
+    elsif params[:purls].present?
+      @packages = Package.purl(params[:purls]).limit(1000)
+    else
+      @packages = Package.where(name: params[:names]).limit(1000)
+    end
+    @packages = @packages.includes(:registry, {maintainers: :registry})
+    @packages = @packages.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
+  end
+
   def names
     @registry = Registry.find_by_name!(params[:id])
     scope = @registry.packages
