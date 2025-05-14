@@ -50,7 +50,7 @@ The default set of supported registries are listed in [db/seeds.rb](db/seeds.rb)
 
 You can then start syncing package data for each registry with the following command, this will take a very long time:
 
-`rake packages:sync_all_packages`
+`rake packages:sync_all`
 
 To quickly load some data you can just load recent packages:
 
