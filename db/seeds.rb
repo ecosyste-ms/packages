@@ -87,3 +87,28 @@ postmarketos_registries.each do |data|
   r.assign_attributes(data)
   r.save
 end
+
+ubuntu_registries = []
+# TODO automate version list from http://ftp.ubuntu.com/ubuntu/dists/
+ubuntu_codenames = ['bionic', 'focal', 'jammy', 'lunar', 'mantic', 'noble', 'trusty', 'xenial']
+ubuntu_versions = ['18.04', '20.04', '22.04', '23.04', '23.10', '24.04', '14.04', '16.04']
+ubuntu_codenames.each_with_index do |codename, index|
+  version = ubuntu_versions[index]
+  ubuntu_registries << {
+    name: "ubuntu-#{version}",
+    url: "https://launchpad.net/ubuntu/#{codename}",
+    ecosystem: 'ubuntu',
+    github: 'ubuntu',
+    default: false,
+    version: version,
+    metadata: {
+      codename: codename
+    }
+  }
+end
+
+ubuntu_registries.each do |data|
+  r = Registry.find_or_initialize_by(url: data[:url])
+  r.assign_attributes(data)
+  r.save
+end
