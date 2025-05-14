@@ -48,7 +48,35 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      get_json("https://maven.libraries.io/mavenCentral/recent").sort_by{|h| Time.at(h['lastModified']/1000)}.reverse.map{|h| h["name"]}.uniq.first(100) rescue []
+      (recently_updated_package_names_from_sonatype + recently_updated_package_names_from_libraries_io).uniq
+    end
+
+    def recently_updated_package_names_from_sonatype
+      url = "https://central.sonatype.com/api/internal/browse/components?repository=maven-central"
+      connection = Faraday.new(url, headers: { "User-Agent" => "packages.ecosyste.ms (packages@ecosyste.ms)", "Content-Type" => "application/json" }) do |builder|
+        builder.use Faraday::FollowRedirects::Middleware
+        builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
+        builder.request :instrumentation
+        builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
+      end
+
+      response = connection.post do |req|
+        req.body = {
+          size: 20,
+          sortField: "publishedDate",
+          sortDirection: "desc"
+        }.to_json
+      end
+
+      json = JSON.parse(response.body)
+      json.dig("components")&.map { |c| c["id"].gsub('pkg:maven/', '').gsub('/', ':') } || []
+    rescue => e
+      Rails.logger.error("Error fetching recently updated from Sonatype: #{e}")
+      []
+    end
+
+    def recently_updated_package_names_from_libraries_io
+      get_json("https://maven.libraries.io/mavenCentral/recent").sort_by{|h| Time.at(h['lastModified']/1000)}.reverse.map{|h| h["name"]}.uniq.first(20) rescue []
     end
 
     def fetch_package_metadata(name)
