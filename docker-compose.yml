@@ -13,10 +13,12 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=development
       - POSTGRES_HOST=database.service.packages.internal
+      - REDIS_URL=redis://redis.service.packages.internal:6379/0
     networks:
       - internal
     depends_on:
       - database.service.packages.internal
+      - redis.service.packages.internal
 
   database.service.packages.internal:
     image: postgres:14.1-alpine
