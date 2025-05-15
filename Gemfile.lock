@@ -99,7 +99,7 @@ GEM
     benchmark (0.4.0)
     bigdecimal (3.1.9)
     bindex (0.8.1)
-    bootsnap (1.18.4)
+    bootsnap (1.18.6)
       msgpack (~> 1.2)
     bootstrap (5.3.5)
       popper_js (>= 2.11.8, < 3)
@@ -152,16 +152,16 @@ GEM
     fuzzy_match (2.1.0)
     globalid (1.2.1)
       activesupport (>= 6.1)
-    google-protobuf (4.30.2)
+    google-protobuf (4.31.0)
       bigdecimal
       rake (>= 13)
-    google-protobuf (4.30.2-aarch64-linux)
+    google-protobuf (4.31.0-aarch64-linux-musl)
       bigdecimal
       rake (>= 13)
-    google-protobuf (4.30.2-arm64-darwin)
+    google-protobuf (4.31.0-arm64-darwin)
       bigdecimal
       rake (>= 13)
-    google-protobuf (4.30.2-x86_64-linux)
+    google-protobuf (4.31.0-x86_64-linux-gnu)
       bigdecimal
       rake (>= 13)
     groupdate (6.6.0)
@@ -493,7 +493,7 @@ CHECKSUMS
   bibliothecary (9.1.0)
   bigdecimal (3.1.9) sha256=2ffc742031521ad69c2dfc815a98e426a230a3d22aeac1995826a75dabfad8cc
   bindex (0.8.1) sha256=7b1ecc9dc539ed8bccfc8cb4d2732046227b09d6f37582ff12e50a5047ceb17e
-  bootsnap (1.18.4) sha256=ac4c42af397f7ee15521820198daeff545e4c360d2772c601fbdc2c07d92af55
+  bootsnap (1.18.6) sha256=0ae2393c1e911e38be0f24e9173e7be570c3650128251bf06240046f84a07d00
   bootstrap (5.3.5) sha256=d57c9b7a21eaf2182c32fe93d1c0eaa0e1ebe82c46676c5a1fd66dd3a6ac41f8
   bootstrap-icons (1.0.15) sha256=4a19c2360f88263c1606235813b8575ff3d6c0773174ed4ceb368628e5541ae9
   bootstrap-icons-helper (2.0.3) sha256=b021ed92708ccda4912418862d12a0ce8bea4a1945e21e5fe52e265dde0a93b5
@@ -526,10 +526,10 @@ CHECKSUMS
   ffi (1.17.2-x86_64-linux-gnu) sha256=05d2026fc9dbb7cfd21a5934559f16293815b7ce0314846fee2ac8efbdb823ea
   fuzzy_match (2.1.0) sha256=e97e25d0eaee48a5f77ed970d007c7b6ff3c6a6858303fead2d1986859204dfc
   globalid (1.2.1) sha256=70bf76711871f843dbba72beb8613229a49429d1866828476f9c9d6ccc327ce9
-  google-protobuf (4.30.2) sha256=0f35168dbeeccf13d928acf6c128cfec17b9a826ae4505246a02c115f4ae16ed
-  google-protobuf (4.30.2-aarch64-linux) sha256=a99d2f31bc2bebf4994b7cd2dd4c1d3ef28a0acc8f1b37be236982f7dc21bd8d
-  google-protobuf (4.30.2-arm64-darwin) sha256=c66a93ceef100fb2390615e76310491cc6e1944f7b9cda2cf1e3279887f817d1
-  google-protobuf (4.30.2-x86_64-linux) sha256=c96993d98732ea185d98279f6c76e130eb9595437dda39610b3398c9e348518e
+  google-protobuf (4.31.0) sha256=4db6fe6c92dd683aa9671432c38976685aaf9ba2f92450eebd63d76bcdbe4891
+  google-protobuf (4.31.0-aarch64-linux-musl) sha256=a6097e563b7fdc5fca969565cd2e026796db4e5b5abb815d858a427349f65d35
+  google-protobuf (4.31.0-arm64-darwin) sha256=2b21ed0b14c07ce63b2aa7872621edd934fb1b19879e90c211aa3e1ca056bcfb
+  google-protobuf (4.31.0-x86_64-linux-gnu) sha256=3d4f8784e448ef91831251d6c0b1d6427f1ca251cd2d33c67446d40a444d0b18
   groupdate (6.6.0) sha256=8c66d13e2fdb875133248b34d598f5a60840898b2fa679286fec1df4765f7656
   hashdiff (1.1.2) sha256=2c30eeded6ed3dce8401d2b5b99e6963fe5f14ed85e60dd9e33c545a44b71a77
   highline (3.0.1) sha256=ca18b218fd581b1fae832f89bfeaf2b34d3a93429c44fd4411042ffce286f009
