@@ -11,12 +11,12 @@ class MavenTest < ActiveSupport::TestCase
 
   test 'registry_url' do
     registry_url = @ecosystem.registry_url(@package)
-    assert_equal registry_url, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/"
+    assert_equal registry_url, "https://central.sonatype.com/artifact/dev.zio/zio-aws-autoscaling_3/"
   end
 
   test 'registry_url with version' do
     registry_url = @ecosystem.registry_url(@package, @version)
-    assert_equal registry_url, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/5.17.224.2/"
+    assert_equal registry_url, "https://central.sonatype.com/artifact/dev.zio/zio-aws-autoscaling_3/5.17.224.2/"
   end
 
   test 'download_url' do
@@ -46,7 +46,7 @@ class MavenTest < ActiveSupport::TestCase
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/"
+    assert_equal check_status_url, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3"
   end
 
   test 'purl' do
