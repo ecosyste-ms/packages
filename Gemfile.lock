@@ -183,7 +183,7 @@ GEM
       rails-dom-testing (>= 1, < 3)
       railties (>= 4.2.0)
       thor (>= 0.14, < 2.0)
-    json (2.12.1)
+    json (2.12.2)
     librariesio-gem-parser (1.0.0)
     logger (1.7.0)
     lograge (0.14.0)
@@ -344,15 +344,15 @@ GEM
     shoulda-context (2.0.0)
     shoulda-matchers (6.5.0)
       activesupport (>= 5.2.0)
-    sidekiq (7.3.9)
-      base64
-      connection_pool (>= 2.3.0)
-      logger
-      rack (>= 2.2.4)
-      redis-client (>= 0.22.2)
-    sidekiq-unique-jobs (8.0.10)
+    sidekiq (8.0.3)
+      connection_pool (>= 2.5.0)
+      json (>= 2.9.0)
+      logger (>= 1.6.2)
+      rack (>= 3.1.0)
+      redis-client (>= 0.23.2)
+    sidekiq-unique-jobs (8.0.11)
       concurrent-ruby (~> 1.0, >= 1.0.5)
-      sidekiq (>= 7.0.0, < 8.0.0)
+      sidekiq (>= 7.0.0, < 9.0.0)
       thor (>= 1.0, < 3.0)
     simple-rss (1.3.3)
     sitemap_generator (6.3.0)
@@ -542,7 +542,7 @@ CHECKSUMS
   irb (1.15.2) sha256=222f32952e278da34b58ffe45e8634bf4afc2dc7aa9da23fed67e581aa50fdba
   jbuilder (2.13.0) sha256=7200a38a1c0081aa81b7a9757e7a299db75bc58cf1fd45ca7919a91627d227d6
   jquery-rails (4.6.0) sha256=3c4e6bf47274340b44d836b8aa1b5472c6d451e2739af5ec094421f39025a7e2
-  json (2.12.1) sha256=fc8fe305c17c09c8ce6bc825f9aa61bcf232d835669b10472dffa862796f203b
+  json (2.12.2) sha256=ba94a48ad265605c8fa9a50a5892f3ba6a02661aa010f638211f3cb36f44abf4
   librariesio-gem-parser (1.0.0) sha256=e9ef327f1e9ef03425cc8687f93021857057452f491fcd632a20e30505f13a95
   logger (1.7.0) sha256=196edec7cc44b66cfb40f9755ce11b392f21f7967696af15d274dde7edff0203
   lograge (0.14.0) sha256=42371a75823775f166f727639f5ddce73dd149452a55fc94b90c303213dc9ae1
@@ -616,8 +616,8 @@ CHECKSUMS
   semantic_range (3.1.0) sha256=9fc01ee40f2e5f81042e95d421837f688177dd603753b5eab41ff9bba50a34a1
   shoulda-context (2.0.0) sha256=7adf45342cd800f507d2a053658cb1cce2884b616b26004d39684b912ea32c34
   shoulda-matchers (6.5.0) sha256=ef6b572b2bed1ac4aba6ab2c5ff345a24b6d055a93a3d1c3bfc86d9d499e3f44
-  sidekiq (7.3.9) sha256=1108712e1def89002b28e3545d5ae15d4a57ffd4d2c25d97bb1360988826b5a7
-  sidekiq-unique-jobs (8.0.10) sha256=d8abed98f863b2f830a75839e8325b892e72a2fda7cf335f10540382393c950c
+  sidekiq (8.0.3) sha256=0e618886ba2072b76e4de10a3ce4a04d09ab52da1c65b03c7eedbda5bbc76d2e
+  sidekiq-unique-jobs (8.0.11) sha256=63461bb943645d106f8e6eb10c773c231a53cf3781858158425c775484f1e181
   simple-rss (1.3.3) sha256=c96e09218473b29e49ede37e0bc17091ea178d47e69300b367e10d325381c18e
   sitemap_generator (6.3.0) sha256=1d803cbf03c44736bea05b9e3363d3523fec4e24f3abedad294d9c57cab994f3
   spdx (2.0.12) sha256=c44ad4b9fbfa8138bfc1e8065fc7cf531207b63dccd2b63b0b61df7c5bdf80a6
