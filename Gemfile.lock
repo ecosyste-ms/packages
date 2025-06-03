@@ -165,7 +165,7 @@ GEM
     google-protobuf (4.31.1-x86_64-linux-gnu)
       bigdecimal
       rake (>= 13)
-    groupdate (6.6.0)
+    groupdate (6.7.0)
       activesupport (>= 7.1)
     hashdiff (1.2.0)
     highline (3.0.1)
@@ -534,7 +534,7 @@ CHECKSUMS
   google-protobuf (4.31.1-aarch64-linux-musl) sha256=fcd5b79ac4048e89e44c4c64fb432fa6400ec3c2f0344a7effa95fbc6895d24a
   google-protobuf (4.31.1-arm64-darwin) sha256=177ca61d254e4516d42997aa9d3127fd5e04ffc60c4ad333b1515ded6d7af89d
   google-protobuf (4.31.1-x86_64-linux-gnu) sha256=7def6dbf996dab289dd541a3ee8b201e2c3e35911c274325ad9b483ebffb6dcd
-  groupdate (6.6.0) sha256=8c66d13e2fdb875133248b34d598f5a60840898b2fa679286fec1df4765f7656
+  groupdate (6.7.0) sha256=beaa8d5bf3856814681914a1d4a20e77436a2214b85d0017dc2ea5c355fb6777
   hashdiff (1.2.0) sha256=c984f13e115bfc9953332e8e83bd9d769cfde9944e2d54e07eb9df7b76e140b5
   highline (3.0.1) sha256=ca18b218fd581b1fae832f89bfeaf2b34d3a93429c44fd4411042ffce286f009
   i18n (1.14.7) sha256=ceba573f8138ff2c0915427f1fc5bdf4aa3ab8ae88c8ce255eb3ecf0a11a5d0f
