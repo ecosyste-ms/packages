@@ -83,7 +83,7 @@ module Ecosystem
       Bibliothecary::Parsers::Carthage.parse_cartfile(deps).map do |dep|
         {
           package_name: dep[:name],
-          requirements: dep[:requirement].chomp.precense || '*',
+          requirements: dep[:requirement].chomp.presence || '*',
           kind: dep[:type],
           ecosystem: 'carthage'
         }

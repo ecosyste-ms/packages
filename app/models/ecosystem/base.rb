@@ -175,7 +175,7 @@ module Ecosystem
       name.demodulize.downcase
     end
 
-    def self.namespace_seperator
+    def self.namespace_separator
       '/'
     end
 
@@ -183,8 +183,8 @@ module Ecosystem
       list.find { |p| p.purl_type == purl_type }.try(:lowercase_name)
     end
 
-    def self.purl_type_to_namespace_seperator(purl_type)
-      list.find { |p| p.purl_type == purl_type }.try(:namespace_seperator)
+    def self.purl_type_to_namespace_separator(purl_type)
+      list.find { |p| p.purl_type == purl_type }.try(:namespace_separator)
     end
 
     def namespace_package_names(namespace)

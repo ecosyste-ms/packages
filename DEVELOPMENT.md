@@ -38,7 +38,7 @@ For access the rails console use the following command:
 
 `docker-compose exec app rails console`
 
-Runing rake tasks in docker follows a similar pattern:
+Running rake tasks in docker follows a similar pattern:
 
 `docker-compose exec app rake packages:sync_recent`
 

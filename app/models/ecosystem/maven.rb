@@ -11,7 +11,7 @@ module Ecosystem
       ).to_s
     end
 
-    def self.namespace_seperator
+    def self.namespace_separator
       ':'
     end
 

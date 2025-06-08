@@ -86,7 +86,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       if params[:purl].present?
         begin
           purl = PackageURL.parse(params[:purl])
-          name = [purl.namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_seperator(purl.type))
+          name = [purl.namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
           ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type)
           registry = Registry.find_by_ecosystem(ecosystem)
           registry.sync_package_async(name) if registry
