@@ -16,7 +16,7 @@ class MavenTest < ActiveSupport::TestCase
 
   test 'registry_url with version' do
     registry_url = @ecosystem.registry_url(@package, @version)
-    assert_equal registry_url, "https://central.sonatype.com/artifact/dev.zio/zio-aws-autoscaling_3/5.17.224.2/"
+    assert_equal registry_url, "https://central.sonatype.com/artifact/dev.zio/zio-aws-autoscaling_3/5.17.224.2"
   end
 
   test 'download_url' do
