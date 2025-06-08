@@ -16,7 +16,7 @@ class MavenTest < ActiveSupport::TestCase
 
   test 'registry_url with version' do
     registry_url = @ecosystem.registry_url(@package, @version)
-    assert_equal registry_url, "https://central.sonatype.com/artifact/dev.zio/zio-aws-autoscaling_3/5.17.224.2/"
+    assert_equal registry_url, "https://central.sonatype.com/artifact/dev.zio/zio-aws-autoscaling_3/5.17.224.2"
   end
 
   test 'download_url' do
@@ -70,10 +70,19 @@ class MavenTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
+    stub_request(:post, "https://central.sonatype.com/api/internal/browse/components?repository=maven-central")
+      .with(
+        body: "{\"size\":20,\"sortField\":\"publishedDate\",\"sortDirection\":\"desc\"}",
+        headers: {
+          'Content-Type'=>'application/json',
+          'Expect'=>'',
+          'User-Agent'=>'packages.ecosyste.ms (packages@ecosyste.ms)'
+        })
+      .to_return(status: 200, body: '{"items":[]}', headers: {})
     stub_request(:get, "https://maven.libraries.io/mavenCentral/recent")
       .to_return({ status: 200, body: file_fixture('maven/recent') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 100
+    assert_equal recently_updated_package_names.length, 20
   end
 
   test 'package_metadata' do
