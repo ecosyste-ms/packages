@@ -19,7 +19,7 @@ class ApplicationController < ActionController::Base
       repository_url = "https://github.com/#{purl.namespace}/#{purl.name}"
       scope = Package.repository_url(repository_url)
     else
-      name = [namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_seperator(purl.type))
+      name = [namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
       ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type) 
       registry_ids = Registry.where(ecosystem: ecosystem).pluck(:id)
       Package.where(name: name, registry_id: registry_ids)
