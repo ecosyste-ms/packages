@@ -13,3 +13,4 @@ production:
     - Pagy::VariableError
     - Pagy::OverflowError 
     - ActiveRecord::StatementInvalid
+    - ActionDispatch::Http::MimeNegotiation::InvalidType 
