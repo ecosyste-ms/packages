@@ -3,7 +3,13 @@ require 'rake'
 
 class PackagesRakeTest < ActiveSupport::TestCase
   setup do
-    Packages::Application.load_tasks if Rake::Task.tasks.empty? 
+    # Only load tasks if they haven't been loaded yet, and suppress stats warning
+    if Rake::Task.tasks.empty?
+      # Suppress the STATS_DIRECTORIES redefinition warning when loading tasks in tests
+      silence_warnings do
+        Packages::Application.load_tasks
+      end
+    end
   end
 
   test "should sync recent packages" do
