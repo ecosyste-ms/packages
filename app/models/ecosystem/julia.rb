@@ -54,7 +54,7 @@ module Ecosystem
       @packages ||= begin
         get_json("#{@registry_url}/app/packages/info")['packages']
       rescue
-        {}
+        []
       end
     end
 

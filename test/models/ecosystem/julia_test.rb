@@ -142,4 +142,27 @@ class JuliaTest < ActiveSupport::TestCase
       {package_name: "julia", requirements: "1", kind: "runtime", ecosystem: "julia"}
     ]
   end
+
+  test 'all_package_names when API fails should return empty array' do
+    stub_request(:get, "https://juliahub.com/app/packages/info")
+      .to_return({ status: 500, body: "Server Error" })
+    
+    all_package_names = @ecosystem.all_package_names
+    assert_equal all_package_names, []
+    assert_kind_of Array, all_package_names
+  end
+
+  test 'missing_package_names should work when API fails' do
+    # Test that Registry#missing_package_names doesn't fail with Hash error
+    stub_request(:get, "https://juliahub.com/app/packages/info")
+      .to_return({ status: 500, body: "Server Error" })
+    
+    # This should not raise "undefined method '-' for an instance of Hash"
+    assert_nothing_raised do
+      @registry.missing_package_names
+    end
+    
+    # Should return empty array when all_package_names is empty and no existing packages
+    assert_equal @registry.missing_package_names, []
+  end
 end
