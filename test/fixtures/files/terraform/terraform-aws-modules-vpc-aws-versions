@@ -1,0 +1,42 @@
+{
+  "modules": [
+    {
+      "id": "terraform-aws-modules/vpc/aws",
+      "owner": "terraform-aws-modules",
+      "namespace": "terraform-aws-modules",
+      "name": "vpc",
+      "provider": "aws",
+      "description": "Terraform module which creates VPC resources on AWS",
+      "source": "https://github.com/terraform-aws-modules/terraform-aws-vpc",
+      "published_at": "2023-06-02T14:30:00Z",
+      "downloads": 1500000,
+      "verified": true,
+      "trusted": true,
+      "versions": [
+        {
+          "version": "5.0.0",
+          "published_at": "2023-06-02T14:30:00Z",
+          "submodules": [
+            {
+              "name": "complete-sg",
+              "path": "modules/complete-sg"
+            }
+          ],
+          "providers": [
+            "aws"
+          ],
+          "dependencies": []
+        },
+        {
+          "version": "4.0.2",
+          "published_at": "2023-05-01T10:00:00Z",
+          "submodules": [],
+          "providers": [
+            "aws"
+          ],
+          "dependencies": []
+        }
+      ]
+    }
+  ]
+}
