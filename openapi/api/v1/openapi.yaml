@@ -617,6 +617,18 @@ paths:
           required: false
           schema:
             type: string
+        - name: critical
+          in: query
+          description: filter by critical packages
+          required: false
+          schema:
+            type: boolean
+        - name: funding
+          in: query
+          description: filter by packages with funding information
+          required: false
+          schema:
+            type: boolean
       responses:
         200:
           description: OK
