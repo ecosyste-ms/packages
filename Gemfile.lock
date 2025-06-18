@@ -235,7 +235,7 @@ GEM
     oj (3.16.11)
       bigdecimal (>= 3.0)
       ostruct (>= 0.2)
-    ostruct (0.6.1)
+    ostruct (0.6.2)
     ox (2.14.23)
       bigdecimal (>= 3.0)
     packageurl-ruby (0.2.0)
@@ -568,7 +568,7 @@ CHECKSUMS
   nokogiri (1.18.8-arm64-darwin) sha256=483b5b9fb33653f6f05cbe00d09ea315f268f0e707cfc809aa39b62993008212
   nokogiri (1.18.8-x86_64-linux-gnu) sha256=4a747875db873d18a2985ee2c320a6070c4a414ad629da625fbc58d1a20e5ecc
   oj (3.16.11) sha256=2aab609d2bc896529bd3c70d737f591c13932a640ba6164a0f7e414efdb052b1
-  ostruct (0.6.1) sha256=09a3fb7ecc1fa4039f25418cc05ae9c82bd520472c5c6a6f515f03e4988cb817
+  ostruct (0.6.2) sha256=6d7302a299e400a2c248d6ce0dad18fc3a5714e8096facc25ffd0c54ee57cfc0
   ox (2.14.23) sha256=4a9aedb4d6c78c5ebac1d7287dc7cc6808e14a8831d7adb727438f6a1b461b66
   packageurl-ruby (0.2.0) sha256=9bef22c96622b7d3a0087a7fbca8903f9187b66fbfd6a78299ef115768f5012b
   pagy (9.3.4) sha256=b058e064bd02237e76d591e90fadc02c795426dd51f90d0c51089558bf3ab5f7
