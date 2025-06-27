@@ -115,7 +115,7 @@ GEM
       highline (~> 3.0.0)
     concurrent-ruby (1.3.5)
     connection_pool (2.5.3)
-    counter_culture (3.10.1)
+    counter_culture (3.11.0)
       activerecord (>= 4.2)
       activesupport (>= 4.2)
     crack (1.0.0)
@@ -506,7 +506,7 @@ CHECKSUMS
   commander (5.0.0) sha256=22ca42866ce5ed1a7f3e9a9c831a23d03b75b3743c7ad0302c3cbcd9eb5f257d
   concurrent-ruby (1.3.5) sha256=813b3e37aca6df2a21a3b9f1d497f8cbab24a2b94cab325bffe65ee0f6cbebc6
   connection_pool (2.5.3) sha256=cfd74a82b9b094d1ce30c4f1a346da23ee19dc8a062a16a85f58eab1ced4305b
-  counter_culture (3.10.1) sha256=aff7b1e7919b934e924a29588b8503c9b8a3aca6ac7973940dd14141df1f704f
+  counter_culture (3.11.0) sha256=c5c09e5a8e61c7569e47f44636dd89cf7cf049d69df3055708e046c358a91d10
   crack (1.0.0) sha256=c83aefdb428cdc7b66c7f287e488c796f055c0839e6e545fec2c7047743c4a49
   crass (1.0.6) sha256=dc516022a56e7b3b156099abc81b6d2b08ea1ed12676ac7a5657617f012bd45d
   csv (3.3.5) sha256=6e5134ac3383ef728b7f02725d9872934f523cb40b961479f69cf3afa6c8e73f
