@@ -117,7 +117,14 @@ class PypiTest < ActiveSupport::TestCase
         :published_at=>"2019-11-05T15:06:04", 
         :integrity=>"sha256-29ffb8f9b1d6114757a53a1a713a4e07ce4e1c4c50d31332644593db208f30e7", 
         :metadata=>{
-          :download_url=>"https://files.pythonhosted.org/packages/8b/e1/40122572f57349365391b8955178d52cd42d2c1f767030cbd196883adee7/yiban-0.1.2.32-py3-none-any.whl"
+          :download_url=>"https://files.pythonhosted.org/packages/8b/e1/40122572f57349365391b8955178d52cd42d2c1f767030cbd196883adee7/yiban-0.1.2.32-py3-none-any.whl",
+          :requires_python=>">=3.8",
+          :yanked=>false,
+          :yanked_reason=>nil,
+          :packagetype=>"bdist_wheel",
+          :python_version=>"py3",
+          :size=>8856,
+          :has_sig=>false
         }
       }
     ]
@@ -167,5 +174,23 @@ class PypiTest < ActiveSupport::TestCase
   test 'parse_repository_url prefer package name match' do
     description = JSON.parse file_fixture('pypi/easybuild-easyconfigs-json').read
     assert_equal @ecosystem.parse_repository_url(description), 'https://github.com/easybuilders/easybuild-easyconfigs'
+  end
+
+  test 'versions_metadata includes python requirements and pypi specific fields' do
+    stub_request(:get, "https://pypi.org/pypi/yiban/json")
+      .to_return({ status: 200, body: file_fixture('pypi/yiban') })
+    stub_request(:get, "https://pypistats.org/api/packages/yiban/recent")
+      .to_return({ status: 200, body: file_fixture('pypi/recent') })
+    package_metadata = @ecosystem.package_metadata('yiban')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+    
+    first_version = versions_metadata.first
+    assert_equal first_version[:metadata][:requires_python], ">=3.8"
+    assert_equal first_version[:metadata][:yanked], false
+    assert_nil first_version[:metadata][:yanked_reason]
+    assert_equal first_version[:metadata][:packagetype], "bdist_wheel"
+    assert_equal first_version[:metadata][:python_version], "py3"
+    assert_equal first_version[:metadata][:size], 8856
+    assert_equal first_version[:metadata][:has_sig], false
   end
 end

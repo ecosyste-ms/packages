@@ -135,7 +135,14 @@ module Ecosystem
             published_at: v[0]["upload_time"],
             integrity: 'sha256-' + v[0]['digests']['sha256'],
             metadata: {
-              download_url: v[0]['url']
+              download_url: v[0]['url'],
+              requires_python: v[0]['requires_python'],
+              yanked: v[0]['yanked'],
+              yanked_reason: v[0]['yanked_reason'],
+              packagetype: v[0]['packagetype'],
+              python_version: v[0]['python_version'],
+              size: v[0]['size'],
+              has_sig: v[0]['has_sig']
             }
           }
         end
