@@ -112,8 +112,10 @@ class MavenTest < ActiveSupport::TestCase
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
-      {:number=>"5.17.225.2", :published_at=>"2022-07-12 12:10:25 +0000", :licenses=>"APL2"},
-      {:number=>"5.17.102.7", :published_at=>"2022-07-12 12:10:25 +0000", :licenses=>"APL2"},
+      {:number=>"5.17.225.2", :published_at=>"2022-07-12 12:10:25 +0000", :licenses=>"APL2", 
+       :metadata=>{:properties=>{}, :java_version=>nil, :maven_compiler_source=>nil, :maven_compiler_target=>nil, :maven_compiler_release=>nil}},
+      {:number=>"5.17.102.7", :published_at=>"2022-07-12 12:10:25 +0000", :licenses=>"APL2",
+       :metadata=>{:properties=>{}, :java_version=>nil, :maven_compiler_source=>nil, :maven_compiler_target=>nil, :maven_compiler_release=>nil}},
     ]
   end
 
@@ -131,5 +133,60 @@ class MavenTest < ActiveSupport::TestCase
       {:package_name=>"dev.zio:zio-streams_3", :requirements=>"2.0.0", :kind=>"runtime", :ecosystem=>"maven"},
       {:package_name=>"dev.zio:zio-mock_3", :requirements=>"1.0.0-RC8", :kind=>"runtime", :ecosystem=>"maven"}
     ]
+  end
+
+  test 'versions_metadata includes Java version metadata for Quarkus' do
+    # Use the Quarkus parent POM fixture which has Java 11 configuration
+    stub_request(:get, "https://repo1.maven.org/maven2/io/quarkus/quarkus-parent/maven-metadata.xml")
+      .to_return({ status: 200, body: '<metadata><versioning><versions><version>3.2.0.Final</version></versions></versioning></metadata>' })
+    stub_request(:get, "https://repo1.maven.org/maven2/io/quarkus/quarkus-parent/3.2.0.Final/quarkus-parent-3.2.0.Final.pom")
+      .to_return({ status: 200, body: file_fixture('maven/quarkus-parent-3.2.0.Final.pom'), headers: { 'last-modified' => 'Tue, 12 Jul 2022 12:10:25 GMT' } })
+    
+    package_metadata = @ecosystem.package_metadata('io.quarkus:quarkus-parent')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+    
+    first_version = versions_metadata.first
+    assert_equal first_version[:metadata][:java_version], "11"
+    assert_equal first_version[:metadata][:maven_compiler_release], "11"
+    assert_equal first_version[:metadata][:maven_compiler_source], "${maven.compiler.release}"
+    assert_equal first_version[:metadata][:maven_compiler_target], "${maven.compiler.release}"
+    assert first_version[:metadata][:properties].key?("maven.compiler.release")
+    assert_equal first_version[:metadata][:properties]["maven.compiler.release"], "11"
+  end
+
+  test 'versions_metadata includes Java version metadata for Maven Compiler Plugin' do
+    # Use the Maven Compiler Plugin POM fixture which has Java 8 configuration
+    stub_request(:get, "https://repo1.maven.org/maven2/org/apache/maven/plugins/maven-compiler-plugin/maven-metadata.xml")
+      .to_return({ status: 200, body: '<metadata><versioning><versions><version>3.11.0</version></versions></versioning></metadata>' })
+    stub_request(:get, "https://repo1.maven.org/maven2/org/apache/maven/plugins/maven-compiler-plugin/3.11.0/maven-compiler-plugin-3.11.0.pom")
+      .to_return({ status: 200, body: file_fixture('maven/maven-compiler-plugin-3.11.0.pom'), headers: { 'last-modified' => 'Tue, 12 Jul 2022 12:10:25 GMT' } })
+    
+    package_metadata = @ecosystem.package_metadata('org.apache.maven.plugins:maven-compiler-plugin')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+    
+    first_version = versions_metadata.first
+    # This one has javaVersion property which takes precedence
+    assert_equal first_version[:metadata][:java_version], "8"
+    assert_equal first_version[:metadata][:maven_compiler_source], "1.8"
+    assert_equal first_version[:metadata][:maven_compiler_target], "1.8"
+    assert first_version[:metadata][:properties].key?("javaVersion")
+    assert_equal first_version[:metadata][:properties]["javaVersion"], "8"
+  end
+
+  test 'versions_metadata includes Java 17 version metadata' do
+    # Use the Java 17 example POM fixture
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/java17-example/maven-metadata.xml")
+      .to_return({ status: 200, body: '<metadata><versioning><versions><version>1.0.0</version></versions></versioning></metadata>' })
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/java17-example/1.0.0/java17-example-1.0.0.pom")
+      .to_return({ status: 200, body: file_fixture('maven/java17-example.pom'), headers: { 'last-modified' => 'Tue, 12 Jul 2022 12:10:25 GMT' } })
+    
+    package_metadata = @ecosystem.package_metadata('com.example:java17-example')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+    
+    first_version = versions_metadata.first
+    assert_equal first_version[:metadata][:java_version], "17"
+    assert_equal first_version[:metadata][:maven_compiler_release], "${java.version}"
+    assert first_version[:metadata][:properties].key?("java.version")
+    assert_equal first_version[:metadata][:properties]["java.version"], "17"
   end
 end

@@ -129,10 +129,18 @@ module Ecosystem
             license_list = nil
           end
           
+          properties = extract_pom_properties(pom)
           {
             number: version,
             published_at: Time.parse(pom.locate("publishedAt").first.text),
             licenses: license_list,
+            metadata: {
+              properties: properties,
+              java_version: extract_java_version(pom),
+              maven_compiler_source: properties["maven.compiler.source"],
+              maven_compiler_target: properties["maven.compiler.target"],
+              maven_compiler_release: properties["maven.compiler.release"]
+            }
           }
       rescue Ox::Error
         next
@@ -202,9 +210,37 @@ module Ecosystem
     end
 
     def extract_pom_properties(xml)
-      xml.locate("properties/*").each_with_object({}) do |prop_node, all|
-        all[prop_node.value] = prop_node.nodes.first if prop_node.respond_to?(:nodes)
+      xml.locate("*/properties").flat_map(&:nodes).each_with_object({}) do |prop_node, all|
+        if prop_node.respond_to?(:name) && prop_node.respond_to?(:text)
+          all[prop_node.name] = prop_node.text
+        end
       end
+    end
+
+    def extract_java_version(xml)
+      properties = extract_pom_properties(xml)
+      
+      # Look for java.version in properties first
+      java_version = properties["java.version"]
+      return java_version if java_version.present?
+      
+      # Look for javaVersion property (used by some Maven plugins)
+      java_version_alt = properties["javaVersion"]
+      return java_version_alt if java_version_alt.present?
+      
+      # Fallback to maven.compiler.release, but resolve variables if needed
+      release_version = properties["maven.compiler.release"]
+      if release_version.present? && release_version == "${java.version}"
+        return properties["java.version"]
+      elsif release_version.present?
+        return release_version
+      end
+      
+      # Fallback to maven.compiler.target
+      target_version = properties["maven.compiler.target"]
+      return target_version if target_version.present?
+      
+      nil
     end
 
     def download_pom(group_id, artifact_id, version)
