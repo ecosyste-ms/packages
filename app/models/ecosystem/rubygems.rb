@@ -86,8 +86,14 @@ module Ecosystem
           metadata: {
             platform: v["platform"],
             downloads: v["downloads_count"],
+            rubygems_version: v["rubygems_version"],
+            ruby_version: v["ruby_version"],
+            requirements: v["requirements"],
+            prerelease: v["prerelease"],
+            authors: v["authors"],
+            spec_sha: v["spec_sha"],
           }
-        }
+        }.merge(v["metadata"] || {})
       end.compact
     rescue StandardError
       []
