@@ -1,0 +1,106 @@
+{
+  "crate": {
+    "id": "serde",
+    "name": "serde",
+    "updated_at": "2025-03-09T19:13:49.968038Z",
+    "versions": [1476368],
+    "keywords": ["serde", "serialization", "json"],
+    "categories": ["data-structures", "encoding"],
+    "badges": [],
+    "created_at": "2014-11-24T20:33:18.073000+00:00",
+    "downloads": 50529288,
+    "recent_downloads": 123456,
+    "max_version": "1.0.219",
+    "max_stable_version": "1.0.219",
+    "description": "A generic serialization/deserialization framework",
+    "homepage": "https://serde.rs",
+    "documentation": "https://docs.rs/serde",
+    "repository": "https://github.com/serde-rs/serde",
+    "links": {
+      "version_downloads": "/api/v1/crates/serde/downloads",
+      "versions": null,
+      "owners": "/api/v1/crates/serde/owners",
+      "owner_team": "/api/v1/crates/serde/owner_team",
+      "owner_user": "/api/v1/crates/serde/owner_user",
+      "reverse_dependencies": "/api/v1/crates/serde/reverse_dependencies"
+    },
+    "exact_match": false
+  },
+  "versions": [
+    {
+      "id": 1476368,
+      "crate": "serde",
+      "num": "1.0.219",
+      "dl_path": "/api/v1/crates/serde/1.0.219/download",
+      "readme_path": "/api/v1/crates/serde/1.0.219/readme",
+      "updated_at": "2025-03-09T19:13:49.968038Z",
+      "created_at": "2025-03-09T19:13:49.968038Z",
+      "downloads": 50529288,
+      "features": {
+        "alloc": [],
+        "default": ["std"],
+        "derive": ["serde_derive"],
+        "rc": [],
+        "std": [],
+        "unstable": []
+      },
+      "yanked": false,
+      "yank_message": null,
+      "lib_links": null,
+      "license": "MIT OR Apache-2.0",
+      "links": {
+        "dependencies": "/api/v1/crates/serde/1.0.219/dependencies",
+        "version_downloads": "/api/v1/crates/serde/1.0.219/downloads",
+        "authors": "/api/v1/crates/serde/1.0.219/authors"
+      },
+      "crate_size": 78983,
+      "published_by": {
+        "id": 3618,
+        "login": "dtolnay",
+        "name": "David Tolnay",
+        "avatar": "https://avatars.githubusercontent.com/u/1940490?v=4",
+        "url": "https://github.com/dtolnay"
+      },
+      "audit_actions": [
+        {
+          "action": "publish",
+          "user": {
+            "id": 3618,
+            "login": "dtolnay",
+            "name": "David Tolnay",
+            "avatar": "https://avatars.githubusercontent.com/u/1940490?v=4",
+            "url": "https://github.com/dtolnay"
+          },
+          "time": "2025-03-09T19:13:49.968038Z"
+        }
+      ],
+      "checksum": "5f0e2c6ed6606019b4e29e69dbaba95b11854410e5347d525002456dbbb786b6",
+      "rust_version": "1.31",
+      "has_lib": true,
+      "bin_names": [],
+      "edition": "2018",
+      "description": "A generic serialization/deserialization framework",
+      "homepage": "https://serde.rs",
+      "documentation": "https://docs.rs/serde",
+      "repository": "https://github.com/serde-rs/serde"
+    }
+  ],
+  "keywords": [
+    {
+      "id": "serde",
+      "keyword": "serde",
+      "crates_cnt": 2345,
+      "created_at": "2014-11-24T20:33:18.073000+00:00"
+    }
+  ],
+  "categories": [
+    {
+      "id": "data-structures",
+      "category": "Data structures",
+      "slug": "data-structures",
+      "description": "Data structure implementations",
+      "crates_cnt": 1234,
+      "created_at": "2017-01-17T19:13:05.112025+00:00"
+    }
+  ]
+}

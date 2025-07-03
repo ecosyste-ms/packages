@@ -89,6 +89,15 @@ module Ecosystem
             license: version["license"],
             crate_size: version["crate_size"],
             rust_version: version["rust_version"],
+            features: version["features"],
+            yanked: version["yanked"],
+            yank_message: version["yank_message"],
+            dl_path: version["dl_path"],
+            audit_actions: version["audit_actions"],
+            lib_links: version["lib_links"],
+            has_lib: version["has_lib"],
+            bin_names: version["bin_names"],
+            edition: version["edition"]
           }
         }
       end

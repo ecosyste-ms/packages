@@ -117,7 +117,16 @@ class CargoTest < ActiveSupport::TestCase
       :size=>nil,
       :license=>"MIT",
       :crate_size=>3200,
-      :rust_version=>nil}},
+      :rust_version=>nil,
+      :features=>{},
+      :yanked=>false,
+      :yank_message=>nil,
+      :dl_path=>"/api/v1/crates/parameters_lib/0.2.2/download",
+      :audit_actions=>[{"action"=>"publish", "time"=>"2022-03-29T13:35:06.927472+00:00", "user"=>{"avatar"=>"https://avatars.githubusercontent.com/u/353709?v=4", "id"=>65133, "login"=>"TheFox", "name"=>"Christian Mayer", "url"=>"https://github.com/TheFox"}}],
+      :lib_links=>nil,
+      :has_lib=>nil,
+      :bin_names=>nil,
+      :edition=>nil}},
    {:number=>"0.1.0",
     :published_at=>"2022-03-24T16:19:57.595451+00:00",
     :status=>nil,
@@ -134,7 +143,16 @@ class CargoTest < ActiveSupport::TestCase
       :size=>nil,
       :license=>"MIT",
       :crate_size=>3033,
-      :rust_version=>nil}},
+      :rust_version=>nil,
+      :features=>{},
+      :yanked=>false,
+      :yank_message=>nil,
+      :dl_path=>"/api/v1/crates/parameters_lib/0.1.0/download",
+      :audit_actions=>[{"action"=>"publish", "time"=>"2022-03-24T16:19:57.595451+00:00", "user"=>{"avatar"=>"https://avatars.githubusercontent.com/u/353709?v=4", "id"=>65133, "login"=>"TheFox", "name"=>"Christian Mayer", "url"=>"https://github.com/TheFox"}}],
+      :lib_links=>nil,
+      :has_lib=>nil,
+      :bin_names=>nil,
+      :edition=>nil}},
    {:number=>"0.1.0-dev.2",
     :published_at=>"2022-03-24T16:08:54.337646+00:00",
     :status=>nil,
@@ -151,7 +169,16 @@ class CargoTest < ActiveSupport::TestCase
       :size=>nil,
       :license=>"MIT",
       :crate_size=>3039,
-      :rust_version=>nil}},
+      :rust_version=>nil,
+      :features=>{},
+      :yanked=>false,
+      :yank_message=>nil,
+      :dl_path=>"/api/v1/crates/parameters_lib/0.1.0-dev.2/download",
+      :audit_actions=>[{"action"=>"publish", "time"=>"2022-03-24T16:08:54.337646+00:00", "user"=>{"avatar"=>"https://avatars.githubusercontent.com/u/353709?v=4", "id"=>65133, "login"=>"TheFox", "name"=>"Christian Mayer", "url"=>"https://github.com/TheFox"}}],
+      :lib_links=>nil,
+      :has_lib=>nil,
+      :bin_names=>nil,
+      :edition=>nil}},
    {:number=>"0.1.0-dev.1",
     :published_at=>"2022-03-24T15:58:36.858899+00:00",
     :status=>nil,
@@ -168,7 +195,16 @@ class CargoTest < ActiveSupport::TestCase
       :size=>nil,
       :license=>"MIT",
       :crate_size=>3026,
-      :rust_version=>nil}}]
+      :rust_version=>nil,
+      :features=>{},
+      :yanked=>false,
+      :yank_message=>nil,
+      :dl_path=>"/api/v1/crates/parameters_lib/0.1.0-dev.1/download",
+      :audit_actions=>[{"action"=>"publish", "time"=>"2022-03-24T15:58:36.858899+00:00", "user"=>{"avatar"=>"https://avatars.githubusercontent.com/u/353709?v=4", "id"=>65133, "login"=>"TheFox", "name"=>"Christian Mayer", "url"=>"https://github.com/TheFox"}}],
+      :lib_links=>nil,
+      :has_lib=>nil,
+      :bin_names=>nil,
+      :edition=>nil}}]
   end
 
   test 'dependencies_metadata' do
@@ -181,5 +217,35 @@ class CargoTest < ActiveSupport::TestCase
 
   test 'maintainer_url' do 
     assert_equal @ecosystem.maintainer_url(@maintainer), 'https://crates.io/users/foo'
+  end
+
+  test 'versions_metadata includes cargo specific fields' do
+    stub_request(:get, "https://crates.io/api/v1/crates/parameters_lib")
+      .to_return({ status: 200, body: file_fixture('cargo/parameters_lib') })
+    package_metadata = @ecosystem.package_metadata('parameters_lib')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+    
+    first_version = versions_metadata.first
+    assert_equal first_version[:metadata][:features], {}
+    assert_equal first_version[:metadata][:yanked], false
+    assert_equal first_version[:metadata][:dl_path], "/api/v1/crates/parameters_lib/0.2.2/download"
+    assert_equal first_version[:metadata][:audit_actions].first["action"], "publish"
+    assert_nil first_version[:metadata][:rust_version]
+  end
+
+  test 'versions_metadata includes newer cargo api fields' do
+    stub_request(:get, "https://crates.io/api/v1/crates/serde")
+      .to_return({ status: 200, body: file_fixture('cargo/serde_fresh') })
+    package_metadata = @ecosystem.package_metadata('serde')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+    
+    first_version = versions_metadata.first
+    assert_equal first_version[:metadata][:edition], "2018"
+    assert_equal first_version[:metadata][:rust_version], "1.31"
+    assert_equal first_version[:metadata][:has_lib], true
+    assert_equal first_version[:metadata][:bin_names], []
+    assert_nil first_version[:metadata][:yank_message]
+    assert_nil first_version[:metadata][:lib_links]
+    assert_equal first_version[:metadata][:features]["default"], ["std"]
   end
 end
