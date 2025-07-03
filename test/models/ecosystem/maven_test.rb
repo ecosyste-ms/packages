@@ -257,10 +257,10 @@ class MavenTest < ActiveSupport::TestCase
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
     
     # Check package-level metadata
-    assert_includes package_metadata[:repositories], 'https://repository.jboss.org/nexus/content/repositories/releases'
-    assert_includes package_metadata[:repositories], 'https://repository.apache.org/content/repositories/snapshots'
-    assert_includes package_metadata[:distribution_repositories], 'https://nexus.example.com/repository/releases'
-    assert_includes package_metadata[:distribution_repositories], 'https://nexus.example.com/repository/snapshots'
+    assert_includes package_metadata[:metadata][:repositories], 'https://repository.jboss.org/nexus/content/repositories/releases'
+    assert_includes package_metadata[:metadata][:repositories], 'https://repository.apache.org/content/repositories/snapshots'
+    assert_includes package_metadata[:metadata][:distribution_repositories], 'https://nexus.example.com/repository/releases'
+    assert_includes package_metadata[:metadata][:distribution_repositories], 'https://nexus.example.com/repository/snapshots'
     
     # Check version-level metadata
     first_version = versions_metadata.first
@@ -334,9 +334,9 @@ class MavenTest < ActiveSupport::TestCase
     assert_equal package_metadata[:namespace], 'org.apache.maven.archetypes'
     
     # Test repository URL extraction from package-level metadata
-    assert_includes package_metadata[:repositories], 'https://repository.apache.org/content/repositories/snapshots'
-    assert_includes package_metadata[:distribution_repositories], 'https://repository.apache.org/content/repositories/releases'
-    assert_includes package_metadata[:distribution_repositories], 'https://repository.apache.org/content/repositories/snapshots'
+    assert_includes package_metadata[:metadata][:repositories], 'https://repository.apache.org/content/repositories/snapshots'
+    assert_includes package_metadata[:metadata][:distribution_repositories], 'https://repository.apache.org/content/repositories/releases'
+    assert_includes package_metadata[:metadata][:distribution_repositories], 'https://repository.apache.org/content/repositories/snapshots'
     
     # Test version metadata
     versions_metadata = apache_snapshots_ecosystem.versions_metadata(package_metadata)

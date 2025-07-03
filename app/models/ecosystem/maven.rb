@@ -253,8 +253,10 @@ module Ecosystem
         ),
         licenses: licenses(version_xml).join(","),
         properties: parent[:properties].merge(extract_pom_properties(xml)),
-        repositories: extract_repository_urls(xml),
-        distribution_repositories: extract_distribution_repository_urls(xml)
+        metadata: {
+          repositories: extract_repository_urls(xml),
+          distribution_repositories: extract_distribution_repository_urls(xml)
+        }.select { |_k, v| v.present? && v.any? }
       }.select { |_k, v| v.present? }
 
       parent.merge(child)
