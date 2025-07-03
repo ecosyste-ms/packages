@@ -92,8 +92,8 @@ module Ecosystem
             prerelease: v["prerelease"],
             authors: v["authors"],
             spec_sha: v["spec_sha"],
-          }
-        }.merge(v["metadata"] || {})
+          }.merge(v["metadata"] || {})
+        }
       end.compact
     rescue StandardError
       []
