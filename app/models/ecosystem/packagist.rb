@@ -97,12 +97,24 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       acceptable_versions(pkg_metadata[:versions]).map do |name, version|
+        metadata = {}
+        
+        metadata[:download_url] = version['dist']['url'] if version['dist']
+        
+        php_version = extract_php_version(version)
+        metadata[:php_version] = php_version if php_version.present?
+        
+        platform_requirements = extract_platform_requirements(version)
+        metadata[:platform_requirements] = platform_requirements if platform_requirements.present?
+        
+        metadata[:autoload] = version["autoload"] if version["autoload"].present?
+        metadata[:extra] = version["extra"] if version["extra"].present?
+        metadata[:suggest] = version["suggest"] if version["suggest"].present?
+        
         {
           number: version["version"],
           published_at: version["time"],
-          metadata: {
-            download_url: version['dist'] ? version['dist']['url'] : nil
-          }
+          metadata: metadata
         }
       end
     end
@@ -136,6 +148,22 @@ module Ecosystem
 
     def maintainer_url(maintainer)
       "https://packagist.org/users/#{maintainer.login}"
+    end
+
+    private
+
+    def extract_php_version(version)
+      require_section = version["require"] || {}
+      require_section["php"]
+    end
+
+    def extract_platform_requirements(version)
+      require_section = version["require"] || {}
+      platform_reqs = require_section.select do |package, _constraint|
+        package.start_with?("ext-") || package.start_with?("lib-") || package == "php-64bit" || package == "php-zts"
+      end
+      
+      platform_reqs.empty? ? nil : platform_reqs
     end
   end
 end
