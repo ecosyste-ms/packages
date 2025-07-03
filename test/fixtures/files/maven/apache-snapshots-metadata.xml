@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>org.apache.maven.archetypes</groupId>
+  <artifactId>maven-archetype-profiles</artifactId>
+  <versioning>
+    <latest>1.3-SNAPSHOT</latest>
+    <release></release>
+    <versions>
+      <version>1.0-SNAPSHOT</version>
+      <version>1.3-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20181013060323</lastUpdated>
+  </versioning>
+</metadata>
