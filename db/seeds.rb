@@ -21,7 +21,7 @@ default_registries = [
   {name: 'deno.land', url: 'https://deno.land', ecosystem: 'deno', github: 'denoland', default: true},
   {name: 'clojars.org', url: 'https://repo.clojars.org', ecosystem: 'clojars', github: 'clojars', default: true},
   {name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven', github: 'maven-central', default: true},
-  {name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven', github: 'jboss', default: false},
+  {name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven', github: 'jboss-eap', default: false},
   {name: 'repository.apache.org-releases', url: 'https://repository.apache.org/content/repositories/releases', ecosystem: 'maven', github: 'apache', default: false},
   {name: 'repository.apache.org-snapshots', url: 'https://repository.apache.org/content/repositories/snapshots', ecosystem: 'maven', github: 'apache', default: false},
   {name: 'artifacts.alfresco.com', url: 'https://artifacts.alfresco.com/nexus/content/repositories/public', ecosystem: 'maven', github: 'alfresco', default: false},
