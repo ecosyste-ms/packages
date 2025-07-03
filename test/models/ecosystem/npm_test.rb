@@ -446,7 +446,10 @@ class NpmTest < ActiveSupport::TestCase
       "_npmVersion"=>"6.7.0",
       "_nodeVersion"=>"11.10.1",
       "_hasShrinkwrap"=>false,
-      "directories"=>{}}}]
+      "directories"=>{},
+      "engines"=>{"node"=>">=6.0.0"},
+      "exports"=>nil,
+      "browserify"=>nil}}]
   end
 
   test 'dependencies_metadata' do
@@ -464,5 +467,21 @@ class NpmTest < ActiveSupport::TestCase
 
   test 'maintainer_url' do 
     assert_equal @ecosystem.maintainer_url(@maintainer), 'https://www.npmjs.com/~foo'
+  end
+
+  test 'versions_metadata includes npm specific fields for modern packages' do
+    stub_request(:get, "https://registry.npmjs.org/react")
+      .to_return({ status: 200, body: file_fixture('npm/react_fresh') })
+    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/react")
+      .to_return({ status: 200, body: '{"downloads": 50000000}' })
+    package_metadata = @ecosystem.package_metadata('react')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+    
+    first_version = versions_metadata.first
+    assert_equal first_version[:metadata]["engines"], {"node" => ">=0.10.0"}
+    assert_equal first_version[:metadata]["_nodeVersion"], "18.20.0"
+    assert_equal first_version[:metadata]["_npmVersion"], "10.5.0"
+    assert_equal first_version[:metadata]["exports"]["."]["default"], "./index.js"
+    assert_equal first_version[:metadata]["browserify"]["transform"], ["loose-envify"]
   end
 end

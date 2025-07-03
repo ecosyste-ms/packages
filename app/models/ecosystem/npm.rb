@@ -184,7 +184,10 @@ module Ecosystem
             "_npmVersion" => v["_npmVersion"],
             "_nodeVersion" => v["_nodeVersion"],
             "_hasShrinkwrap" => v["_hasShrinkwrap"],
-            "directories" => v["directories"]
+            "directories" => v["directories"],
+            "engines" => v["engines"],
+            "exports" => v["exports"],
+            "browserify" => v["browserify"]
           }
         }
       end
