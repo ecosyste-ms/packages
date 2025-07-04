@@ -28,7 +28,7 @@
 
   <div class='row'>
 
-    <% @registries.group_by(&:ecosystem).each do |ecosystem, registries| %>
+    <% @registries.group_by(&:github).each do |ecosystem, registries| %>
       <% if registries.length > 1 && registries.all?{|r| r.version.present? } %>
         <% registry = registries.first %>
         <div class='col-lg-4'>
