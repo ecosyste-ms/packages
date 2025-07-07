@@ -721,7 +721,7 @@ class Package < ApplicationRecord
       while next_url.present?
         puts next_url
         response = Faraday.get(next_url) do |req|
-          req.headers['User-Agent'] = 'packages.ecosyste.ms (packages@ecosyste.ms)'
+          req.headers['User-Agent'] = 'packages.ecosyste.ms'
         end
         next unless response.success?
         pkgs = JSON.parse response.body

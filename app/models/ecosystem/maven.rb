@@ -77,7 +77,7 @@ module Ecosystem
       return [] unless is_maven_central?
       
       url = "https://central.sonatype.com/api/internal/browse/components?repository=maven-central"
-      connection = Faraday.new(url, headers: { "User-Agent" => "packages.ecosyste.ms (packages@ecosyste.ms)", "Content-Type" => "application/json" }) do |builder|
+      connection = Faraday.new(url, headers: { "User-Agent" => "packages.ecosyste.ms", "Content-Type" => "application/json" }) do |builder|
         builder.use Faraday::FollowRedirects::Middleware
         builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
         builder.request :instrumentation

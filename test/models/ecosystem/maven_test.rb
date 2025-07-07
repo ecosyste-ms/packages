@@ -76,7 +76,7 @@ class MavenTest < ActiveSupport::TestCase
         headers: {
           'Content-Type'=>'application/json',
           'Expect'=>'',
-          'User-Agent'=>'packages.ecosyste.ms (packages@ecosyste.ms)'
+          'User-Agent'=>'packages.ecosyste.ms'
         })
       .to_return(status: 200, body: '{"items":[]}', headers: {})
     stub_request(:get, "https://maven.libraries.io/mavenCentral/recent")
@@ -226,7 +226,7 @@ class MavenTest < ActiveSupport::TestCase
     
     # Mock JBoss archetype-catalog.xml (empty)
     stub_request(:get, "https://repository.jboss.org/nexus/content/repositories/releases/archetype-catalog.xml")
-      .with(headers: { 'Expect' => '', 'User-Agent' => 'packages.ecosyste.ms (packages@ecosyste.ms)' })
+      .with(headers: { 'Expect' => '', 'User-Agent' => 'packages.ecosyste.ms' })
       .to_return({ status: 200, body: '<archetype-catalog><archetypes></archetypes></archetype-catalog>' })
     
     # Non-central registries with empty archetype catalog return empty array
@@ -299,7 +299,7 @@ class MavenTest < ActiveSupport::TestCase
     XML
     
     stub_request(:get, "https://repository.jboss.org/nexus/content/repositories/releases/archetype-catalog.xml")
-      .with(headers: { 'Expect' => '', 'User-Agent' => 'packages.ecosyste.ms (packages@ecosyste.ms)' })
+      .with(headers: { 'Expect' => '', 'User-Agent' => 'packages.ecosyste.ms' })
       .to_return({ status: 200, body: catalog_xml })
     
     recent_packages = jboss_ecosystem.recently_updated_package_names
