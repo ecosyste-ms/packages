@@ -1,4 +1,6 @@
 class Package < ApplicationRecord
+  include EcosystemsApiClient
+  
   validates_presence_of :registry_id, :name, :ecosystem
   validates_uniqueness_of :name, scope: :registry_id
 
@@ -396,45 +398,23 @@ class Package < ApplicationRecord
   end
 
   def ping_usage
-    connection = Faraday.new 'https://repos.ecosyste.ms' do |builder|
-      builder.use Faraday::FollowRedirects::Middleware
-      builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
-      builder.response :json
-      builder.request :json
-      builder.request :instrumentation
-      builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
-    end
-    connection.get("/api/v1/usage/#{ecosystem}/#{name}/ping")
+    ecosystems_api_get("https://repos.ecosyste.ms/api/v1/usage/#{ecosystem}/#{name}/ping")
   end
 
   def fetch_repo_metadata
     return if repository_or_homepage_url.blank?
 
-    connection = Faraday.new 'https://repos.ecosyste.ms' do |builder|
-      builder.use Faraday::FollowRedirects::Middleware
-      builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
-      builder.response :json
-      builder.request :json
-      builder.request :instrumentation
-      builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
-    end
+    json = ecosystems_api_get('https://repos.ecosyste.ms/api/v1/repositories/lookup', params: { url: repository_or_homepage_url })
     
-    response = connection.get('/api/v1/repositories/lookup', url: repository_or_homepage_url)
-
-    if response.success?
-      return response.body
-    else 
+    if json.nil?
       # check for renamed repos
       resp = Faraday.head(repository_or_homepage_url)
       if resp.status == 301
-        response = connection.get('/api/v1/repositories/lookup', url: resp.headers['location'])
-        if response.success?
-          return response.body
-        end
+        json = ecosystems_api_get('https://repos.ecosyste.ms/api/v1/repositories/lookup', params: { url: resp.headers['location'] })
       end
     end
-    return nil
     
+    json || {}
   rescue
     {}
   end
@@ -443,18 +423,7 @@ class Package < ApplicationRecord
     return if repository_or_homepage_url.blank?
     return if repo_metadata['host'].blank?
 
-    connection = Faraday.new 'https://repos.ecosyste.ms' do |builder|
-      builder.use Faraday::FollowRedirects::Middleware
-      builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
-      builder.response :json
-      builder.request :json
-      builder.request :instrumentation
-      builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
-    end
-
-    response = connection.get("/api/v1/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}/tags?per_page=1000")
-    return nil unless response.success?
-    return response.body
+    ecosystems_api_get("https://repos.ecosyste.ms/api/v1/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}/tags?per_page=1000") || []
   rescue
     []
   end
@@ -463,19 +432,7 @@ class Package < ApplicationRecord
     return if repository_or_homepage_url.blank?
     return if repo_metadata['host'].blank?
 
-    connection = Faraday.new 'https://repos.ecosyste.ms' do |builder|
-      builder.use Faraday::FollowRedirects::Middleware
-      builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
-      builder.response :json
-      builder.request :json
-      builder.request :instrumentation
-      builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
-    end
-
-    response = connection.get("/api/v1/hosts/#{repo_metadata['host']['name']}/owners/#{repo_metadata['owner']}")
-    
-    return nil unless response.success?
-    return response.body
+    ecosystems_api_get("https://repos.ecosyste.ms/api/v1/hosts/#{repo_metadata['host']['name']}/owners/#{repo_metadata['owner']}")
   rescue
     nil
   end
@@ -505,35 +462,13 @@ class Package < ApplicationRecord
   end
 
   def fetch_dependent_repos(page = 1)
-    connection = Faraday.new 'https://repos.ecosyste.ms' do |builder|
-      builder.use Faraday::FollowRedirects::Middleware
-      builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
-      builder.response :json
-      builder.request :json
-      builder.request :instrumentation
-      builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
-    end
-
-    response = connection.get("/api/v1/usage/#{ecosystem}/#{to_param}/dependencies?per_page=1000&page=#{page}")
-    return nil unless response.success?
-    return response.body
+    ecosystems_api_get("https://repos.ecosyste.ms/api/v1/usage/#{ecosystem}/#{to_param}/dependencies?per_page=1000&page=#{page}")
   rescue
     nil
   end
 
   def fetch_dependent_repos_count
-    connection = Faraday.new 'https://repos.ecosyste.ms' do |builder|
-      builder.use Faraday::FollowRedirects::Middleware
-      builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
-      builder.response :json
-      builder.request :json
-      builder.request :instrumentation
-      builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
-    end
-
-    response = connection.get("/api/v1/usage/#{ecosystem}/#{to_param}?per_page=1")
-    return nil unless response.success?
-    return response.body
+    ecosystems_api_get("https://repos.ecosyste.ms/api/v1/usage/#{ecosystem}/#{to_param}?per_page=1")
   rescue
     nil
   end
@@ -562,31 +497,16 @@ class Package < ApplicationRecord
     return if repo_metadata.blank?
     return if repo_metadata['host'].blank?
 
-    connection = Faraday.new 'https://issues.ecosyste.ms' do |builder|
-      builder.use Faraday::FollowRedirects::Middleware
-      builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
-      builder.response :json
-      builder.request :json
-      builder.request :instrumentation
-      builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
-    end
-    connection.get("/api/v1/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}/ping")
+    ecosystems_api_get("https://issues.ecosyste.ms/api/v1/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}/ping")
   end
 
   def fetch_issue_metadata
     return if repo_metadata.blank?
-    connection = Faraday.new 'https://issues.ecosyste.ms' do |builder|
-      builder.use Faraday::FollowRedirects::Middleware
-      builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
-      builder.response :json
-      builder.request :json
-      builder.request :instrumentation
-      builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
-    end
-
-    response = connection.get("/api/v1/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}")
-    return nil unless response.success?
-    return response.body.except('full_name', 'host', 'owner','html_url', 'issue_authors', 'repository_url', 'issue_labels_count', 'pull_request_labels_count', 
+    
+    json = ecosystems_api_get("https://issues.ecosyste.ms/api/v1/hosts/#{repo_metadata['host']['name']}/repositories/#{repo_metadata['full_name']}")
+    return nil unless json
+    
+    json.except('full_name', 'host', 'owner','html_url', 'issue_authors', 'repository_url', 'issue_labels_count', 'pull_request_labels_count', 
       'issue_author_associations_count', 'pull_request_author_associations_count', 'pull_request_authors', 'past_year_issue_labels_count', 'past_year_pull_request_labels_count', 
       'past_year_issue_author_associations_count', 'past_year_pull_request_author_associations_count', 'past_year_issue_authors', 'past_year_pull_request_authors',
       'created_at', 'updated_at', 'status')
@@ -711,7 +631,7 @@ class Package < ApplicationRecord
 
   def ping_commits
     return unless repo_metadata.present?
-    Faraday.get("#{commits_api_url}/ping")
+    ecosystems_api_get("#{commits_api_url}/ping")
   end
   
   def sync_maintainers
@@ -728,10 +648,7 @@ class Package < ApplicationRecord
   end
 
   def fetch_advisories
-    url = "https://advisories.ecosyste.ms/api/v1/advisories?ecosystem=#{ecosystem}&package_name=#{to_param}"
-    response = Faraday.get(url)
-    return nil unless response.success?
-    return JSON.parse response.body
+    ecosystems_api_get("https://advisories.ecosyste.ms/api/v1/advisories?ecosystem=#{ecosystem}&package_name=#{to_param}") || []
   rescue
     []
   end
@@ -747,10 +664,9 @@ class Package < ApplicationRecord
   end
 
   def self.update_advisories
-    url = "https://advisories.ecosyste.ms/api/v1/advisories?updated_after=#{1.day.ago.iso8601}"
-    response = Faraday.get(url)
-    return nil unless response.success?
-    advisories = JSON.parse response.body
+    advisories = ecosystems_api_get("https://advisories.ecosyste.ms/api/v1/advisories?updated_after=#{1.day.ago.iso8601}")
+    return if advisories.nil?
+    
     pkgs = advisories.map{|a| a['packages'].map{|p| [p['ecosystem'],p['package_name']]} }.uniq.flatten(1)
     pkgs.each do |ecosystem, package_name|
       Registry.where(ecosystem: ecosystem).each do |registry|
@@ -760,10 +676,9 @@ class Package < ApplicationRecord
   end
 
   def self.update_all_advisories
-    url = "https://advisories.ecosyste.ms/api/v1/advisories/packages"
-    response = Faraday.get(url)
-    return nil unless response.success?
-    packages = JSON.parse response.body
+    packages = ecosystems_api_get("https://advisories.ecosyste.ms/api/v1/advisories/packages")
+    return if packages.nil?
+    
     packages.each do |h|
       Registry.where(ecosystem: h['ecosystem']).each do |registry|
         puts "#{registry.name} #{h['package_name']}"
@@ -783,9 +698,7 @@ class Package < ApplicationRecord
   end
 
   def fetch_docker_usage
-    response = Faraday.get(docker_usage_api_url)
-    return nil unless response.success?
-    return JSON.parse response.body
+    ecosystems_api_get(docker_usage_api_url)
   rescue
     nil
   end
@@ -797,10 +710,9 @@ class Package < ApplicationRecord
   end
 
   def self.update_docker_usages
-    url = 'https://docker.ecosyste.ms/api/v1/usage/'
-    response = Faraday.get(url)
-    return nil unless response.success?
-    ecosystems = JSON.parse response.body
+    ecosystems = ecosystems_api_get('https://docker.ecosyste.ms/api/v1/usage/')
+    return if ecosystems.nil?
+    
     ecosystems.each do |ecosystem|
       ecosystem_name = Ecosystem::Base.purl_type_to_ecosystem ecosystem['name']
       next if ecosystem_name.nil?
@@ -808,7 +720,9 @@ class Package < ApplicationRecord
       next_url = ecosystem['ecosystem_url']+'?per_page=1000'
       while next_url.present?
         puts next_url
-        response = Faraday.get(next_url)
+        response = Faraday.get(next_url) do |req|
+          req.headers['User-Agent'] = 'packages.ecosyste.ms (packages@ecosyste.ms)'
+        end
         next unless response.success?
         pkgs = JSON.parse response.body
         pkgs.each do |pkg|
@@ -830,10 +744,7 @@ class Package < ApplicationRecord
     return if repo_metadata.blank?
     return if repo_metadata['metadata']['files']['readme'].blank?
     
-    url = 'https://archives.ecosyste.ms/api/v1/archives/readme?url='+download_url
-    response = Faraday.get(url)
-    return nil unless response.success?
-    json = JSON.parse response.body
+    ecosystems_api_get('https://archives.ecosyste.ms/api/v1/archives/readme?url='+download_url)
   rescue
     nil
   end

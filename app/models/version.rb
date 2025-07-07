@@ -1,4 +1,6 @@
 class Version < ApplicationRecord
+  include EcosystemsApiClient
+  
   validates_presence_of :package_id, :number
   validates_uniqueness_of :number, scope: :package_id, case_sensitive: false
 
@@ -45,7 +47,7 @@ class Version < ApplicationRecord
     return [] unless download_url.present?
 
     begin
-      Oj.load(Faraday.get(archive_list_url).body)
+      ecosystems_api_get(archive_list_url) || []
     rescue
       []
     end
@@ -55,7 +57,7 @@ class Version < ApplicationRecord
     return {} unless download_url.present?
 
     begin
-      Oj.load(Faraday.get(archive_contents_url(path)).body)
+      ecosystems_api_get(archive_contents_url(path)) || {}
     rescue
       {}
     end
@@ -143,7 +145,7 @@ class Version < ApplicationRecord
 
   def calculate_integrity
     begin
-      Oj.load(Faraday.get(digest_url).body)
+      ecosystems_api_get(digest_url) || {}
     rescue
       {}
     end
