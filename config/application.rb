@@ -26,6 +26,9 @@ module Packages
     config.exceptions_app = self.routes
     config.active_support.to_time_preserves_timezone = :zone
 
+    require_relative '../app/middleware/user_agent_tracker'
+    config.middleware.use UserAgentTracker
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
