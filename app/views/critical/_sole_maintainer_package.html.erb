@@ -25,5 +25,47 @@
         <%= '- ' if package.downloads.present? && package.downloads > 0 || package.dependent_packages_count && package.dependent_packages_count > 0 || package.dependent_repos_count && package.dependent_repos_count > 0 %>1 sole maintainer
       <% end %>
     </small>
+
+    <% if package.issue_metadata.present? || package.commit_stats.present? %>
+      <br>
+      <small class='text-muted'>
+        <% committers_count = package.commit_stats&.dig('total_committers') %>
+        <% issue_authors_count = package.issue_metadata&.dig('past_year_issue_authors_count') %>
+        <% pr_authors_count = package.issue_metadata&.dig('past_year_pull_request_authors_count') %>
+        <% maintainers_count = package.issue_metadata&.dig('maintainers')&.length %>
+        <% active_maintainers_count = package.issue_metadata&.dig('active_maintainers')&.length %>
+        <% any_stats = false %>
+
+        <% if committers_count && committers_count > 0 %>
+          <%= pluralize number_with_delimiter(committers_count), 'committer' %>
+          <% any_stats = true %>
+        <% end %>
+
+        <% if issue_authors_count && issue_authors_count > 0 %>
+          <%= '- ' if any_stats %><%= pluralize number_with_delimiter(issue_authors_count), 'issue author' %> (past year)
+          <% any_stats = true %>
+        <% end %>
+
+        <% if pr_authors_count && pr_authors_count > 0 %>
+          <%= '- ' if any_stats %><%= pluralize number_with_delimiter(pr_authors_count), 'PR author' %> (past year)
+          <% any_stats = true %>
+        <% end %>
+
+        <% if maintainers_count && maintainers_count > 0 %>
+          <%= '- ' if any_stats %><%= pluralize number_with_delimiter(maintainers_count), 'maintainer' %>
+          <% any_stats = true %>
+        <% end %>
+
+        <% if active_maintainers_count && active_maintainers_count > 0 %>
+          <%= '- ' if any_stats %><%= pluralize number_with_delimiter(active_maintainers_count), 'active maintainer' %>
+          <% any_stats = true %>
+        <% end %>
+
+        <% dds_score = package.issue_metadata&.dig('dds') || package.commit_stats&.dig('dds') %>
+        <% if dds_score && dds_score > 0 %>
+          <%= '- ' if any_stats %><%= number_with_delimiter(dds_score) %> DDS
+        <% end %>
+      </small>
+    <% end %>
   </div>
 </div>
