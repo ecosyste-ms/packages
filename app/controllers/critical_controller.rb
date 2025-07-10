@@ -99,7 +99,7 @@ class CriticalController < ApplicationController
 
     @pagy, @packages = pagy(scope)
     
-    @registries = Package.critical.where(maintainers_count: 1).group(:registry).count.sort_by{|r, c| c}
+    @registries = Package.critical.where(maintainers_count: 1).active.with_issue_metadata.sole_maintainer.group(:registry).count.sort_by{|r, c| c}
   end
 
   def permit_scatter_params
