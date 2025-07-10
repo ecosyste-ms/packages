@@ -1,0 +1,29 @@
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title">
+      <%= link_to package.name, registry_package_path(package.registry.name, package.name) %>
+    </h5>
+
+    <% if package.description_with_fallback.present? %>
+      <%= truncate package.description_with_fallback, :length => 100 %><br/>
+    <% end %>
+
+    <small class='text-muted'>
+      <% if package.downloads.present? && package.downloads > 0 %>
+        <%= number_to_human(package.downloads).downcase %> downloads
+      <% end %>
+
+      <% if package.dependent_packages_count && package.dependent_packages_count > 0 %>
+        <%= '- ' if package.downloads.present? && package.downloads > 0 %><%= pluralize number_with_delimiter(package.dependent_packages_count), 'dependent package' %>
+      <% end %>
+
+      <% if package.dependent_repos_count && package.dependent_repos_count > 0 %>
+        <%= '- ' if (package.downloads.present? && package.downloads > 0) || (package.dependent_packages_count && package.dependent_packages_count > 0) %><%= pluralize number_with_delimiter(package.dependent_repos_count), 'dependent repositories' %>
+      <% end %>
+
+      <% if package.maintainers_count && package.maintainers_count == 1 %>
+        <%= '- ' if package.downloads.present? && package.downloads > 0 || package.dependent_packages_count && package.dependent_packages_count > 0 || package.dependent_repos_count && package.dependent_repos_count > 0 %>1 sole maintainer
+      <% end %>
+    </small>
+  </div>
+</div>

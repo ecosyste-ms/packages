@@ -16,27 +16,7 @@
 
   <div class="row">
     <div class="col-lg-9">
-      <% @packages.each do |package| %>
-        <div class="card mb-3">
-          <div class="card-body">
-            <h5 class="card-title">
-              <%= link_to package.name, package_path(package.registry.name, package.name), class: 'text-decoration-none' %>
-            </h5>
-            <p class="card-text">
-              <small class="text-muted">
-                <%= package.registry.name %><% if package.downloads.present? && package.downloads > 0 %> • 
-                <%= number_with_delimiter(package.downloads) %> downloads<% end %><% if package.dependent_packages_count.present? && package.dependent_packages_count > 0 %> •
-                <%= number_with_delimiter(package.dependent_packages_count) %> dependent packages<% end %><% if package.dependent_repos_count.present? && package.dependent_repos_count > 0 %> •
-                <%= number_with_delimiter(package.dependent_repos_count) %> dependent repos<% end %> •
-                Sole maintainer: <%= link_to package.maintainers.first.name, maintainer_path(package.maintainers.first.uuid), class: 'text-decoration-none' %>
-              </small>
-            </p>
-            <% if package.description.present? %>
-              <p class="card-text"><%= package.description %></p>
-            <% end %>
-          </div>
-        </div>
-      <% end %>
+      <%= render partial: 'sole_maintainer_package', collection: @packages, as: :package %>
       <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>  
     </div>
     <div class="col">
