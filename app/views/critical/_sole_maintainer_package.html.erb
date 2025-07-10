@@ -34,10 +34,6 @@
       <% if package.dependent_repos_count && package.dependent_repos_count > 0 %>
         <%= '- ' if (package.downloads.present? && package.downloads > 0) || (package.dependent_packages_count && package.dependent_packages_count > 0) %><%= pluralize number_with_delimiter(package.dependent_repos_count), 'dependent repositories' %>
       <% end %>
-
-      <% if package.maintainers_count && package.maintainers_count == 1 %>
-        <%= '- ' if package.downloads.present? && package.downloads > 0 || package.dependent_packages_count && package.dependent_packages_count > 0 || package.dependent_repos_count && package.dependent_repos_count > 0 %>1 package maintainer
-      <% end %>
     </small>
 
     <% if package.has_repository_stats? %>
@@ -83,7 +79,7 @@
           </div>
         <% end %>
 
-        <% if package.repository_maintainers_count && package.repository_maintainers_count > 0 %>
+        <% if package.repository_maintainers_count %>
           <div class="col-auto">
             <span class="badge bg-warning text-dark">
               <%= number_with_delimiter(package.repository_maintainers_count) %> maintainers<% if package.repository_host_name %> on <%= package.repository_host_name %><% end %>
@@ -91,7 +87,7 @@
           </div>
         <% end %>
 
-        <% if package.repository_active_maintainers_count && package.repository_active_maintainers_count > 0 %>
+        <% if package.repository_active_maintainers_count %>
           <div class="col-auto">
             <span class="badge bg-primary text-white">
               <%= number_with_delimiter(package.repository_active_maintainers_count) %> active
