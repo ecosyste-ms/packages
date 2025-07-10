@@ -636,7 +636,7 @@ class Package < ApplicationRecord
 
   def fetch_commit_stats
     return unless commits_api_url.present?
-    ecosystems_api_get("#{commits_api_url}/stats")
+    ecosystems_api_get(commits_api_url)
   rescue
     nil
   end
