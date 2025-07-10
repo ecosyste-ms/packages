@@ -94,7 +94,7 @@ class CriticalController < ApplicationController
         scope = scope.order(Arel.sql(sort).desc.nulls_last)
       end
     else
-      scope = scope.order('downloads DESC nulls last')
+      scope = scope.order_by_maintainer_count_asc.order('downloads DESC nulls last')
     end
 
     @pagy, @packages = pagy(scope)

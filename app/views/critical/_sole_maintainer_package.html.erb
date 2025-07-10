@@ -36,72 +36,70 @@
       <% end %>
     </small>
 
-    <% if package.has_repository_stats? %>
-      <br>
-      <div class="row g-2 text-muted small">
-        <% if package.repository_committers_count && package.repository_committers_count > 0 %>
-          <div class="col-auto">
-            <span class="badge bg-light text-dark">
-              <%= number_with_delimiter(package.repository_committers_count) %> committers
-            </span>
-          </div>
-        <% end %>
-
-        <% if package.repository_issue_authors_count && package.repository_issue_authors_count > 0 %>
-          <div class="col-auto">
-            <span class="badge bg-light text-dark">
-              <%= number_with_delimiter(package.repository_issue_authors_count) %> issue authors
-            </span>
-          </div>
-        <% end %>
-
-        <% if package.repository_pr_authors_count && package.repository_pr_authors_count > 0 %>
-          <div class="col-auto">
-            <span class="badge bg-light text-dark">
-              <%= number_with_delimiter(package.repository_pr_authors_count) %> PR authors
-            </span>
-          </div>
-        <% end %>
-
-        <% if package.repository_issues_count && package.repository_issues_count > 0 %>
-          <div class="col-auto">
-            <span class="badge bg-info text-white">
-              <%= number_with_delimiter(package.repository_issues_count) %> issues
-            </span>
-          </div>
-        <% end %>
-
-        <% if package.repository_prs_count && package.repository_prs_count > 0 %>
-          <div class="col-auto">
-            <span class="badge bg-success text-white">
-              <%= number_with_delimiter(package.repository_prs_count) %> PRs
-            </span>
-          </div>
-        <% end %>
-
-        <% if package.repository_maintainers_count %>
-          <div class="col-auto">
-            <span class="badge bg-warning text-dark">
-              <%= number_with_delimiter(package.repository_maintainers_count) %> maintainers<% if package.repository_host_name %> on <%= package.repository_host_name %><% end %>
-            </span>
-          </div>
-        <% end %>
-
-        <% if package.repository_active_maintainers_count %>
-          <div class="col-auto">
-            <span class="badge bg-primary text-white">
-              <%= number_with_delimiter(package.repository_active_maintainers_count) %> active
-            </span>
-          </div>
-        <% end %>
-
-        <% if package.repository_dds_score && package.repository_dds_score > 0 %>
-          <div class="col-auto">
-            <span class="badge bg-secondary text-white">
-              DDS: <%= package.repository_dds_score.round(3) %>
-            </span>
-          </div>
-        <% end %>
+    <% if package.issue_metadata.present? %>
+      <div class="mt-3">
+        <h6 class="text-muted mb-2">Repository Activity (Past Year)</h6>
+        <div class="table-responsive">
+          <table class="table table-sm table-borderless">
+            <tbody>
+              <tr>
+                <td class="text-muted">Contributors</td>
+                <td>
+                  <% if package.issue_metadata['past_year_committers_count'].present? %>
+                    <strong><%= number_with_delimiter(package.issue_metadata['past_year_committers_count']) %></strong> committers
+                  <% end %>
+                  <% if package.issue_metadata['past_year_issue_authors_count'].present? %>
+                    <span class="text-muted ms-2">
+                      <%= number_with_delimiter(package.issue_metadata['past_year_issue_authors_count']) %> issue authors
+                    </span>
+                  <% end %>
+                  <% if package.issue_metadata['past_year_pull_request_authors_count'].present? %>
+                    <span class="text-muted ms-2">
+                      <%= number_with_delimiter(package.issue_metadata['past_year_pull_request_authors_count']) %> PR authors
+                    </span>
+                  <% end %>
+                </td>
+              </tr>
+              <tr>
+                <td class="text-muted">Issues & PRs</td>
+                <td>
+                  <% if package.issue_metadata['past_year_issues_count'].present? %>
+                    <strong><%= number_with_delimiter(package.issue_metadata['past_year_issues_count']) %></strong> issues
+                  <% end %>
+                  <% if package.issue_metadata['past_year_pull_requests_count'].present? %>
+                    <span class="text-muted ms-2">
+                      <%= number_with_delimiter(package.issue_metadata['past_year_pull_requests_count']) %> PRs
+                    </span>
+                  <% end %>
+                </td>
+              </tr>
+              <% if package.issue_metadata['past_year_commits_count'].present? %>
+              <tr>
+                <td class="text-muted">Commits</td>
+                <td><strong><%= number_with_delimiter(package.issue_metadata['past_year_commits_count']) %></strong></td>
+              </tr>
+              <% end %>
+              <tr>
+                <td class="text-muted">Maintainers</td>
+                <td>
+                  <% if package.issue_metadata['maintainers'].present? %>
+                    <strong><%= package.issue_metadata['maintainers'].size %></strong> total
+                  <% end %>
+                  <% if package.issue_metadata['active_maintainers'].present? %>
+                    <span class="text-muted ms-2">
+                      <%= package.issue_metadata['active_maintainers'].size %> active
+                    </span>
+                  <% end %>
+                  <% if package.issue_metadata['dds'].present? %>
+                    <span class="badge bg-secondary text-white ms-2">
+                      DDS: <%= package.issue_metadata['dds'].round(3) %>
+                    </span>
+                  <% end %>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     <% end %>
   </div>
