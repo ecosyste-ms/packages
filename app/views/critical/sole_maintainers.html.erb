@@ -24,8 +24,10 @@
             </h5>
             <p class="card-text">
               <small class="text-muted">
-                <%= package.registry.name %> • 
-                <%= number_with_delimiter(package.downloads) %> downloads •
+                <%= package.registry.name %><% if package.downloads.present? && package.downloads > 0 %> • 
+                <%= number_with_delimiter(package.downloads) %> downloads<% end %><% if package.dependent_packages_count.present? && package.dependent_packages_count > 0 %> •
+                <%= number_with_delimiter(package.dependent_packages_count) %> dependent packages<% end %><% if package.dependent_repos_count.present? && package.dependent_repos_count > 0 %> •
+                <%= number_with_delimiter(package.dependent_repos_count) %> dependent repos<% end %> •
                 Sole maintainer: <%= link_to package.maintainers.first.name, maintainer_path(package.maintainers.first.uuid), class: 'text-decoration-none' %>
               </small>
             </p>
