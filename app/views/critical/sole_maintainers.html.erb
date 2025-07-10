@@ -1,0 +1,56 @@
+<% @meta_title = "Critical Open Source #{@registry.try(:ecosystem).try(:humanize)} Packages with Sole Maintainers" %>
+<% @meta_description = "Find critical open source #{@registry.try(:ecosystem)} software packages that have only one maintainer, representing a potential risk to software supply chain security." %>
+
+<div class="container-sm">
+  <h1 class='mb-3'>
+    Critical Open Source <%= @registry.try(:ecosystem).try(:humanize) %> Packages with Sole Maintainers
+  </h1>
+
+  <p class='lead'>
+    Find critical open source <%= @registry.try(:ecosystem) %> software packages that have only one maintainer, representing a potential risk to software supply chain security.
+  </p>
+
+  <ul class="nav nav-tabs my-3">
+    <%= render 'packages/sort' %>
+  </ul>
+
+  <div class="row">
+    <div class="col-lg-9">
+      <% @packages.each do |package| %>
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">
+              <%= link_to package.name, package_path(package.registry.name, package.name), class: 'text-decoration-none' %>
+            </h5>
+            <p class="card-text">
+              <small class="text-muted">
+                <%= package.registry.name %> • 
+                <%= number_with_delimiter(package.downloads) %> downloads •
+                Sole maintainer: <%= link_to package.maintainers.first.name, maintainer_path(package.maintainers.first.uuid), class: 'text-decoration-none' %>
+              </small>
+            </p>
+            <% if package.description.present? %>
+              <p class="card-text"><%= package.description %></p>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+      <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>  
+    </div>
+    <div class="col">
+      <div class="card mb-3">
+        <div class="card-header">
+          Filter by Registry
+        </div>
+        <div class="list-group list-group-flush">
+          <% @registries.each do |registry,count| %>
+            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center <%= 'active' if params[:registry] == registry.name %>" href="<%= url_for(registry: (params[:registry] == registry.name ? nil :registry.name), page: nil) %>">
+              <%= registry %>
+              <span class="badge bg-primary rounded-pill"><%= number_with_delimiter count%></span>
+            </a>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

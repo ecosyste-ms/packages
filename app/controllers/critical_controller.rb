@@ -77,6 +77,31 @@ class CriticalController < ApplicationController
     @registries = Package.where.not(registry_id: excluded_registry_ids).critical.where('packages.downloads > 0').group(:registry).count.sort_by{|r, c| c}
   end
 
+  def sole_maintainers
+    scope = Package.critical.where(maintainers_count: 1).includes(:registry, :maintainers)
+
+    @registry = Registry.find_by_name!(params[:registry]) if params[:registry]
+
+    scope = scope.where(registry_id: @registry.id) if params[:registry]
+
+    if params[:sort].present? || params[:order].present?
+      sort = params[:sort].presence || 'downloads'
+      
+      sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'
+      if params[:order] == 'asc'
+        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+      else
+        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+      end
+    else
+      scope = scope.order('downloads DESC nulls last')
+    end
+
+    @pagy, @packages = pagy(scope)
+    
+    @registries = Package.critical.where(maintainers_count: 1).group(:registry).count.sort_by{|r, c| c}
+  end
+
   def permit_scatter_params
     params.permit(:comparison_field)
   end
