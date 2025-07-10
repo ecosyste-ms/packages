@@ -4,7 +4,7 @@
       <%= link_to package.name, registry_package_path(package.registry.name, package.name) %>
       <% if package.repository_url.present? %>
         <a href="<%= package.repository_url %>" target="_blank" class="text-decoration-none ms-2">
-          <small>repo</small>
+          <small><%= package.repository_url %></small>
         </a>
       <% end %>
     </h5>
