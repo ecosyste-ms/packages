@@ -75,6 +75,7 @@ class CriticalControllerTest < ActionDispatch::IntegrationTest
       downloads: 5000,
       issue_metadata: {
         'past_year_issue_authors_count' => 30,
+        'maintainers' => [{'login' => 'high-maintainer'}],
         'dds' => 0.95
       }
     )
