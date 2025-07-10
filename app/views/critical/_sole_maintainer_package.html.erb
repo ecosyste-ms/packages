@@ -1,15 +1,15 @@
 <div class="card mb-3">
   <div class="card-body">
-    <h5 class="card-title">
-      <%= link_to package.name, registry_package_path(package.registry.name, package.name) %>
-      <% if package.repository_url.present? %>
-        <a href="<%= package.repository_url %>" target="_blank" class="text-decoration-none ms-2">
-          <small><%= package.repository_url %></small>
-        </a>
-      <% end %>
-    </h5>
-
-    <div class="mb-2">
+    <div class="d-flex justify-content-between align-items-start mb-2">
+      <h5 class="card-title mb-0">
+        <%= link_to package.name, registry_package_path(package.registry.name, package.name) %>
+        <% if package.repository_url.present? %>
+          <a href="<%= package.repository_url %>" target="_blank" class="text-decoration-none ms-2">
+            <small><%= package.repository_url %></small>
+          </a>
+        <% end %>
+      </h5>
+      
       <span class="badge bg-light text-dark">
         <% if package.registry.metadata&.dig('icon_url').present? %>
           <img src="<%= package.registry.metadata['icon_url'] %>" alt="<%= package.registry.name %>" style="width: 16px; height: 16px; margin-right: 4px;">
