@@ -2,7 +2,21 @@
   <div class="card-body">
     <h5 class="card-title">
       <%= link_to package.name, registry_package_path(package.registry.name, package.name) %>
+      <% if package.repository_url.present? %>
+        <a href="<%= package.repository_url %>" target="_blank" class="text-decoration-none ms-2">
+          <small>repo</small>
+        </a>
+      <% end %>
     </h5>
+
+    <div class="mb-2">
+      <span class="badge bg-light text-dark">
+        <% if package.registry.icon_url.present? %>
+          <img src="<%= package.registry.icon_url %>" alt="<%= package.registry.name %>" style="width: 16px; height: 16px; margin-right: 4px;">
+        <% end %>
+        <%= package.registry.name %>
+      </span>
+    </div>
 
     <% if package.description_with_fallback.present? %>
       <%= truncate package.description_with_fallback, :length => 100 %><br/>
@@ -22,59 +36,77 @@
       <% end %>
 
       <% if package.maintainers_count && package.maintainers_count == 1 %>
-        <%= '- ' if package.downloads.present? && package.downloads > 0 || package.dependent_packages_count && package.dependent_packages_count > 0 || package.dependent_repos_count && package.dependent_repos_count > 0 %>1 sole maintainer
+        <%= '- ' if package.downloads.present? && package.downloads > 0 || package.dependent_packages_count && package.dependent_packages_count > 0 || package.dependent_repos_count && package.dependent_repos_count > 0 %>1 package maintainer
       <% end %>
     </small>
 
-    <% if package.issue_metadata.present? || package.commit_stats.present? || package.repo_metadata&.dig('commit_stats').present? %>
+    <% if package.has_repository_stats? %>
       <br>
-      <small class='text-muted'>
-        <% 
-          def safe_to_int(value)
-            return nil if value.nil?
-            return value if value.is_a?(Integer)
-            return value.to_i if value.is_a?(String) && value.match?(/\A\d+\z/)
-            nil
-          end
-        %>
-        
-        <% committers_count = safe_to_int(package.commit_stats&.dig('total_committers') || package.repo_metadata&.dig('commit_stats', 'total_committers')) %>
-        <% issue_authors_count = safe_to_int(package.issue_metadata&.dig('past_year_issue_authors_count')) %>
-        <% pr_authors_count = safe_to_int(package.issue_metadata&.dig('past_year_pull_request_authors_count')) %>
-        <% maintainers_count = package.issue_metadata&.dig('maintainers')&.length %>
-        <% active_maintainers_count = package.issue_metadata&.dig('active_maintainers')&.length %>
-        <% any_stats = false %>
-
-        <% if committers_count && committers_count > 0 %>
-          <%= pluralize number_with_delimiter(committers_count), 'committer' %>
-          <% any_stats = true %>
+      <div class="row g-2 text-muted small">
+        <% if package.repository_committers_count && package.repository_committers_count > 0 %>
+          <div class="col-auto">
+            <span class="badge bg-light text-dark">
+              <%= number_with_delimiter(package.repository_committers_count) %> committers
+            </span>
+          </div>
         <% end %>
 
-        <% if issue_authors_count && issue_authors_count > 0 %>
-          <%= '- ' if any_stats %><%= pluralize number_with_delimiter(issue_authors_count), 'issue author' %> (past year)
-          <% any_stats = true %>
+        <% if package.repository_issue_authors_count && package.repository_issue_authors_count > 0 %>
+          <div class="col-auto">
+            <span class="badge bg-light text-dark">
+              <%= number_with_delimiter(package.repository_issue_authors_count) %> issue authors
+            </span>
+          </div>
         <% end %>
 
-        <% if pr_authors_count && pr_authors_count > 0 %>
-          <%= '- ' if any_stats %><%= pluralize number_with_delimiter(pr_authors_count), 'PR author' %> (past year)
-          <% any_stats = true %>
+        <% if package.repository_pr_authors_count && package.repository_pr_authors_count > 0 %>
+          <div class="col-auto">
+            <span class="badge bg-light text-dark">
+              <%= number_with_delimiter(package.repository_pr_authors_count) %> PR authors
+            </span>
+          </div>
         <% end %>
 
-        <% if maintainers_count && maintainers_count > 0 %>
-          <%= '- ' if any_stats %><%= pluralize number_with_delimiter(maintainers_count), 'maintainer' %>
-          <% any_stats = true %>
+        <% if package.repository_issues_count && package.repository_issues_count > 0 %>
+          <div class="col-auto">
+            <span class="badge bg-info text-white">
+              <%= number_with_delimiter(package.repository_issues_count) %> issues
+            </span>
+          </div>
         <% end %>
 
-        <% if active_maintainers_count && active_maintainers_count > 0 %>
-          <%= '- ' if any_stats %><%= pluralize number_with_delimiter(active_maintainers_count), 'active maintainer' %>
-          <% any_stats = true %>
+        <% if package.repository_prs_count && package.repository_prs_count > 0 %>
+          <div class="col-auto">
+            <span class="badge bg-success text-white">
+              <%= number_with_delimiter(package.repository_prs_count) %> PRs
+            </span>
+          </div>
         <% end %>
 
-        <% dds_score = safe_to_int(package.issue_metadata&.dig('dds') || package.commit_stats&.dig('dds') || package.repo_metadata&.dig('commit_stats', 'dds')) %>
-        <% if dds_score && dds_score > 0 %>
-          <%= '- ' if any_stats %><%= number_with_delimiter(dds_score) %> DDS
+        <% if package.repository_maintainers_count && package.repository_maintainers_count > 0 %>
+          <div class="col-auto">
+            <span class="badge bg-warning text-dark">
+              <%= number_with_delimiter(package.repository_maintainers_count) %> maintainers<% if package.repository_host_name %> on <%= package.repository_host_name %><% end %>
+            </span>
+          </div>
         <% end %>
-      </small>
+
+        <% if package.repository_active_maintainers_count && package.repository_active_maintainers_count > 0 %>
+          <div class="col-auto">
+            <span class="badge bg-primary text-white">
+              <%= number_with_delimiter(package.repository_active_maintainers_count) %> active
+            </span>
+          </div>
+        <% end %>
+
+        <% if package.repository_dds_score && package.repository_dds_score > 0 %>
+          <div class="col-auto">
+            <span class="badge bg-secondary text-white">
+              DDS: <%= package.repository_dds_score.round(3) %>
+            </span>
+          </div>
+        <% end %>
+      </div>
     <% end %>
   </div>
 </div>

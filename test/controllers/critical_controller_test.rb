@@ -16,8 +16,11 @@ class CriticalControllerTest < ActionDispatch::IntegrationTest
       issue_metadata: {
         'past_year_issue_authors_count' => 25,
         'past_year_pull_request_authors_count' => 12,
+        'past_year_issues_count' => 50,
+        'past_year_pull_requests_count' => 30,
         'maintainers' => [{'login' => 'test-maintainer'}],
-        'active_maintainers' => [{'login' => 'test-maintainer'}]
+        'active_maintainers' => [{'login' => 'test-maintainer'}],
+        'dds' => 0.85
       }
     )
     
@@ -52,7 +55,8 @@ class CriticalControllerTest < ActionDispatch::IntegrationTest
       critical: true,
       maintainers_count: 1,
       issue_metadata: {
-        'past_year_issue_authors_count' => 15
+        'past_year_issue_authors_count' => 15,
+        'dds' => 60
       }
     )
     
@@ -70,7 +74,8 @@ class CriticalControllerTest < ActionDispatch::IntegrationTest
       maintainers_count: 1,
       downloads: 5000,
       issue_metadata: {
-        'past_year_issue_authors_count' => 30
+        'past_year_issue_authors_count' => 30,
+        'dds' => 0.95
       }
     )
     
@@ -86,7 +91,8 @@ class CriticalControllerTest < ActionDispatch::IntegrationTest
   test 'should show maintainer information' do
     get critical_sole_maintainers_path
     assert_response :success
-    assert_includes response.body, "1 sole maintainer"
+    assert_includes response.body, "1 package maintainer"
+    assert_includes response.body, "DDS: 0.85"
   end
 
   test 'should show download counts when present' do

@@ -653,6 +653,56 @@ class Package < ApplicationRecord
       update(repo_metadata: updated_metadata)
     end
   end
+
+  def has_repository_stats?
+    issue_metadata.present? || commit_stats.present? || repo_metadata&.dig('commit_stats').present?
+  end
+
+  def repository_committers_count
+    safe_to_int(commit_stats&.dig('total_committers') || repo_metadata&.dig('commit_stats', 'total_committers'))
+  end
+
+  def repository_issue_authors_count
+    safe_to_int(issue_metadata&.dig('past_year_issue_authors_count'))
+  end
+
+  def repository_pr_authors_count
+    safe_to_int(issue_metadata&.dig('past_year_pull_request_authors_count'))
+  end
+
+  def repository_issues_count
+    safe_to_int(issue_metadata&.dig('past_year_issues_count'))
+  end
+
+  def repository_prs_count
+    safe_to_int(issue_metadata&.dig('past_year_pull_requests_count'))
+  end
+
+  def repository_maintainers_count
+    issue_metadata&.dig('maintainers')&.length
+  end
+
+  def repository_active_maintainers_count
+    issue_metadata&.dig('active_maintainers')&.length
+  end
+
+  def repository_dds_score
+    dds_raw = issue_metadata&.dig('dds') || commit_stats&.dig('dds') || repo_metadata&.dig('commit_stats', 'dds')
+    dds_raw.to_f if dds_raw.present?
+  end
+
+  def repository_host_name
+    repo_metadata&.dig('host', 'name')
+  end
+
+  private
+
+  def safe_to_int(value)
+    return nil if value.nil?
+    return value if value.is_a?(Integer)
+    return value.to_i if value.is_a?(String) && value.match?(/\A\d+\z/)
+    nil
+  end
   
   def sync_maintainers
     registry.sync_maintainers(self)
