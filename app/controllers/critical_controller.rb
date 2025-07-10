@@ -87,7 +87,28 @@ class CriticalController < ApplicationController
     if params[:sort].present? || params[:order].present?
       sort = params[:sort].presence || 'downloads'
       
-      sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'
+      # Handle special sort fields that need SQL casting
+      case params[:sort]
+      when 'stargazers_count'
+        sort = "(repo_metadata ->> 'stargazers_count')::text::integer"
+      when 'name'
+        sort = 'name'
+      when 'versions_count'
+        sort = 'versions_count'
+      when 'latest_release_published_at'
+        sort = 'latest_release_published_at'
+      when 'dependent_packages_count'
+        sort = 'dependent_packages_count'
+      when 'dependent_repos_count'
+        sort = 'dependent_repos_count'
+      when 'downloads'
+        sort = 'downloads'
+      when 'maintainers_count'
+        sort = 'maintainers_count'
+      else
+        sort = 'downloads' # fallback to safe default
+      end
+      
       if params[:order] == 'asc'
         scope = scope.order(Arel.sql(sort).asc.nulls_last)
       else
