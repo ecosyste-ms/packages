@@ -12,7 +12,13 @@ class CriticalControllerTest < ActionDispatch::IntegrationTest
       maintainers_count: 1,
       downloads: 1000,
       dependent_packages_count: 5,
-      dependent_repos_count: 10
+      dependent_repos_count: 10,
+      issue_metadata: {
+        'past_year_issue_authors_count' => 25,
+        'past_year_pull_request_authors_count' => 12,
+        'maintainers' => [{'login' => 'test-maintainer'}],
+        'active_maintainers' => [{'login' => 'test-maintainer'}]
+      }
     )
     
     @critical_package.maintainers << @maintainer
@@ -44,7 +50,10 @@ class CriticalControllerTest < ActionDispatch::IntegrationTest
       ecosystem: 'pypi', 
       name: 'other-package', 
       critical: true,
-      maintainers_count: 1
+      maintainers_count: 1,
+      issue_metadata: {
+        'past_year_issue_authors_count' => 15
+      }
     )
     
     get critical_sole_maintainers_path(registry: @registry.name)
@@ -59,7 +68,10 @@ class CriticalControllerTest < ActionDispatch::IntegrationTest
       name: 'high-download-package', 
       critical: true,
       maintainers_count: 1,
-      downloads: 5000
+      downloads: 5000,
+      issue_metadata: {
+        'past_year_issue_authors_count' => 30
+      }
     )
     
     get critical_sole_maintainers_path

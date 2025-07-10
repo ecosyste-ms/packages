@@ -633,6 +633,26 @@ class Package < ApplicationRecord
     return unless repo_metadata.present?
     ecosystems_api_get("#{commits_api_url}/ping")
   end
+
+  def fetch_commit_stats
+    return unless commits_api_url.present?
+    ecosystems_api_get("#{commits_api_url}/stats")
+  rescue
+    nil
+  end
+
+  # Fetches commit stats from the commits service and stores in repo_metadata['commit_stats']
+  # This provides an alternative to relying on the repos service to load commit data
+  def update_commit_stats
+    return unless repo_metadata.present?
+    
+    commit_stats = fetch_commit_stats
+    if commit_stats.present?
+      updated_metadata = repo_metadata.deep_dup
+      updated_metadata['commit_stats'] = commit_stats
+      update(repo_metadata: updated_metadata)
+    end
+  end
   
   def sync_maintainers
     registry.sync_maintainers(self)

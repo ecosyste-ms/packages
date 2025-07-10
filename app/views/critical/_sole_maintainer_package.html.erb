@@ -26,10 +26,10 @@
       <% end %>
     </small>
 
-    <% if package.issue_metadata.present? || package.commit_stats.present? %>
+    <% if package.issue_metadata.present? || package.commit_stats.present? || package.repo_metadata&.dig('commit_stats').present? %>
       <br>
       <small class='text-muted'>
-        <% committers_count = package.commit_stats&.dig('total_committers') %>
+        <% committers_count = package.commit_stats&.dig('total_committers') || package.repo_metadata&.dig('commit_stats', 'total_committers') %>
         <% issue_authors_count = package.issue_metadata&.dig('past_year_issue_authors_count') %>
         <% pr_authors_count = package.issue_metadata&.dig('past_year_pull_request_authors_count') %>
         <% maintainers_count = package.issue_metadata&.dig('maintainers')&.length %>
@@ -61,7 +61,7 @@
           <% any_stats = true %>
         <% end %>
 
-        <% dds_score = package.issue_metadata&.dig('dds') || package.commit_stats&.dig('dds') %>
+        <% dds_score = package.issue_metadata&.dig('dds') || package.commit_stats&.dig('dds') || package.repo_metadata&.dig('commit_stats', 'dds') %>
         <% if dds_score && dds_score > 0 %>
           <%= '- ' if any_stats %><%= number_with_delimiter(dds_score) %> DDS
         <% end %>
