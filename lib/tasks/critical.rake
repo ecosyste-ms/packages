@@ -15,7 +15,7 @@ namespace :critical do
   end
   
   def download_critical_packages_for_registry(registry)
-    url = "https://packages.ecosyste.ms/api/v1/registries/#{registry.name}/packages"
+    url = "https://packages.ecosyste.ms/api/v1/registries/#{CGI.escape(registry.name)}/packages"
     page = 1
     downloaded_count = 0
     
