@@ -11,8 +11,8 @@
 
     <div class="mb-2">
       <span class="badge bg-light text-dark">
-        <% if package.registry.icon_url.present? %>
-          <img src="<%= package.registry.icon_url %>" alt="<%= package.registry.name %>" style="width: 16px; height: 16px; margin-right: 4px;">
+        <% if package.registry.metadata&.dig('icon_url').present? %>
+          <img src="<%= package.registry.metadata['icon_url'] %>" alt="<%= package.registry.name %>" style="width: 16px; height: 16px; margin-right: 4px;">
         <% end %>
         <%= package.registry.name %>
       </span>
