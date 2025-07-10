@@ -78,7 +78,7 @@ class CriticalController < ApplicationController
   end
 
   def sole_maintainers
-    scope = Package.critical.where(maintainers_count: 1).active.with_issue_metadata.includes(:registry, :maintainers)
+    scope = Package.critical.where(maintainers_count: 1).active.with_issue_metadata.sole_maintainer.includes(:registry, :maintainers)
 
     @registry = Registry.find_by_name!(params[:registry]) if params[:registry]
 

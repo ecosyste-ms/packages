@@ -44,6 +44,7 @@ class Package < ApplicationRecord
 
   scope :with_issue_metadata, -> { where('length(issue_metadata::text) > 2') }
   scope :without_issue_metadata, -> { where(issue_metadata: nil) }
+  scope :sole_maintainer, -> { where("json_array_length(issue_metadata->'maintainers') = 1") }
 
   scope :not_docker, -> { joins(:registry).where.not(registries: { ecosystem: 'docker' }) }
 
