@@ -695,8 +695,6 @@ class Package < ApplicationRecord
     repo_metadata&.dig('host', 'name')
   end
 
-  private
-
   def safe_to_int(value)
     return nil if value.nil?
     return value if value.is_a?(Integer)
