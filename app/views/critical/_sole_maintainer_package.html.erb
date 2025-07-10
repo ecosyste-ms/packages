@@ -67,7 +67,7 @@
                     <strong><%= number_with_delimiter(package.issue_metadata['past_year_issues_count']) %></strong> issues
                   <% end %>
                   <% if package.issue_metadata['past_year_pull_requests_count'].present? %>
-                    <span class="text-muted ms-2">
+                    <span class="text-muted">
                       <%= number_with_delimiter(package.issue_metadata['past_year_pull_requests_count']) %> PRs
                     </span>
                   <% end %>
@@ -84,6 +84,11 @@
                 <td>
                   <% if package.issue_metadata['maintainers'].present? %>
                     <strong><%= package.issue_metadata['maintainers'].size %></strong> total
+                    <% if package.issue_metadata['maintainers'].first && package.issue_metadata['maintainers'].first['login'].present? %>
+                      <span class="text-muted">
+                        (<%= package.issue_metadata['maintainers'].first['login'] %>)
+                      </span>
+                    <% end %>
                   <% end %>
                   <% if package.issue_metadata['active_maintainers'].present? %>
                     <span class="text-muted ms-2">
@@ -94,6 +99,18 @@
                     <span class="badge bg-secondary text-white ms-2">
                       DDS: <%= package.issue_metadata['dds'].round(3) %>
                     </span>
+                  <% end %>
+                </td>
+              </tr>
+              <tr>
+                <td class="text-muted">Funding links</td>
+                <td>
+                  <% if package.funding_links.any? %>
+                    <a href="<%= package.funding_links.first %>" target="_blank" class="text-decoration-none">
+                      <span class="badge bg-success text-white"><%= pluralize(package.funding_links.count, 'link') %></span>
+                    </a>
+                  <% else %>
+                    <span class="text-muted">None found</span>
                   <% end %>
                 </td>
               </tr>
