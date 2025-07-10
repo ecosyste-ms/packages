@@ -1267,6 +1267,7 @@ components:
         - status
         - funding_links
         - critical
+        - issue_metadata
       type: object
       properties:
         id:
@@ -1388,6 +1389,8 @@ components:
             $ref: '#/components/schemas/Maintainer'
         critical:
           type: boolean
+        issue_metadata:
+          type: object
     PackageWithRegistry:
       allOf:
         - $ref: '#/components/schemas/Package'
