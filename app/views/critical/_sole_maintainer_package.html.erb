@@ -29,9 +29,18 @@
     <% if package.issue_metadata.present? || package.commit_stats.present? || package.repo_metadata&.dig('commit_stats').present? %>
       <br>
       <small class='text-muted'>
-        <% committers_count = package.commit_stats&.dig('total_committers') || package.repo_metadata&.dig('commit_stats', 'total_committers') %>
-        <% issue_authors_count = package.issue_metadata&.dig('past_year_issue_authors_count') %>
-        <% pr_authors_count = package.issue_metadata&.dig('past_year_pull_request_authors_count') %>
+        <% 
+          def safe_to_int(value)
+            return nil if value.nil?
+            return value if value.is_a?(Integer)
+            return value.to_i if value.is_a?(String) && value.match?(/\A\d+\z/)
+            nil
+          end
+        %>
+        
+        <% committers_count = safe_to_int(package.commit_stats&.dig('total_committers') || package.repo_metadata&.dig('commit_stats', 'total_committers')) %>
+        <% issue_authors_count = safe_to_int(package.issue_metadata&.dig('past_year_issue_authors_count')) %>
+        <% pr_authors_count = safe_to_int(package.issue_metadata&.dig('past_year_pull_request_authors_count')) %>
         <% maintainers_count = package.issue_metadata&.dig('maintainers')&.length %>
         <% active_maintainers_count = package.issue_metadata&.dig('active_maintainers')&.length %>
         <% any_stats = false %>
@@ -61,7 +70,7 @@
           <% any_stats = true %>
         <% end %>
 
-        <% dds_score = package.issue_metadata&.dig('dds') || package.commit_stats&.dig('dds') || package.repo_metadata&.dig('commit_stats', 'dds') %>
+        <% dds_score = safe_to_int(package.issue_metadata&.dig('dds') || package.commit_stats&.dig('dds') || package.repo_metadata&.dig('commit_stats', 'dds')) %>
         <% if dds_score && dds_score > 0 %>
           <%= '- ' if any_stats %><%= number_with_delimiter(dds_score) %> DDS
         <% end %>

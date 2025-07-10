@@ -110,4 +110,34 @@ class CriticalControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes response.body, "0 downloads"
     assert_not_includes response.body, "thousand downloads"
   end
+
+  test 'should handle string values in issue metadata' do
+    @critical_package.update(
+      issue_metadata: {
+        'past_year_issue_authors_count' => '25',  # String instead of integer
+        'past_year_pull_request_authors_count' => '12',
+        'maintainers' => [{'login' => 'test-maintainer'}],
+        'active_maintainers' => [{'login' => 'test-maintainer'}],
+        'dds' => '85'  # String DDS score
+      }
+    )
+    get critical_sole_maintainers_path
+    assert_response :success
+    assert_includes response.body, "critical-package"
+  end
+
+  test 'should handle non-numeric string values in metadata' do
+    @critical_package.update(
+      issue_metadata: {
+        'past_year_issue_authors_count' => 'invalid',  # Non-numeric string
+        'past_year_pull_request_authors_count' => nil,
+        'maintainers' => [{'login' => 'test-maintainer'}],
+        'active_maintainers' => [{'login' => 'test-maintainer'}],
+        'dds' => 'not_a_number'  # Non-numeric string DDS score
+      }
+    )
+    get critical_sole_maintainers_path
+    assert_response :success
+    assert_includes response.body, "critical-package"
+  end
 end
