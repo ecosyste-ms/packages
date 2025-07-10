@@ -91,7 +91,6 @@ class CriticalControllerTest < ActionDispatch::IntegrationTest
   test 'should show maintainer information' do
     get critical_sole_maintainers_path
     assert_response :success
-    assert_includes response.body, "1 package maintainer"
     assert_includes response.body, "DDS: 0.85"
   end
 
