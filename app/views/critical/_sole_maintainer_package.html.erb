@@ -46,16 +46,16 @@
                 <td class="text-muted">Contributors</td>
                 <td>
                   <% if package.issue_metadata['past_year_committers_count'].present? %>
-                    <strong><%= number_with_delimiter(package.issue_metadata['past_year_committers_count']) %></strong> committers
+                    <strong><%= number_with_delimiter(package.issue_metadata['past_year_committers_count'].to_i) %></strong> committers
                   <% end %>
                   <% if package.issue_metadata['past_year_issue_authors_count'].present? %>
                     <span class="text-muted ms-2">
-                      <%= number_with_delimiter(package.issue_metadata['past_year_issue_authors_count']) %> issue authors
+                      <%= number_with_delimiter(package.issue_metadata['past_year_issue_authors_count'].to_i) %> issue authors
                     </span>
                   <% end %>
                   <% if package.issue_metadata['past_year_pull_request_authors_count'].present? %>
                     <span class="text-muted ms-2">
-                      <%= number_with_delimiter(package.issue_metadata['past_year_pull_request_authors_count']) %> PR authors
+                      <%= number_with_delimiter(package.issue_metadata['past_year_pull_request_authors_count'].to_i) %> PR authors
                     </span>
                   <% end %>
                 </td>
@@ -64,11 +64,11 @@
                 <td class="text-muted">Issues & PRs</td>
                 <td>
                   <% if package.issue_metadata['past_year_issues_count'].present? %>
-                    <strong><%= number_with_delimiter(package.issue_metadata['past_year_issues_count']) %></strong> issues
+                    <strong><%= number_with_delimiter(package.issue_metadata['past_year_issues_count'].to_i) %></strong> issues
                   <% end %>
                   <% if package.issue_metadata['past_year_pull_requests_count'].present? %>
                     <span class="text-muted">
-                      <%= number_with_delimiter(package.issue_metadata['past_year_pull_requests_count']) %> PRs
+                      <%= number_with_delimiter(package.issue_metadata['past_year_pull_requests_count'].to_i) %> PRs
                     </span>
                   <% end %>
                 </td>
@@ -76,7 +76,7 @@
               <% if package.issue_metadata['past_year_commits_count'].present? %>
               <tr>
                 <td class="text-muted">Commits</td>
-                <td><strong><%= number_with_delimiter(package.issue_metadata['past_year_commits_count']) %></strong></td>
+                <td><strong><%= number_with_delimiter(package.issue_metadata['past_year_commits_count'].to_i) %></strong></td>
               </tr>
               <% end %>
               <tr>
@@ -97,7 +97,7 @@
                   <% end %>
                   <% if package.issue_metadata['dds'].present? %>
                     <span class="badge bg-secondary text-white ms-2">
-                      DDS: <%= package.issue_metadata['dds'].round(3) %>
+                      DDS: <%= package.issue_metadata['dds'].to_f.round(3) %>
                     </span>
                   <% end %>
                 </td>
