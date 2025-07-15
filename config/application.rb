@@ -28,6 +28,9 @@ module Packages
 
     require_relative '../app/middleware/user_agent_tracker'
     config.middleware.use UserAgentTracker
+    
+    require_relative '../app/middleware/ip_tracker'
+    config.middleware.use IpTracker
 
     # Configuration for the application, engines, and railties goes here.
     #
