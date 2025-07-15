@@ -32,6 +32,10 @@ class IpTracker
   end
 
   def get_client_ip(env)
+    # Check for Cloudflare's original IP header first
+    cf_connecting_ip = env['HTTP_CF_CONNECTING_IP']
+    return cf_connecting_ip.strip if cf_connecting_ip.present?
+    
     # Check for forwarded IPs (when behind proxy/load balancer)
     forwarded_for = env['HTTP_X_FORWARDED_FOR']
     if forwarded_for.present?
