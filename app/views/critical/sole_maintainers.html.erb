@@ -26,7 +26,7 @@
         </div>
         <div class="list-group list-group-flush">
           <% @registries.each do |registry,count| %>
-            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center <%= 'active' if params[:registry] == registry.name %>" href="<%= url_for(registry: (params[:registry] == registry.name ? nil :registry.name), page: nil) %>">
+            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center <%= 'active' if params[:registry] == registry.name %>" href="<%= url_for(request.query_params.merge(registry: (params[:registry] == registry.name ? nil :registry.name), page: nil)) %>">
               <%= registry %>
               <span class="badge bg-primary rounded-pill"><%= number_with_delimiter count%></span>
             </a>
