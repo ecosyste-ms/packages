@@ -5,20 +5,27 @@ $color-purple: #7878EF;
 $color-purple-light: #BBBBFF;
 $color-purple-dark: #5C5CCF;
 
+$color-purple-transparent: rgba($color-purple, 0.1);
+
 $color-orange: #FF807D;
 $color-orange-light: #FEBDB9;
 $color-orange-dark: #DE5858;
+
+$color-orange-transparent: rgba($color-orange, 0.1);
 
 $color-green: #45E56E;
 $color-green-light: #87F5AA;
 $color-green-dark: #2EAF6B;
 $color-green-darker: #189654;
 
+$color-green-transparent: rgba($color-green, 0.1);
+
 $color-black: #1D1D28;
 $color-white: #FFFFFF;
 $color-grey-light: #F5F5FF;
 $color-grey: #DCDCE0;
 $color-grey-dark: #4C4C61;
+$color-grey-cold: #F0F0F0;
 
 /* Tokens to override bootstrap colours */
 $primary: $color-purple;
@@ -61,6 +68,33 @@ $btn-color: $color-white;
 $badge-font-weight: 400;
 $badge-padding-y: 0.4em;
 
+$card-cap-bg: $color-grey-light;
+$card-border-color: $color-grey;
+
+
+/* Outputs our colours variables as css variables so that chart.js can access them */
+:root {
+  --es-purple: #{$color-purple};
+  --es-purple-light: #{$color-purple-light};
+  --es-purple-dark: #{$color-purple-dark};
+  --es-purple-transparent: #{$color-purple-transparent};
+  --es-orange: #{$color-orange};
+  --es-orange-light: #{$color-orange-light};
+  --es-orange-dark: #{$color-orange-dark};
+  --es-orange-transparent: #{$color-orange-transparent};
+  --es-green: #{$color-green};
+  --es-green-light: #{$color-green-light};
+  --es-green-dark: #{$color-green-dark};
+  --es-green-darker: #{$color-green-darker};
+  --es-green-transparent: #{$color-green-transparent};
+  --es-black: #{$color-black};
+  --es-white: #{$color-white};
+  --es-grey-light: #{$color-grey-light};
+  --es-grey: #{$color-grey};
+  --es-grey-dark: #{$color-grey-dark};
+  --es-grey-cold: #{$color-grey-cold};
+}
+
 @import "bootstrap"; 
 
 @mixin spesh-link (
@@ -81,6 +115,14 @@ $badge-padding-y: 0.4em;
   }
 }
 
+.extra-bold {
+  font-weight: 900;
+}
+
+.extra-small {
+  @include font-size(0.778rem);
+}
+
 /* Global selection style */
 ::selection {
   background-color: $color-purple-light;
@@ -94,6 +136,7 @@ $badge-padding-y: 0.4em;
   cursor: pointer;
 }
 
+/* General reusable elements */
 .btn-primary {
   background: linear-gradient(180deg, $color-purple 0%, $color-purple-dark 100%);
   color: $color-white;
@@ -187,6 +230,17 @@ $badge-padding-y: 0.4em;
   }
 }
 
+.btn-primary,
+.btn-success,
+.btn-danger,
+.btn-warning,
+.btn-info,
+.btn-dark {
+  &:active {
+    color: rgba($color-white, 0.8) !important;
+  }
+}
+
 .alert {
   border: 0;
 }
@@ -203,6 +257,10 @@ hr {
   border-top: 3px solid $color-purple-light;
 }
 
+.border-purple-light {
+  border-color: $color-purple-light;
+}
+
 .container {
   @include media-breakpoint-down(md) {
     padding-left: 1.5rem;
@@ -214,6 +272,77 @@ hr {
   text-decoration: none;
   &:hover{
     text-decoration: underline;
+  }
+}
+
+.dark-section {
+  background-color: $color-purple-dark;
+  color: $color-white;
+  .text-muted {
+    color: rgba(255,255,255,0.666) !important;
+  }
+  a,
+  .spesh-link {
+    color: $color-white !important;
+    &:hover,
+    &:active,
+    &:focus, 
+    &:visited {
+      color: $color-white !important;
+    }
+  }
+}
+
+.grey-grad-bg  {
+  background: linear-gradient(180deg, $color-white 0%, $color-grey-light 100%);
+}
+
+.ecosystems-pattern {
+  background-color: lighten($color-purple-light, 8%);
+  background-image: asset-url('ecosystems-pattern.svg');
+  background-repeat: repeat;
+  background-size: calc(696px/2) calc(238px/2);
+  background-attachment: fixed;
+}
+
+.purple-grad-bg  {
+  background-color: $color-purple-dark;
+  background: linear-gradient(0deg, $color-purple-dark 0%, $color-purple 50%);
+  color: $color-white;
+  .text-muted {
+    color: rgba(255,255,255,0.666) !important;
+  }
+}
+
+.grey-bg {
+  background-color: $color-grey-light;
+}
+
+/* Put an icon next to a link and make the whole lockup clickable */
+.link-with-icon {
+  display: inline-flex;
+  align-items: flex-start;    /* top-align icon and first line of text */
+  gap: 0.5em; 
+                   
+  .link-with-icon__icon {
+    flex: 0 0 18px; /* shorthand for flex-grow:0, flex-shrink:0, flex-basis:18px */
+    width: 18px;
+    height: 18px;
+    margin-top: 4px;
+  }
+
+  .link-with-icon__text {
+    display: block;
+    overflow-wrap: break-word; 
+    word-break: break-word; 
+  }
+  &:hover,
+  &:active,
+  &:focus {
+    .link-with-icon__text {
+      text-decoration: underline;
+      color: $color-purple-dark;
+    }
   }
 }
 
@@ -339,41 +468,39 @@ body {
   @include media-breakpoint-up(lg) {
     margin-left: 0;
   }
-  a {
+  .nav-link {
     @include spesh-link();
     padding: 0;
   }
-  li {
+  .nav-item {
     padding: var(--bs-nav-link-padding-y) var(--bs-nav-link-padding-x);
   }
 
-.nav {
-	@include media-breakpoint-up(lg) {
-	  justify-content: end;
-	}
-  }
-}
-
-.dark-section {
-  background-color: $color-purple-dark;
-  color: $color-white;
-  a {
-    color: $color-white;
-    &:hover,
-    &:active,
-    &:focus, 
-    &:visited {
-      color: $color-white;
+  .nav {
+    @include media-breakpoint-up(lg) {
+      justify-content: end;
     }
-    
+  }
+
+  .dropdown {
+    padding-top:4px;
+  }
+
+  .dropdown:last-of-type {
+    padding-right: 0;
   }
 }
-.extra-bold {
-  font-weight: 900;
-}
 
-.extra-small {
-  @include font-size(0.778rem);
+.user-menu__image {
+  border: 4px solid transparent;
+  [aria-expanded="true"] & {
+    border-color: $color-green;
+  }
+
+  &:hover,
+  &:focus {
+    border-color: $color-green;
+  }
 }
 
 .table a {
@@ -382,7 +509,7 @@ body {
 
 /*  Header */
 .header {
-  padding: 2em 0;
+  padding: 2em 0 0;
 }
 
 /*  Footer */
@@ -411,9 +538,12 @@ body {
     text-decoration: none;
   }
 }
+
 .lead {
   @include font-size(1.625rem);
 }
+
+/* Homepage */
 
 /* Hero */
 .hero {
@@ -434,10 +564,6 @@ body {
 .label {
   display: block;
   @include font-size(0.875rem);
-}
-
-.grey-grad-bg  {
-  background: linear-gradient(180deg, #FFFFFF 0%, #F5F5FF 100%);
 }
 
 .block-link {
@@ -476,6 +602,10 @@ body {
   font-size: 1rem;
 }
 
+.stat-card-text--x-small {
+  font-size: 0.875rem;
+}
+
 .stat-card-title {
   @include font-size(2.1875rem);
   font-weight: 800;
@@ -489,12 +619,60 @@ body {
   font-size: $h3-font-size;
 }
 
+.stat-card-number-neutral {
+  color: $color-purple-dark;
+}
 
+.stat-card-number-positive {
+  color: $color-green-dark;
+}
+
+.stat-card-number-negative {
+  color: $color-orange-dark;
+}
 
 .well {
   background-color: $color-grey-light;
   border-radius: $border-radius;
 }
+
+.well--grey {
+  background-color: $color-grey-cold;
+}
+
+.well--empty {
+  background-color: transparent;
+  border: 1px solid $color-purple-light;
+}
+
+.logo-grid {
+  img {
+    max-height: 60px; 
+    width: auto;
+    object-fit: contain;
+  }
+}
+  
+.logo-grid {
+	display: flex;
+	justify-content: space-around;
+	align-items: center; /* Align logos vertically */
+	flex-wrap: wrap;
+	gap: 2rem 2rem;
+	@include media-breakpoint-up(xl) { 
+	  flex-wrap: nowrap;
+	  justify-content: space-between; 
+	}
+	a {
+	  display: block;
+	}
+}
+  
+.logo-grid__logo {
+	max-width: 150px;
+}
+
+/* Text content pages */
 
 .page-content {
   h2, h3, h4, h5 {
@@ -509,28 +687,12 @@ body {
 
 .page-content__title {
   margin-bottom: 3rem;
-  
 }
 
 .page-content__title + .lead {
   margin-top: -1rem;
   margin-bottom: 1rem;
 }
-
-.ecosystems-pattern {
-  background-color: lighten($color-purple-light, 8%);
-  background-image: asset-url('ecosystems-pattern.svg');
-  background-repeat: repeat;
-  background-size: calc(696px/2) calc(238px/2);
-  background-attachment: fixed;
-}
-
-.purple-grad-bg  {
-  background-color: $color-purple-dark;
-  background: linear-gradient(0deg, $color-purple-dark 0%, $color-purple 50%);
-  color: $color-white;
-}
-
 
 /* Error pages */
 .error-bg {
@@ -617,6 +779,25 @@ body {
   }
 }
 
+.well {
+	.table-wrapper {
+		/* Add a shadow to indicate there's more to see if you scroll */
+		background: 
+		  linear-gradient(90deg, $color-grey-light 20%, rgba(255, 255, 255, 0)),
+		  linear-gradient(90deg, rgba(255, 255, 255, 0), $color-grey-light 80%) 
+						  100% 0,
+		  radial-gradient(farthest-side at 0 0%, $color-grey, rgba(0, 0, 0, 0)),
+		  radial-gradient(farthest-side at 100% 0%, $color-grey, rgba(0, 0, 0, 0))
+						  100% 0;
+		background-repeat: no-repeat;
+		background-size: 20% 200%, 20% 200%, 8% 400%, 8% 400%;
+		background-attachment: local, local, scroll, scroll;
+		table {
+		  --bs-table-bg: transparent;
+		}
+	}
+}
+
 .table {
 	tr {
 		vertical-align: middle;
@@ -657,37 +838,13 @@ body {
 	max-width: 400px !important; 
 	text-align: left; 
 }
-  
-.logo-grid {
-  img {
-    max-height: 60px; 
-    width: auto;
-    object-fit: contain;
-  }
-}
-  
-.logo-grid {
-	display: flex;
-	justify-content: space-around;
-	align-items: center; /* Align logos vertically */
-	flex-wrap: wrap;
-	gap: 2rem 2rem;
-	@include media-breakpoint-up(xl) { 
-	  flex-wrap: nowrap;
-	  justify-content: space-between; 
-	}
-	a {
-	  display: block;
-	}
-}
-  
-.logo-grid__logo {
-	max-width: 150px;
-}
+
 
 .bg-secondary {
 	color: $color-black;
 }
+
+/* Listing - used for search results or filterable elements, such as on advisories */
 
 .listing {
 	border: 0;
@@ -695,7 +852,6 @@ body {
 	border-bottom: 3px solid $color-purple-light;
 	padding: 0;
 }
-  
   
 .listing__title {
 	@include font-size(1rem);
@@ -757,6 +913,7 @@ body {
 	line-break: anywhere;
 }
 
+/* Used for search input field/go button lockups */
 .rounded-input-group {
 	.form-control {
 		border-top-left-radius: 800px; //magic number, but it's consistent with bootstrap
@@ -768,8 +925,7 @@ body {
 	}
 }
 
-
-// Form validation
+/* Form validation */
 .invalid-feedback {
 	color: $color-orange-dark;
 }
@@ -783,6 +939,7 @@ body {
 	color: $color-green-darker;
 }
 
+/* Sidebar with complentary info, used on filterable listing pages */
 .sidebar {
 	background-color: $color-grey-light;
 	p { 
@@ -790,7 +947,6 @@ body {
 	}
 	h2 {
 		@include font-size(1.25rem);
-
     border-top: 1px solid $color-purple-light;
     padding-top: 1rem;
     &:first-of-type {
@@ -798,18 +954,446 @@ body {
       padding-top: 0;
     }
 	}
-
 	h3 {
 		@include font-size(1rem);
-    
 	}
-
   code {
     color: $color-purple-dark;
   }
-
   a {
     @include spesh-link();
     line-break: anywhere;
   }
+}
+
+/* Dashboard */
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 100%;
+  gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  @include media-breakpoint-up(lg) { 
+    grid-template-columns: 1fr 3fr;
+  }
+}
+
+.dboard-filter-controls {
+  .btn-link {
+    text-decoration: none;
+    color: $color-black;
+    font-size: $font-size-small;
+    background-color: darken($color-grey-light, 3%);
+    &:hover,
+    &:active {
+      background-color: darken($color-grey-light, 6%);
+    }
+    &.active {
+      background-color: $color-purple;
+      color: $color-white;
+      &:hover,
+      &:active {
+        background-color: $color-purple-dark;
+      }
+    }
+  }
+  .dropdown-item {
+    font-size: $font-size-small;
+  }
+}
+
+.dboard-filter-controls__section {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); 
+  gap: 0 1rem; 
+  @include media-breakpoint-up(md) {
+    grid-template-columns: repeat(8, 1fr); 
+    margin-bottom: 1rem;
+    &:last-of-type {
+      margin-bottom: 0;
+    }
+  }
+  @include media-breakpoint-up(lg) { 
+      display: inline;
+      margin-bottom: 0;  
+  }
+  .small {
+    grid-column: -1/1;
+    @include media-breakpoint-up(md) {
+      text-align: right;
+       grid-column: 1/3;
+    } 
+  }
+  .btn:first-of-type {
+    @include media-breakpoint-up(md) {
+      grid-column: 3/6;
+    } 
+  }
+  .btn:last-of-type {
+    @include media-breakpoint-up(md) {
+      grid-column: 6/9;
+    } 
+  }
+  .btn:first-of-type:last-of-type {
+    // this means there's only one button
+    grid-column: 1 / -1;
+    @include media-breakpoint-up(md) {
+      grid-column: 3/9;
+    } 
+  }
+}
+
+.hide-large {
+  @include media-breakpoint-up(lg) { 
+    @include visually-hidden;
+  }
+}
+
+.dboard-nav {
+  .nav-link {
+    color: $color-black;
+    &:hover,
+    &:active {
+      background-color: $color-grey-light;
+    }
+    &.active {
+      &:hover,
+      &:active {
+        background-color: $color-purple-dark;
+      }
+    }
+  }
+}
+/* Layouts used for dashboard only. These don't use Bootstrap's layout system but share variables */
+
+.dashboard-grid {
+  display: grid;
+  gap: $grid-gutter-width;
+  > * {
+    min-width: 0; /* without this we were seeing grid blowout */
+  }
+}
+
+.three-equal-widgets {
+  /* 
+   * Three widgets, same size, one column each wide, one row each deep
+   * | 1 | 2 | 3 |
+   */
+  display: grid;
+  gap: $grid-gutter-width;
+  @include media-breakpoint-up(md) { 
+    grid-template-columns: repeat(2, 1fr);
+    > .card:first-child {
+      grid-column: span 2;
+    }
+  }
+  @include media-breakpoint-up(lg) { 
+    grid-template-columns: repeat(3, 1fr);
+    > .card:first-child {
+      grid-column: span 1;
+    }
+  }
+}
+
+.full-width-widget {
+  grid-template-columns: 1;
+}
+
+.two-thirds-widgets {
+  /* 
+   * Two widgets of different widths, split into 1/3 and 2/3, one row each deep.
+   * | 1 |  2   |
+   * The largest widget is the one with the class .two-thirds-widgets__large
+   * It uses source order 
+   */
+  display: grid;
+  gap: $grid-gutter-width;
+  grid-template-columns: 1fr;
+  @include media-breakpoint-up(md) { 
+    grid-template-columns: repeat(3, 1fr);
+    .two-thirds-widgets__large {
+      grid-column: span 2;
+    }
+  }
+}
+
+.two-thirds-widget-group {
+  /* 
+   * Three widgets of different widths, split into 1/3 and 2/3
+   * Two small widgets one row deep stacked on the left, a large widget 2x2 on the right
+   * | 1 |  3  |
+   * | 2 |     |
+   * The largest widget is the one with the class .two-thirds-widgets__large
+   * It uses source order 
+   */
+  display: grid;
+  gap: $grid-gutter-width;
+  grid-template-columns: 1fr;
+  @include media-breakpoint-up(md) { 
+    grid-template-columns: 1fr 1fr;
+    grid-auto-flow: row dense;
+    
+    /* Make the large card span the full width */
+    .two-thirds-widget-group__large {
+      grid-column: 1 / -1; /* Spans from first to last column line */
+    }
+  }
+  @include media-breakpoint-up(lg) { 
+    /* subtract 2 gaps (just like the 3-col layout) then split by 3
+    if we don't do this the vertical lines of the grid DON'T LINE UP
+    Thanks maths
+    */
+    grid-template-columns: minmax(0, calc((100% - 2 * #{$grid-gutter-width}) / 3)) 2fr;
+    grid-template-rows: repeat(2, auto);
+    .two-thirds-widget-group__small:nth-of-type(1) {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    /* Second small card in bottom-left */
+    .two-thirds-widget-group__small:nth-of-type(2) {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    /* Large card spans both rows on the right */
+    .two-thirds-widget-group__large {
+      grid-column: 2;
+      grid-row: 1 / span 2; /* Start at row 1 and span 2 rows */
+    }
+  }
+
+  &--reverse {
+    @include media-breakpoint-up(lg) {
+     /*
+      * Reverses the layout, stacks the small widgets on the right
+      * |  3  | 1 |
+      * |     | 2 |
+      */
+      grid-template-columns: 2fr minmax(0, calc((100% - 2 * #{$grid-gutter-width}) / 3));
+      .two-thirds-widget-group__large {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+      }
+      .two-thirds-widget-group__small:nth-of-type(1) {
+        grid-column: 2;
+        grid-row: 1;
+      }
+      .two-thirds-widget-group__small:nth-of-type(2) {
+        grid-column: 2;
+        grid-row: 2;
+      }
+    }
+  }
+}
+
+.one-third-widget-group {
+  /* 
+   * Three widgets of different widths, split into 1/3 and 2/3
+   * One widget 1x2 on the left, two widgets 2x1 stacked on the right
+   * | 1 |  2  |
+   * |   |  3  |
+   * The largest widget is the one with the class .two-thirds-widgets__large
+   * It doesn't use source order 
+   */
+  display: grid;
+  gap: $grid-gutter-width;
+  grid-template-columns: 1fr;
+  
+  @include media-breakpoint-up(md) { 
+    grid-template-columns: 1fr 1fr;
+    grid-auto-flow: row dense;
+    /* Make the large card span the full width on medium screens */
+    .one-third-widget-group__large {
+      grid-column: 1 / -1;
+    }
+  }
+  
+  @include media-breakpoint-up(lg) { 
+    /* subtract 2 gaps (just like the 3-col layout) then split by 3
+    if we don't do this the vertical lines of the grid DON'T LINE UP
+    Thanks maths
+    */
+    grid-template-columns: minmax(0, calc((100% - 2 * #{$grid-gutter-width}) / 3)) 2fr;
+    grid-template-rows: repeat(2, auto);
+    /* Large card spans both rows on the left */
+    .one-third-widget-group__large {
+      grid-column: 1;
+      grid-row: 1 / span 2; /* Start at row 1 and span 2 rows */
+    }
+    /* First small card in top-right */
+    .one-third-widget-group__small:nth-of-type(1) {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    /* Second small card in bottom-right */
+    .one-third-widget-group__small:nth-of-type(2) {
+      grid-column: 2;
+      grid-row: 2;
+    }
+  }
+}
+
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: auto; /* Adjust as needed */
+  position: relative;
+  min-height: 200px; /* Fallback for SSR */
+  aspect-ratio: 16/9; /* Modern aspect control */
+  canvas {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+.project-logo {
+  max-width: 100px;
+  border-radius: 8px;
+  padding: 0.25rem;
+  background-color: $color-white;
+  @include media-breakpoint-up(md) { 
+    max-width: 100%;
+  }
+  @include media-breakpoint-up(lg) { 
+    padding: 0.5rem;
+  }
+}
+
+/* We use chart.js for all charts, except this simple horizontal stacked bar graph */
+.stacked-bar {
+  display: flex;
+  width: 100%;
+  height: 0.333rem;
+  background: transparent;
+  overflow: hidden;
+}
+
+.segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--w);
+  color: #fff;
+}
+
+.seg-a { background: $color-orange-dark; }
+.seg-b { background: $color-green-dark; }
+.seg-c { background: $color-purple; }
+.seg-d { background: $color-orange-light; }
+
+.graph-key {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.graph-key__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dot {
+  display: inline-block;
+  width: 1rem;
+  min-width: 1rem; //stop it from going oval on small widths
+  height: 1rem;
+  border-radius: 50%;
+}
+
+.dot-a {
+  background-color: $color-orange-dark;
+}
+
+.dot-b {
+  background-color: $color-green-dark;
+}
+
+.dot-c {
+  background-color: $color-purple-dark;
+}
+
+.dot-d {
+  background-color: $color-orange-light;
+}
+
+.dboard-collection-bar {
+  .container {
+    border-bottom: 3px solid $color-purple;
+  }
+}
+
+a.project-badge {
+  text-decoration: none;
+  &:hover,
+  &:active,
+  &:focus {
+    color: $color-white !important;
+    background-color: $color-purple !important;
+  }
+}
+
+/* Generic homepages */
+
+.generic-home__hero {
+  .lead {
+    max-width: 42rem;
+  }
+}
+
+.generic-home__hero__para {
+  max-width: 44ch;
+}
+
+.generic-home__hero--center {
+  text-align: center;
+  .lead {
+    margin: 0 auto;
+  }
+}
+
+.generic-home__hero--left {
+  
+}
+
+.generic-home__benefits {
+  p {
+    @include media-breakpoint-up(lg) {
+      max-width: 32ch;
+    }
+  }
+}
+
+.generic-home__ecosystems-banner {
+
+  padding-bottom: 300px;
+  padding-top: 3rem;
+
+  background-image: asset-url('advisories-screen.png');
+  background-size: 426px 270px; //25%
+  background-repeat: no-repeat;
+
+  background-position-x: 50%;
+  background-position-y: 107%;
+
+  @include media-breakpoint-up(md) {
+    background-size: 852px 540px; //50%
+    background-position-y: 220%;
+  }
+
+  @include media-breakpoint-up(lg) {
+    background-position-x: calc(50% + 440px);
+    background-position-y: 4rem;
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+  }
+}
+
+.scrollable-window {
+  max-height: 28rem;
+}
+
+.scrollable-window--vulnerability-list {
+
 }
