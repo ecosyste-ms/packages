@@ -127,7 +127,7 @@ GEM
     date (3.4.1)
     deb_control (0.0.1)
     drb (2.2.3)
-    erb (5.0.1)
+    erb (5.0.2)
     erubi (1.13.1)
     ethon (0.16.0)
       ffi (>= 1.15.0)
@@ -314,7 +314,7 @@ GEM
       psych (>= 4.0.0)
     redis (5.4.0)
       redis-client (>= 0.22.0)
-    redis-client (0.25.0)
+    redis-client (0.25.1)
       connection_pool
     reline (0.6.1)
       io-console (~> 0.5)
@@ -514,7 +514,7 @@ CHECKSUMS
   date (3.4.1) sha256=bf268e14ef7158009bfeaec40b5fa3c7271906e88b196d958a89d4b408abe64f
   deb_control (0.0.1) sha256=4ddb6c8ece9c57d93e45edc20340f72fcbff8a1d65b5daa8a45b5d990cd51532
   drb (2.2.3) sha256=0b00d6fdb50995fe4a45dea13663493c841112e4068656854646f418fda13373
-  erb (5.0.1) sha256=760439803b36cc93eca8a266aab614614e588024a89bc30a62e78d98ff452c23
+  erb (5.0.2) sha256=d30f258143d4300fb4ecf430042ac12970c9bb4b33c974a545b8f58c1ec26c0f
   erubi (1.13.1) sha256=a082103b0885dbc5ecf1172fede897f9ebdb745a4b97a5e8dc63953db1ee4ad9
   ethon (0.16.0) sha256=bba0da1cea8ac3e1f5cdd7cb1cb5fc78d7ac562c33736f18f0c3eb2b63053d9e
   faraday (2.13.2) sha256=5c19762e3bbe78e61d8007c5119f2968373c5296d6c6d6aa05b6f9cec34f2a1a
@@ -600,7 +600,7 @@ CHECKSUMS
   rake (13.3.0) sha256=96f5092d786ff412c62fde76f793cc0541bd84d2eb579caa529aa8a059934493
   rdoc (6.14.2) sha256=9fdd44df130f856ae70cc9a264dfd659b9b40de369b16581f4ab746e42439226
   redis (5.4.0) sha256=798900d869418a9fc3977f916578375b45c38247a556b61d58cba6bb02f7d06b
-  redis-client (0.25.0) sha256=927dfd07a37346fd9111d80cac3199d2a02b4c084c79260acf7a5057bd742910
+  redis-client (0.25.1) sha256=40130f8f95194c9c73eec322516781b0bfdd8293369a67dc175bd7bc391a68bd
   reline (0.6.1) sha256=1afcc9d7cb1029cdbe780d72f2f09251ce46d3780050f3ec39c3ccc6b60675fb
   request_store (1.7.0) sha256=e1b75d5346a315f452242a68c937ef8e48b215b9453a77a6c0acdca2934c88cb
   rexml (3.4.1) sha256=c74527a9a0a04b4ec31dbe0dc4ed6004b960af943d8db42e539edde3a871abca
@@ -650,4 +650,4 @@ RUBY VERSION
    ruby 3.4.4p34
 
 BUNDLED WITH
-   2.6.9
+   2.7.0
