@@ -2,7 +2,7 @@ namespace :api_stats do
   desc "Display top user agents and IPs for the past 3 and 30 days"
   task summary: :environment do
     puts "\n" + "="*80
-    puts "API Usage Statistics Summary"
+    puts "Packages API Usage Statistics Summary"
     puts "="*80
     
     # Past 3 days
