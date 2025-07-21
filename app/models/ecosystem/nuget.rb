@@ -105,21 +105,77 @@ module Ecosystem
       return false if package[:releases].nil?
       item = package[:releases].last["catalogEntry"]
 
+      # Get comprehensive nuspec metadata for the latest version
+      nuspec_metadata = parse_nuspec_metadata(package[:name], item["version"])
+
       {
         name: package[:name].try(:downcase),
         description: description(item),
         homepage: item["projectUrl"],
         keywords_array: Array(item["tags"]).reject(&:blank?),
-        repository_url: repo_fallback(item["projectUrl"], item["licenseUrl"], item["packageUrl"]),
+        repository_url: repo_fallback(item["projectUrl"], item["licenseUrl"], item["packageUrl"], 
+                                    package_name: package[:name], version: item["version"]),
         releases: package[:releases],
         licenses: item["licenseExpression"],
         downloads: package[:download_stats]['data'].try(:first).try(:fetch,'totalDownloads'),
         downloads_period: 'total',
         download_stats: package[:download_stats],
+        
+        # Enhanced metadata from .nuspec file
+        metadata: build_package_nuspec_metadata(nuspec_metadata, package)
       }
     end
 
-    def repo_fallback(repo, license, homepage)
+    def build_package_nuspec_metadata(nuspec_metadata, package)
+      # Only include NuGet-specific fields that aren't duplicates of standard package fields
+      return {} unless nuspec_metadata
+
+      metadata = {
+        # NuGet-specific package information
+        copyright: nuspec_metadata[:copyright],
+        owners: nuspec_metadata[:owners],
+        
+        # Legal and licensing (detailed)
+        license_info: nuspec_metadata[:license],
+        license_url: nuspec_metadata[:license_url],
+        require_license_acceptance: nuspec_metadata[:require_license_acceptance],
+        
+        # URLs and resources (NuGet-specific)
+        icon_url: nuspec_metadata[:icon_url],
+        icon: nuspec_metadata[:icon],
+        readme: nuspec_metadata[:readme],
+        
+        # Repository details (more detailed than just URL)
+        repository: nuspec_metadata[:repository],
+        
+        # Technical information
+        min_client_version: nuspec_metadata[:min_client_version],
+        language: nuspec_metadata[:language],
+        development_dependency: nuspec_metadata[:development_dependency],
+        serviceable: nuspec_metadata[:serviceable],
+        
+        # Framework and packaging information
+        framework_assemblies: nuspec_metadata[:framework_assemblies],
+        package_types: nuspec_metadata[:package_types],
+        
+        # Additional categorization
+        summary: nuspec_metadata[:summary],
+        release_notes: nuspec_metadata[:release_notes]
+      }.compact
+      
+      # Only include dependency information if it exists
+      if nuspec_metadata[:dependency_groups]&.any?
+        metadata[:dependency_summary] = {
+          total_dependency_groups: nuspec_metadata[:dependency_groups].length,
+          target_frameworks: nuspec_metadata[:dependency_groups].map { |g| g[:target_framework] }.compact.uniq,
+          total_dependencies: nuspec_metadata[:dependency_groups].sum { |g| g[:dependencies]&.length || 0 }
+        }
+      end
+      
+      metadata
+    end
+
+    def repo_fallback(repo, license, homepage, package_name: nil, version: nil)
       repo = "" if repo.nil?
       homepage = "" if homepage.nil?
       license = "" if license.nil?
@@ -133,8 +189,86 @@ module Ecosystem
       elsif license_url.present?
         license_url
       else
-        ""
+        # Fallback to .nuspec file parsing if API URLs don't contain repository info
+        nuspec_repo_url(package_name, version) if package_name && version
       end
+    end
+
+    def nuspec_repo_url(package_name, version)
+      nuspec_metadata = parse_nuspec_metadata(package_name, version)
+      return "" unless nuspec_metadata
+      
+      repository_url = nuspec_metadata.dig(:repository, :url)
+      return UrlParser.try_all(repository_url) if repository_url.present?
+      ""
+    end
+
+    def parse_nuspec_metadata(package_name, version)
+      return nil unless package_name && version
+      
+      nuspec_url = "https://api.nuget.org/v3-flatcontainer/#{package_name.downcase}/#{version}/#{package_name.downcase}.nuspec"
+      response = Faraday.get(nuspec_url)
+      return nil unless response.success?
+      
+      # Parse XML to extract comprehensive metadata
+      require 'nokogiri'
+      doc = Nokogiri::XML(response.body)
+      
+      # Remove namespace for easier querying
+      doc.remove_namespaces!
+      metadata_node = doc.at_xpath('//metadata')
+      return nil unless metadata_node
+      
+      # Extract comprehensive metadata
+      {
+        # Basic package information
+        id: metadata_node.at_xpath('id')&.text,
+        version: metadata_node.at_xpath('version')&.text,
+        title: metadata_node.at_xpath('title')&.text,
+        authors: metadata_node.at_xpath('authors')&.text,
+        owners: metadata_node.at_xpath('owners')&.text,
+        
+        # License and legal information
+        license: extract_license_info(metadata_node),
+        license_url: metadata_node.at_xpath('licenseUrl')&.text,
+        require_license_acceptance: metadata_node.at_xpath('requireLicenseAcceptance')&.text == 'true',
+        copyright: metadata_node.at_xpath('copyright')&.text,
+        
+        # URLs and resources
+        project_url: metadata_node.at_xpath('projectUrl')&.text,
+        icon_url: metadata_node.at_xpath('iconUrl')&.text,
+        icon: metadata_node.at_xpath('icon')&.text,
+        readme: metadata_node.at_xpath('readme')&.text,
+        
+        # Description and categorization
+        description: metadata_node.at_xpath('description')&.text,
+        summary: metadata_node.at_xpath('summary')&.text,
+        tags: metadata_node.at_xpath('tags')&.text,
+        release_notes: metadata_node.at_xpath('releaseNotes')&.text,
+        
+        # Repository information
+        repository: extract_repository_info(metadata_node),
+        
+        # Technical metadata
+        min_client_version: metadata_node.attr('minClientVersion'),
+        language: metadata_node.at_xpath('language')&.text,
+        development_dependency: metadata_node.at_xpath('developmentDependency')&.text == 'true',
+        serviceable: metadata_node.at_xpath('serviceable')&.text == 'true',
+        
+        # Dependencies information (detailed)
+        dependency_groups: extract_dependency_groups(metadata_node),
+        
+        # Framework information
+        framework_assemblies: extract_framework_assemblies(metadata_node),
+        content_files: extract_content_files(metadata_node),
+        package_types: extract_package_types(metadata_node),
+        
+        # Additional metadata
+        raw_xml: response.body # Store raw XML for any future parsing needs
+      }
+    rescue => e
+      Rails.logger.debug "Failed to parse .nuspec for #{package_name} v#{version}: #{e.message}"
+      nil
     end
 
     def description(item)
@@ -143,14 +277,89 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       pkg_metadata[:releases].map do |item|
+        version = item["catalogEntry"]["version"]
+        
         {
-          number: item["catalogEntry"]["version"],
+          number: version,
           published_at: item["catalogEntry"]["published"],
-          metadata: {
-            downloads: version_downloads(pkg_metadata, item["catalogEntry"]["version"])
-          }
+          metadata: build_version_nuspec_metadata(pkg_metadata[:name], version, pkg_metadata, item)
         }
       end
+    end
+
+    def build_version_nuspec_metadata(package_name, version, pkg_metadata, item)
+      # Start with basic API metadata
+      base_metadata = {
+        downloads: version_downloads(pkg_metadata, version),
+        
+        # From API catalogEntry
+        api_description: item["catalogEntry"]["description"],
+        api_summary: item["catalogEntry"]["summary"],
+        api_title: item["catalogEntry"]["title"],
+        api_authors: item["catalogEntry"]["authors"],
+        api_license_expression: item["catalogEntry"]["licenseExpression"],
+        api_license_url: item["catalogEntry"]["licenseUrl"],
+        api_project_url: item["catalogEntry"]["projectUrl"],
+        api_icon_url: item["catalogEntry"]["iconUrl"],
+        api_tags: item["catalogEntry"]["tags"],
+        api_min_client_version: item["catalogEntry"]["minClientVersion"],
+        api_language: item["catalogEntry"]["language"],
+        
+        # Technical details from API
+        package_content_url: item["packageContent"],
+        catalog_entry_id: item["catalogEntry"]["@id"],
+        listed: item["catalogEntry"]["listed"],
+        require_license_acceptance: item["catalogEntry"]["requireLicenseAcceptance"]
+      }
+      
+      # Get enhanced metadata from .nuspec file
+      nuspec_metadata = parse_nuspec_metadata(package_name, version)
+      return base_metadata unless nuspec_metadata
+      
+      # Merge with comprehensive .nuspec metadata
+      base_metadata.merge({
+        # Enhanced .nuspec fields
+        nuspec_id: nuspec_metadata[:id],
+        nuspec_title: nuspec_metadata[:title],
+        nuspec_authors: nuspec_metadata[:authors],
+        nuspec_owners: nuspec_metadata[:owners],
+        nuspec_description: nuspec_metadata[:description],
+        nuspec_summary: nuspec_metadata[:summary],
+        nuspec_copyright: nuspec_metadata[:copyright],
+        nuspec_tags: nuspec_metadata[:tags],
+        nuspec_release_notes: nuspec_metadata[:release_notes],
+        
+        # License information (more detailed)
+        license_info: nuspec_metadata[:license],
+        
+        # Repository information (detailed)
+        repository: nuspec_metadata[:repository],
+        
+        # URLs and resources
+        icon: nuspec_metadata[:icon],
+        readme: nuspec_metadata[:readme],
+        
+        # Technical metadata
+        min_client_version: nuspec_metadata[:min_client_version],
+        language: nuspec_metadata[:language],
+        development_dependency: nuspec_metadata[:development_dependency],
+        serviceable: nuspec_metadata[:serviceable],
+        
+        # Dependency information (detailed for this version)
+        dependency_groups: nuspec_metadata[:dependency_groups],
+        framework_assemblies: nuspec_metadata[:framework_assemblies],
+        content_files: nuspec_metadata[:content_files],
+        package_types: nuspec_metadata[:package_types],
+        
+        # Analysis of differences between API and .nuspec
+        metadata_source_comparison: {
+          description_differs: (base_metadata[:api_description] != nuspec_metadata[:description]),
+          title_differs: (base_metadata[:api_title] != nuspec_metadata[:title]),
+          authors_differs: (base_metadata[:api_authors] != nuspec_metadata[:authors]),
+          license_differs: (base_metadata[:api_license_expression] != nuspec_metadata[:license]&.dig(:text)),
+          tags_differs: (base_metadata[:api_tags] != nuspec_metadata[:tags])
+        }
+      }).compact
     end
 
     def version_downloads(pkg_metadata, version)
@@ -159,6 +368,92 @@ module Ecosystem
     rescue
       nil
     end
+
+    private
+
+    def extract_license_info(metadata_node)
+      license_element = metadata_node.at_xpath('license')
+      return nil unless license_element
+      
+      {
+        type: license_element.attr('type'),
+        text: license_element.text,
+        version: license_element.attr('version')
+      }
+    end
+
+    def extract_repository_info(metadata_node)
+      repository_element = metadata_node.at_xpath('repository')
+      return nil unless repository_element
+      
+      {
+        type: repository_element.attr('type'),
+        url: repository_element.attr('url'),
+        branch: repository_element.attr('branch'),
+        commit: repository_element.attr('commit')
+      }
+    end
+
+    def extract_dependency_groups(metadata_node)
+      dependency_groups = []
+      metadata_node.xpath('dependencies/group').each do |group|
+        target_framework = group.attr('targetFramework')
+        dependencies = []
+        
+        group.xpath('dependency').each do |dep|
+          dependencies << {
+            id: dep.attr('id'),
+            version: dep.attr('version'),
+            include: dep.attr('include'),
+            exclude: dep.attr('exclude')
+          }
+        end
+        
+        dependency_groups << {
+          target_framework: target_framework,
+          dependencies: dependencies
+        }
+      end
+      dependency_groups
+    end
+
+    def extract_framework_assemblies(metadata_node)
+      assemblies = []
+      metadata_node.xpath('frameworkAssemblies/frameworkAssembly').each do |assembly|
+        assemblies << {
+          assembly_name: assembly.attr('assemblyName'),
+          target_framework: assembly.attr('targetFramework')
+        }
+      end
+      assemblies
+    end
+
+    def extract_content_files(metadata_node)
+      files = []
+      metadata_node.xpath('contentFiles/files/file').each do |file|
+        files << {
+          include: file.attr('include'),
+          exclude: file.attr('exclude'),
+          build_action: file.attr('buildAction'),
+          copy_to_output: file.attr('copyToOutput'),
+          flatten: file.attr('flatten')
+        }
+      end
+      files
+    end
+
+    def extract_package_types(metadata_node)
+      types = []
+      metadata_node.xpath('packageTypes/packageType').each do |type|
+        types << {
+          name: type.attr('name'),
+          version: type.attr('version')
+        }
+      end
+      types
+    end
+
+    public
 
     def dependencies_metadata(_name, version, package)
       current_version = package[:releases].find { |v| v["catalogEntry"]["version"] == version }
