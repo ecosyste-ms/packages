@@ -131,7 +131,7 @@ GEM
     erubi (1.13.1)
     ethon (0.16.0)
       ffi (>= 1.15.0)
-    faraday (2.13.2)
+    faraday (2.13.3)
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
@@ -517,7 +517,7 @@ CHECKSUMS
   erb (5.0.2) sha256=d30f258143d4300fb4ecf430042ac12970c9bb4b33c974a545b8f58c1ec26c0f
   erubi (1.13.1) sha256=a082103b0885dbc5ecf1172fede897f9ebdb745a4b97a5e8dc63953db1ee4ad9
   ethon (0.16.0) sha256=bba0da1cea8ac3e1f5cdd7cb1cb5fc78d7ac562c33736f18f0c3eb2b63053d9e
-  faraday (2.13.2) sha256=5c19762e3bbe78e61d8007c5119f2968373c5296d6c6d6aa05b6f9cec34f2a1a
+  faraday (2.13.3) sha256=e9571e7a4ada595b385da5fc749edf7b11dc6aa9d98ab63286c3f28dc4ac01b7
   faraday-follow_redirects (0.3.0) sha256=d92d975635e2c7fe525dd494fcd4b9bb7f0a4a0ec0d5f4c15c729530fdb807f9
   faraday-net_http (3.4.1) sha256=095757fae7872b94eac839c08a1a4b8d84fd91d6886cfbe75caa2143de64ab3b
   faraday-retry (2.3.2) sha256=2402d2029032ebd238a2046221e67f6ef0da78c5a8ce8cd4f8b9c62e4d6451d1
@@ -650,4 +650,4 @@ RUBY VERSION
    ruby 3.4.5p51
 
 BUNDLED WITH
-   2.7.0
+   2.7.1
