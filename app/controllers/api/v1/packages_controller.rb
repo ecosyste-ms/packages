@@ -233,6 +233,8 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     @package = @registry.packages.find_by_name(params[:id])
     if @package
       @package.sync_async
+      @package.update_repo_metadata_async if request.user_agent&.include?('repos.ecosyste.ms')
+      @package.update_advisories_async if request.user_agent&.include?('advisories.ecosyste.ms')
     else
       @registry.sync_package_async(params[:id])
     end
@@ -240,7 +242,14 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
   end
 
   def ping_all
-    Package.repository_url(params[:repository_url]).limit(1000).each(&:sync_async) unless params[:repository_url].nil?
+    unless params[:repository_url].nil?
+      packages = Package.repository_url(params[:repository_url]).limit(1000)
+      packages.each do |package|
+        package.sync_async
+        package.update_repo_metadata_async if request.user_agent&.include?('repos.ecosyste.ms')
+        package.update_advisories_async if request.user_agent&.include?('advisories.ecosyste.ms')
+      end
+    end
 
     render json: { message: 'pong' }
   end
