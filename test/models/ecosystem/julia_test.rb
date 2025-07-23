@@ -165,4 +165,37 @@ class JuliaTest < ActiveSupport::TestCase
     # Should return empty array when all_package_names is empty and no existing packages
     assert_equal @registry.missing_package_names, []
   end
+
+  test 'fetch_package_metadata handles malformed API response' do
+    # Test when API returns a String instead of Hash with packages array
+    stub_request(:get, "https://juliahub.com/app/packages/info")
+      .to_return({ status: 200, body: "invalid json response" })
+    
+    # Should not raise "undefined method 'find' for an instance of String"
+    assert_nothing_raised do
+      result = @ecosystem.fetch_package_metadata('SomePackage')
+      assert_nil result
+    end
+  end
+
+  test 'fetch_package_metadata handles missing packages key' do
+    # Test when API returns valid JSON but without packages key
+    stub_request(:get, "https://juliahub.com/app/packages/info")
+      .to_return({ status: 200, body: '{"other_key": "value"}' })
+    
+    # Should not raise "undefined method 'find' for an instance of String"
+    assert_nothing_raised do
+      result = @ecosystem.fetch_package_metadata('SomePackage')
+      assert_nil result
+    end
+  end
+
+  test 'packages method returns array even with malformed response' do
+    stub_request(:get, "https://juliahub.com/app/packages/info")
+      .to_return({ status: 200, body: "not json" })
+    
+    packages = @ecosystem.packages
+    assert_kind_of Array, packages
+    assert_equal packages, []
+  end
 end

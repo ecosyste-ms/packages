@@ -52,7 +52,9 @@ module Ecosystem
 
     def packages
       @packages ||= begin
-        get_json("#{@registry_url}/app/packages/info")['packages']
+        result = get_json("#{@registry_url}/app/packages/info")
+        packages_data = result.is_a?(Hash) ? result['packages'] : nil
+        packages_data.is_a?(Array) ? packages_data : []
       rescue
         []
       end
@@ -71,6 +73,7 @@ module Ecosystem
     end
 
     def fetch_package_metadata(name)
+      return nil unless packages.is_a?(Array)
       packages.find{|pkg| pkg['name'] == name}
     end
 
