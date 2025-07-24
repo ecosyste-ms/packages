@@ -135,17 +135,22 @@ module Ecosystem
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       version_numbers = get_json("#{@registry_url}/docs/General/#{pkg_metadata[:name]}/versions.json")
       version_numbers.map do |v|
-        version_json = get_json("#{@registry_url}/docs/General/#{pkg_metadata[:name]}/#{v}/pkg.json")
-        next if version_json.nil?
-        {
-          number: version_json['version'],
-          published_at: version_json['release_date'],
-          licenses: version_json['license'],
-          metadata: {
-            slug: version_json['slug'],
-            uuid: version_json['uuid'],
+        begin
+          version_json = get_json("#{@registry_url}/docs/General/#{pkg_metadata[:name]}/#{v}/pkg.json")
+          next if version_json.nil?
+          {
+            number: version_json['version'],
+            published_at: version_json['release_date'],
+            licenses: version_json['license'],
+            metadata: {
+              slug: version_json['slug'],
+              uuid: version_json['uuid'],
+            }
           }
-        }
+        rescue Oj::ParseError => e
+          Rails.logger.error "Failed to parse JSON for #{pkg_metadata[:name]} version #{v}: #{e.message}"
+          next
+        end
       end.compact
     end
 
