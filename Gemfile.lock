@@ -240,7 +240,10 @@ GEM
       bigdecimal (>= 3.0)
     packageurl-ruby (0.2.0)
     pagy (9.3.5)
-    pg (1.5.9)
+    pg (1.6.0)
+    pg (1.6.0-aarch64-linux)
+    pg (1.6.0-arm64-darwin)
+    pg (1.6.0-x86_64-linux)
     pg_query (6.1.0)
       google-protobuf (>= 3.25.3)
     pghero (3.7.0)
@@ -572,7 +575,10 @@ CHECKSUMS
   ox (2.14.23) sha256=4a9aedb4d6c78c5ebac1d7287dc7cc6808e14a8831d7adb727438f6a1b461b66
   packageurl-ruby (0.2.0) sha256=9bef22c96622b7d3a0087a7fbca8903f9187b66fbfd6a78299ef115768f5012b
   pagy (9.3.5) sha256=78a9513150b96f872c092ab1cd95bb818ea29b2c417a4302290bc9293f8f0fd7
-  pg (1.5.9) sha256=761efbdf73b66516f0c26fcbe6515dc7500c3f0aa1a1b853feae245433c64fdc
+  pg (1.6.0) sha256=26ea1694e4ed2e387a8292373acbb62ff9696d691d3a1b8b76cf56eb1d9bd40b
+  pg (1.6.0-aarch64-linux) sha256=23690afbe8d4374a399a6ff683e2aee713002e27767b3e40be0c112d90a9a648
+  pg (1.6.0-arm64-darwin) sha256=1ee9bf9858a532020e69483a0939b51eff52b369ee6cb2ce267c4d06e211f3e6
+  pg (1.6.0-x86_64-linux) sha256=5e0054765ab94f80152cbfbf986da54348b145e436663579df3d1e1d667d5e39
   pg_query (6.1.0) sha256=8b005229e209f12c5887c34c60d0eb2a241953b9475b53a9840d24578532481e
   pghero (3.7.0) sha256=a8d8497095dbe168bb03fe50a11309ab068cd1c1ef4c88d9bbeb97be4809f522
   polyglot (0.3.5) sha256=59d66ef5e3c166431c39cb8b7c1d02af419051352f27912f6a43981b3def16af
