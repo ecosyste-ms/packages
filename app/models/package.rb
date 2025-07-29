@@ -717,8 +717,16 @@ class Package < ApplicationRecord
     registry.packages.repository_url(repository_url).where.not(id: id)
   end
 
+  def advisories_url
+    "https://advisories.ecosyste.ms/advisories?ecosystem=#{ecosystem}&package_name=#{to_param}"
+  end
+
+  def advisories_api_url
+    "https://advisories.ecosyste.ms/api/v1/advisories?ecosystem=#{ecosystem}&package_name=#{to_param}"
+  end
+
   def fetch_advisories
-    ecosystems_api_get("https://advisories.ecosyste.ms/api/v1/advisories?ecosystem=#{ecosystem}&package_name=#{to_param}") || []
+    ecosystems_api_get(advisories_api_url) || []
   rescue
     []
   end
