@@ -8,10 +8,9 @@
           </h1>
         </div>
         <div class="col-md-6 text-md-end">
-			<a class="header__global__menu-link" role="button" aria-expanded="false" aria-controls="header__global__menu" data-bs-toggle="collapse" href="#header__global__menu">All services <%= bootstrap_icon 'caret-down-fill', width: 12, height: 12 %></a>
+          <a class="header__global__menu-link" role="button" aria-expanded="false" aria-controls="header__global__menu" data-bs-toggle="collapse" href="#header__global__menu">All services <%= bootstrap_icon 'caret-down-fill', width: 12, height: 12 %></a>
         </div>
       </div>
-      
       <div id="header__global__menu" class="collapse header__global__menu">
         <% ecosystems_services.each do |category, services| %>
           <div class="header__global__menu__category">
