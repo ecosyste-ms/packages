@@ -18,9 +18,9 @@
             <ul class="header__global__menu__category-links">
               <% services.each do |service| %>
                 <li>
-                  <a href="<%= service[:url] %>" target="_blank" class="<%= 'active' if service[:url] == request.base_url %>">
-                    <%= service[:name] %>
-                  </a>
+                  <a href="<%= service[:url] %>" target="_blank" class="<%= 'active' if service[:url] == request.base_url %>"
+                    ><%= service[:name] %></a
+                  >
                 </li>
               <% end %>
             </ul>
