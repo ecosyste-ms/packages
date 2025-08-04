@@ -5,7 +5,7 @@ production:
     - ActiveRecord::QueryCanceled
     - Rack::Timeout::RequestTimeoutException
     - Faraday::ConnectionFailed 
-    - PackageURL::InvalidPackageURL
+    - Purl::InvalidPackageURL
     - Faraday::SSLError
     - Rack::Timeout::RequestExpiryError
     - Faraday::TimeoutError

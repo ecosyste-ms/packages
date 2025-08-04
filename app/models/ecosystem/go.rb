@@ -8,7 +8,7 @@ module Ecosystem
     def purl(package, version = nil)
       namespace = encode_for_proxy package.name.split('/')[0..-2].join('/')
       name = encode_for_proxy package.name.split('/').last
-      PackageURL.new(
+      Purl::PackageURL.new(
         type: purl_type,
         namespace: namespace,
         name: name,

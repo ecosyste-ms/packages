@@ -46,13 +46,13 @@ class VcpkgTest < ActiveSupport::TestCase
   test 'purl' do
     purl = @ecosystem.purl(@package)
     assert_equal purl, 'pkg:vcpkg/zziplib'
-    assert PackageURL.parse(purl)
+    assert Purl.parse(purl)
   end
 
   test 'purl with version' do
     purl = @ecosystem.purl(@package, @version)
     assert_equal purl, 'pkg:vcpkg/zziplib@1.26.8'
-    assert PackageURL.parse(purl)
+    assert Purl.parse(purl)
   end
 
   test 'all_package_names' do

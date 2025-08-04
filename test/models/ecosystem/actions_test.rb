@@ -106,12 +106,12 @@ class ActionsTest < ActiveSupport::TestCase
   test 'purl' do
     purl = @ecosystem.purl(@package)
     assert_equal purl, 'pkg:githubactions/getsentry/action-git-diff-suggestions'
-    assert PackageURL.parse(purl)
+    assert Purl.parse(purl)
   end
 
   test 'purl with version' do
     purl = @ecosystem.purl(@package, @version)
     assert_equal purl, 'pkg:githubactions/getsentry/action-git-diff-suggestions@v1'
-    assert PackageURL.parse(purl)
+    assert Purl.parse(purl)
   end
 end

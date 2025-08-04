@@ -46,20 +46,20 @@ class GoTest < ActiveSupport::TestCase
   test 'purl' do
     purl = @ecosystem.purl(@package)
     assert_equal purl, 'pkg:golang/github.com/aws/smithy-go'
-    assert PackageURL.parse(purl)
+    assert Purl.parse(purl)
   end
 
   test 'non-github purl' do
     package = Package.new(ecosystem: 'Go', name: 'google.golang.org/genproto')
     purl = @ecosystem.purl(package)
     assert_equal purl, 'pkg:golang/google.golang.org/genproto'
-    assert PackageURL.parse(purl)
+    assert Purl.parse(purl)
   end
 
   test 'purl with version' do
     purl = @ecosystem.purl(@package, @version)
     assert_equal purl, 'pkg:golang/github.com/aws/smithy-go@v1.11.1'
-    assert PackageURL.parse(purl)
+    assert Purl.parse(purl)
   end
 
   test 'all_package_names' do

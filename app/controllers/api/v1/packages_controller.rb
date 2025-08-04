@@ -136,7 +136,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     if @packages.empty?
       if params[:purl].present?
         begin
-          purl = PackageURL.parse(params[:purl])
+          purl = Purl.parse(params[:purl])
           name = [purl.namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
           ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type)
           registry = Registry.find_by_ecosystem(ecosystem)
@@ -149,6 +149,9 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
             render json: { error: "Invalid PURL format: #{params[:purl]}" }, status: :unprocessable_content and return
           end
           raise e
+        rescue Purl::MalformedUrlError, Purl::ValidationError => e
+          Rails.logger.error("Purl error in PURL parsing: #{e.message}")
+          render json: { error: "Invalid PURL format: #{params[:purl]}" }, status: :unprocessable_content and return
         end
       elsif params[:ecosystem].present? && params[:name].present?
         registry = Registry.find_by_ecosystem(params[:ecosystem])

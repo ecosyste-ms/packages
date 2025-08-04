@@ -52,13 +52,13 @@ class PuppetTest < ActiveSupport::TestCase
   test 'purl' do
     purl = @ecosystem.purl(@package)
     assert_equal purl, 'pkg:puppet/puppet/fail2ban'
-    assert PackageURL.parse(purl)
+    assert Purl.parse(purl)
   end
 
   test 'purl with version' do
     purl = @ecosystem.purl(@package, @version)
     assert_equal purl, 'pkg:puppet/puppet/fail2ban@4.1.0'
-    assert PackageURL.parse(purl)
+    assert Purl.parse(purl)
   end
 
   test 'all_package_names' do

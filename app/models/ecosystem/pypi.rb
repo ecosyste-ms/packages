@@ -8,7 +8,7 @@ module Ecosystem
     PEP_508_NAME_WITH_EXTRAS_REGEX = /(^#{PEP_508_NAME_REGEX}\s*(?:\[#{PEP_508_NAME_REGEX}(?:,\s*#{PEP_508_NAME_REGEX})*\])?)/i.freeze
 
     def purl(package, version = nil)
-      PackageURL.new(
+      Purl::PackageURL.new(
         type: purl_type,
         namespace: nil,
         name: package.name.downcase.gsub('_', '-'),

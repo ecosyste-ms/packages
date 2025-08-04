@@ -54,6 +54,6 @@ class VersionTest < ActiveSupport::TestCase
 
   test 'purl' do
     assert_equal @version.purl, "pkg:gem/foo@1.0.0"
-    assert PackageURL.parse(@version.purl)
+    assert Purl.parse(@version.purl)
   end
 end

@@ -4,7 +4,7 @@ module Ecosystem
   class Puppet < Base
 
     def purl(package, version = nil)
-      PackageURL.new(
+      Purl::PackageURL.new(
         type: purl_type,
         namespace: package.name.split('-').first,
         name: package.name.split('-').last,

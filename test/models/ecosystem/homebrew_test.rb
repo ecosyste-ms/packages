@@ -51,13 +51,13 @@ class HomebrewTest < ActiveSupport::TestCase
   test 'purl' do
     purl = @ecosystem.purl(@package)
     assert_equal purl, 'pkg:brew/abook'
-    assert PackageURL.parse(purl)
+    assert Purl.parse(purl)
   end
 
   test 'purl with version' do
     purl = @ecosystem.purl(@package, @version)
     assert_equal purl, 'pkg:brew/abook@1.26.8'
-    assert PackageURL.parse(purl)
+    assert Purl.parse(purl)
   end
 
   test 'all_package_names' do

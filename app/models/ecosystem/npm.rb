@@ -8,7 +8,7 @@ module Ecosystem
 
     def purl(package, version = nil)
       namespace = package.namespace ? "@#{package.namespace}".encode('iso-8859-1') : nil
-      PackageURL.new(
+      Purl::PackageURL.new(
         type: 'npm',
         namespace: namespace,
         name: package.name.split('/').last.encode('iso-8859-1'),

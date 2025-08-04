@@ -7,7 +7,7 @@ module Ecosystem
     end
 
     def purl(package, version = nil)
-      PackageURL.new(
+      Purl::PackageURL.new(
         type: 'apk',
         namespace: 'postmarketos',
         name: package.name.encode('iso-8859-1'),

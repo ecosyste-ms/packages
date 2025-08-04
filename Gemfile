@@ -45,7 +45,7 @@ gem "xmlrpc"
 gem 'rexml'
 gem 'appsignal'
 gem 'faraday-typhoeus'
-gem 'packageurl-ruby'
+gem 'purl'
 gem 'sitemap_generator'
 gem 'dalli'
 gem 'postgresql_cursor'

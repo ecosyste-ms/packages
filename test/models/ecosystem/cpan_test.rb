@@ -52,13 +52,13 @@ class CpanTest < ActiveSupport::TestCase
   test 'purl' do
     purl = @ecosystem.purl(@package)
     assert_equal purl, 'pkg:cpan/Dpkg'
-    assert PackageURL.parse(purl)
+    assert Purl.parse(purl)
   end
 
   test 'purl with version' do
     purl = @ecosystem.purl(@package, @version)
     assert_equal purl, 'pkg:cpan/Dpkg@1.21.5'
-    assert PackageURL.parse(purl)
+    assert Purl.parse(purl)
   end
 
   test 'all_package_names' do
