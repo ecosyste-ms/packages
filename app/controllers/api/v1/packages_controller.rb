@@ -144,9 +144,9 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
         rescue ArgumentError => e
           Rails.logger.error("ArgumentError in PURL parsing: #{e.message}")
           if e.message.include?("type is required")
-            render json: { error: "Invalid PURL format (type is required): #{params[:purl]}" }, status: :unprocessable_entity and return
+            render json: { error: "Invalid PURL format (type is required): #{params[:purl]}" }, status: :unprocessable_content and return
           elsif e.message.downcase.include?('invalid')
-            render json: { error: "Invalid PURL format: #{params[:purl]}" }, status: :unprocessable_entity and return
+            render json: { error: "Invalid PURL format: #{params[:purl]}" }, status: :unprocessable_content and return
           end
           raise e
         end

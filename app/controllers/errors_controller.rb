@@ -9,9 +9,9 @@ class ErrorsController < ApplicationController
 
   def unprocessable
     respond_to do |format|
-      format.html { render status: :unprocessable_entity }
-      format.json { render json: { error: "unprocessable" }, status: :unprocessable_entity }
-      format.any { head :unprocessable_entity }
+      format.html { render status: :unprocessable_content }
+      format.json { render json: { error: "unprocessable" }, status: :unprocessable_content }
+      format.any { head :unprocessable_content }
     end
   end
 
