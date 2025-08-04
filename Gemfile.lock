@@ -261,7 +261,8 @@ GEM
     public_suffix (6.0.2)
     puma (6.6.1)
       nio4r (~> 2.0)
-    purl (1.2.0)
+    purl (1.3.1)
+      addressable (~> 2.8)
     racc (1.8.1)
     rack (3.2.0)
     rack-attack (6.7.0)
@@ -590,7 +591,7 @@ CHECKSUMS
   psych (5.2.6) sha256=814328aa5dcb6d604d32126a20bc1cbcf05521a5b49dbb1a8b30a07e580f316e
   public_suffix (6.0.2) sha256=bfa7cd5108066f8c9602e0d6d4114999a5df5839a63149d3e8b0f9c1d3558394
   puma (6.6.1) sha256=b9b56e4a4ea75d1bfa6d9e1972ee2c9f43d0883f011826d914e8e37b3694ea1e
-  purl (1.2.0) sha256=0143e355c3b2db3538b60fa512d6144ba1bbe5404612b5a5a8206067dcf64cc4
+  purl (1.3.1) sha256=95f9256f38643c7f61b0fbeb78321dd19932c6009f395c2d3553aee94d8029b9
   racc (1.8.1) sha256=4a7f6929691dbec8b5209a0b373bc2614882b55fc5d2e447a21aaa691303d62f
   rack (3.2.0) sha256=79cd21514d696c59d61fae02e62900f087aac2d053fdc77d45f4e91b94fb3612
   rack-attack (6.7.0) sha256=3ca47e8f66cd33b2c96af53ea4754525cd928ed3fa8da10ee6dad0277791d77c

@@ -156,14 +156,17 @@ module Ecosystem
     end
 
     def purl(package, version = nil)
-      PackageURL.new(
+      params = {
         type: purl_type,
         namespace: nil,
-        name: package.name.encode('iso-8859-1'),
-        version: version.try(:number).try(:encode,'iso-8859-1')
-      ).to_s
-    rescue
-      # invalid encoding
+        name: package.name.encode('iso-8859-1')
+      }
+      if version.present?
+        params[:version] = version.try(:number).try(:encode,'iso-8859-1')
+      end
+      Purl::PackageURL.new(**params).to_s
+    rescue => e
+      # invalid encoding or other errors
       nil
     end
 

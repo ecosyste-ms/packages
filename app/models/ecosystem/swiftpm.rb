@@ -7,12 +7,15 @@ module Ecosystem
     end
 
     def purl(package, version = nil)
-      PackageURL.new(
+      params = {
         type: purl_type,
         namespace: package.name.split('/')[0..1].join('/'),
-        name: package.name.split('/').last,
-        version: version.try(:number).try(:encode, 'iso-8859-1', invalid: :replace, undef: :replace, replace: '')
-      ).to_s
+        name: package.name.split('/').last
+      }
+      if version.present?
+        params[:version] = version.try(:number).try(:encode, 'iso-8859-1', invalid: :replace, undef: :replace, replace: '')
+      end
+      Purl::PackageURL.new(**params).to_s
     end
 
     def all_package_names
