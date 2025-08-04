@@ -343,6 +343,7 @@ GEM
       sprockets-rails
       tilt
     sdl4r (0.9.11)
+    secure_headers (7.1.0)
     securerandom (0.4.1)
     semantic (1.6.1)
     semantic_range (3.1.0)
@@ -467,6 +468,7 @@ DEPENDENCIES
   rswag-ui
   sanitize-url
   sassc-rails
+  secure_headers
   semantic
   semantic_range
   shoulda-context
@@ -620,6 +622,7 @@ CHECKSUMS
   sassc (2.4.0) sha256=4c60a2b0a3b36685c83b80d5789401c2f678c1652e3288315a1551d811d9f83e
   sassc-rails (2.1.2) sha256=5f4fdf3881fc9bdc8e856ffbd9850d70a2878866feae8114aa45996179952db5
   sdl4r (0.9.11) sha256=400367c6b1d3e3e78103a3bc0b61f0b9c9379c36ffee592a02aa2158e9bd9547
+  secure_headers (7.1.0) sha256=6b1f9d5f9507af2948f4636452c41c09371927836396c2185438ffdf0a731124
   securerandom (0.4.1) sha256=cc5193d414a4341b6e225f0cb4446aceca8e50d5e1888743fac16987638ea0b1
   semantic (1.6.1) sha256=3cdbb48f59198ebb782a3fdfb87b559e0822a311610db153bae22777a7d0c163
   semantic_range (3.1.0) sha256=9fc01ee40f2e5f81042e95d421837f688177dd603753b5eab41ff9bba50a34a1
