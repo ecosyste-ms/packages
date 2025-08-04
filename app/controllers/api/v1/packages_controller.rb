@@ -51,6 +51,57 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     end
   end
 
+  def critical_sole_maintainers
+    scope = Package.critical.where(maintainers_count: 1).active.with_issue_metadata.sole_maintainer.includes(:registry, :maintainers)
+
+    @registry = Registry.find_by_name(params[:registry]) if params[:registry]
+    scope = scope.where(registry_id: @registry.id) if @registry
+
+    scope = scope.created_after(params[:created_after]) if params[:created_after].present?
+    scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
+
+    scope = scope.created_before(params[:created_before]) if params[:created_before].present?
+    scope = scope.updated_before(params[:updated_before]) if params[:updated_before].present?
+
+    if params[:sort].present? || params[:order].present?
+      sort = params[:sort].presence || 'downloads'
+      
+      case params[:sort]
+      when 'stargazers_count'
+        sort = "(repo_metadata ->> 'stargazers_count')::text::integer"
+      when 'name'
+        sort = 'name'
+      when 'versions_count'
+        sort = 'versions_count'
+      when 'latest_release_published_at'
+        sort = 'latest_release_published_at'
+      when 'dependent_packages_count'
+        sort = 'dependent_packages_count'
+      when 'dependent_repos_count'
+        sort = 'dependent_repos_count'
+      when 'downloads'
+        sort = 'downloads'
+      when 'maintainers_count'
+        sort = 'maintainers_count'
+      else
+        sort = 'downloads'
+      end
+      
+      if params[:order] == 'asc'
+        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+      else
+        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+      end
+    else
+      scope = scope.order_by_maintainer_count_asc.order('downloads DESC nulls last')
+    end
+
+    @pagy, @packages = pagy_countless(scope)
+    if stale?(@packages, public: true)
+      render :critical_sole_maintainers
+    end
+  end
+
   def lookup
     scope = Package.all
     if params[:id].present?

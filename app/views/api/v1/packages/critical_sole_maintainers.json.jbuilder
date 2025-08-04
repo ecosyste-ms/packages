@@ -1,0 +1,1 @@
+json.array! @packages, partial: 'api/v1/packages/critical_sole_maintainer_package', as: :package

@@ -25,6 +25,7 @@ Rails.application.routes.draw do
           get :lookup, to: 'packages#lookup'
           get :ping, to: 'packages#ping_all'
           post :bulk_lookup, to: 'packages#bulk_lookup'
+          get 'critical/sole-maintainers', to: 'packages#critical_sole_maintainers'
         end
       end
 

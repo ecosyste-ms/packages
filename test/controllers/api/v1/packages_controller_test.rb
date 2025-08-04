@@ -259,4 +259,163 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     actual_response = Oj.load(@response.body)
     assert_equal actual_response['message'], 'pong'
   end
+
+  test 'list critical packages with sole maintainers' do
+    maintainer = Maintainer.create(name: 'John Doe', uuid: SecureRandom.uuid, registry: @registry)
+    
+    critical_package = @registry.packages.create(
+      ecosystem: 'cargo', 
+      name: 'critical-sole-maintainer', 
+      critical: true,
+      maintainers_count: 1,
+      downloads: 1000,
+      dependent_packages_count: 5,
+      dependent_repos_count: 10,
+      issue_metadata: {
+        'past_year_issue_authors_count' => 25,
+        'past_year_pull_request_authors_count' => 12,
+        'past_year_issues_count' => 50,
+        'past_year_pull_requests_count' => 30,
+        'maintainers' => [{'login' => 'test-maintainer'}],
+        'active_maintainers' => [{'login' => 'test-maintainer'}],
+        'dds' => 0.85
+      }
+    )
+    critical_package.maintainers << maintainer
+    
+    non_critical_package = @registry.packages.create(
+      ecosystem: 'cargo', 
+      name: 'non-critical-package', 
+      critical: false,
+      maintainers_count: 1
+    )
+
+    get critical_sole_maintainers_api_v1_packages_path
+    assert_response :success
+    assert_template 'api/v1/packages/critical_sole_maintainers'
+    
+    actual_response = Oj.load(@response.body)
+    
+    assert_equal actual_response.length, 1
+    assert_equal actual_response.first['name'], 'critical-sole-maintainer'
+  end
+
+  test 'list critical packages with sole maintainers filtered by registry' do
+    other_registry = Registry.create(name: 'pypi', url: 'https://pypi.org', ecosystem: 'pypi')
+    maintainer1 = Maintainer.create(name: 'John Doe', uuid: SecureRandom.uuid, registry: @registry)
+    maintainer2 = Maintainer.create(name: 'Jane Doe', uuid: SecureRandom.uuid, registry: other_registry)
+    
+    critical_package1 = @registry.packages.create(
+      ecosystem: 'cargo', 
+      name: 'critical-sole-maintainer-1', 
+      critical: true,
+      maintainers_count: 1,
+      issue_metadata: {
+        'maintainers' => [{'login' => 'test-maintainer'}],
+        'dds' => 0.85
+      }
+    )
+    critical_package1.maintainers << maintainer1
+    
+    critical_package2 = other_registry.packages.create(
+      ecosystem: 'pypi', 
+      name: 'critical-sole-maintainer-2', 
+      critical: true,
+      maintainers_count: 1,
+      issue_metadata: {
+        'maintainers' => [{'login' => 'test-maintainer-2'}],
+        'dds' => 0.90
+      }
+    )
+    critical_package2.maintainers << maintainer2
+
+    get critical_sole_maintainers_api_v1_packages_path(registry: @registry.name)
+    assert_response :success
+    assert_template 'api/v1/packages/critical_sole_maintainers'
+    
+    actual_response = Oj.load(@response.body)
+    
+    assert_equal actual_response.length, 1
+    assert_equal actual_response.first['name'], 'critical-sole-maintainer-1'
+  end
+
+  test 'list critical packages with sole maintainers sorted by downloads' do
+    maintainer = Maintainer.create(name: 'John Doe', uuid: SecureRandom.uuid, registry: @registry)
+    
+    high_download_package = @registry.packages.create(
+      ecosystem: 'cargo', 
+      name: 'high-download-package', 
+      critical: true,
+      maintainers_count: 1,
+      downloads: 5000,
+      issue_metadata: {
+        'maintainers' => [{'login' => 'high-maintainer'}],
+        'dds' => 0.95
+      }
+    )
+    high_download_package.maintainers << maintainer
+    
+    low_download_package = @registry.packages.create(
+      ecosystem: 'cargo', 
+      name: 'low-download-package', 
+      critical: true,
+      maintainers_count: 1,
+      downloads: 1000,
+      issue_metadata: {
+        'maintainers' => [{'login' => 'low-maintainer'}],
+        'dds' => 0.85
+      }
+    )
+    low_download_package.maintainers << maintainer
+
+    get critical_sole_maintainers_api_v1_packages_path
+    assert_response :success
+    assert_template 'api/v1/packages/critical_sole_maintainers'
+    
+    actual_response = Oj.load(@response.body)
+    
+    assert_equal actual_response.length, 2
+    assert_equal actual_response.first['name'], 'high-download-package'
+    assert_equal actual_response.second['name'], 'low-download-package'
+  end
+
+  test 'list critical packages with sole maintainers with custom sort' do
+    maintainer = Maintainer.create(name: 'John Doe', uuid: SecureRandom.uuid, registry: @registry)
+    
+    package_a = @registry.packages.create(
+      ecosystem: 'cargo', 
+      name: 'a-package', 
+      critical: true,
+      maintainers_count: 1,
+      downloads: 1000,
+      issue_metadata: {
+        'maintainers' => [{'login' => 'a-maintainer'}],
+        'dds' => 0.85
+      }
+    )
+    package_a.maintainers << maintainer
+    
+    package_z = @registry.packages.create(
+      ecosystem: 'cargo', 
+      name: 'z-package', 
+      critical: true,
+      maintainers_count: 1,
+      downloads: 2000,
+      issue_metadata: {
+        'maintainers' => [{'login' => 'z-maintainer'}],
+        'dds' => 0.90
+      }
+    )
+    package_z.maintainers << maintainer
+
+    get critical_sole_maintainers_api_v1_packages_path(sort: 'name', order: 'asc')
+    assert_response :success
+    assert_template 'api/v1/packages/critical_sole_maintainers'
+    
+    actual_response = Oj.load(@response.body)
+    
+    assert_equal actual_response.length, 2
+    assert_equal actual_response.first['name'], 'a-package'
+    assert_equal actual_response.second['name'], 'z-package'
+  end
 end
