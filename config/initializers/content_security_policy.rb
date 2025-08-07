@@ -4,7 +4,7 @@ SecureHeaders::Configuration.default do |config|
     script_src: %w('self' 'unsafe-inline' https://cdnjs.cloudflare.com),
     style_src: %w('self' 'unsafe-inline' https://fonts.googleapis.com),
     font_src: %w('self' https://fonts.gstatic.com),
-    img_src: %w('self' data:),
-    connect_src: %w('self')
+    img_src: %w('self' data: https:),
+    connect_src: %w('self' *.ecosyste.ms)
   }
 end
