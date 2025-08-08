@@ -8,7 +8,7 @@ default: &default
   port:     <%= ENV.fetch("POSTGRES_PORT") { '' } %>
   pool:     <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   variables:
-    statement_timeout: '300s'
+    statement_timeout: '<%= $PROGRAM_NAME.include?("puma") ? "30s" : "300s" %>'
 
 development:
   <<: *default
