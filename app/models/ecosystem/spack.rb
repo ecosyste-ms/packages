@@ -65,11 +65,12 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       pkg_metadata[:versions].map do |v|
+        download_url = v['downloads'].is_a?(Array) ? v['downloads'].first : v['downloads']
         {
           number: v["version"],
           integrity: "sha256-" + v['sha256'],
           metadata: {
-            download_url: v['downloads'].first
+            download_url: download_url
           }
         }
       end
