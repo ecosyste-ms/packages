@@ -6,6 +6,7 @@ production:
     - Rack::Timeout::RequestTimeoutException
     - Faraday::ConnectionFailed 
     - Purl::InvalidPackageURL
+    - Purl::InvalidSchemeError
     - Faraday::SSLError
     - Rack::Timeout::RequestExpiryError
     - Faraday::TimeoutError
@@ -14,3 +15,4 @@ production:
     - Pagy::OverflowError 
     - ActiveRecord::StatementInvalid
     - ActionDispatch::Http::MimeNegotiation::InvalidType 
+    
