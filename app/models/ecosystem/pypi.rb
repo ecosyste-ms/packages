@@ -73,7 +73,8 @@ module Ecosystem
           "funding" => package.dig("info", "project_urls", "Funding"),
           "documentation" => package.dig("info", "project_urls", "Documentation"),
           "classifiers" => package["info"]["classifiers"],
-          "normalized_name" => package["info"]["name"].downcase.gsub('_', '-').gsub('.', '-')
+          "normalized_name" => package["info"]["name"].downcase.gsub('_', '-').gsub('.', '-'),
+          "project_status" => package["project-status"]
         }
       }
 
@@ -227,6 +228,20 @@ module Ecosystem
 
     def maintainer_url(maintainer)
       "https://pypi.org/user/#{maintainer.login}/"
+    end
+
+    def check_status(package)
+      url = check_status_url(package)
+      response = Faraday.get(url)
+      return "removed" if [400, 404, 410].include?(response.status)
+      
+      begin
+        json = get_json("#{@registry_url}/pypi/#{package.name}/json")
+        project_status = json.dig("project-status", "status")
+        return project_status if project_status.present? && project_status != "active"
+      rescue
+        # Fall back to default behavior if API call fails
+      end
     end
   end
 end

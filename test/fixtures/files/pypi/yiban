@@ -114,5 +114,8 @@
       "yanked_reason": null
     }
   ],
-  "vulnerabilities": []
+  "vulnerabilities": [],
+  "project-status": {
+    "status": "active"
+  }
 }

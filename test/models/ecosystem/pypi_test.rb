@@ -100,7 +100,7 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal package_metadata[:keywords_array], ["Yiban"]
     assert_equal package_metadata[:downloads], 18
     assert_equal package_metadata[:downloads_period], "last-month"
-    assert_equal package_metadata[:metadata], {"funding"=>nil, "documentation" => "https://dukebode.github.io/Yiban", "classifiers"=>["Development Status :: 1 - Planning", "Intended Audience :: Developers", "Intended Audience :: Education", "License :: OSI Approved :: BSD License", "Natural Language :: Chinese (Simplified)", "Operating System :: Microsoft :: Windows :: Windows 10", "Programming Language :: Python :: 3.8", "Programming Language :: Python :: Implementation :: PyPy"], "normalized_name"=>"yiban"}
+    assert_equal package_metadata[:metadata], {"funding"=>nil, "documentation" => "https://dukebode.github.io/Yiban", "classifiers"=>["Development Status :: 1 - Planning", "Intended Audience :: Developers", "Intended Audience :: Education", "License :: OSI Approved :: BSD License", "Natural Language :: Chinese (Simplified)", "Operating System :: Microsoft :: Windows :: Windows 10", "Programming Language :: Python :: 3.8", "Programming Language :: Python :: Implementation :: PyPy"], "normalized_name"=>"yiban", "project_status"=>{"status"=>"active"}}
   end
 
   test 'versions_metadata' do
@@ -192,5 +192,53 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal first_version[:metadata][:python_version], "py3"
     assert_equal first_version[:metadata][:size], 8856
     assert_equal first_version[:metadata][:has_sig], false
+  end
+
+  test 'package_metadata includes project status when available' do
+    package_json = JSON.parse(file_fixture('pypi/yiban').read)
+    package_json['project-status'] = { 'status' => 'archived', 'reason' => 'No longer maintained' }
+    
+    stub_request(:get, "https://pypi.org/pypi/yiban/json")
+      .to_return({ status: 200, body: package_json.to_json })
+    stub_request(:get, "https://pypistats.org/api/packages/yiban/recent")
+      .to_return({ status: 200, body: file_fixture('pypi/recent') })
+    
+    package_metadata = @ecosystem.package_metadata('yiban')
+    
+    assert_equal package_metadata[:metadata]['project_status'], {'status' => 'archived', 'reason' => 'No longer maintained'}
+  end
+
+  test 'check_status returns project status from API' do
+    package_json = JSON.parse(file_fixture('pypi/yiban').read)
+    package_json['project-status'] = { 'status' => 'archived' }
+    
+    stub_request(:get, "https://pypi.org/project/urllib3/")
+      .to_return({ status: 200, body: '' })
+    stub_request(:get, "https://pypi.org/pypi/urllib3/json")
+      .to_return({ status: 200, body: package_json.to_json })
+    
+    status = @ecosystem.check_status(@package)
+    assert_equal status, 'archived'
+  end
+
+  test 'check_status returns nil for active status' do
+    package_json = JSON.parse(file_fixture('pypi/yiban').read)
+    package_json['project-status'] = { 'status' => 'active' }
+    
+    stub_request(:get, "https://pypi.org/project/urllib3/")
+      .to_return({ status: 200, body: '' })
+    stub_request(:get, "https://pypi.org/pypi/urllib3/json")
+      .to_return({ status: 200, body: package_json.to_json })
+    
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+  end
+
+  test 'check_status returns removed for 404' do
+    stub_request(:get, "https://pypi.org/project/urllib3/")
+      .to_return({ status: 404 })
+    
+    status = @ecosystem.check_status(@package)
+    assert_equal status, 'removed'
   end
 end
