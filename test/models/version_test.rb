@@ -56,4 +56,23 @@ class VersionTest < ActiveSupport::TestCase
     assert_equal @version.purl, "pkg:gem/foo@1.0.0"
     assert Purl.parse(@version.purl)
   end
+
+  test "transitive_dependencies delegates to resolver" do
+    TransitiveDependencyResolver.any_instance.expects(:resolve).returns([])
+    
+    result = @version.transitive_dependencies
+    assert_equal [], result
+  end
+
+  test "transitive_dependencies passes options to resolver" do
+    TransitiveDependencyResolver.expects(:new).with(
+      @version,
+      max_depth: 5,
+      max_dependencies: 30,
+      include_optional: true,
+      kind: "dev"
+    ).returns(mock(resolve: []))
+    
+    @version.transitive_dependencies(max_depth: 5, include_optional: true, kind: "dev")
+  end
 end

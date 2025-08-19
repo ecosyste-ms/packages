@@ -204,4 +204,15 @@ class Version < ApplicationRecord
       end
     end
   end
+
+  def transitive_dependencies(max_depth: TransitiveDependencyResolver::DEFAULT_MAX_DEPTH, max_dependencies: TransitiveDependencyResolver::DEFAULT_MAX_DEPENDENCIES, include_optional: false, kind: nil)
+    resolver = TransitiveDependencyResolver.for_ecosystem(package.ecosystem).new(
+      self,
+      max_depth: max_depth,
+      max_dependencies: max_dependencies,
+      include_optional: include_optional,
+      kind: kind
+    )
+    resolver.resolve
+  end
 end
