@@ -96,8 +96,11 @@ class TransitiveDependencyResolver
       end
       
       if matching_versions.empty?
+        available_versions = package.versions.map(&:clean_number).sort.reverse.first(5)
+        Rails.logger.debug "Available versions for #{package.name}: #{available_versions.join(', ')}"
+        
         raise DependencyResolutionError.new(
-          "No version of '#{package.name}' satisfies requirements: #{requirements}"
+          "No version of '#{package.name}' satisfies requirements: #{requirements}. Available versions: #{available_versions.join(', ')}"
         )
       end
       
@@ -110,7 +113,7 @@ class TransitiveDependencyResolver
   end
 
   def normalize_version_requirements(requirements)
-    requirements
+    requirements.to_s.strip.gsub(/^[=v]+/, '')
   end
 
   def version_matches_requirements?(version, requirements)
@@ -173,7 +176,7 @@ class TransitiveDependencyResolver
   end
 
   def merge_requirements(requirements_array)
-    requirements_array.join(" ")
+    requirements_array.join(" || ")
   end
 
   def build_cache_key

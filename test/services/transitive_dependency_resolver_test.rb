@@ -200,7 +200,7 @@ class TransitiveDependencyResolverTest < ActiveSupport::TestCase
     
     package_d_deps = result.select { |dep| dep.package_name == package_d.name }
     assert_equal 1, package_d_deps.length
-    assert_equal ">=1.0.0 ^1.0.0", package_d_deps.first.requirements
+    assert_equal ">=1.0.0 || ^1.0.0", package_d_deps.first.requirements
   end
 
   test "raises error when no version satisfies requirements" do
