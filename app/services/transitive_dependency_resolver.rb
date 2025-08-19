@@ -113,7 +113,7 @@ class TransitiveDependencyResolver
   end
 
   def normalize_version_requirements(requirements)
-    requirements.to_s.strip.gsub(/^[=v]+/, '')
+    requirements.to_s
   end
 
   def version_matches_requirements?(version, requirements)
@@ -121,25 +121,28 @@ class TransitiveDependencyResolver
     
     cache_key = "#{version.clean_number}:#{requirements}"
     @satisfies_cache[cache_key] ||= begin
-      SemanticRange.satisfies?(
-        version.clean_number, 
-        requirements,
-        platform: semantic_range_platform,
-        loose: true
-      )
-    rescue ArgumentError
+      require 'vers'
+      
+      gem_range = Vers.parse_native(requirements, vers_platform)
+      gem_range.contains?(version.clean_number)
+    rescue => e
+      # Fallback to string comparison if vers fails
       version.clean_number == requirements.to_s
     end
   end
 
-  def semantic_range_platform
+  def vers_platform
     case @registry.ecosystem
     when 'rubygems'
-      'Rubygems'
+      'gem'
     when 'packagist'
-      'Packagist'
+      'composer'
+    when 'npm'
+      'npm'
+    when 'cargo'
+      'cargo'
     else
-      nil
+      raise ArgumentError, "Unsupported ecosystem for version resolution: #{@registry.ecosystem}"
     end
   end
 

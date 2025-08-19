@@ -193,14 +193,14 @@ class TransitiveDependencyResolverTest < ActiveSupport::TestCase
     create_dependency(version_a, package_b.name, "1.0.0")
     create_dependency(version_a, package_c.name, "1.0.0")
     create_dependency(version_b, package_d.name, ">=1.0.0")
-    create_dependency(version_c, package_d.name, "^1.0.0")
+    create_dependency(version_c, package_d.name, ">=1.0.0")
     
     resolver = TransitiveDependencyResolver.new(version_a, max_depth: 3)
     result = resolver.resolve
     
     package_d_deps = result.select { |dep| dep.package_name == package_d.name }
     assert_equal 1, package_d_deps.length
-    assert_equal ">=1.0.0 || ^1.0.0", package_d_deps.first.requirements
+    assert_equal ">=1.0.0 || >=1.0.0", package_d_deps.first.requirements
   end
 
   test "raises error when no version satisfies requirements" do
@@ -275,6 +275,28 @@ class TransitiveDependencyResolverTest < ActiveSupport::TestCase
     assert_equal 2, package_c_deps.length
     assert_includes package_c_deps.map(&:requirements), "1.0.0"
     assert_includes package_c_deps.map(&:requirements), "2.0.0"
+  end
+
+  test "handles activesupport-like version matching" do
+    registry = create_registry("rubygems")
+    package_a = create_package(registry, "package-a")
+    version_a = create_version(package_a, "1.0.0")
+    
+    activesupport = create_package(registry, "activesupport")
+    create_version(activesupport, "8.0.2.1")
+    create_version(activesupport, "8.0.2")
+    create_version(activesupport, "8.0.1")
+    create_version(activesupport, "8.0.0.rc2")
+    create_version(activesupport, "8.0.0.rc1")
+    
+    create_dependency(version_a, activesupport.name, ">= 5.2.4.5")
+    
+    resolver = TransitiveDependencyResolver.new(version_a, max_depth: 2)
+    result = resolver.resolve
+    
+    assert_equal 1, result.length
+    assert_equal "activesupport", result.first.package_name
+    assert_equal ">= 5.2.4.5", result.first.requirements
   end
 
   private

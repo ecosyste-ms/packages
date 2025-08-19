@@ -69,3 +69,5 @@ group :test do
   gem "mocha"
   gem "rails-controller-testing"
 end
+
+gem "vers", "~> 1.0"
