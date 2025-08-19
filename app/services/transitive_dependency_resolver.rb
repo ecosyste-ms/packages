@@ -123,8 +123,7 @@ class TransitiveDependencyResolver
     @satisfies_cache[cache_key] ||= begin
       require 'vers'
       
-      gem_range = Vers.parse_native(requirements, vers_platform)
-      gem_range.contains?(version.clean_number)
+      Vers.satisfies?(version.clean_number, requirements, vers_platform)
     rescue => e
       # Fallback to string comparison if vers fails
       version.clean_number == requirements.to_s

@@ -2,7 +2,7 @@ require 'test_helper'
 
 class TransitiveDependencyResolverTest < ActiveSupport::TestCase
   test "resolves direct dependencies only at depth 0" do
-    registry = create_registry
+    registry = create_registry("rubygems")
     package_a = create_package(registry, "package-a")
     version_a = create_version(package_a, "1.0.0")
     
@@ -18,7 +18,7 @@ class TransitiveDependencyResolverTest < ActiveSupport::TestCase
   end
 
   test "resolves single level transitive dependencies" do
-    registry = create_registry
+    registry = create_registry("rubygems")
     package_a = create_package(registry, "package-a")
     version_a = create_version(package_a, "1.0.0")
     
@@ -40,7 +40,7 @@ class TransitiveDependencyResolverTest < ActiveSupport::TestCase
   end
 
   test "prevents circular dependencies" do
-    registry = create_registry
+    registry = create_registry("rubygems")
     package_a = create_package(registry, "package-a")
     version_a = create_version(package_a, "1.0.0")
     
@@ -58,7 +58,7 @@ class TransitiveDependencyResolverTest < ActiveSupport::TestCase
   end
 
   test "respects max depth limit" do
-    registry = create_registry
+    registry = create_registry("rubygems")
     packages = []
     versions = []
     
@@ -78,7 +78,7 @@ class TransitiveDependencyResolverTest < ActiveSupport::TestCase
   end
 
   test "skips missing packages gracefully" do
-    registry = create_registry
+    registry = create_registry("rubygems")
     package_a = create_package(registry, "package-a")
     version_a = create_version(package_a, "1.0.0")
     
@@ -91,7 +91,7 @@ class TransitiveDependencyResolverTest < ActiveSupport::TestCase
   end
 
   test "filters by dependency kind" do
-    registry = create_registry
+    registry = create_registry("rubygems")
     package_a = create_package(registry, "package-a")
     version_a = create_version(package_a, "1.0.0")
     
@@ -112,7 +112,7 @@ class TransitiveDependencyResolverTest < ActiveSupport::TestCase
   end
 
   test "filters optional dependencies" do
-    registry = create_registry
+    registry = create_registry("rubygems")
     package_a = create_package(registry, "package-a")
     version_a = create_version(package_a, "1.0.0")
     
@@ -133,7 +133,7 @@ class TransitiveDependencyResolverTest < ActiveSupport::TestCase
   end
 
   test "includes optional dependencies when requested" do
-    registry = create_registry
+    registry = create_registry("rubygems")
     package_a = create_package(registry, "package-a")
     version_a = create_version(package_a, "1.0.0")
     
@@ -156,7 +156,7 @@ class TransitiveDependencyResolverTest < ActiveSupport::TestCase
   end
 
   test "caches results" do
-    registry = create_registry
+    registry = create_registry("rubygems")
     package_a = create_package(registry, "package-a")
     version_a = create_version(package_a, "1.0.0")
     
@@ -177,7 +177,7 @@ class TransitiveDependencyResolverTest < ActiveSupport::TestCase
   end
 
   test "merges requirements for same package appearing multiple times" do
-    registry = create_registry
+    registry = create_registry("rubygems")
     package_a = create_package(registry, "package-a")
     version_a = create_version(package_a, "1.0.0")
     
@@ -204,7 +204,7 @@ class TransitiveDependencyResolverTest < ActiveSupport::TestCase
   end
 
   test "raises error when no version satisfies requirements" do
-    registry = create_registry
+    registry = create_registry("rubygems")
     package_a = create_package(registry, "package-a")
     version_a = create_version(package_a, "1.0.0")
     
@@ -223,7 +223,7 @@ class TransitiveDependencyResolverTest < ActiveSupport::TestCase
   end
 
   test "raises error when too many dependencies exceed limit" do
-    registry = create_registry
+    registry = create_registry("rubygems")
     package_a = create_package(registry, "package-a")
     version_a = create_version(package_a, "1.0.0")
     
