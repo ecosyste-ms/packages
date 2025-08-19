@@ -118,26 +118,58 @@ class TransitiveDependencyResolver
     
     cache_key = "#{version.clean_number}:#{requirements}"
     @satisfies_cache[cache_key] ||= begin
-      SemanticRange.satisfies?(version.clean_number, requirements)
+      SemanticRange.satisfies?(
+        version.clean_number, 
+        requirements,
+        platform: semantic_range_platform,
+        loose: true
+      )
     rescue ArgumentError
       version.clean_number == requirements.to_s
     end
   end
 
-  def merge_duplicate_dependencies(dependencies)
-    result = []
-    seen = {}
-    
-    dependencies.each do |dep|
-      if existing = seen[dep.package_name]
-        existing.requirements = merge_requirements([existing.requirements, dep.requirements])
-      else
-        seen[dep.package_name] = dep
-        result << dep
-      end
+  def semantic_range_platform
+    case @registry.ecosystem
+    when 'rubygems'
+      'Rubygems'
+    when 'packagist'
+      'Packagist'
+    else
+      nil
     end
+  end
+
+  def merge_duplicate_dependencies(dependencies)
+    if allows_multiple_versions?
+      dependencies.uniq { |dep| "#{dep.package_name}:#{resolved_version_for(dep)}" }
+    else
+      result = []
+      seen = {}
+      
+      dependencies.each do |dep|
+        if existing = seen[dep.package_name]
+          existing.requirements = merge_requirements([existing.requirements, dep.requirements])
+        else
+          seen[dep.package_name] = dep
+          result << dep
+        end
+      end
+      
+      result
+    end
+  end
+
+  def allows_multiple_versions?
+    %w[cargo npm].include?(@registry.ecosystem)
+  end
+
+  def resolved_version_for(dependency)
+    dependency_package = find_dependency_package(dependency)
+    return dependency.requirements unless dependency_package
     
-    result
+    matching_version = find_matching_version(dependency_package, dependency.requirements)
+    matching_version&.number || dependency.requirements
   end
 
   def merge_requirements(requirements_array)

@@ -252,13 +252,38 @@ class TransitiveDependencyResolverTest < ActiveSupport::TestCase
     assert_includes error.message, "Too many dependencies: 3 exceeds limit of 2"
   end
 
+  test "allows multiple versions for npm and cargo ecosystems" do
+    registry = create_registry("npm")
+    package_a = create_package(registry, "package-a")
+    version_a = create_version(package_a, "1.0.0")
+    
+    package_b = create_package(registry, "package-b")
+    version_b = create_version(package_b, "1.0.0")
+    
+    package_c = create_package(registry, "package-c")
+    version_c_1 = create_version(package_c, "1.0.0")
+    version_c_2 = create_version(package_c, "2.0.0")
+    
+    create_dependency(version_a, package_b.name, "1.0.0")
+    create_dependency(version_a, package_c.name, "1.0.0")
+    create_dependency(version_b, package_c.name, "2.0.0")
+    
+    resolver = TransitiveDependencyResolver.new(version_a, max_depth: 3)
+    result = resolver.resolve
+    
+    package_c_deps = result.select { |dep| dep.package_name == package_c.name }
+    assert_equal 2, package_c_deps.length
+    assert_includes package_c_deps.map(&:requirements), "1.0.0"
+    assert_includes package_c_deps.map(&:requirements), "2.0.0"
+  end
+
   private
 
-  def create_registry
+  def create_registry(ecosystem = "test")
     Registry.create!(
       name: "test-registry",
       url: "https://test.example.com",
-      ecosystem: "test"
+      ecosystem: ecosystem
     )
   end
 
