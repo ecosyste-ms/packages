@@ -19,7 +19,10 @@ class TransitiveDependencyResolver
     @max_dependencies = max_dependencies
     @include_optional = include_optional
     @kind = kind
-    @visited_packages = Set.new
+    @visited_packages = {}
+    @package_cache = {}
+    @version_cache = {}
+    @satisfies_cache = {}
   end
 
   def resolve
@@ -44,9 +47,9 @@ class TransitiveDependencyResolver
     return [] if current_depth >= @max_depth
     
     package_key = "#{version.package.name}:#{version.number}"
-    return [] if @visited_packages.include?(package_key)
+    return [] if @visited_packages[package_key]
     
-    @visited_packages.add(package_key)
+    @visited_packages[package_key] = true
     
     direct_dependencies = get_filtered_dependencies(version)
     all_dependencies = []
@@ -59,7 +62,7 @@ class TransitiveDependencyResolver
       next unless matching_version
       
       dependency_package_key = "#{matching_version.package.name}:#{matching_version.number}"
-      next if @visited_packages.include?(dependency_package_key)
+      next if @visited_packages[dependency_package_key]
       
       all_dependencies << dependency
       all_dependencies.concat(
@@ -79,23 +82,27 @@ class TransitiveDependencyResolver
   end
 
   def find_dependency_package(dependency)
-    @registry.packages.find_by(name: dependency.package_name)
+    @package_cache[dependency.package_name] ||= @registry.packages.includes(:versions).find_by(name: dependency.package_name)
   end
 
   def find_matching_version(package, requirements)
-    normalized_requirements = normalize_version_requirements(requirements)
+    cache_key = "#{package.name}:#{requirements}"
     
-    matching_versions = package.versions.active.select do |version|
-      version_matches_requirements?(version, normalized_requirements)
+    @version_cache[cache_key] ||= begin
+      normalized_requirements = normalize_version_requirements(requirements)
+      
+      matching_versions = package.versions.select do |version|
+        version_matches_requirements?(version, normalized_requirements)
+      end
+      
+      if matching_versions.empty?
+        raise DependencyResolutionError.new(
+          "No version of '#{package.name}' satisfies requirements: #{requirements}"
+        )
+      end
+      
+      select_best_version(matching_versions)
     end
-    
-    if matching_versions.empty?
-      raise DependencyResolutionError.new(
-        "No version of '#{package.name}' satisfies requirements: #{requirements}"
-      )
-    end
-    
-    select_best_version(matching_versions)
   end
 
   def select_best_version(matching_versions)
@@ -109,22 +116,28 @@ class TransitiveDependencyResolver
   def version_matches_requirements?(version, requirements)
     return true if requirements.blank? || requirements == "*"
     
-    SemanticRange.satisfies?(version.clean_number, requirements)
-  rescue ArgumentError
-    version.clean_number == requirements.to_s
+    cache_key = "#{version.clean_number}:#{requirements}"
+    @satisfies_cache[cache_key] ||= begin
+      SemanticRange.satisfies?(version.clean_number, requirements)
+    rescue ArgumentError
+      version.clean_number == requirements.to_s
+    end
   end
 
   def merge_duplicate_dependencies(dependencies)
-    grouped = dependencies.group_by(&:package_name)
+    result = []
+    seen = {}
     
-    grouped.map do |package_name, deps|
-      if deps.length == 1
-        deps.first
+    dependencies.each do |dep|
+      if existing = seen[dep.package_name]
+        existing.requirements = merge_requirements([existing.requirements, dep.requirements])
       else
-        merged_requirements = merge_requirements(deps.map(&:requirements))
-        deps.first.dup.tap { |dep| dep.requirements = merged_requirements }
+        seen[dep.package_name] = dep
+        result << dep
       end
     end
+    
+    result
   end
 
   def merge_requirements(requirements_array)
