@@ -124,7 +124,7 @@ class TransitiveDependencyResolver
       require 'vers'
       
       Vers.satisfies?(version.clean_number, requirements, vers_platform)
-    rescue => e
+    rescue
       # Fallback to string comparison if vers fails
       version.clean_number == requirements.to_s
     end
@@ -178,7 +178,7 @@ class TransitiveDependencyResolver
   end
 
   def merge_requirements(requirements_array)
-    requirements_array.join(" || ")
+    requirements_array.uniq.join(", ")
   end
 
   def build_cache_key
