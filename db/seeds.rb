@@ -38,6 +38,7 @@ default_registries = [
   {name: 'github actions', url: 'https://github.com/marketplace/actions/', ecosystem: 'actions', github: 'actions', default: true},
   {name: 'pkg.adelielinux.org', url: "https://pkg.adelielinux.org/current", ecosystem: "adelie", github: "AdelieLinux", default: true, metadata: {repos: ['system', 'user']}},
   {name: 'bioconductor.org', url: 'https://bioconductor.org', ecosystem: 'bioconductor', github: 'Bioconductor', default: true},
+  {name: 'registry.terraform.io', url: 'https://registry.terraform.io', ecosystem: 'terraform', github: 'hashicorp', default: true},
 ]
 
 default_registries.each do |data|
