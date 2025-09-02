@@ -374,6 +374,7 @@ class Package < ApplicationRecord
       repo_metadata.merge!({'tags' => tags}) if tags
       update(repo_metadata: repo_metadata)
       ping_issues
+      ping_commits
       update_issue_metadata
     end
     update(repo_metadata_updated_at: Time.now)
