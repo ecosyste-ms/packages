@@ -9,21 +9,21 @@
 | [Docker Hub](https://hub.docker.com) | 1,002,256 | ✅ Available | TOTP only | ❌ (No SMS) | [Docker 2FA docs](https://docs.docker.com/security/2fa/) |
 | [NuGet](https://nuget.org) | 740,221 | ✅ Required* | Via Microsoft Account | ❌ | [NuGet 2FA wiki](https://github.com/NuGet/Home/wiki/2-Factor-Auth-for-NuGet.org-sign-in) |
 | [PyPI](https://pypi.org) | 725,183 | ✅ Required | WebAuthn/TOTP | ❌ (No SMS) | [PyPI 2FA help](https://pypi.org/help/#twofa) |
-| [Maven Central](https://repo1.maven.org) | 547,830 | ⚠️ Unknown | Unknown | Unknown | Sonatype authentication |
+| [Maven Central](https://repo1.maven.org) | 547,830 | ⚠️ Unknown | Unknown | Unknown | Unknown |
 | [Packagist](https://packagist.org) | 466,319 | ✅ Available | TOTP | ❌ | [PR #1031](https://github.com/composer/packagist/pull/1031) |
-| [Crates.io](https://crates.io) | 204,483 | ⚠️ Via GitHub | GitHub 2FA | Varies | [Discussion #4200](https://github.com/rust-lang/crates.io/discussions/4200) |
+| [Crates.io](https://crates.io) | 204,483 | ⚠️ Via GitHub | GitHub 2FA | N/A | [Discussion #4200](https://github.com/rust-lang/crates.io/discussions/4200) |
 | [RubyGems](https://rubygems.org) | 199,693 | ✅ Available | WebAuthn/TOTP | ❌ | [RubyGems MFA guide](https://guides.rubygems.org/setting-up-multifactor-authentication/) |
-| [CocoaPods](https://cocoapods.org) | 101,227 | ❌ No | Email tokens only | - | [Trunk setup guide](https://guides.cocoapods.org/making/getting-setup-with-trunk.html) |
-| [GitHub Actions](https://github.com/actions) | 32,174 | ✅ Required | Via GitHub Account | ❌ | [GitHub 2FA docs](https://docs.github.com/en/authentication/securing-your-account-with-two-factor-authentication-2fa) |
-| [CRAN](https://cran.r-project.org) | 26,177 | ❌ No | Email only | - | [CRAN submission](https://cran.r-project.org/submit.html) |
+| [CocoaPods](https://cocoapods.org) | 101,227 | ❌ No | Email tokens only | N/A | [Trunk setup guide](https://guides.cocoapods.org/making/getting-setup-with-trunk.html) |
+| [GitHub Actions](https://github.com/actions) | 32,174 | ✅ Required | Via GitHub Account | N/A | [GitHub 2FA docs](https://docs.github.com/en/authentication/securing-your-account-with-two-factor-authentication-2fa) |
+| [CRAN](https://cran.r-project.org) | 26,177 | ❌ No | Email only | N/A | [CRAN submission](https://cran.r-project.org/submit.html) |
 | [Clojars](https://clojars.org) | 21,103 | ✅ Optional | TOTP | ❌ | [Clojars 2FA wiki](https://github.com/clojars/clojars-web/wiki/Two-Factor-Auth) |
 | [Conda-forge](https://conda-forge.org) | 20,636 | N/A | Registry on GitHub | N/A | [Maintainer docs](https://conda-forge.org/docs/maintainer/knowledge_base/) |
 | [Hex.pm](https://hex.pm) | 18,539 | ✅ Optional | TOTP | ❌ | [Hex.pm blog](https://hex.pm/blog/announcing-two-factor-auth) |
-| [Hackage](https://hackage.haskell.org) | 18,401 | ❌ No | Token auth only | - | [Issue #1265](https://github.com/haskell/hackage-server/issues/1265) |
-| [JuliaHub](https://juliahub.com) | 12,681 | ⚠️ Via SSO | Depends on SSO | Varies | [Auth guide](https://help.juliahub.com/juliahub-jl/stable/guides/authentication/) |
+| [Hackage](https://hackage.haskell.org) | 18,401 | ❌ No | Token auth only | N/A | [Issue #1265](https://github.com/haskell/hackage-server/issues/1265) |
+| [JuliaHub](https://juliahub.com) | 12,681 | ⚠️ Via SSO | Depends on SSO | N/A | [Auth guide](https://help.juliahub.com/juliahub-jl/stable/guides/authentication/) |
 | [Swift Package Index](https://swiftpackageindex.com) | 10,651 | N/A | Discovery only | N/A | Index/discovery platform |
-| [Spack](https://spack.io) | 8,772 | ⚠️ Via GitHub | GitHub 2FA/Signatures | Varies | [GitHub packages](https://github.com/spack/spack-packages) |
-| [Homebrew](https://formulae.brew.sh) | 8,580 | ⚠️ Via GitHub | GitHub 2FA/PAT | Varies | [Contributing docs](https://docs.brew.sh/Adding-Software-to-Homebrew) |
+| [Spack](https://spack.io) | 8,772 | ⚠️ Via GitHub | GitHub 2FA/Signatures | N/A | [GitHub packages](https://github.com/spack/spack-packages) |
+| [Homebrew](https://formulae.brew.sh) | 8,580 | ⚠️ Via GitHub | GitHub 2FA/PAT | N/A | [Contributing docs](https://docs.brew.sh/Adding-Software-to-Homebrew) |
 
 ## Legend
 - ✅ **Available/Required**: 2FA is either available or mandatory
