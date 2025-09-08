@@ -167,7 +167,7 @@ GEM
       rake (>= 13)
     groupdate (6.7.0)
       activesupport (>= 7.1)
-    hashdiff (1.2.0)
+    hashdiff (1.2.1)
     highline (3.0.1)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
@@ -544,7 +544,7 @@ CHECKSUMS
   google-protobuf (4.32.0-arm64-darwin) sha256=c2a3508af783e0b72171a400c54040be7f65523126cb83f1686d521ef20f5b9b
   google-protobuf (4.32.0-x86_64-linux-gnu) sha256=0813ffbb2cade07e757be35a32036455d52cb18856e34666b508c492925d747b
   groupdate (6.7.0) sha256=beaa8d5bf3856814681914a1d4a20e77436a2214b85d0017dc2ea5c355fb6777
-  hashdiff (1.2.0) sha256=c984f13e115bfc9953332e8e83bd9d769cfde9944e2d54e07eb9df7b76e140b5
+  hashdiff (1.2.1) sha256=9c079dbc513dfc8833ab59c0c2d8f230fa28499cc5efb4b8dd276cf931457cd1
   highline (3.0.1) sha256=ca18b218fd581b1fae832f89bfeaf2b34d3a93429c44fd4411042ffce286f009
   i18n (1.14.7) sha256=ceba573f8138ff2c0915427f1fc5bdf4aa3ab8ae88c8ce255eb3ecf0a11a5d0f
   io-console (0.8.1) sha256=1e15440a6b2f67b6ea496df7c474ed62c860ad11237f29b3bd187f054b925fcb
