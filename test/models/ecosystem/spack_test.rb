@@ -23,6 +23,12 @@ class SpackTest < ActiveSupport::TestCase
     assert_equal download_url, "https://github.com/z3APA3A/3proxy/archive/0.8.13.tar.gz"
   end
 
+  test 'download_url with array' do
+    version_with_array = @package.versions.build(number: '0.8.14', metadata: {download_url: ["https://github.com/z3APA3A/3proxy/archive/0.8.14.tar.gz", "https://mirror.example.com/0.8.14.tar.gz"]})
+    download_url = @ecosystem.download_url(@package, version_with_array)
+    assert_equal download_url, "https://github.com/z3APA3A/3proxy/archive/0.8.14.tar.gz"
+  end
+
   test 'documentation_url' do
     documentation_url = @ecosystem.documentation_url(@package)
     assert_nil documentation_url

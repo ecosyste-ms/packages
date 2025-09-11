@@ -12,7 +12,8 @@ module Ecosystem
 
     def download_url(_package, version)
       return nil unless version.present?
-      version.metadata['download_url']
+      url = version.metadata['download_url']
+      url.is_a?(Array) ? url.first : url
     end
 
     def package_data
