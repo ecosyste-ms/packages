@@ -126,6 +126,10 @@ GEM
     dalli (3.2.8)
     date (3.4.1)
     deb_control (0.0.1)
+    dotenv (3.1.8)
+    dotenv-rails (3.1.8)
+      dotenv (= 3.1.8)
+      railties (>= 6.1)
     drb (2.2.3)
     erb (5.0.2)
     erubi (1.13.1)
@@ -435,6 +439,7 @@ DEPENDENCIES
   counter_culture
   csv
   dalli
+  dotenv-rails (~> 3.1)
   faraday
   faraday-follow_redirects
   faraday-retry
@@ -522,6 +527,8 @@ CHECKSUMS
   dalli (3.2.8) sha256=2e63595084d91fae2655514a02c5d4fc0f16c0799893794abe23bf628bebaaa5
   date (3.4.1) sha256=bf268e14ef7158009bfeaec40b5fa3c7271906e88b196d958a89d4b408abe64f
   deb_control (0.0.1) sha256=4ddb6c8ece9c57d93e45edc20340f72fcbff8a1d65b5daa8a45b5d990cd51532
+  dotenv (3.1.8) sha256=9e1176060ced581f8e6ce4384e91361817763a76e3c625c8bddc18b35bd392c3
+  dotenv-rails (3.1.8) sha256=46c9d1226a8b58a83b5f61325aa8cffd25cea1c0fafdfbbbee1e5dfea77980c4
   drb (2.2.3) sha256=0b00d6fdb50995fe4a45dea13663493c841112e4068656854646f418fda13373
   erb (5.0.2) sha256=d30f258143d4300fb4ecf430042ac12970c9bb4b33c974a545b8f58c1ec26c0f
   erubi (1.13.1) sha256=a082103b0885dbc5ecf1172fede897f9ebdb745a4b97a5e8dc63953db1ee4ad9
