@@ -12,6 +12,7 @@ The project uses ruby on rails which have a number of system dependencies you'll
 - [postgresql 14](https://www.postgresql.org/download/)
 - [redis 6+](https://redis.io/download/)
 - [node.js 16+](https://nodejs.org/en/download/)
+- [wget](https://www.gnu.org/software/wget/)
 
 You will then need to set some configuration environment variables. Copy `env.example` to `.env.development` and customise the values to suit your local setup.
 
