@@ -269,10 +269,6 @@ GEM
       addressable (~> 2.8)
     racc (1.8.1)
     rack (3.2.1)
-    rack-attack (6.7.0)
-      rack (>= 1.0, < 4)
-    rack-attack-rate-limit (1.1.0)
-      rack
     rack-cors (3.0.0)
       logger
       rack (>= 3.0.14)
@@ -462,8 +458,6 @@ DEPENDENCIES
   postgresql_cursor
   puma
   purl
-  rack-attack
-  rack-attack-rate-limit
   rack-cors
   rack-timeout
   rails (~> 8.0.0)
@@ -605,8 +599,6 @@ CHECKSUMS
   purl (1.5.2) sha256=c162347419b30da14509d42f03a7c75b1f1a7a7ef410e6870b83cac0f35696e7
   racc (1.8.1) sha256=4a7f6929691dbec8b5209a0b373bc2614882b55fc5d2e447a21aaa691303d62f
   rack (3.2.1) sha256=30af3f7e5ec21b0d14d822cf24446048dba5f651b617c7e97405b604f20a9e33
-  rack-attack (6.7.0) sha256=3ca47e8f66cd33b2c96af53ea4754525cd928ed3fa8da10ee6dad0277791d77c
-  rack-attack-rate-limit (1.1.0) sha256=04bbe6985406ac30b5aba03ca662b7f90cc02dca626f7c2d9c512c4efe323a69
   rack-cors (3.0.0) sha256=7b95be61db39606906b61b83bd7203fa802b0ceaaad8fcb2fef39e097bf53f68
   rack-session (2.1.1) sha256=0b6dc07dea7e4b583f58a48e8b806d4c9f1c6c9214ebc202ec94562cbea2e4e9
   rack-test (2.2.0) sha256=005a36692c306ac0b4a9350355ee080fd09ddef1148a5f8b2ac636c720f5c463
