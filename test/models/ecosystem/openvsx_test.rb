@@ -4,7 +4,7 @@ class OpenvsxTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(name: 'open-vsx.org', url: 'https://open-vsx.org', ecosystem: 'openvsx')
     @ecosystem = Ecosystem::Openvsx.new(@registry)
-    @package = Package.new(ecosystem: 'Openvsx', name: 'redhat/vscode-yaml')
+    @package = Package.new(ecosystem: 'Openvsx', namespace: 'redhat', name: 'redhat/vscode-yaml')
     @version = @package.versions.build(number: '1.18.0')
     @maintainer = @registry.maintainers.build(login: 'redhat')
   end
@@ -64,6 +64,7 @@ class OpenvsxTest < ActiveSupport::TestCase
     package_metadata = @ecosystem.package_metadata('redhat/vscode-yaml')
 
     assert_equal package_metadata[:name], "redhat/vscode-yaml"
+    assert_equal package_metadata[:namespace], "redhat"
     assert_equal package_metadata[:description], "YAML Language Support by Red Hat, with built-in Kubernetes syntax support"
     assert_equal package_metadata[:homepage], "https://github.com/redhat-developer/vscode-yaml#readme"
     assert_equal package_metadata[:licenses], "MIT"

@@ -59,6 +59,7 @@ module Ecosystem
       return false unless package.present? && package["allVersions"].present?
       {
         name: "#{package["namespace"]}/#{package["name"]}",
+        namespace: package["namespace"],
         homepage: package["homepage"],
         description: package["description"],
         keywords_array: Array.wrap(package["tags"].reject{ it.starts_with? '__'}),
