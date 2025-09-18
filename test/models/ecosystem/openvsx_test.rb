@@ -6,7 +6,7 @@ class OpenvsxTest < ActiveSupport::TestCase
     @ecosystem = Ecosystem::Openvsx.new(@registry)
     @package = Package.new(ecosystem: 'Openvsx', namespace: 'redhat', name: 'redhat/vscode-yaml')
     @version = @package.versions.build(number: '1.18.0')
-    @maintainer = @registry.maintainers.build(login: 'redhat')
+    @maintainer = @registry.maintainers.build(login: 'rhdevelopers-ci', name: 'Red Hat Developers CI', url: 'https://github.com/rhdevelopers-ci')
   end
 
   test 'registry_url' do
@@ -84,7 +84,20 @@ class OpenvsxTest < ActiveSupport::TestCase
     assert_equal versions_metadata[0], {:number=>"1.18.0"}
   end
 
+  test 'maintainers_metadata' do
+    stub_request(:get, "https://open-vsx.org/api/redhat/vscode-yaml")
+      .to_return({ status: 200, body: file_fixture('openvsx/vscode-yaml.json') })
+    maintainers_metadata = @ecosystem.maintainers_metadata('redhat/vscode-yaml')
+
+    assert_equal maintainers_metadata[0], {
+      uuid: 'rhdevelopers-ci',
+      login: 'rhdevelopers-ci',
+      name: 'Red Hat Developers CI',
+      url: 'https://github.com/rhdevelopers-ci'
+    }
+    end
+
   test 'maintainer_url' do
-    assert_equal @ecosystem.maintainer_url(@maintainer), 'https://open-vsx.org/namespace/redhat'
+    assert_equal @ecosystem.maintainer_url(@maintainer), 'https://github.com/rhdevelopers-ci'
   end
 end

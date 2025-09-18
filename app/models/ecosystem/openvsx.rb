@@ -82,8 +82,21 @@ module Ecosystem
       end
     end
 
+    def maintainers_metadata(name)
+      pkg = fetch_package_metadata(name)
+      return [] unless pkg
+      [
+        {
+          uuid: pkg.dig("publishedBy", "loginName"),
+          login: pkg.dig("publishedBy", "loginName"),
+          name: pkg.dig("publishedBy", "fullName"),
+          url: pkg.dig("publishedBy", "homepage")
+        }
+      ]
+    end
+
     def maintainer_url(maintainer)
-      "#{@registry_url}/namespace/#{maintainer.login}"
+      maintainer.url
     end
   end
 end
