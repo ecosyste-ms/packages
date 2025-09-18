@@ -78,10 +78,16 @@ class OpenvsxTest < ActiveSupport::TestCase
   test 'versions_metadata' do
     stub_request(:get, "https://open-vsx.org/api/redhat/vscode-yaml")
       .to_return({ status: 200, body: file_fixture('openvsx/vscode-yaml.json') })
+    stub_request(:get, "https://open-vsx.org/api/redhat/vscode-yaml/1.18.0")
+      .to_return({ status: 200, body: file_fixture('openvsx/vscode-yaml-1.18.0.json') })
     package_metadata = @ecosystem.package_metadata('redhat/vscode-yaml')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
-    assert_equal versions_metadata[0], {:number=>"1.18.0"}
+    assert_equal versions_metadata[0], {
+      number: "1.18.0",
+      published_at: DateTime.parse("2025-04-28T15:41:07.089268Z"),
+      status: nil
+    }
   end
 
   test 'maintainers_metadata' do

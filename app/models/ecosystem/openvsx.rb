@@ -76,8 +76,11 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       pkg_metadata[:versions].keys.reject{ it == "latest" }.map do |version|
+        details = get("#{@registry_url}/api/#{pkg_metadata[:name]}/#{version}")
         {
-          number: version
+          number: version,
+          published_at: DateTime.parse(details['timestamp']),
+          status: (details['downloadable'] ? nil : 'yanked')
         }
       end
     end
