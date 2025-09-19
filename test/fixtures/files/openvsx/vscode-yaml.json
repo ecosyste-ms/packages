@@ -1,0 +1,89 @@
+{
+	"namespaceUrl": "https://open-vsx.org/api/redhat",
+	"reviewsUrl": "https://open-vsx.org/api/redhat/vscode-yaml/reviews",
+	"files": {
+		"download": "https://open-vsx.org/api/redhat/vscode-yaml/1.18.0/file/redhat.vscode-yaml-1.18.0.vsix",
+		"signature": "https://open-vsx.org/api/redhat/vscode-yaml/1.18.0/file/redhat.vscode-yaml-1.18.0.sigzip",
+		"manifest": "https://open-vsx.org/api/redhat/vscode-yaml/1.18.0/file/package.json",
+		"readme": "https://open-vsx.org/api/redhat/vscode-yaml/1.18.0/file/readme.md",
+		"vsixmanifest": "https://open-vsx.org/api/redhat/vscode-yaml/1.18.0/file/extension.vsixmanifest",
+		"sha256": "https://open-vsx.org/api/redhat/vscode-yaml/1.18.0/file/redhat.vscode-yaml-1.18.0.sha256",
+		"changelog": "https://open-vsx.org/api/redhat/vscode-yaml/1.18.0/file/changelog.md",
+		"license": "https://open-vsx.org/api/redhat/vscode-yaml/1.18.0/file/LICENSE.txt",
+		"icon": "https://open-vsx.org/api/redhat/vscode-yaml/1.18.0/file/icon128.png",
+		"publicKey": "https://open-vsx.org/api/-/public-key/14ccb407-4e79-41ed-be5a-6d608325c45a"
+	},
+	"name": "vscode-yaml",
+	"namespace": "redhat",
+	"targetPlatform": "universal",
+	"version": "1.18.0",
+	"preRelease": false,
+	"publishedBy": {
+		"loginName": "rhdevelopers-ci",
+		"fullName": "Red Hat Developers CI",
+		"avatarUrl": "https://avatars3.githubusercontent.com/u/18214726?v=4",
+		"homepage": "https://github.com/rhdevelopers-ci",
+		"provider": "github"
+	},
+	"verified": true,
+	"unrelatedPublisher": false,
+	"namespaceAccess": "restricted",
+	"allVersions": {
+		"latest": "https://open-vsx.org/api/redhat/vscode-yaml/latest",
+		"1.18.0": "https://open-vsx.org/api/redhat/vscode-yaml/1.18.0"
+	},
+	"allVersionsUrl": "https://open-vsx.org/api/redhat/vscode-yaml/versions",
+	"averageRating": 5.0,
+	"downloadCount": 1524693,
+	"reviewCount": 6,
+	"versionAlias": [
+		"latest"
+	],
+	"timestamp": "2025-04-28T15:41:07.089268Z",
+	"preview": false,
+	"displayName": "YAML",
+	"namespaceDisplayName": "Red Hat",
+	"description": "YAML Language Support by Red Hat, with built-in Kubernetes syntax support",
+	"engines": {
+		"npm": ">=7.0.0",
+		"vscode": "^1.63.0"
+	},
+	"categories": [
+		"Programming Languages",
+		"Linters",
+		"Snippets",
+		"Formatters"
+	],
+	"extensionKind": [
+		"workspace",
+		"web"
+	],
+	"tags": [
+		"__ext_eyaml",
+		"__ext_eyml",
+		"__ext_yaml",
+		"__ext_yml",
+		"__web_extension",
+		"autocompletion",
+		"dockercompose",
+		"github-actions-workflow",
+		"kubernetes",
+		"validation",
+		"yaml"
+	],
+	"license": "MIT",
+	"homepage": "https://github.com/redhat-developer/vscode-yaml#readme",
+	"repository": "https://github.com/redhat-developer/vscode-yaml.git",
+	"sponsorLink": "",
+	"bugs": "https://github.com/redhat-developer/vscode-yaml/issues",
+	"galleryColor": "",
+	"galleryTheme": "",
+	"localizedLanguages": [],
+	"dependencies": [],
+	"bundledExtensions": [],
+	"downloads": {
+		"universal": "https://open-vsx.org/api/redhat/vscode-yaml/1.18.0/file/redhat.vscode-yaml-1.18.0.vsix"
+	},
+	"deprecated": false,
+	"downloadable": true
+}
