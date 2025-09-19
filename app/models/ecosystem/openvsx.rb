@@ -82,7 +82,9 @@ module Ecosystem
           published_at: DateTime.parse(details['timestamp']),
           status: (details['downloadable'] ? nil : 'yanked')
         }
-      end
+      end.compact
+    rescue
+      []
     end
 
     def maintainers_metadata(name)
