@@ -75,7 +75,7 @@ module Ecosystem
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
-      pkg_metadata[:versions].keys.reject{ it == "latest" }.map do |version|
+      pkg_metadata[:versions].keys.reject{ it == "latest" || existing_version_numbers.include?(it) }.map do |version|
         details = get("#{@registry_url}/api/#{pkg_metadata[:name]}/#{version}")
         {
           number: version,
