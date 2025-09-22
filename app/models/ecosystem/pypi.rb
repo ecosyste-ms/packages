@@ -86,28 +86,46 @@ module Ecosystem
     end
 
     def parse_repository_url(package)
-      repo_url = repo_fallback(find_repository_url(package.dig("info", "project_urls").try(:values)), package["info"]["home_page"])
-      if repo_url.present?
-        return repo_url
-      else
-        # try to parse from description
-        description = package["info"]["description"].to_s
-        package_name = package["info"]["name"].to_s.downcase
-        if description.present?
-          urls = URI.extract(description.gsub(/[\[\]]/, ' '), ['http', 'https']).map { |u| u.chomp('.') }
+      project_urls = package.dig("info", "project_urls") || {}
 
-          matches = urls.map do |url|
-            begin
-              parsed = UrlParser.try_all(url)
-              parsed if parsed&.include?(package_name)
-            rescue
-              nil
-            end
-          end.compact.group_by(&:itself).transform_values(&:count).sort_by { |k, v| -v }
+      priority_keys = ["Repository", "Source", "Source Code", "Code"]
+      priority_url = nil
 
-          return matches[0][0] if matches.any?
+      priority_keys.each do |key|
+        if project_urls[key].present?
+          parsed = UrlParser.try_all(project_urls[key]) rescue nil
+          if parsed && !parsed.include?('github.com/sponsors')
+            priority_url = parsed
+            break
+          end
         end
       end
+
+      return priority_url if priority_url.present?
+
+      repo_url = repo_fallback(find_repository_url(project_urls.values), package["info"]["home_page"])
+      return repo_url if repo_url.present?
+
+      parse_repository_url_from_description(package["info"]["description"], package["info"]["name"])
+    end
+
+    def parse_repository_url_from_description(description, package_name)
+      description = description.to_s
+      package_name = package_name.to_s.downcase
+      return nil unless description.present?
+
+      urls = URI.extract(description.gsub(/[\[\]]/, ' '), ['http', 'https']).map { |u| u.chomp('.') }
+
+      matches = urls.map do |url|
+        begin
+          parsed = UrlParser.try_all(url)
+          parsed if parsed&.include?(package_name)
+        rescue
+          nil
+        end
+      end.compact.group_by(&:itself).transform_values(&:count).sort_by { |k, v| -v }
+
+      matches.any? ? matches[0][0] : nil
     end
 
     def parse_keywords(keywords)

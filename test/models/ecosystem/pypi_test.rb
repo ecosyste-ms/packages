@@ -237,8 +237,60 @@ class PypiTest < ActiveSupport::TestCase
   test 'check_status returns removed for 404' do
     stub_request(:get, "https://pypi.org/project/urllib3/")
       .to_return({ status: 404 })
-    
+
     status = @ecosystem.check_status(@package)
     assert_equal status, 'removed'
+  end
+
+  test 'parse_repository_url prefers Repository key over Changelog in project_urls' do
+    # This test demonstrates the bug: mkdocstrings has both Changelog and Repository URLs
+    # The Changelog URL comes first alphabetically and is incorrectly chosen
+    # The correct Repository URL should be https://github.com/mkdocstrings/mkdocstrings
+    mkdocstrings_data = JSON.parse(file_fixture('pypi/mkdocstrings.json').read)
+
+    repository_url = @ecosystem.parse_repository_url(mkdocstrings_data)
+
+    # This should be the Repository URL, not the Changelog URL
+    assert_equal 'https://github.com/mkdocstrings/mkdocstrings', repository_url
+  end
+
+  test 'parse_repository_url falls back to other URLs when Repository key not present' do
+    # Test that fallback behavior still works when there's no Repository key
+    package_data = {
+      "info" => {
+        "name" => "test-package",
+        "project_urls" => {
+          "Homepage" => "https://test-package.github.io",
+          "Issues" => "https://github.com/test/test-package/issues",
+          "Changelog" => "https://github.com/test/test-package/blob/main/CHANGELOG.md"
+        },
+        "home_page" => nil
+      }
+    }
+
+    repository_url = @ecosystem.parse_repository_url(package_data)
+
+    # Should extract the GitHub repo URL from Issues URL
+    assert_equal 'https://github.com/test/test-package', repository_url
+  end
+
+  test 'parse_repository_url prioritizes Source key over other URLs' do
+    # Test that Source key is prioritized
+    package_data = {
+      "info" => {
+        "name" => "test-package",
+        "project_urls" => {
+          "Documentation" => "https://github.com/other/docs",
+          "Source" => "https://github.com/test/test-package",
+          "Changelog" => "https://github.com/another/changelog"
+        },
+        "home_page" => nil
+      }
+    }
+
+    repository_url = @ecosystem.parse_repository_url(package_data)
+
+    # Should pick the Source URL
+    assert_equal 'https://github.com/test/test-package', repository_url
   end
 end
