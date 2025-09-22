@@ -386,6 +386,7 @@ class Package < ApplicationRecord
       fetch_repo_metadata
     else
       connection = Faraday.new 'https://repos.ecosyste.ms' do |builder|
+        builder.headers['X-API-Key'] = ENV['ECOSYSTEMS_API_KEY'] if ENV['ECOSYSTEMS_API_KEY']
         builder.use Faraday::FollowRedirects::Middleware
         builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
         builder.response :json
