@@ -5,6 +5,7 @@ module EcosystemsApiClient
     def ecosystems_api_get(url, options = {})
       response = Faraday.get(url) do |req|
         req.headers['User-Agent'] = 'packages.ecosyste.ms'
+        req.headers['X-API-Key'] = ENV['ECOSYSTEMS_API_KEY'] if ENV['ECOSYSTEMS_API_KEY']
         req.headers.merge!(options[:headers] || {})
         req.params = options[:params] if options[:params]
       end
@@ -23,6 +24,7 @@ module EcosystemsApiClient
     def ecosystems_api_post(url, body = nil, options = {})
       response = Faraday.post(url) do |req|
         req.headers['User-Agent'] = 'packages.ecosyste.ms'
+        req.headers['X-API-Key'] = ENV['ECOSYSTEMS_API_KEY'] if ENV['ECOSYSTEMS_API_KEY']
         req.headers['Content-Type'] = 'application/json'
         req.headers.merge!(options[:headers] || {})
         req.body = body.to_json if body
