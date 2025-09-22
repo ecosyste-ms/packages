@@ -209,6 +209,10 @@ module Ecosystem
     def request(url, options = {})
       options[:headers] ||= {}
       options[:headers]["User-Agent"] = "packages.ecosyste.ms"
+      # Add API key for ecosyste.ms domains
+      if ENV['ECOSYSTEMS_API_KEY'] && url.include?('.ecosyste.ms')
+        options[:headers]["X-API-Key"] = ENV['ECOSYSTEMS_API_KEY']
+      end
       connection = Faraday.new url.strip, options do |builder|
         builder.use Faraday::FollowRedirects::Middleware
         builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
