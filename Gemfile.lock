@@ -92,7 +92,7 @@ GEM
       uri (>= 0.13.1)
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
-    appsignal (4.7.1)
+    appsignal (4.7.2)
       logger
       rack (>= 2.0.0)
     base64 (0.3.0)
@@ -500,7 +500,7 @@ CHECKSUMS
   activestorage (8.0.3) sha256=4f4eadeb5d128a35ed21d960eeece027225b36d54542512c8a36ad5316988c5e
   activesupport (8.0.3) sha256=a711ce5e30660b23232f26a38699469f8d859d47aa1f722e183fda6d7cc17823
   addressable (2.8.7) sha256=462986537cf3735ab5f3c0f557f14155d778f4b43ea4f485a9deb9c8f7c58232
-  appsignal (4.7.1) sha256=6b9f786729a9bf3db3a91836ff5d192f483ed87bc93d704b1d1af9b074fc70d8
+  appsignal (4.7.2) sha256=91656547010cfbe7673f4ee683e982e1603674ee7c90ea601f8b00e83b22869d
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
   benchmark (0.4.1) sha256=d4ef40037bba27f03b28013e219b950b82bace296549ec15a78016552f8d2cce
   bibliothecary (9.1.0)
