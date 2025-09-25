@@ -37,24 +37,35 @@ namespace :dependency_analysis do
     restrictive_deps = []
     total_processed = 0
 
-    Dependency.ecosystem(ecosystem)
-              .where(package_name: package_names)
-              .joins(:version => :package)
-              .select('dependencies.*, versions.number as version_number, packages.name as package_name_from_version')
-              .each_row do |row|
+    begin
+      Dependency.ecosystem(ecosystem)
+                .where(package_name: package_names)
+                .joins(:version => :package)
+                .select('dependencies.*, versions.number as version_number, packages.name as package_name_from_version')
+                .each_row do |row|
 
-      if restrictive_requirement?(row['requirements'])
-        restrictive_deps << {
-          target_package: row['package_name'],
-          dependent_package: row['package_name_from_version'],
-          dependent_version: row['version_number'],
-          requirements: row['requirements'],
-          restriction_type: categorize_restriction(row['requirements'])
-        }
+        begin
+          if restrictive_requirement?(row['requirements'])
+            restrictive_deps << {
+              target_package: row['package_name'],
+              dependent_package: row['package_name_from_version'],
+              dependent_version: row['version_number'],
+              requirements: row['requirements'],
+              restriction_type: categorize_restriction(row['requirements'])
+            }
+          end
+        rescue => e
+          puts "    WARNING: Error processing dependency row: #{e.message}"
+          next
+        end
+
+        total_processed += 1
+        puts "  Processed #{total_processed} dependency records..." if total_processed % 1000 == 0
       end
-
-      total_processed += 1
-      puts "  Processed #{total_processed} dependency records..." if total_processed % 1000 == 0
+    rescue => e
+      puts "ERROR: Failed to process dependencies: #{e.message}"
+      puts "Aborting analysis."
+      return
     end
 
     puts "Found #{restrictive_deps.count} dependencies with restrictive version ranges"
@@ -72,57 +83,56 @@ namespace :dependency_analysis do
       total_restrictions = restrictive_deps.count
 
       restrictive_deps.each do |restriction|
-        processed_restrictions += 1
-        if processed_restrictions % 500 == 0
-          puts "  Analyzed #{processed_restrictions}/#{total_restrictions} restrictive dependencies..."
-        end
-
-        target_pkg = target_registry.packages.find_by(name: restriction[:target_package])
-        if !target_pkg
-          debug_count += 1
-          if debug_count <= 5
-            puts "DEBUG: Package not found: #{restriction[:target_package]}"
+        begin
+          processed_restrictions += 1
+          if processed_restrictions % 500 == 0
+            puts "  Analyzed #{processed_restrictions}/#{total_restrictions} restrictive dependencies..."
           end
+
+          target_pkg = target_registry.packages.find_by(name: restriction[:target_package])
+          if !target_pkg
+            debug_count += 1
+            if debug_count <= 5
+              puts "DEBUG: Package not found: #{restriction[:target_package]}"
+            end
+            next
+          end
+
+          restricted_version = extract_restricted_version(restriction[:requirements])
+          if !restricted_version
+            debug_count += 1
+            if debug_count <= 5
+              puts "DEBUG: Could not extract version from: #{restriction[:requirements]}"
+            end
+            next
+          end
+
+          available_versions = target_pkg.versions.pluck(:number).sort.reverse
+          avoided_versions = available_versions.select do |v|
+            begin
+              is_version_avoided?(restriction[:requirements], v)
+            rescue => e
+              puts "    WARNING: Error checking if version #{v} is avoided by #{restriction[:requirements]}: #{e.message}"
+              false
+            end
+          end
+
+          if restricted_version && avoided_versions.any?
+            breaking_change_candidates << {
+              package_name: restriction[:target_package],
+              restricted_to: restricted_version,
+              next_avoided_version: avoided_versions.last, # The first version above the restriction
+              latest_available: available_versions.first,
+              avoided_versions_count: avoided_versions.count,
+              restricting_package: restriction[:dependent_package],
+              restricting_version: restriction[:dependent_version],
+              restriction_pattern: restriction[:requirements],
+              restriction_type: restriction[:restriction_type]
+            }
+          end
+        rescue => e
+          puts "    WARNING: Error processing restriction for #{restriction[:target_package]}: #{e.message}"
           next
-        end
-
-        restricted_version = extract_restricted_version(restriction[:requirements])
-        if !restricted_version
-          debug_count += 1
-          if debug_count <= 5
-            puts "DEBUG: Could not extract version from: #{restriction[:requirements]}"
-          end
-          next
-        end
-
-        available_versions = target_pkg.versions.pluck(:number).sort_by { |v|
-          begin
-            Gem::Version.new(v)
-          rescue
-            v
-          end
-        }.reverse
-        avoided_versions = available_versions.select do |v|
-          begin
-            available_v = Gem::Version.new(v)
-            is_version_avoided?(restriction[:requirements], available_v.to_s)
-          rescue
-            false
-          end
-        end
-
-        if restricted_version && avoided_versions.any?
-          breaking_change_candidates << {
-            package_name: restriction[:target_package],
-            restricted_to: restricted_version,
-            next_avoided_version: avoided_versions.last, # The first version above the restriction
-            latest_available: available_versions.first,
-            avoided_versions_count: avoided_versions.count,
-            restricting_package: restriction[:dependent_package],
-            restricting_version: restriction[:dependent_version],
-            restriction_pattern: restriction[:requirements],
-            restriction_type: restriction[:restriction_type]
-          }
         end
       end
 
@@ -199,45 +209,60 @@ namespace :dependency_analysis do
         puts "Analyzing #{package_name}..."
 
         candidates.group_by { |c| c[:restricting_package] }.each do |restricting_pkg_name, pkg_candidates|
-          restricting_pkg = target_registry.packages.find_by(name: restricting_pkg_name)
-          next unless restricting_pkg
+          begin
+            restricting_pkg = target_registry.packages.find_by(name: restricting_pkg_name)
+            next unless restricting_pkg
 
-          dep_history = Dependency.joins(:version)
-                                 .where(versions: { package: restricting_pkg })
-                                 .where(package_name: package_name)
-                                 .includes(version: :package)
-                                 .order('versions.published_at ASC NULLS LAST')
+            dep_history = Dependency.joins(:version)
+                                   .where(versions: { package: restricting_pkg })
+                                   .where(package_name: package_name)
+                                   .includes(version: :package)
+                                   .order('versions.published_at ASC NULLS LAST')
 
-          if dep_history.count > 1
-            requirements_over_time = dep_history.map do |dep|
-              {
-                version: dep.version.number,
-                published_at: dep.version.published_at,
-                requirements: dep.requirements
-              }
-            end
+            if dep_history.count > 1
+              requirements_over_time = dep_history.map do |dep|
+                begin
+                  {
+                    version: dep.version.number,
+                    published_at: dep.version.published_at,
+                    requirements: dep.requirements
+                  }
+                rescue => e
+                  puts "      WARNING: Error processing dependency history for #{dep.id}: #{e.message}"
+                  nil
+                end
+              end.compact
 
-            requirement_changes_found = []
-            requirements_over_time.each_cons(2) do |prev, curr|
-              if prev[:requirements] != curr[:requirements]
-                requirement_changes_found << {
-                  from_version: prev[:version],
-                  to_version: curr[:version],
-                  from_requirements: prev[:requirements],
-                  to_requirements: curr[:requirements],
-                  published_at: curr[:published_at]
+              requirement_changes_found = []
+              requirements_over_time.each_cons(2) do |prev, curr|
+                begin
+                  if prev[:requirements] != curr[:requirements]
+                    requirement_changes_found << {
+                      from_version: prev[:version],
+                      to_version: curr[:version],
+                      from_requirements: prev[:requirements],
+                      to_requirements: curr[:requirements],
+                      published_at: curr[:published_at]
+                    }
+                  end
+                rescue => e
+                  puts "      WARNING: Error comparing requirements: #{e.message}"
+                  next
+                end
+              end
+
+              if requirement_changes_found.any?
+                requirement_changes << {
+                  target_package: package_name,
+                  restricting_package: restricting_pkg_name,
+                  changes: requirement_changes_found,
+                  total_versions: dep_history.count
                 }
               end
             end
-
-            if requirement_changes_found.any?
-              requirement_changes << {
-                target_package: package_name,
-                restricting_package: restricting_pkg_name,
-                changes: requirement_changes_found,
-                total_versions: dep_history.count
-              }
-            end
+          rescue => e
+            puts "    WARNING: Error processing requirement changes for #{restricting_pkg_name} -> #{package_name}: #{e.message}"
+            next
           end
         end
       end
@@ -453,58 +478,73 @@ namespace :dependency_analysis do
   private
 
   def restrictive_requirement?(requirements)
-    return false if requirements.blank?
-    return false if requirements == '*'  # Skip wildcard "any version"
+    begin
+      return false if requirements.blank?
+      return false if requirements == '*'  # Skip wildcard "any version"
 
-    # Truly restrictive patterns that prevent automatic updates
-    restrictive_patterns = [
-      /^=\s*\d/,                    # Exact versions: =1.0.0, =2.4
-      /^\d+\.\d+\.\d+$/,            # Implicit exact: 1.0.0
-      /^~\d/,                       # Tilde ranges: ~1.0.0 (restrictive to patch level)
-      /^<[=]?\s*\d/,                # Upper bounds: <2.0.0, <=1.9.0
-      /^>=.*<[=]?\s*\d/,            # Bounded ranges: >=1.0.0, <2.0.0
-      /^\d+(\.\d+)*\.\*(\.\*)*$/,   # Wildcard patterns: 1.*.*, 0.4.*
-    ]
+      # Truly restrictive patterns that prevent automatic updates
+      restrictive_patterns = [
+        /^=\s*\d/,                    # Exact versions: =1.0.0, =2.4
+        /^\d+\.\d+\.\d+$/,            # Implicit exact: 1.0.0
+        /^~\d/,                       # Tilde ranges: ~1.0.0 (restrictive to patch level)
+        /^<[=]?\s*\d/,                # Upper bounds: <2.0.0, <=1.9.0
+        /^>=.*<[=]?\s*\d/,            # Bounded ranges: >=1.0.0, <2.0.0
+        /^\d+(\.\d+)*\.\*(\.\*)*$/,   # Wildcard patterns: 1.*.*, 0.4.*
+      ]
 
-    # Skip caret ranges as they're designed to allow compatible updates
-    # ^1.2.3 allows 1.2.4, 1.3.0, etc. - this is normal semver behavior
-    return false if requirements.match?(/^\^\s*\d/)
+      # Skip caret ranges as they're designed to allow compatible updates
+      # ^1.2.3 allows 1.2.4, 1.3.0, etc. - this is normal semver behavior
+      return false if requirements.match?(/^\^\s*\d/)
 
-    restrictive_patterns.any? { |pattern| requirements.match?(pattern) }
+      restrictive_patterns.any? { |pattern| requirements.match?(pattern) }
+    rescue => e
+      puts "    WARNING: Error checking if requirement #{requirements} is restrictive: #{e.message}"
+      false
+    end
   end
 
   def categorize_restriction(requirements)
-    return "unknown" if requirements.blank?
+    begin
+      return "unknown" if requirements.blank?
 
-    case requirements
-    when /^=\s*\d/ then "exact_version"
-    when /^\d+\.\d+\.\d+$/ then "implicit_exact"
-    when /^~\d/ then "tilde_range"
-    when /^<[=]?\s*\d/ then "upper_bound"
-    when /^>=.*<[=]?\s*\d/ then "bounded_range"
-    when /^\d+(\.\d+)*\.\*(\.\*)*$/ then "wildcard_pattern"
-    when /^\^\s*\d/ then "caret_range_non_restrictive"  # Not actually restrictive
-    else "other_restrictive"
+      case requirements
+      when /^=\s*\d/ then "exact_version"
+      when /^\d+\.\d+\.\d+$/ then "implicit_exact"
+      when /^~\d/ then "tilde_range"
+      when /^<[=]?\s*\d/ then "upper_bound"
+      when /^>=.*<[=]?\s*\d/ then "bounded_range"
+      when /^\d+(\.\d+)*\.\*(\.\*)*$/ then "wildcard_pattern"
+      when /^\^\s*\d/ then "caret_range_non_restrictive"  # Not actually restrictive
+      else "other_restrictive"
+      end
+    rescue => e
+      puts "    WARNING: Error categorizing requirement #{requirements}: #{e.message}"
+      "unknown"
     end
   end
 
   def extract_restricted_version(requirements)
-    return nil if requirements.blank?
+    begin
+      return nil if requirements.blank?
 
-    case requirements
-    when /^=\s*(\d+(?:\.\d+)*(?:\.\d+)*)/ then $1                           # =2.4, =1.0.0, = 0.3.15
-    when /^(\d+\.\d+\.\d+)$/ then $1                                         # 1.0.0
-    when /^~(\d+(?:\.\d+)*(?:\.\d+)*)/ then $1                              # ~1, ~1.2, ~1.2.3, ~0.57, ~0
-    when /^<[=]?\s*(\d+(?:\.\d+)*(?:\.\d+)*)/ then $1                      # <2.5, <=1.9.0, <=1.20
-    when /^>=\s*(\d+(?:\.\d+)*(?:\.\d+)*),?\s*<[=]?\s*(\d+(?:\.\d+)*(?:\.\d+)*)/ then $1  # >=2, <2.5, >=1.3.0, <1.4.0
-    when /^\^\s*(\d+(?:\.\d+)*(?:\.\d+)*)/ then $1                         # ^0.15.41, ^1, ^0.2
-    when /^(\d+)(\.\d+)*\.\*(\.\*)*$/ then $1 + ($2 || '')                 # 1.*.*, 0.4.*, 0.7.* -> "1", "0.4", "0.7"
-    when /^(\d+(?:\.\d+)*(?:\.\d+)*)-/ then $1                              # Pre-release versions: 0.10.0-rc.0
-    when /^(\d+(?:\.\d+)*(?:\.\d+)*)-\w+/ then $1                           # Pre-release: 0.5.0-pre.1
-    else
-      # Try to extract any version number from the string as fallback
-      version_match = requirements.match(/(\d+(?:\.\d+)*(?:\.\d+)*)/)
-      version_match ? version_match[1] : nil
+      case requirements
+      when /^=\s*(\d+(?:\.\d+)*(?:\.\d+)*)/ then $1                           # =2.4, =1.0.0, = 0.3.15
+      when /^(\d+\.\d+\.\d+)$/ then $1                                         # 1.0.0
+      when /^~(\d+(?:\.\d+)*(?:\.\d+)*)/ then $1                              # ~1, ~1.2, ~1.2.3, ~0.57, ~0
+      when /^<[=]?\s*(\d+(?:\.\d+)*(?:\.\d+)*)/ then $1                      # <2.5, <=1.9.0, <=1.20
+      when /^>=\s*(\d+(?:\.\d+)*(?:\.\d+)*),?\s*<[=]?\s*(\d+(?:\.\d+)*(?:\.\d+)*)/ then $1  # >=2, <2.5, >=1.3.0, <1.4.0
+      when /^\^\s*(\d+(?:\.\d+)*(?:\.\d+)*)/ then $1                         # ^0.15.41, ^1, ^0.2
+      when /^(\d+)(\.\d+)*\.\*(\.\*)*$/ then $1 + ($2 || '')                 # 1.*.*, 0.4.*, 0.7.* -> "1", "0.4", "0.7"
+      when /^(\d+(?:\.\d+)*(?:\.\d+)*)-/ then $1                              # Pre-release versions: 0.10.0-rc.0
+      when /^(\d+(?:\.\d+)*(?:\.\d+)*)-\w+/ then $1                           # Pre-release: 0.5.0-pre.1
+      else
+        # Try to extract any version number from the string as fallback
+        version_match = requirements.match(/(\d+(?:\.\d+)*(?:\.\d+)*)/)
+        version_match ? version_match[1] : nil
+      end
+    rescue => e
+      puts "    WARNING: Error extracting version from #{requirements}: #{e.message}"
+      nil
     end
   end
 
@@ -512,73 +552,50 @@ namespace :dependency_analysis do
     return false if requirements.blank? || available_version.blank?
 
     begin
-      available_v = Gem::Version.new(available_version)
-
       case requirements
       when /^=\s*(\d+(?:\.\d+)*(?:\.\d+)*)/
-        # Exact version - avoids everything except exact match
-        required_v = Gem::Version.new($1)
-        available_v != required_v
-
+        available_version != $1
       when /^(\d+\.\d+\.\d+)$/
-        # Implicit exact version
-        required_v = Gem::Version.new($1)
-        available_v != required_v
-
+        available_version != $1
       when /^~(\d+(?:\.\d+)*(?:\.\d+)*)/
-        # Tilde range - allows patch level changes only
-        required_v = Gem::Version.new($1)
-        required_parts = required_v.segments
-
-        case required_parts.length
-        when 1
-          # ~1 means >=1.0.0, <2.0.0
-          available_v >= Gem::Version.new("#{required_parts[0] + 1}.0.0")
-        when 2
-          # ~1.2 means >=1.2.0, <1.3.0
-          available_v >= Gem::Version.new("#{required_parts[0]}.#{required_parts[1] + 1}.0")
-        else
-          # ~1.2.3 means >=1.2.3, <1.3.0
-          available_v >= Gem::Version.new("#{required_parts[0]}.#{required_parts[1] + 1}.0")
-        end
-
+        restricted_version = $1
+        safe_version_compare(available_version, restricted_version) == 1
       when /^<[=]?\s*(\d+(?:\.\d+)*(?:\.\d+)*)/
-        # Upper bound - avoids versions at or above the limit
-        limit_v = Gem::Version.new($1)
-        if requirements.start_with?('<=')
-          available_v > limit_v
-        else
-          available_v >= limit_v
-        end
-
+        upper_bound = $1
+        safe_version_compare(available_version, upper_bound) >= 0
       when /^>=\s*(\d+(?:\.\d+)*(?:\.\d+)*),?\s*<[=]?\s*(\d+(?:\.\d+)*(?:\.\d+)*)/
-        # Bounded range - avoids versions outside the range
-        lower_v = Gem::Version.new($1)
-        upper_v = Gem::Version.new($2)
-        available_v < lower_v || available_v >= upper_v
-
-      when /^(\d+)(\.\d+)*\.\*(\.\*)*$/
-        # Wildcard pattern like 1.*.* or 0.4.*
-        parts = $1 + ($2 || '')
-        pattern_v = Gem::Version.new(parts)
-        pattern_parts = pattern_v.segments
-
-        case pattern_parts.length
-        when 1
-          # 1.*.* avoids 2.0.0+
-          available_v >= Gem::Version.new("#{pattern_parts[0] + 1}.0.0")
-        when 2
-          # 0.4.* avoids 0.5.0+
-          available_v >= Gem::Version.new("#{pattern_parts[0]}.#{pattern_parts[1] + 1}.0")
-        else
-          false
-        end
-
+        lower, upper = $1, $2
+        safe_version_compare(available_version, lower) == -1 || safe_version_compare(available_version, upper) >= 0
       else
         false
       end
-    rescue
+    rescue => e
+      # Log error but don't crash - just assume version is not avoided
+      puts "    WARNING: Error comparing version #{available_version} with requirements #{requirements}: #{e.message}"
       false
+    end
+  end
+
+  # Safe version comparison using semantic versioning when possible, fallback to string comparison
+  def safe_version_compare(version1, version2)
+    return 0 if version1 == version2
+
+    begin
+      # Try semantic version comparison first
+      clean1 = SemanticRange.clean(version1) || version1
+      clean2 = SemanticRange.clean(version2) || version2
+
+      sem1 = Semantic::Version.new(clean1)
+      sem2 = Semantic::Version.new(clean2)
+
+      sem1 <=> sem2
+    rescue ArgumentError
+      # Fallback to string comparison if semantic parsing fails
+      version1 <=> version2
+    rescue => e
+      # Final fallback - treat as equal if we can't compare
+      puts "      WARNING: Could not compare #{version1} with #{version2}: #{e.message}"
+      0
     end
   end
 end
