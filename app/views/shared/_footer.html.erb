@@ -19,7 +19,24 @@
             <%= bootstrap_icon 'opencollective', width: 20, height: 20, alt: 'ecosyste.ms on Open Collective' %>
           <% end %>
         </p>
-      </div>
+        <div>
+          <h3 class="mt-5 h6">Supported by</h3>
+          <div class="row justify-content-start align-items-center g-4 mb-4 mb-lg-0">		
+            <div class="col-auto">
+              <a href="https://www.schmidtfutures.org">
+                <%= image_tag("logo-schmidt-white.svg", alt: "Schmidt Futures", class: "img-fluid p3", size: "267x20") %>
+              </a>
+            </div>
+      
+            <div class="col-auto">
+              <a href="https://oscollective.org">
+                <%= image_tag("logo-osc-white.png", alt: "Open Source Collective", class: "img-fluid p3", size: "210x56") %>
+              </a>
+            </div>
+          </div>
+          <p class="mt-3"><a href="https://opencollective.com/ecosystems" class="small">Become a sponsor</a></p>
+          </div>
+        </div>
       <div class="col-md-4">
         <ul class="list-unstyled footer-links mt-3 small">
           <li><strong><%= link_to 'About', 'https://ecosyste.ms' %></strong></li>

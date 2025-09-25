@@ -71,6 +71,8 @@ $badge-padding-y: 0.4em;
 $card-cap-bg: $color-grey-light;
 $card-border-color: $color-grey;
 
+$purple-drop: 0px 7px 24px $color-purple-light;
+
 
 /* Outputs our colours variables as css variables so that chart.js can access them */
 :root {
@@ -148,6 +150,10 @@ $card-border-color: $color-grey;
   }
 }
 
+.btn-primary--dark {
+  background: linear-gradient(180deg, $color-purple-dark 0%, darken($color-purple-dark, 5%) 100%);
+}
+
 .btn-secondary {
   background: linear-gradient(180deg, $color-grey-light 0%, $color-grey 100%);
   &:hover,
@@ -199,11 +205,11 @@ $card-border-color: $color-grey;
 }
 
 .btn-light {
-  background: linear-gradient(180deg, $color-grey-light 0%, $color-grey 100%);
+  background: $color-grey-light;
   &:hover,
   &:active,
   &:focus {
-    background: linear-gradient(180deg, $color-grey-light 0%, $color-grey 33%);
+    background: darken($color-grey-light, 3%);
   }
 }
 
@@ -239,6 +245,43 @@ $card-border-color: $color-grey;
   &:active {
     color: rgba($color-white, 0.8) !important;
   }
+}
+
+.btn-outline-primary {
+  &:hover,
+  &:focus {
+    color: $color-white;
+  }
+}
+
+.btn-outline-secondary {
+  color: $color-black;
+}
+
+.btn-outline-success {
+  &:hover,
+  &:focus {
+    color: $color-white;
+  }
+}
+
+.btn-outline-info {
+  color: $color-black;
+}
+
+.btn-outline-warning {
+  color: $color-orange;
+}
+
+.btn-outline-danger {
+  &:hover,
+  &:focus {
+    color: $color-white;
+  }
+}
+
+.btn-outline-light {
+  color: $color-grey-dark;
 }
 
 .alert {
@@ -804,6 +847,20 @@ body {
 	}
 }
 
+.table--purple {
+  // a table that is purple, used for tables on widgets
+  --bs-table-bg: #{$color-grey-light};
+  --bs-table-hover-bg: #{$color-purple-transparent};
+  --bs-table-active-bg: #{$color-purple-light};
+  --bs-table-border-color: #{$color-purple-transparent};
+  th, 
+  td,
+  tr {
+    border-color: var(--bs-table-border-color) !important;
+  }
+}
+
+
 .label-rejected {
   background-color: $color-orange-dark; 
 }
@@ -978,6 +1035,13 @@ body {
   }
 }
 
+.dboard__title-bar {
+  position: sticky; 
+  top: 0;            
+  z-index: 1020;      
+  background: $color-white;
+}
+
 .dboard-filter-controls {
   .btn-link {
     text-decoration: none;
@@ -1089,6 +1153,27 @@ body {
   }
   @include media-breakpoint-up(lg) { 
     grid-template-columns: repeat(3, 1fr);
+    > .card:first-child {
+      grid-column: span 1;
+    }
+  }
+}
+
+.four-equal-widgets {
+  /* 
+   * Four widgets, same size, one column each wide, one row each deep
+   * | 1 | 2 | 3 | 4 |
+   */
+  display: grid;
+  gap: $grid-gutter-width;
+  @include media-breakpoint-up(md) { 
+    grid-template-columns: repeat(2, 1fr);
+    > .card:first-child {
+      grid-column: span 2;
+    }
+  }
+  @include media-breakpoint-up(lg) { 
+    grid-template-columns: repeat(4, 1fr);
     > .card:first-child {
       grid-column: span 1;
     }
@@ -1243,6 +1328,10 @@ body {
     max-width: 100%;
     height: auto;
   }
+}
+
+.chart-wrapper--shallow {
+  aspect-ratio: 10/2; /* Modern aspect control */
 }
 
 .project-logo {

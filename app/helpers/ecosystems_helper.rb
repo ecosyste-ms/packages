@@ -89,6 +89,10 @@ module EcosystemsHelper
           name: "Funds",
           url: "https://funds.ecosyste.ms"
         },
+        {
+          name: "Dashboards",
+          url: "https://dashboards.ecosyste.ms"
+        },
       ],
       "Experiments" => [
         {
