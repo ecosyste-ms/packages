@@ -1,10 +1,10 @@
 namespace :dependency_analysis do
   desc "Research packages with dependency restrictions to identify breaking changes"
-  desc "Usage: rake dependency_analysis:cargo_restrictions[critical_only,min_versions,ecosystem]"
+  desc "Usage: rake dependency_analysis:breaking_changes[critical_only,min_versions,ecosystem]"
   desc "  critical_only: 'true' to only analyze critical packages, 'false' for all (default: true)"
   desc "  min_versions: minimum number of versions required (default: 1)"
   desc "  ecosystem: ecosystem to analyze - cargo, npm, pypi, etc (default: cargo)"
-  task :cargo_restrictions, [:critical_only, :min_versions, :ecosystem] => :environment do |t, args|
+  task :breaking_changes, [:critical_only, :min_versions, :ecosystem] => :environment do |t, args|
     critical_only = args[:critical_only] != 'false'
     min_versions = (args[:min_versions] || '1').to_i
     min_versions = 1 if min_versions < 1
