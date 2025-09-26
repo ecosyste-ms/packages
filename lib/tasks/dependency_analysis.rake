@@ -411,10 +411,9 @@ namespace :dependency_analysis do
             if change[:changes].count > significant_changes.count
               puts "      (#{change[:changes].count - significant_changes.count} minor version updates omitted)"
             end
-          else
-            puts "  #{change[:restricting_package]}: Only minor version updates, no significant pattern changes"
           end
         end
+
       else
         puts "  No requirement changes found (packages may have always restricted this version)"
       end
