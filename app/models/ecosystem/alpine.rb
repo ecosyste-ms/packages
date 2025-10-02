@@ -21,6 +21,7 @@ module Ecosystem
     end
 
     def download_url(package, version)
+      return nil unless version.present?
       "https://dl-cdn.alpinelinux.org/alpine/#{@registry.version}/#{package.metadata['repository']}/#{package.metadata['architecture']}/#{package.name}-#{version.number}.apk"
     end
 
