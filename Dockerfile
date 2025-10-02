@@ -2,6 +2,8 @@ FROM ruby:3.4.6-alpine
 
 ENV APP_ROOT=/usr/src/app
 ENV DATABASE_PORT=5432
+ENV RUBY_YJIT_ENABLE=1
+ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
 WORKDIR $APP_ROOT
 
 # * Setup system
@@ -18,6 +20,7 @@ RUN apk add --update \
     bash \
     yaml-dev \
     libffi-dev \
+    jemalloc \
  && rm -rf /var/cache/apk/* 
 
 # Will invalidate cache as soon as the Gemfile changes
