@@ -98,6 +98,68 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.first['name'], @package.name
   end
 
+  test 'lookup by purl with repository_url qualifier returns only packages from specified registry' do
+    # Create two Maven registries
+    @maven_central = Registry.create(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven', default: true)
+    @maven_google = Registry.create(name: 'maven.google.com', url: 'https://maven.google.com', ecosystem: 'maven', default: false)
+
+    # Create the same package in both registries
+    @package_central = @maven_central.packages.create(ecosystem: 'maven', name: 'com.example:library')
+    @package_google = @maven_google.packages.create(ecosystem: 'maven', name: 'com.example:library')
+
+    # Lookup by PURL with repository_url qualifier for maven.google.com
+    get lookup_api_v1_packages_path(purl: 'pkg:maven/com.example/library@1.0?repository_url=https://maven.google.com')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    # Should return only the package from maven.google.com
+    assert_equal 1, actual_response.length
+    assert_equal 'maven.google.com', actual_response.first['registry']['name']
+    assert_equal 'com.example:library', actual_response.first['name']
+  end
+
+  test 'lookup by purl without repository_url qualifier returns packages from all registries' do
+    # Create two Maven registries
+    @maven_central = Registry.create(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven', default: true)
+    @maven_google = Registry.create(name: 'maven.google.com', url: 'https://maven.google.com', ecosystem: 'maven', default: false)
+
+    # Create the same package in both registries
+    @package_central = @maven_central.packages.create(ecosystem: 'maven', name: 'com.example:another')
+    @package_google = @maven_google.packages.create(ecosystem: 'maven', name: 'com.example:another')
+
+    # Lookup by PURL without repository_url qualifier
+    get lookup_api_v1_packages_path(purl: 'pkg:maven/com.example/another@1.0')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    # Should return packages from both registries
+    assert_equal 2, actual_response.length
+    registry_names = actual_response.map { |p| p['registry']['name'] }.sort
+    assert_equal ['maven.google.com', 'repo1.maven.org'], registry_names
+  end
+
+  test 'lookup by purl with repository_url qualifier normalizes URLs with trailing slashes' do
+    # Create registry with trailing slash
+    @maven_jitpack = Registry.create(name: 'jitpack.io', url: 'https://jitpack.io/', ecosystem: 'maven', default: false)
+    @maven_central = Registry.create(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven', default: true)
+
+    # Create packages
+    @package_jitpack = @maven_jitpack.packages.create(ecosystem: 'maven', name: 'com.github:test')
+    @package_central = @maven_central.packages.create(ecosystem: 'maven', name: 'com.github:test')
+
+    # Lookup by PURL with repository_url WITHOUT trailing slash (should still match)
+    get lookup_api_v1_packages_path(purl: 'pkg:maven/com.github/test@1.0?repository_url=https://jitpack.io')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    # Should return only the jitpack package due to URL normalization
+    assert_equal 1, actual_response.length
+    assert_equal 'jitpack.io', actual_response.first['registry']['name']
+  end
+
   test 'lookup by purl cocoapods with + in name' do
     @registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
     @package = @registry.packages.create(ecosystem: 'cocoapods', name: 'UIView+BooleanAnimations')

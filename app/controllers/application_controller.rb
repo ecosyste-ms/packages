@@ -20,11 +20,28 @@ class ApplicationController < ActionController::Base
       scope = Package.repository_url(repository_url)
     else
       name = [namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
-      ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type) 
-      registry_ids = Registry.where(ecosystem: ecosystem).pluck(:id)
+      ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type)
+
+      # Filter by repository_url qualifier if provided
+      if purl.qualifiers && purl.qualifiers['repository_url'].present?
+        # Do URL matching in Ruby to ensure proper normalization
+        target_url = normalize_url(purl.qualifiers['repository_url'])
+        registries = Registry.where(ecosystem: ecosystem).select { |r| normalize_url(r.url) == target_url }
+        registry_ids = registries.map(&:id)
+      else
+        registry_ids = Registry.where(ecosystem: ecosystem).pluck(:id)
+      end
+
       Package.where(name: name, registry_id: registry_ids)
     end
   rescue
     Package.none
+  end
+
+  private
+
+  def normalize_url(url)
+    return nil if url.nil?
+    url.to_s.downcase.sub(/\/+$/, '')
   end
 end
