@@ -2,7 +2,7 @@ require "test_helper"
 
 class VcpkgTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'vcpkg.org', url: 'https://vcpkg.org', ecosystem: 'vcpkg')
+    @registry = Registry.new(default: true, name: 'vcpkg.org', url: 'https://vcpkg.org', ecosystem: 'vcpkg')
     @ecosystem = Ecosystem::Vcpkg.new(@registry)
     @package = Package.new(ecosystem: 'vcpkg', name: 'zziplib')
     @version = @package.versions.build(number: '1.26.8')

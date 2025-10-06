@@ -156,18 +156,29 @@ module Ecosystem
     end
 
     def purl(package, version = nil)
-      params = {
-        type: purl_type,
-        namespace: nil,
-        name: package.name.encode('iso-8859-1')
-      }
-      if version.present?
-        params[:version] = version.try(:number).try(:encode,'iso-8859-1')
+      params = purl_params(package, version)
+
+      # Add repository_url to qualifiers if non-default registry
+      # default: true means it's the default registry for that ecosystem
+      # nil or false means it's not the default and should include repository_url
+      if @registry.default != true
+        params[:qualifiers] ||= {}
+        params[:qualifiers]['repository_url'] = @registry_url
       end
+
       Purl::PackageURL.new(**params).to_s
     rescue => e
       # invalid encoding or other errors
       nil
+    end
+
+    def purl_params(package, version = nil)
+      {
+        type: purl_type,
+        namespace: nil,
+        name: package.name.encode('iso-8859-1'),
+        version: version.try(:number).try(:encode,'iso-8859-1')
+      }
     end
 
     def purl_type

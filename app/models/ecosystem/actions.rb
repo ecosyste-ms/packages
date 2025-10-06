@@ -7,13 +7,13 @@ module Ecosystem
       'githubactions'
     end
 
-    def purl(package, version = nil)
-      Purl::PackageURL.new(
+    def purl_params(package, version = nil)
+      {
         type: purl_type,
         namespace: package.name.split('/').first,
         name: package.name.split('/').last,
         version: version.try(:number).try(:encode, 'iso-8859-1', invalid: :replace, undef: :replace, replace: '')
-      ).to_s
+      }
     end
 
     def check_status_url(package)

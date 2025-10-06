@@ -2,7 +2,7 @@ require "test_helper"
 
 class PypiTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'Pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    @registry = Registry.new(default: true, name: 'Pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
     @ecosystem = Ecosystem::Pypi.new(@registry)
     @package = Package.new(ecosystem: 'pypi', name: 'urllib3')
     @version = @package.versions.build(number: '1.26.8', metadata: {download_url: 'https://files.pythonhosted.org/packages/8b/e1/40122572f57349365391b8955178d52cd42d2c1f767030cbd196883adee7/yiban-0.1.2.32-py3-none-any.whl'})

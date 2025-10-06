@@ -2,7 +2,7 @@ require "test_helper"
 
 class CocoapodsTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'Cocoapod.org', url: 'https://cocoapods.org', ecosystem: 'cocoapods')
+    @registry = Registry.new(default: true, name: 'Cocoapod.org', url: 'https://cocoapods.org', ecosystem: 'cocoapods')
     @ecosystem = Ecosystem::Cocoapods.new(@registry)
     @package = Package.new(ecosystem: 'cocoapods', name: 'Foo')
     @version = @package.versions.build({:number=>"1.0.7", :published_at=>"2019-01-01T11:52:18.000Z", :metadata=>{:sha=>"fc91bdd33fa5019c4b9a0d0bbe359816872cd89c", :download_url=>"https://codeload.github.com/deepesh259nitk/mixedFramework/tar.gz/1.0.7"}})

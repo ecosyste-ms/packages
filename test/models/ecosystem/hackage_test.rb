@@ -2,7 +2,7 @@ require "test_helper"
 
 class HackageTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'Hackage.haskell.org', url: 'https://hackage.haskell.org', ecosystem: 'hackage')
+    @registry = Registry.new(default: true, name: 'Hackage.haskell.org', url: 'https://hackage.haskell.org', ecosystem: 'hackage')
     @ecosystem = Ecosystem::Hackage.new(@registry)
     @package = Package.new(ecosystem: 'hackage', name: 'blockfrost-client')
     @version = @package.versions.build(number: '0.4.0.1')

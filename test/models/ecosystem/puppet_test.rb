@@ -2,7 +2,7 @@ require "test_helper"
 
 class PuppetTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'forge.puppet.com', url: 'https://forge.puppet.com', ecosystem: 'puppet')
+    @registry = Registry.new(default: true, name: 'forge.puppet.com', url: 'https://forge.puppet.com', ecosystem: 'puppet')
     @ecosystem = Ecosystem::Puppet.new(@registry)
     @package = Package.new(ecosystem: 'puppet', name: 'puppet-fail2ban')
     @version = @package.versions.build(number: '4.1.0')

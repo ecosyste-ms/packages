@@ -13,7 +13,7 @@ class VersionTest < ActiveSupport::TestCase
   end
 
   setup do 
-    @registry = Registry.create(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
+    @registry = Registry.create(default: true, name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
     @package = @registry.packages.create(name: 'foo', ecosystem: @registry.ecosystem)
     @version = @package.versions.create(number: '1.0.0', created_at: Time.now)
     @version2 = @package.versions.create(number: '2.0.0', created_at: 1.week.ago)

@@ -6,16 +6,13 @@ module Ecosystem
       'swift'
     end
 
-    def purl(package, version = nil)
-      params = {
+    def purl_params(package, version = nil)
+      {
         type: purl_type,
         namespace: package.name.split('/')[0..1].join('/'),
-        name: package.name.split('/').last
+        name: package.name.split('/').last,
+        version: version.try(:number).try(:encode, 'iso-8859-1', invalid: :replace, undef: :replace, replace: '')
       }
-      if version.present?
-        params[:version] = version.try(:number).try(:encode, 'iso-8859-1', invalid: :replace, undef: :replace, replace: '')
-      end
-      Purl::PackageURL.new(**params).to_s
     end
 
     def all_package_names

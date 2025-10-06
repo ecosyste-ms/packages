@@ -7,13 +7,13 @@ module Ecosystem
     PEP_508_NAME_REGEX = /[A-Z0-9][A-Z0-9._-]*[A-Z0-9]|[A-Z0-9]/i.freeze
     PEP_508_NAME_WITH_EXTRAS_REGEX = /(^#{PEP_508_NAME_REGEX}\s*(?:\[#{PEP_508_NAME_REGEX}(?:,\s*#{PEP_508_NAME_REGEX})*\])?)/i.freeze
 
-    def purl(package, version = nil)
-      Purl::PackageURL.new(
+    def purl_params(package, version = nil)
+      {
         type: purl_type,
         namespace: nil,
         name: package.name.downcase.gsub('_', '-'),
         version: version.try(:number).try(:encode,'iso-8859-1')
-      ).to_s
+      }
     end
 
 

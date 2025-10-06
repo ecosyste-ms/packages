@@ -2,7 +2,7 @@ require "test_helper"
 
 class OpenvsxTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'open-vsx.org', url: 'https://open-vsx.org', ecosystem: 'openvsx')
+    @registry = Registry.new(default: true, name: 'open-vsx.org', url: 'https://open-vsx.org', ecosystem: 'openvsx')
     @ecosystem = Ecosystem::Openvsx.new(@registry)
     @package = Package.new(ecosystem: 'Openvsx', namespace: 'redhat', name: 'redhat/vscode-yaml')
     @version = @package.versions.build(number: '1.18.0')
