@@ -134,7 +134,7 @@ class RubygemsTest < ActiveSupport::TestCase
   end
 
   test 'purl with non-default registry includes repository_url' do
-    gem_coop_registry = Registry.new(default: true, name: 'gem.coop', url: 'https://gem.coop', ecosystem: 'rubygems', default: false)
+    gem_coop_registry = Registry.new(name: 'gem.coop', url: 'https://gem.coop', ecosystem: 'rubygems', default: false)
     gem_coop_ecosystem = Ecosystem::Rubygems.new(gem_coop_registry)
     package = Package.new(ecosystem: 'rubygems', name: 'rails')
 
@@ -144,7 +144,7 @@ class RubygemsTest < ActiveSupport::TestCase
   end
 
   test 'purl with non-default registry and version includes repository_url' do
-    gem_coop_registry = Registry.new(default: true, name: 'gem.coop', url: 'https://gem.coop', ecosystem: 'rubygems', default: false)
+    gem_coop_registry = Registry.new(name: 'gem.coop', url: 'https://gem.coop', ecosystem: 'rubygems', default: false)
     gem_coop_ecosystem = Ecosystem::Rubygems.new(gem_coop_registry)
     package = Package.new(ecosystem: 'rubygems', name: 'rails')
     version = Version.new(number: '7.0.0')

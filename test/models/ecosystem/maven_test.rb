@@ -353,7 +353,7 @@ class MavenTest < ActiveSupport::TestCase
   end
 
   test 'purl with non-default registry includes repository_url' do
-    google_registry = Registry.new(default: true, name: 'maven.google.com', url: 'https://maven.google.com', ecosystem: 'maven', default: false)
+    google_registry = Registry.new(name: 'maven.google.com', url: 'https://maven.google.com', ecosystem: 'maven', default: false)
     google_ecosystem = Ecosystem::Maven.new(google_registry)
     package = Package.new(ecosystem: 'maven', name: 'groovy:groovy')
 
@@ -363,7 +363,7 @@ class MavenTest < ActiveSupport::TestCase
   end
 
   test 'purl with non-default registry and version includes repository_url' do
-    google_registry = Registry.new(default: true, name: 'maven.google.com', url: 'https://maven.google.com', ecosystem: 'maven', default: false)
+    google_registry = Registry.new(name: 'maven.google.com', url: 'https://maven.google.com', ecosystem: 'maven', default: false)
     google_ecosystem = Ecosystem::Maven.new(google_registry)
     package = Package.new(ecosystem: 'maven', name: 'groovy:groovy')
     version = Version.new(number: '1.0')
