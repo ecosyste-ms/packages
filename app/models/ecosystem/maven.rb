@@ -1,14 +1,14 @@
 module Ecosystem
   class Maven < Base
 
-    def purl(package, version = nil)
+    def purl_params(package, version = nil)
       group_id, artifact_id = *package.name.split(':', 2)
-      Purl::PackageURL.new(
+      {
         type: purl_type,
         namespace: group_id,
         name: artifact_id,
         version: version.try(:number).try(:encode,'iso-8859-1')
-      ).to_s
+      }
     end
 
     def self.namespace_separator

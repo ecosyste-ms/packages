@@ -2,7 +2,7 @@ require "test_helper"
 
 class AlpineTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'Alpine v3.21', version: 'v3.21', url: 'https://pkgs.alpinelinux.org', ecosystem: 'alpine')
+    @registry = Registry.new(default: true, name: 'Alpine v3.21', version: 'v3.21', url: 'https://pkgs.alpinelinux.org', ecosystem: 'alpine')
     @ecosystem = Ecosystem::Alpine.new(@registry)
     @package = Package.new(ecosystem: 'alpine', name: 'nextcloud30-dashboard', metadata: { 'repository' => 'community', 'architecture' => 'x86_64' })
     @version = @package.versions.build(number: '30.0.0-r0')

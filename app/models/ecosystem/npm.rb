@@ -6,14 +6,14 @@ module Ecosystem
       "https://www.npmjs.com/package/#{package.name}" + (version ? "/v/#{version}" : "")
     end
 
-    def purl(package, version = nil)
+    def purl_params(package, version = nil)
       namespace = package.namespace ? "@#{package.namespace}".encode('iso-8859-1') : nil
-      Purl::PackageURL.new(
+      {
         type: 'npm',
         namespace: namespace,
         name: package.name.split('/').last.encode('iso-8859-1'),
         version: version.try(:number).try(:encode,'iso-8859-1')
-      ).to_s
+      }
     end
 
     def download_url(package, version)

@@ -2,7 +2,7 @@ require "test_helper"
 
 class GoTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'Go')
+    @registry = Registry.new(default: true, name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'Go')
     @ecosystem = Ecosystem::Go.new(@registry)
     @package = Package.new(ecosystem: 'Go', name: 'github.com/aws/smithy-go')
     @version = @package.versions.build(number: 'v1.11.1')

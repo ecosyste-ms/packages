@@ -2,7 +2,7 @@ require "test_helper"
 
 class BowerTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.create(name: 'Bower.io', url: 'https://bower.io', ecosystem: 'bower')
+    @registry = Registry.create(default: true, name: 'Bower.io', url: 'https://bower.io', ecosystem: 'bower')
     @ecosystem = Ecosystem::Bower.new(@registry)
     @package = @registry.packages.create(ecosystem: 'bower', name: 'bower-angular', repository_url: "https://github.com/angular/bower-angular")
     @version = @package.versions.create(number: '1.0.0', metadata: {download_url:"https://codeload.github.com/angular/bower-angular/tar.gz/refs/v1.0.0"})

@@ -2,7 +2,7 @@ require "test_helper"
 
 class CranTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'cran.r-project.org', url: 'https://cran.r-project.org', ecosystem: 'cran')
+    @registry = Registry.new(default: true, name: 'cran.r-project.org', url: 'https://cran.r-project.org', ecosystem: 'cran')
     @ecosystem = Ecosystem::Cran.new(@registry)
     @package = Package.new(ecosystem: @registry.ecosystem, name: 'pack')
     @version = @package.versions.build(number: '0.1-1')

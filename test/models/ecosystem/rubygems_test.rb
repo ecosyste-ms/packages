@@ -2,7 +2,7 @@ require "test_helper"
 
 class RubygemsTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
+    @registry = Registry.new(default: true, name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
     @ecosystem = Ecosystem::Rubygems.new(@registry)
     @package = Package.new(ecosystem: 'rubygems', name: 'nokogiri')
     @version = @package.versions.build(number: '1.13.6')
@@ -124,12 +124,45 @@ class RubygemsTest < ActiveSupport::TestCase
     stub_request(:get, "https://rubygems.org/api/v1/versions/nokogiri.json")
       .to_return({ status: 200, body: file_fixture('rubygems/nokogiri-versions.json') })
     versions_metadata = @ecosystem.versions_metadata({name: 'nokogiri'})
-    
+
     first_version = versions_metadata.first
     assert_equal first_version[:metadata]["changelog_uri"], "https://nokogiri.org/CHANGELOG.html"
     assert_equal first_version[:metadata]["homepage_uri"], "https://nokogiri.org"
     assert_equal first_version[:metadata]["source_code_uri"], "https://github.com/sparklemotion/nokogiri"
     assert_not_includes first_version.keys, "changelog_uri"
     assert_not_includes first_version.keys, "homepage_uri"
+  end
+
+  test 'purl with non-default registry includes repository_url' do
+    gem_coop_registry = Registry.new(default: true, name: 'gem.coop', url: 'https://gem.coop', ecosystem: 'rubygems', default: false)
+    gem_coop_ecosystem = Ecosystem::Rubygems.new(gem_coop_registry)
+    package = Package.new(ecosystem: 'rubygems', name: 'rails')
+
+    purl = gem_coop_ecosystem.purl(package)
+    assert_equal purl, 'pkg:gem/rails?repository_url=https://gem.coop'
+    assert Purl.parse(purl)
+  end
+
+  test 'purl with non-default registry and version includes repository_url' do
+    gem_coop_registry = Registry.new(default: true, name: 'gem.coop', url: 'https://gem.coop', ecosystem: 'rubygems', default: false)
+    gem_coop_ecosystem = Ecosystem::Rubygems.new(gem_coop_registry)
+    package = Package.new(ecosystem: 'rubygems', name: 'rails')
+    version = Version.new(number: '7.0.0')
+
+    purl = gem_coop_ecosystem.purl(package, version)
+    assert_equal purl, 'pkg:gem/rails@7.0.0?repository_url=https://gem.coop'
+    assert Purl.parse(purl)
+  end
+
+  test 'purl with default registry does not include repository_url' do
+    purl = @ecosystem.purl(@package)
+    assert_equal purl, 'pkg:gem/nokogiri'
+    assert Purl.parse(purl)
+  end
+
+  test 'purl with default registry and version does not include repository_url' do
+    purl = @ecosystem.purl(@package, @version)
+    assert_equal purl, 'pkg:gem/nokogiri@1.13.6'
+    assert Purl.parse(purl)
   end
 end

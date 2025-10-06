@@ -2,7 +2,7 @@ require "test_helper"
 
 class ElpaTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'elpa.nongnu.org', url: 'https://elpa.nongnu.org/nongnu', ecosystem: 'elpa')
+    @registry = Registry.new(default: true, name: 'elpa.nongnu.org', url: 'https://elpa.nongnu.org/nongnu', ecosystem: 'elpa')
     @ecosystem = Ecosystem::Elpa.new(@registry)
     @package = Package.new(ecosystem: 'elpa', name: 'ample-theme')
     @version = @package.versions.build(number: '0.3.0')

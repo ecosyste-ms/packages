@@ -2,7 +2,7 @@ require "test_helper"
 
 class SwiftpmTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.create(name: 'Swiftpm.io', url: 'https://swiftpm.io', ecosystem: 'swiftpm')
+    @registry = Registry.create(default: true, name: 'Swiftpm.io', url: 'https://swiftpm.io', ecosystem: 'swiftpm')
     @ecosystem = Ecosystem::Swiftpm.new(@registry)
     @package = @registry.packages.create(ecosystem: 'swiftpm', name: 'github.com/swift-cloud/Compute', repository_url: "https://github.com/swift-cloud/Compute")
     @version = @package.versions.create(number: '2.3.1', metadata: {download_url:"https://codeload.github.com/swift-cloud/Compute/tar.gz/refs/2.3.1"})

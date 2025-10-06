@@ -3,7 +3,7 @@ require "test_helper"
 
 class MavenTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
+    @registry = Registry.new(default: true, name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
     @ecosystem = Ecosystem::Maven.new(@registry)
     @package = Package.new(ecosystem: 'maven', name: 'dev.zio:zio-aws-autoscaling_3')
     @version = @package.versions.build(number: '5.17.224.2')
@@ -191,7 +191,7 @@ class MavenTest < ActiveSupport::TestCase
   end
 
   test 'non_maven_central_registry_url' do
-    jboss_registry = Registry.new(name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven')
+    jboss_registry = Registry.new(default: true, name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven')
     jboss_ecosystem = Ecosystem::Maven.new(jboss_registry)
     
     registry_url = jboss_ecosystem.registry_url(@package)
@@ -199,7 +199,7 @@ class MavenTest < ActiveSupport::TestCase
   end
 
   test 'non_maven_central_registry_url_with_version' do
-    jboss_registry = Registry.new(name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven')
+    jboss_registry = Registry.new(default: true, name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven')
     jboss_ecosystem = Ecosystem::Maven.new(jboss_registry)
     
     registry_url = jboss_ecosystem.registry_url(@package, @version)
@@ -207,7 +207,7 @@ class MavenTest < ActiveSupport::TestCase
   end
 
   test 'jboss_all_package_names_with_archetype_catalog' do
-    jboss_registry = Registry.new(name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven')
+    jboss_registry = Registry.new(default: true, name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven')
     jboss_ecosystem = Ecosystem::Maven.new(jboss_registry)
     
     # Mock JBoss archetype-catalog.xml
@@ -221,7 +221,7 @@ class MavenTest < ActiveSupport::TestCase
 
 
   test 'recently_updated_package_names_for_non_maven_central' do
-    jboss_registry = Registry.new(name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven')
+    jboss_registry = Registry.new(default: true, name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven')
     jboss_ecosystem = Ecosystem::Maven.new(jboss_registry)
     
     # Mock JBoss archetype-catalog.xml (empty)
@@ -235,7 +235,7 @@ class MavenTest < ActiveSupport::TestCase
   end
 
   test 'apache_all_package_names_with_archetype_catalog' do
-    apache_registry = Registry.new(name: 'repository.apache.org-releases', url: 'https://repository.apache.org/content/repositories/releases', ecosystem: 'maven')
+    apache_registry = Registry.new(default: true, name: 'repository.apache.org-releases', url: 'https://repository.apache.org/content/repositories/releases', ecosystem: 'maven')
     apache_ecosystem = Ecosystem::Maven.new(apache_registry)
     
     # Mock Apache archetype-catalog.xml
@@ -271,7 +271,7 @@ class MavenTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_from_archetype_catalog_for_non_maven_central' do
-    jboss_registry = Registry.new(name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven')
+    jboss_registry = Registry.new(default: true, name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven')
     jboss_ecosystem = Ecosystem::Maven.new(jboss_registry)
     
     # Mock JBoss archetype-catalog.xml with multiple packages
@@ -311,9 +311,9 @@ class MavenTest < ActiveSupport::TestCase
   end
 
   test 'apache_snapshots_package_metadata_and_repository_extraction' do
-    apache_snapshots_registry = Registry.new(name: 'repository.apache.org-snapshots', url: 'https://repository.apache.org/content/repositories/snapshots', ecosystem: 'maven')
+    apache_snapshots_registry = Registry.new(default: true, name: 'repository.apache.org-snapshots', url: 'https://repository.apache.org/content/repositories/snapshots', ecosystem: 'maven')
     apache_snapshots_ecosystem = Ecosystem::Maven.new(apache_snapshots_registry)
-    
+
     # Mock Apache snapshots maven-metadata.xml and POM
     stub_request(:get, "https://repository.apache.org/content/repositories/snapshots/org/apache/maven/archetypes/maven-archetype-profiles/maven-metadata.xml")
       .to_return({ status: 200, body: file_fixture('maven/apache-snapshots-metadata.xml') })
@@ -321,35 +321,77 @@ class MavenTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('maven/apache-snapshots.pom'), headers: { 'last-modified' => 'Sat, 24 Mar 2018 12:19:00 GMT' } })
     stub_request(:get, "https://repository.apache.org/content/repositories/snapshots/org/apache/maven/archetypes/maven-archetype-profiles/1.0-SNAPSHOT/maven-archetype-profiles-1.0-SNAPSHOT.pom")
       .to_return({ status: 200, body: file_fixture('maven/apache-snapshots.pom'), headers: { 'last-modified' => 'Sat, 24 Mar 2018 12:19:00 GMT' } })
-    
+
     # Mock parent POM request (referenced in our test POM)
     stub_request(:get, "https://repository.apache.org/content/repositories/snapshots/org/apache/maven/archetypes/maven-archetype-bundles/1.3-SNAPSHOT/maven-archetype-bundles-1.3-SNAPSHOT.pom")
       .to_return({ status: 404 })
-    
+
     # Test package metadata fetching
     package_metadata = apache_snapshots_ecosystem.package_metadata('org.apache.maven.archetypes:maven-archetype-profiles')
-    
+
     assert_equal package_metadata[:name], 'org.apache.maven.archetypes:maven-archetype-profiles'
     assert_equal package_metadata[:description], 'An archetype which contains a sample Maven project which demonstrates the use of profiles.'
     assert_equal package_metadata[:namespace], 'org.apache.maven.archetypes'
-    
+
     # Test repository URL extraction from package-level metadata
     assert_includes package_metadata[:metadata][:repositories], 'https://repository.apache.org/content/repositories/snapshots'
     assert_includes package_metadata[:metadata][:distribution_repositories], 'https://repository.apache.org/content/repositories/releases'
     assert_includes package_metadata[:metadata][:distribution_repositories], 'https://repository.apache.org/content/repositories/snapshots'
-    
+
     # Test version metadata
     versions_metadata = apache_snapshots_ecosystem.versions_metadata(package_metadata)
-    
+
     assert_equal versions_metadata.length, 2
     assert_equal versions_metadata.first[:number], '1.3-SNAPSHOT'
     assert_equal versions_metadata.last[:number], '1.0-SNAPSHOT'
-    
+
     # Test repository URL extraction from version-level metadata
     first_version = versions_metadata.first
     assert_includes first_version[:metadata][:repositories], 'https://repository.apache.org/content/repositories/snapshots'
     assert_includes first_version[:metadata][:distribution_repositories], 'https://repository.apache.org/content/repositories/releases'
     assert_includes first_version[:metadata][:distribution_repositories], 'https://repository.apache.org/content/repositories/snapshots'
+  end
+
+  test 'purl with non-default registry includes repository_url' do
+    google_registry = Registry.new(default: true, name: 'maven.google.com', url: 'https://maven.google.com', ecosystem: 'maven', default: false)
+    google_ecosystem = Ecosystem::Maven.new(google_registry)
+    package = Package.new(ecosystem: 'maven', name: 'groovy:groovy')
+
+    purl = google_ecosystem.purl(package)
+    assert_equal purl, 'pkg:maven/groovy/groovy?repository_url=https://maven.google.com'
+    assert Purl.parse(purl)
+  end
+
+  test 'purl with non-default registry and version includes repository_url' do
+    google_registry = Registry.new(default: true, name: 'maven.google.com', url: 'https://maven.google.com', ecosystem: 'maven', default: false)
+    google_ecosystem = Ecosystem::Maven.new(google_registry)
+    package = Package.new(ecosystem: 'maven', name: 'groovy:groovy')
+    version = Version.new(number: '1.0')
+
+    purl = google_ecosystem.purl(package, version)
+    assert_equal purl, 'pkg:maven/groovy/groovy@1.0?repository_url=https://maven.google.com'
+    assert Purl.parse(purl)
+  end
+
+  test 'purl with default registry does not include repository_url' do
+    default_registry = Registry.new(default: true, name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
+    default_ecosystem = Ecosystem::Maven.new(default_registry)
+    package = Package.new(ecosystem: 'maven', name: 'groovy:groovy')
+
+    purl = default_ecosystem.purl(package)
+    assert_equal purl, 'pkg:maven/groovy/groovy'
+    assert Purl.parse(purl)
+  end
+
+  test 'purl with default registry and version does not include repository_url' do
+    default_registry = Registry.new(default: true, name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
+    default_ecosystem = Ecosystem::Maven.new(default_registry)
+    package = Package.new(ecosystem: 'maven', name: 'groovy:groovy')
+    version = Version.new(number: '1.0')
+
+    purl = default_ecosystem.purl(package, version)
+    assert_equal purl, 'pkg:maven/groovy/groovy@1.0'
+    assert Purl.parse(purl)
   end
 
 

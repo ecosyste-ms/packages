@@ -15,7 +15,7 @@ class PackageTest < ActiveSupport::TestCase
   end
 
   setup do
-    @registry = Registry.create(name: 'rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
+    @registry = Registry.create(default: true, name: 'rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
     @package = @registry.packages.create(name: 'foo', ecosystem: @registry.ecosystem, licenses: 'mit')
     @version = @package.versions.create(number: '1.0.0', published_at: 1.month.ago)
     @version2 = @package.versions.create(number: '2.0.0', published_at: 1.week.ago)

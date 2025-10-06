@@ -3,7 +3,7 @@ require "test_helper"
 
 class ClojarsTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'clojars.org', url: 'https://repo.clojars.org', ecosystem: 'clojars')
+    @registry = Registry.new(default: true, name: 'clojars.org', url: 'https://repo.clojars.org', ecosystem: 'clojars')
     @ecosystem = Ecosystem::Clojars.new(@registry)
     @package = Package.new(ecosystem: 'clojars', name: 'missionary')
     @version = @package.versions.build(number: 'b.26')

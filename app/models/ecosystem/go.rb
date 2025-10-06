@@ -5,15 +5,15 @@ module Ecosystem
       'golang'
     end
 
-    def purl(package, version = nil)
+    def purl_params(package, version = nil)
       namespace = encode_for_proxy package.name.split('/')[0..-2].join('/')
       name = encode_for_proxy package.name.split('/').last
-      Purl::PackageURL.new(
+      {
         type: purl_type,
         namespace: namespace,
         name: name,
         version: version.try(:number).try(:encode,'iso-8859-1')
-      ).to_s
+      }
     end
 
 

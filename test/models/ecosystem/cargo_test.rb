@@ -2,7 +2,7 @@ require "test_helper"
 
 class CargoTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'Crates.io', url: 'https://crates.io', ecosystem: 'Cargo')
+    @registry = Registry.new(default: true, name: 'Crates.io', url: 'https://crates.io', ecosystem: 'Cargo')
     @ecosystem = Ecosystem::Cargo.new(@registry)
     @package = Package.new(ecosystem: 'Cargo', name: 'rand')
     @version = @package.versions.build(number: '0.8.5')

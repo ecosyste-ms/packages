@@ -2,7 +2,7 @@ require "test_helper"
 
 class ActionsTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.create(name: 'github actions', url: 'https://actions.io', ecosystem: 'actions')
+    @registry = Registry.create(default: true, name: 'github actions', url: 'https://actions.io', ecosystem: 'actions')
     @ecosystem = Ecosystem::Actions.new(@registry)
     @package = @registry.packages.create(ecosystem: 'actions', name: 'getsentry/action-git-diff-suggestions', repository_url: "https://github.com/getsentry/action-git-diff-suggestions")
     @version = @package.versions.create(number: 'v1', metadata: {download_url:"https://codeload.github.com/getsentry/action-git-diff-suggestions/tar.gz/refs/v1"})

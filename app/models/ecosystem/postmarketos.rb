@@ -6,14 +6,14 @@ module Ecosystem
       true
     end
 
-    def purl(package, version = nil)
-      Purl::PackageURL.new(
+    def purl_params(package, version = nil)
+      {
         type: 'apk',
         namespace: 'postmarketos',
         name: package.name.encode('iso-8859-1'),
         version: version.try(:number).try(:encode,'iso-8859-1'),
-        qualifiers: { 'arch'=> package.metadata['architecture']},
-      ).to_s
+        qualifiers: { 'arch' => package.metadata['architecture'] }
+      }
     end
 
     def registry_url(package, version = nil)

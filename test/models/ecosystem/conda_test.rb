@@ -2,8 +2,8 @@ require "test_helper"
 
 class CondaTest < ActiveSupport::TestCase
   setup do
-    @registry = Registry.new(name: 'Conda.org', url: 'https://anaconda.org/anaconda', ecosystem: 'conda', metadata: {'kind' => 'anaconda', 'key' => 'Main', 'api' => 'https://repo.ananconda.com'})
-    @registry2 = Registry.new(name: 'conda-forge.org', url: 'https://conda-forge.org/', ecosystem: 'conda', metadata: {'kind' => 'conda-forge', 'key' => 'CondaForge', 'api' => 'https://conda.anaconda.org'})
+    @registry = Registry.new(default: true, name: 'Conda.org', url: 'https://anaconda.org/anaconda', ecosystem: 'conda', metadata: {'kind' => 'anaconda', 'key' => 'Main', 'api' => 'https://repo.ananconda.com'})
+    @registry2 = Registry.new(default: true, name: 'conda-forge.org', url: 'https://conda-forge.org/', ecosystem: 'conda', metadata: {'kind' => 'conda-forge', 'key' => 'CondaForge', 'api' => 'https://conda.anaconda.org'})
     @ecosystem = Ecosystem::Conda.new(@registry)
     @ecosystem2 = Ecosystem::Conda.new(@registry2)
     @package = Package.new(ecosystem: 'conda', name: 'aiofiles')
