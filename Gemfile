@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby '3.4.6'
+ruby '3.4.7'
 
 # Rails components
 gem "activemodel", "~> 8.0.0"
