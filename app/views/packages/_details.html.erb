@@ -72,7 +72,7 @@
     <br>
     <%= link_to 'purl', 'https://github.com/package-url/purl-spec', target: :_blank %>: <code><%= @package.purl %></code>
 
-    <% if @package.keywords.reject(&:blank?).any? %>
+    <% if @package.keywords&.reject(&:blank?)&.any? %>
       <br/> Keywords: <% @package.keywords.reject(&:blank?).uniq.each_with_index do |k, i| %>
         <% k = k.first if k.is_a?(Array) %>
         <%= ', ' if i > 0 %><%= link_to k, keyword_registry_path(@registry.name, k.squish) %>

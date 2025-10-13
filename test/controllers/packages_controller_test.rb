@@ -17,4 +17,11 @@ class PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_template 'packages/show', file: 'packages/show.html.erb'
   end
+
+  test 'get a package with nil keywords should not error' do
+    package = @registry.packages.create(ecosystem: 'cargo', name: 'test-package', keywords: nil)
+    get registry_package_path(registry_id: @registry.name, id: package.name)
+    assert_response :success
+    assert_template 'packages/show', file: 'packages/show.html.erb'
+  end
 end
