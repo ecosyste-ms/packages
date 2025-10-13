@@ -165,4 +165,29 @@ class RubygemsTest < ActiveSupport::TestCase
     assert_equal purl, 'pkg:gem/nokogiri@1.13.6'
     assert Purl.parse(purl)
   end
+
+  test 'map_package_metadata handles integer responses' do
+    result = @ecosystem.map_package_metadata(404)
+    assert_equal false, result
+  end
+
+  test 'map_package_metadata handles string responses' do
+    result = @ecosystem.map_package_metadata("Not Found")
+    assert_equal false, result
+  end
+
+  test 'map_package_metadata handles nil' do
+    result = @ecosystem.map_package_metadata(nil)
+    assert_equal false, result
+  end
+
+  test 'map_package_metadata handles empty hash' do
+    result = @ecosystem.map_package_metadata({})
+    assert_equal false, result
+  end
+
+  test 'map_package_metadata handles hash without name' do
+    result = @ecosystem.map_package_metadata({"info" => "some description"})
+    assert_equal false, result
+  end
 end
