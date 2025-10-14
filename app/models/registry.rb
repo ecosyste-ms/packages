@@ -344,7 +344,8 @@ class Registry < ApplicationRecord
 
   def keywords
     Rails.cache.fetch("registries_keywords/#{id}", expires_in: 1.week) do
-      Package.connection.select_rows("SELECT keywords, COUNT(keywords) AS keywords_count FROM (SELECT id, registry_id, unnest(keywords) AS keywords FROM packages WHERE registry_id = #{id} AND status IS NULL) AS foo GROUP BY keywords ORDER BY keywords_count DESC, keywords ASC LIMIT 50000;")
+      result = Package.connection.select_rows("SELECT keywords, COUNT(keywords) AS keywords_count FROM (SELECT id, registry_id, unnest(keywords) AS keywords FROM packages WHERE registry_id = #{id} AND status IS NULL) AS foo GROUP BY keywords ORDER BY keywords_count DESC, keywords ASC LIMIT 50000;")
+      result || []
     end
   end
 
