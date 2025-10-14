@@ -70,7 +70,7 @@ GEM
     bootstrap-icons (1.0.15)
       nokogiri (~> 1)
     builder (3.3.0)
-    chartkick (5.2.0)
+    chartkick (5.2.1)
     citrus (3.0.2)
     commander (5.0.0)
       highline (~> 3.0.0)
@@ -435,7 +435,7 @@ CHECKSUMS
   bootstrap (5.3.5) sha256=d57c9b7a21eaf2182c32fe93d1c0eaa0e1ebe82c46676c5a1fd66dd3a6ac41f8
   bootstrap-icons (1.0.15) sha256=4a19c2360f88263c1606235813b8575ff3d6c0773174ed4ceb368628e5541ae9
   builder (3.3.0) sha256=497918d2f9dca528fdca4b88d84e4ef4387256d984b8154e9d5d3fe5a9c8835f
-  chartkick (5.2.0) sha256=75273928d7a4a93301d23647885a1041359104550071699222e0923d2d38f576
+  chartkick (5.2.1) sha256=2848d7de87189f30f28d077eb0bbdebc8a1f0f6f81de1ded95008fe564369949
   citrus (3.0.2) sha256=4ec2412fc389ad186735f4baee1460f7900a8e130ffe3f216b30d4f9c684f650
   commander (5.0.0) sha256=22ca42866ce5ed1a7f3e9a9c831a23d03b75b3743c7ad0302c3cbcd9eb5f257d
   concurrent-ruby (1.3.5) sha256=813b3e37aca6df2a21a3b9f1d497f8cbab24a2b94cab325bffe65ee0f6cbebc6
