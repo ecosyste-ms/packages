@@ -35,7 +35,7 @@ namespace :licenses do
     total_packages = Package.active.count
     puts "Total packages: #{format_number(total_packages)}\n"
 
-    puts "\n### Top #{limit} licenses values:\n"
+    puts "\n### Top licenses values:\n"
     global_licenses = Package.active
                                .group(:licenses)
                                .count
@@ -64,7 +64,7 @@ namespace :licenses do
                                     .sort_by { |_k, v| -v }
                                     .first(10)
 
-      puts "\n#### Top #{limit} licenses values:\n"
+      puts "\n#### Top licenses values:\n"
       puts "| License | Count | Percentage |"
       puts "|---------|-------|------------|"
       registry_licenses.each do |(license, count)|
@@ -79,7 +79,7 @@ namespace :licenses do
     critical_count = Package.active.critical.count
     puts "Total critical packages: #{format_number(critical_count)}\n"
 
-    puts "\n### Top #{limit} licenses values:\n"
+    puts "\n### Top licenses values:\n"
     critical_licenses = Package.active
                             .critical
                             .group(:licenses)
@@ -110,7 +110,7 @@ namespace :licenses do
                                         .sort_by { |_k, v| -v }
                                         .first(5)
 
-      puts "\n#### Top 10 licenses values:\n"
+      puts "\n#### Top licenses values:\n"
       puts "| License | Count | Percentage |"
       puts "|---------|-------|------------|"
       registry_critical_licenses.each do |(license, count)|
