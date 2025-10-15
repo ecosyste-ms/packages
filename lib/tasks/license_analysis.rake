@@ -1,7 +1,6 @@
 namespace :licenses do
   desc 'Analyze most frequent license values globally and per ecosystem'
   task analyze: :environment do
-    limit = 20
     top_registries_count = 9
 
     # Helper method to format arrays as comma-separated values
@@ -25,6 +24,7 @@ namespace :licenses do
     end
 
     puts "\n# License Field Analysis\n"
+    puts "This is an extraction from the https://packages.ecosyste.ms/ service, analyzing the top 9 registries by package count and examining the most commonly used licenses across all active packages. This analysis uses the raw `licenses` field as reported by each package registry, with the analysis covering both the general package population and packages marked as critical infrastructure.\n"
 
     # Find top 9 registries by package count
     top_registries = Registry.order(packages_count: :desc).limit(top_registries_count)
@@ -35,16 +35,16 @@ namespace :licenses do
     total_packages = Package.active.count
     puts "Total packages: #{format_number(total_packages)}\n"
 
-    puts "\n### Top #{limit} normalized_licenses values:\n"
-    global_normalized = Package.active
-                               .group(:normalized_licenses)
+    puts "\n### Top #{limit} licenses values:\n"
+    global_licenses = Package.active
+                               .group(:licenses)
                                .count
                                .sort_by { |_k, v| -v }
-                               .first(limit)
+                               .first(20)
 
     puts "| License | Count | Percentage |"
     puts "|---------|-------|------------|"
-    global_normalized.each do |(license, count)|
+    global_licenses.each do |(license, count)|
       percentage = (count.to_f / total_packages * 100).round(2)
       puts "| #{format_license(license)} | #{format_number(count)} | #{percentage}% |"
     end
@@ -58,16 +58,16 @@ namespace :licenses do
       puts "\n### #{registry.name} (#{registry.ecosystem})"
       puts "Total packages: #{format_number(reg_total)}\n"
 
-      registry_normalized = registry.packages.active
-                                    .group(:normalized_licenses)
+      registry_licenses = registry.packages.active
+                                    .group(:licenses)
                                     .count
                                     .sort_by { |_k, v| -v }
-                                    .first(limit)
+                                    .first(10)
 
-      puts "\n#### Top #{limit} normalized_licenses values:\n"
+      puts "\n#### Top #{limit} licenses values:\n"
       puts "| License | Count | Percentage |"
       puts "|---------|-------|------------|"
-      registry_normalized.each do |(license, count)|
+      registry_licenses.each do |(license, count)|
         percentage = (count.to_f / reg_total * 100).round(2)
         puts "| #{format_license(license)} | #{format_number(count)} | #{percentage}% |"
       end
@@ -79,17 +79,17 @@ namespace :licenses do
     critical_count = Package.active.critical.count
     puts "Total critical packages: #{format_number(critical_count)}\n"
 
-    puts "\n### Top #{limit} normalized_licenses values:\n"
-    critical_normalized = Package.active
+    puts "\n### Top #{limit} licenses values:\n"
+    critical_licenses = Package.active
                             .critical
-                            .group(:normalized_licenses)
+                            .group(:licenses)
                             .count
                             .sort_by { |_k, v| -v }
-                            .first(limit)
+                            .first(10)
 
     puts "| License | Count | Percentage |"
     puts "|---------|-------|------------|"
-    critical_normalized.each do |(license, count)|
+    critical_licenses.each do |(license, count)|
       percentage = (count.to_f / critical_count * 100).round(2)
       puts "| #{format_license(license)} | #{format_number(count)} | #{percentage}% |"
     end
@@ -103,22 +103,21 @@ namespace :licenses do
       puts "\n### #{registry.name} (#{registry.ecosystem})"
       puts "Total critical packages: #{format_number(critical_total)}\n"
 
-      registry_critical_normalized = registry.packages.active
+      registry_critical_licenses = registry.packages.active
                                         .critical
-                                        .group(:normalized_licenses)
+                                        .group(:licenses)
                                         .count
                                         .sort_by { |_k, v| -v }
-                                        .first(10)
+                                        .first(5)
 
-      puts "\n#### Top 10 normalized_licenses values:\n"
+      puts "\n#### Top 10 licenses values:\n"
       puts "| License | Count | Percentage |"
       puts "|---------|-------|------------|"
-      registry_critical_normalized.each do |(license, count)|
+      registry_critical_licenses.each do |(license, count)|
         percentage = (count.to_f / critical_total * 100).round(2)
         puts "| #{format_license(license)} | #{format_number(count)} | #{percentage}% |"
       end
     end
 
-    puts "\n---\n**Analysis Complete**"
   end
 end
