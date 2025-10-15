@@ -7,12 +7,14 @@ namespace :licenses do
     def format_license(license)
       if license.is_a?(Array)
         if license.empty? || license == ['']
-          'NULL'
+          "''"
         else
           license.join(', ')
         end
-      elsif license.to_s.empty?
+      elsif license.nil?
         'NULL'
+      elsif license == ''
+        "''"
       else
         license.to_s
       end
@@ -25,6 +27,7 @@ namespace :licenses do
 
     puts "\n# License Field Analysis\n"
     puts "This is an extraction from the https://packages.ecosyste.ms/ service, analyzing the top 9 registries by package count and examining the most commonly used licenses across all active packages. This analysis uses the raw `licenses` field as reported by each package registry, with the analysis covering both the general package population and packages marked as critical infrastructure.\n"
+    puts "Code for this script lives here: https://github.com/ecosyste-ms/packages/blob/main/lib/tasks/license_analysis.rake\n"
 
     # Find top 9 registries by package count
     top_registries = Registry.order(packages_count: :desc).limit(top_registries_count)
