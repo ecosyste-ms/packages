@@ -42,8 +42,11 @@ namespace :licenses do
                                .sort_by { |_k, v| -v }
                                .first(limit)
 
+    puts "| License | Count | Percentage |"
+    puts "|---------|-------|------------|"
     global_normalized.each do |(license, count)|
-      puts "- **#{format_license(license)}**: #{format_number(count)} packages"
+      percentage = (count.to_f / total_packages * 100).round(2)
+      puts "| #{format_license(license)} | #{format_number(count)} | #{percentage}% |"
     end
 
     # Per registry analysis
@@ -62,8 +65,11 @@ namespace :licenses do
                                     .first(limit)
 
       puts "\n#### Top #{limit} normalized_licenses values:\n"
+      puts "| License | Count | Percentage |"
+      puts "|---------|-------|------------|"
       registry_normalized.each do |(license, count)|
-        puts "- **#{format_license(license)}**: #{format_number(count)}"
+        percentage = (count.to_f / reg_total * 100).round(2)
+        puts "| #{format_license(license)} | #{format_number(count)} | #{percentage}% |"
       end
     end
 
@@ -81,8 +87,11 @@ namespace :licenses do
                             .sort_by { |_k, v| -v }
                             .first(limit)
 
+    puts "| License | Count | Percentage |"
+    puts "|---------|-------|------------|"
     critical_normalized.each do |(license, count)|
-      puts "- **#{format_license(license)}**: #{format_number(count)} packages"
+      percentage = (count.to_f / critical_count * 100).round(2)
+      puts "| #{format_license(license)} | #{format_number(count)} | #{percentage}% |"
     end
 
     # Critical packages per registry analysis
@@ -102,9 +111,11 @@ namespace :licenses do
                                         .first(10)
 
       puts "\n#### Top 10 normalized_licenses values:\n"
+      puts "| License | Count | Percentage |"
+      puts "|---------|-------|------------|"
       registry_critical_normalized.each do |(license, count)|
         percentage = (count.to_f / critical_total * 100).round(2)
-        puts "- **#{format_license(license)}**: #{format_number(count)} (#{percentage}%)"
+        puts "| #{format_license(license)} | #{format_number(count)} | #{percentage}% |"
       end
     end
 
