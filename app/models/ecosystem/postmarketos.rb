@@ -100,6 +100,7 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       data = fetch_package_metadata(pkg_metadata[:name])
+      return [] if data.blank?
       [
         {
           number: data['V'],
@@ -122,6 +123,7 @@ module Ecosystem
 
     def dependencies_metadata(name, version, pkg_metadata)
       data = fetch_package_metadata(name)
+      return [] if data.blank? || data['D'].blank?
       deps = data['D'].split(' ').map{|dep| packages.select{|pkg| pkg['p']&& pkg['p'].include?(dep)}.first || packages.select{|pkg| pkg['P'] == dep}.first  }.uniq
       deps.map do |dep|
         {
@@ -135,7 +137,7 @@ module Ecosystem
 
     def maintainers_metadata(name)
       data = fetch_package_metadata(name)
-      return [] if data['m'].blank?
+      return [] if data.blank? || data['m'].blank?
       d = data['m'].split('<')
       name = d[0].strip
       email = d[1].gsub('>','').strip
