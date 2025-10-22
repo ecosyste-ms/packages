@@ -173,15 +173,17 @@ module Ecosystem
       resp = request("#{@registry_url}/#{encode_for_proxy(name)}/@v/#{version}.mod")
       if resp.status == 200
         go_mod_file = resp.body
-        Bibliothecary::Parsers::Go.parse_go_mod(go_mod_file)
-          .map do |dep|
-            {
-              package_name: dep[:name],
-              requirements: dep[:requirement].try(:delete, "\u0000"),
-              kind: dep[:type],
-              ecosystem: self.class.name.demodulize.downcase,
-            }
-          end
+        result = Bibliothecary::Parsers::Go.parse_go_mod(go_mod_file)
+        dependencies = result.is_a?(Bibliothecary::ParserResult) ? result.dependencies : result
+        dependencies.map do |dep|
+          dep_hash = dep.is_a?(Bibliothecary::Dependency) ? dep.to_h : dep
+          {
+            package_name: dep_hash[:name],
+            requirements: dep_hash[:requirement].try(:delete, "\u0000"),
+            kind: dep_hash[:type],
+            ecosystem: self.class.name.demodulize.downcase,
+          }
+        end
       else
         []
       end

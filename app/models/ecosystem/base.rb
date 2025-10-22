@@ -112,11 +112,11 @@ module Ecosystem
       return [] unless dependencies&.any?
 
       dependencies.map do |dependency|
-        dependency = dependency.deep_stringify_keys
+        dependency = dependency.is_a?(Bibliothecary::Dependency) ? dependency.to_h : dependency.deep_stringify_keys
         {
-          package_name: dependency["name"],
-          requirements: dependency["requirement"] || "*",
-          kind: dependency["type"],
+          package_name: dependency[:name] || dependency["name"],
+          requirements: dependency[:requirement] || dependency["requirement"] || "*",
+          kind: dependency[:type] || dependency["type"],
           ecosystem: self.class.name.demodulize.downcase,
         }
       end

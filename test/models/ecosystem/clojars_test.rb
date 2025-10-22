@@ -124,12 +124,12 @@ class ClojarsTest < ActiveSupport::TestCase
 
     dependencies_metadata = @ecosystem.dependencies_metadata('missionary', 'b.26', {})
 
-    assert_equal dependencies_metadata, [
-      {:package_name=>"org.clojure:clojure", :requirements=>"1.10.3", :kind=>"runtime", :ecosystem=>"clojars"},
-      {:package_name=>"org.clojure:clojurescript", :requirements=>"1.10.879", :kind=>"runtime", :ecosystem=>"clojars"},
-      {:package_name=>"org.reactivestreams:reactive-streams", :requirements=>"1.0.3", :kind=>"runtime", :ecosystem=>"clojars"},
-      {:package_name=>"cloroutine", :requirements=>"10", :kind=>"runtime", :ecosystem=>"clojars"}
-    ]
+    assert_equal [
+      {:package_name=>"org.clojure:clojure", :requirements=>"1.10.3", :kind=>nil, :ecosystem=>"clojars"},
+      {:package_name=>"org.clojure:clojurescript", :requirements=>"1.10.879", :kind=>nil, :ecosystem=>"clojars"},
+      {:package_name=>"org.reactivestreams:reactive-streams", :requirements=>"1.0.3", :kind=>nil, :ecosystem=>"clojars"},
+      {:package_name=>"cloroutine", :requirements=>"10", :kind=>nil, :ecosystem=>"clojars"}
+    ], dependencies_metadata
   end
 
   test 'maintainer_url' do 

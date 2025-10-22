@@ -126,9 +126,9 @@ class SwiftpmTest < ActiveSupport::TestCase
     package_metadata = @ecosystem.package_metadata('github.com/swift-cloud/Compute')
     dependencies_metadata = @ecosystem.dependencies_metadata('github.com/swift-cloud/Compute', '1.11.0', package_metadata)
     
-    assert_equal dependencies_metadata, [
+    assert_equal [
       {:package_name=>"github.com/krzyzanowskim/CryptoSwift", :requirements=>"1.6.0", :kind=>"runtime", :ecosystem=>"swiftpm"},
       {:package_name=>"github.com/apple/swift-docc-plugin", :requirements=>"1.0.0", :kind=>"runtime", :ecosystem=>"swiftpm"}
-    ]
+    ], dependencies_metadata
   end
 end

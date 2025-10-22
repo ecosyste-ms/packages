@@ -125,14 +125,14 @@ class MavenTest < ActiveSupport::TestCase
 
     dependencies_metadata = @ecosystem.dependencies_metadata('dev.zio:zio-aws-autoscaling_3', '5.17.225.2', {})
 
-    assert_equal dependencies_metadata, [
-      {:package_name=>"dev.zio:zio-aws-core_3", :requirements=>"5.17.225.2", :kind=>"runtime", :ecosystem=>"maven"},
-      {:package_name=>"org.scala-lang:scala3-library_3", :requirements=>"3.1.3", :kind=>"runtime", :ecosystem=>"maven"},
-      {:package_name=>"software.amazon.awssdk:autoscaling", :requirements=>"2.17.225", :kind=>"runtime", :ecosystem=>"maven"},
-      {:package_name=>"dev.zio:zio_3", :requirements=>"2.0.0", :kind=>"runtime", :ecosystem=>"maven"},
-      {:package_name=>"dev.zio:zio-streams_3", :requirements=>"2.0.0", :kind=>"runtime", :ecosystem=>"maven"},
-      {:package_name=>"dev.zio:zio-mock_3", :requirements=>"1.0.0-RC8", :kind=>"runtime", :ecosystem=>"maven"}
-    ]
+    assert_equal [
+      {:package_name=>"dev.zio:zio-aws-core_3", :requirements=>"5.17.225.2", :kind=>nil, :ecosystem=>"maven"},
+      {:package_name=>"org.scala-lang:scala3-library_3", :requirements=>"3.1.3", :kind=>nil, :ecosystem=>"maven"},
+      {:package_name=>"software.amazon.awssdk:autoscaling", :requirements=>"2.17.225", :kind=>nil, :ecosystem=>"maven"},
+      {:package_name=>"dev.zio:zio_3", :requirements=>"2.0.0", :kind=>nil, :ecosystem=>"maven"},
+      {:package_name=>"dev.zio:zio-streams_3", :requirements=>"2.0.0", :kind=>nil, :ecosystem=>"maven"},
+      {:package_name=>"dev.zio:zio-mock_3", :requirements=>"1.0.0-RC8", :kind=>nil, :ecosystem=>"maven"}
+    ], dependencies_metadata
   end
 
   test 'versions_metadata includes Java version metadata for Quarkus' do

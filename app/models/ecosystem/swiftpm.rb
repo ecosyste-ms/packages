@@ -109,11 +109,14 @@ module Ecosystem
       return [] unless github_name_with_owner
       deps = get_raw("https://raw.githubusercontent.com/#{github_name_with_owner}/#{version}/Package.resolved")
       return [] unless deps.present?
-      Bibliothecary::Parsers::SwiftPM.parse_package_resolved(deps).map do |dep|
+      result = Bibliothecary::Parsers::SwiftPM.parse_package_resolved(deps)
+      dependencies = result.is_a?(Bibliothecary::ParserResult) ? result.dependencies : result
+      dependencies.map do |dep|
+        dep_hash = dep.is_a?(Bibliothecary::Dependency) ? dep.to_h : dep
         {
-          package_name: dep[:name],
-          requirements: dep[:requirement],
-          kind: dep[:type],
+          package_name: dep_hash[:name],
+          requirements: dep_hash[:requirement],
+          kind: dep_hash[:type],
           ecosystem: 'swiftpm'
         }
       end
