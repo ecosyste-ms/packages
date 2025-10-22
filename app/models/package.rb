@@ -877,7 +877,7 @@ class Package < ApplicationRecord
   def self.funding_domains
     Rails.cache.fetch("funding:domains", expires_in: 1.week) do
       funding_domains = []
-      Package.with_funding.active.find_each do |package| 
+      Package.with_funding.active.each_instance do |package| 
         funding_domains << package.funding_domains
       end
       
@@ -887,7 +887,7 @@ class Package < ApplicationRecord
 
   def self.critical_funding_domains
     funding_domains = []
-    Package.critical.with_funding.active.find_each do |package| 
+    Package.critical.with_funding.active.each_instance do |package| 
       funding_domains << package.funding_domains
     end
     
