@@ -1284,6 +1284,7 @@ components:
         - versions_url
         - dependent_packages_url
         - related_packages_url
+        - codemeta_url
         - docker_usage_url
         - docker_dependents_count
         - docker_downloads_count
@@ -1391,6 +1392,8 @@ components:
         dependent_packages_url:
           type: string
         related_packages_url:
+          type: string
+        codemeta_url:
           type: string
         docker_usage_url:
           type: string
