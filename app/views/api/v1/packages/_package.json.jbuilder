@@ -4,5 +4,6 @@ json.versions_url api_v1_registry_package_versions_url(registry_id: package.regi
 json.version_numbers_url version_numbers_api_v1_registry_package_url(registry_id: package.registry.name, id: package.name)
 json.dependent_packages_url dependent_packages_api_v1_registry_package_url(registry_id: package.registry.name, id: package.name)
 json.related_packages_url related_packages_api_v1_registry_package_url(registry_id: package.registry.name, id: package.name)
+json.codemeta_url codemeta_api_v1_registry_package_url(registry_id: package.registry.name, id: package.name)
 
 json.maintainers package.maintainerships.select{|m| m.maintainer.present? }, partial: 'api/v1/maintainerships/maintainership', as: :maintainership
