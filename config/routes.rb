@@ -42,7 +42,7 @@ Rails.application.routes.draw do
           end
         end
 
-        resources :packages, constraints: { id: /.*/ }, only: [:index, :show] do 
+        resources :packages, constraints: { id: /.*/ }, only: [:index, :show] do
           resources :versions, only: [:index, :show], constraints: { id: /.*/ }
           member do
             get :dependent_packages, to: 'packages#dependent_packages'
@@ -50,6 +50,7 @@ Rails.application.routes.draw do
             get :related_packages, to: 'packages#related_packages'
             get :ping, to: 'packages#ping'
             get :version_numbers, to: 'versions#version_numbers'
+            get :codemeta, to: 'packages#codemeta'
           end
         end
 

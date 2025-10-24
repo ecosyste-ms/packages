@@ -307,4 +307,19 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
 
     render json: { message: 'pong' }
   end
+
+  def codemeta
+    @registry = Registry.find_by_name!(params[:registry_id])
+    @package = @registry.packages.includes(maintainerships: {maintainer: :registry}).find_by_name(params[:id])
+    if @package.nil?
+      if @registry.ecosystem == 'pypi'
+        @package = @registry.packages.find_by_normalized_name!(params[:id])
+      elsif @registry.ecosystem == 'docker' && !params[:id].include?('/')
+        @package = @registry.packages.find_by_name!("library/#{params[:id]}")
+      else
+        @package = @registry.packages.find_by_name!(params[:id].downcase)
+      end
+    end
+    fresh_when @package, public: true
+  end
 end

@@ -480,4 +480,164 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.first['name'], 'a-package'
     assert_equal actual_response.second['name'], 'z-package'
   end
+
+  test 'get codemeta for a package' do
+    get codemeta_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+    assert_template 'packages/codemeta', file: 'packages/codemeta.json.jbuilder'
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal actual_response['@context'], 'https://w3id.org/codemeta/3.0'
+    assert_equal actual_response['@type'], 'SoftwareSourceCode'
+    assert_equal actual_response['identifier'], @package.purl
+    assert_equal actual_response['name'], @package.name
+    assert_equal actual_response['applicationCategory'], @package.ecosystem
+  end
+
+  test 'get codemeta for package with full metadata' do
+    maintainer = Maintainer.create(
+      login: 'test-maintainer',
+      uuid: SecureRandom.uuid,
+      url: 'https://github.com/test-maintainer',
+      registry: @registry
+    )
+
+    @package.update(
+      description: 'A random number generator',
+      repository_url: 'https://github.com/rust-random/rand',
+      homepage: 'https://rust-random.github.io/rand',
+      normalized_licenses: ['MIT', 'Apache-2.0'],
+      keywords_array: ['random', 'rng'],
+      latest_release_number: '0.8.5',
+      latest_release_published_at: 1.day.ago,
+      first_release_published_at: 1.year.ago,
+      dependent_repos_count: 100,
+      repo_metadata: {
+        'html_url' => 'https://github.com/rust-random/rand',
+        'language' => 'Rust',
+        'default_branch' => 'main',
+        'stargazers_count' => 500,
+        'forks_count' => 75,
+        'metadata' => {
+          'funding' => {
+            'github' => ['rust-random']
+          }
+        }
+      }
+    )
+    @package.maintainerships.create(maintainer: maintainer)
+
+    get codemeta_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal actual_response['@context'], 'https://w3id.org/codemeta/3.0'
+    assert_equal actual_response['@type'], 'SoftwareSourceCode'
+    assert_equal actual_response['name'], 'rand'
+    assert_equal actual_response['description'], 'A random number generator'
+    assert_equal actual_response['version'], '0.8.5'
+    assert_equal actual_response['codeRepository'], 'https://github.com/rust-random/rand'
+    assert_equal actual_response['url'], 'https://rust-random.github.io/rand'
+    assert_equal actual_response['issueTracker'], 'https://github.com/rust-random/rand/issues'
+    assert_equal actual_response['keywords'], ['random', 'rng']
+    assert_equal actual_response['license'], ['https://spdx.org/licenses/MIT', 'https://spdx.org/licenses/Apache-2.0']
+    assert_equal actual_response['programmingLanguage']['@type'], 'ComputerLanguage'
+    assert_equal actual_response['programmingLanguage']['name'], 'Rust'
+    assert_equal actual_response['maintainer'].length, 1
+    assert_equal actual_response['maintainer'].first['@type'], 'Person'
+    assert_equal actual_response['maintainer'].first['name'], 'test-maintainer'
+    assert_equal actual_response['maintainer'].first['url'], 'https://github.com/test-maintainer'
+    assert_equal actual_response['author'].length, 1
+    assert_equal actual_response['author'].first['name'], 'test-maintainer'
+    assert_equal actual_response['copyrightHolder'].length, 1
+    assert_equal actual_response['copyrightHolder'].first['name'], 'test-maintainer'
+    assert_equal actual_response['developmentStatus'], 'active'
+    assert_not_nil actual_response['dateCreated']
+    assert_not_nil actual_response['dateModified']
+    assert_not_nil actual_response['datePublished']
+    assert_equal actual_response['copyrightYear'], 1.year.ago.year
+    assert_equal actual_response['softwareVersion'], '0.8.5'
+    assert_not_nil actual_response['sameAs']
+    assert_includes actual_response['sameAs'], 'https://crates.io/crates/rand/'
+    assert_equal actual_response['funder'].length, 1
+    assert_equal actual_response['funder'].first['url'], 'https://github.com/sponsors/rust-random'
+    assert_equal actual_response['https://www.w3.org/ns/activitystreams#likes'], 500
+    assert_equal actual_response['https://forgefed.org/ns#forks'], 75
+  end
+
+  test 'get codemeta for pypi package with normalized name' do
+    pypi_registry = Registry.create(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    pypi_package = pypi_registry.packages.create(
+      ecosystem: 'pypi',
+      name: 'test-package',
+      metadata: { 'normalized_name' => 'test-package' }
+    )
+
+    get codemeta_api_v1_registry_package_path(registry_id: pypi_registry.name, id: 'test_package')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal actual_response['name'], 'test-package'
+  end
+
+  test 'get codemeta for docker library package' do
+    docker_registry = Registry.create(name: 'hub.docker.com', url: 'https://hub.docker.com', ecosystem: 'docker')
+    docker_package = docker_registry.packages.create(
+      ecosystem: 'docker',
+      name: 'library/python',
+      namespace: 'library'
+    )
+
+    get codemeta_api_v1_registry_package_path(registry_id: docker_registry.name, id: 'python')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal actual_response['name'], 'library/python'
+  end
+
+  test 'get codemeta omits fields when data is not present' do
+    minimal_package = @registry.packages.create(
+      ecosystem: 'cargo',
+      name: 'minimal-package'
+    )
+
+    get codemeta_api_v1_registry_package_path(registry_id: @registry.name, id: minimal_package.name)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    # Should have required fields
+    assert_equal actual_response['@context'], 'https://w3id.org/codemeta/3.0'
+    assert_equal actual_response['@type'], 'SoftwareSourceCode'
+    assert_equal actual_response['name'], 'minimal-package'
+    assert_equal actual_response['applicationCategory'], 'cargo'
+    assert_equal actual_response['runtimePlatform'], 'cargo'
+
+    # Should not have optional fields when no explicit data
+    assert_nil actual_response['description']
+    assert_nil actual_response['version']
+    assert_nil actual_response['softwareVersion']
+    assert_nil actual_response['license']
+    assert_nil actual_response['codeRepository']
+    assert_nil actual_response['issueTracker']
+    assert_nil actual_response['url']
+    assert_nil actual_response['keywords']
+    assert_nil actual_response['programmingLanguage']
+    assert_nil actual_response['maintainer']
+    assert_nil actual_response['author']
+    assert_nil actual_response['copyrightHolder']
+    assert_nil actual_response['dateCreated']
+    assert_nil actual_response['dateModified']
+    assert_nil actual_response['datePublished']
+    assert_nil actual_response['copyrightYear']
+    assert_nil actual_response['downloadUrl']
+    assert_nil actual_response['funder']
+    assert_nil actual_response['https://www.w3.org/ns/activitystreams#likes']
+    assert_nil actual_response['https://forgefed.org/ns#forks']
+
+    # Note: Some fields like sameAs and softwareHelp may be present for ecosystems
+    # that have standard URL patterns (like cargo), so we don't assert they're nil
+  end
 end

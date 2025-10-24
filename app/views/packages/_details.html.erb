@@ -68,6 +68,7 @@
     <% end %>
 
     - <%= link_to 'JSON', api_v1_registry_package_url(@registry, @package)%>
+    - <%= link_to 'codemeta.json', codemeta_api_v1_registry_package_url(@registry, @package)%>
 
     <br>
     <%= link_to 'purl', 'https://github.com/package-url/purl-spec', target: :_blank %>: <code><%= @package.purl %></code>
