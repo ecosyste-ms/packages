@@ -61,7 +61,7 @@
       <div class="card my-3">
         <div class="card-header">Dependencies</div>
         <ul class="list-group list-group-flush">
-          <% @version.dependencies.sort_by{|d| [d.kind, d.package_name]}.each do |dependency| %>
+          <% @version.dependencies.sort_by{|d| [d.kind.to_s, d.package_name.to_s]}.each do |dependency| %>
             <li class="list-group-item">
               <%= link_to dependency.package_name, registry_package_path(@registry.name, dependency.package_name) %>
               <i><%= dependency.requirements %></i>
