@@ -327,7 +327,7 @@ GEM
       activemodel (>= 6.0.0)
       bindex (>= 0.4.0)
       railties (>= 6.0.0)
-    webmock (3.25.2)
+    webmock (3.26.0)
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
@@ -559,7 +559,7 @@ CHECKSUMS
   useragent (0.16.11) sha256=700e6413ad4bb954bb63547fa098dddf7b0ebe75b40cc6f93b8d54255b173844
   vers (1.0.2) sha256=0ea9a63acbe1f197268c7da93f0708a4fc99bd88d86aa49dccf5b1b8d4c68de5
   web-console (4.2.1) sha256=e7bcf37a10ea2b4ec4281649d1cee461b32232d0a447e82c786e6841fd22fe20
-  webmock (3.25.2) sha256=b18a5fe3b292cf116cb9b7c653eabb5995af5237cc565b4963168f82b9ad6468
+  webmock (3.26.0) sha256=cd28cdbc0d5d65e9d011a5c0e98373df5898565038f589060971cfb9c60c3d70
   webrick (1.9.1) sha256=b42d3c94f166f3fb73d87e9b359def9b5836c426fc8beacf38f2184a21b2a989
   xmlrpc (0.3.3) sha256=ec3d46bc63a44920ac2d67c49399fd493295ff98cb96adf25e59eaa718b38e3b
   zeitwerk (2.7.3) sha256=b2e86b4a9b57d26ba68a15230dcc7fe6f040f06831ce64417b0621ad96ba3e85
