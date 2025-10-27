@@ -394,5 +394,40 @@ class MavenTest < ActiveSupport::TestCase
     assert Purl.parse(purl)
   end
 
+  test 'versions_metadata uses semantic version sorting not string sorting' do
+    # Create a package metadata with versions that would be sorted incorrectly with string sorting
+    # String sort would give: 2.9.9, 2.9.8, ..., 2.10.0 (wrong - 2.10.0 sorted after 2.9.x)
+    # Semantic sort should give: 2.36.2, 2.36.1, 2.36.0, 2.35.11, ..., 2.10.0, 2.9.9 (correct)
+    package_metadata = {
+      name: 'test.package:semantic-version-test',
+      versions: ['2.9.9', '2.10.0', '2.35.11', '2.36.0', '2.36.1', '2.36.2']
+    }
+
+    # Stub POM requests for the versions that would be selected (top 3 with semantic sorting)
+    stub_request(:get, "https://repo1.maven.org/maven2/test/package/semantic-version-test/2.36.2/semantic-version-test-2.36.2.pom")
+      .to_return({ status: 200, body: file_fixture('maven/zio-aws-autoscaling_3-5.17.225.2.pom'), headers: { 'last-modified' => 'Thu, 24 Oct 2025 23:13:43 GMT' } })
+    stub_request(:get, "https://repo1.maven.org/maven2/test/package/semantic-version-test/2.36.1/semantic-version-test-2.36.1.pom")
+      .to_return({ status: 200, body: file_fixture('maven/zio-aws-autoscaling_3-5.17.225.2.pom'), headers: { 'last-modified' => 'Wed, 23 Oct 2025 22:51:50 GMT' } })
+    stub_request(:get, "https://repo1.maven.org/maven2/test/package/semantic-version-test/2.36.0/semantic-version-test-2.36.0.pom")
+      .to_return({ status: 200, body: file_fixture('maven/zio-aws-autoscaling_3-5.17.225.2.pom'), headers: { 'last-modified' => 'Wed, 23 Oct 2025 03:46:54 GMT' } })
+    stub_request(:get, "https://repo1.maven.org/maven2/test/package/semantic-version-test/2.35.11/semantic-version-test-2.35.11.pom")
+      .to_return({ status: 200, body: file_fixture('maven/zio-aws-autoscaling_3-5.17.225.2.pom'), headers: { 'last-modified' => 'Mon, 21 Oct 2025 22:48:18 GMT' } })
+    stub_request(:get, "https://repo1.maven.org/maven2/test/package/semantic-version-test/2.10.0/semantic-version-test-2.10.0.pom")
+      .to_return({ status: 200, body: file_fixture('maven/zio-aws-autoscaling_3-5.17.225.2.pom'), headers: { 'last-modified' => 'Fri, 01 Nov 2019 12:00:00 GMT' } })
+    stub_request(:get, "https://repo1.maven.org/maven2/test/package/semantic-version-test/2.9.9/semantic-version-test-2.9.9.pom")
+      .to_return({ status: 200, body: file_fixture('maven/zio-aws-autoscaling_3-5.17.225.2.pom'), headers: { 'last-modified' => 'Thu, 31 Oct 2019 12:00:00 GMT' } })
+
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+
+    # Verify versions are returned in semantic version order (newest first)
+    assert_equal versions_metadata.length, 6
+    assert_equal versions_metadata[0][:number], '2.36.2'
+    assert_equal versions_metadata[1][:number], '2.36.1'
+    assert_equal versions_metadata[2][:number], '2.36.0'
+    assert_equal versions_metadata[3][:number], '2.35.11'
+    assert_equal versions_metadata[4][:number], '2.10.0'
+    assert_equal versions_metadata[5][:number], '2.9.9'
+  end
+
 
 end

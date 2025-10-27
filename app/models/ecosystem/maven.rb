@@ -134,17 +134,17 @@ module Ecosystem
 
     def fetch_package_metadata(name)
       group_id, artifact_id = *name.split(':', 2)
-      
+
       url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/maven-metadata.xml"
       xml = get_xml(url)
-      
+
       # For snapshot repositories, include SNAPSHOT versions; for others, exclude them
       if is_snapshot_repository?
         version_numbers = xml.css("version").map(&:text).filter { |v| valid_version?(v) }
       else
         version_numbers = xml.css("version").map(&:text).filter { |item| !item.ends_with?("-SNAPSHOT") && valid_version?(item) }
       end
-      
+
       return {} if version_numbers.empty?
       latest_version_xml = fetch_latest_available_pom(group_id, artifact_id, version_numbers)
       return nil if latest_version_xml.nil?
@@ -170,7 +170,7 @@ module Ecosystem
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
-      pkg_metadata[:versions].reject{|v| existing_version_numbers.include?(v)}.sort.reverse.first(50)
+      pkg_metadata[:versions].reject{|v| existing_version_numbers.include?(v)}.sort_by { |v| Gem::Version.new(v) rescue Gem::Version.new('0') }.reverse.first(50)
         .map do |version|
           pom = get_pom(*pkg_metadata[:name].split(':', 2), version)
           next if pom.nil?
@@ -179,7 +179,7 @@ module Ecosystem
           rescue StandardError
             license_list = nil
           end
-          
+
           properties = extract_pom_properties(pom)
           {
             number: version,
