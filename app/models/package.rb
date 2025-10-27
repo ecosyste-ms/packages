@@ -51,6 +51,8 @@ class Package < ApplicationRecord
 
   scope :repository_owner, ->(owner) { where("repo_metadata->'owner_record'->>'login' = ?", owner) }
 
+  scope :with_advisories, -> { where("json_array_length(advisories) > 0") }
+
   after_create :update_rankings_async
 
   def self.find_by_normalized_name(name)

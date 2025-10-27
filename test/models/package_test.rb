@@ -58,4 +58,15 @@ class PackageTest < ActiveSupport::TestCase
   test 'purl' do
     assert_equal @package.purl, "pkg:gem/foo"
   end
+
+  test 'with_advisories scope' do
+    package_with_advisories = @registry.packages.create(name: 'bar', ecosystem: @registry.ecosystem, advisories: [{ 'id' => 'CVE-2024-1234' }])
+    package_without_advisories = @registry.packages.create(name: 'baz', ecosystem: @registry.ecosystem, advisories: [])
+
+    results = Package.with_advisories
+
+    assert_includes results, package_with_advisories
+    refute_includes results, package_without_advisories
+    refute_includes results, @package
+  end
 end
