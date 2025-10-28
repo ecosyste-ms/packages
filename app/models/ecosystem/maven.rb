@@ -365,9 +365,11 @@ module Ecosystem
       xml = Ox.parse(pom_request.body)
       return nil if xml.nil?
       published_at = pom_request.headers["Last-Modified"]
-      pat = Ox::Element.new("publishedAt")
-      pat << published_at
-      xml << pat
+      if published_at.present?
+        pat = Ox::Element.new("publishedAt")
+        pat << published_at
+        xml << pat
+      end
       xml
     rescue URI::InvalidURIError, Ox::Error
       nil

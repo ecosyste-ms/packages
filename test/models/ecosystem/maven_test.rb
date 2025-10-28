@@ -429,5 +429,28 @@ class MavenTest < ActiveSupport::TestCase
     assert_equal versions_metadata[5][:number], '2.9.9'
   end
 
+  test 'download_pom handles missing Last-Modified header' do
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/test-package/1.0.0/test-package-1.0.0.pom")
+      .to_return({ status: 200, body: file_fixture('maven/zio-aws-autoscaling_3-5.17.225.2.pom'), headers: {} })
+
+    xml = @ecosystem.send(:download_pom, 'com.example', 'test-package', '1.0.0')
+
+    assert_not_nil xml
+    published_at_nodes = xml.locate("publishedAt")
+    assert_empty published_at_nodes
+  end
+
+  test 'download_pom includes publishedAt when Last-Modified header is present' do
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/test-package/1.0.0/test-package-1.0.0.pom")
+      .to_return({ status: 200, body: file_fixture('maven/zio-aws-autoscaling_3-5.17.225.2.pom'), headers: { 'last-modified' => 'Tue, 12 Jul 2022 12:10:25 GMT' } })
+
+    xml = @ecosystem.send(:download_pom, 'com.example', 'test-package', '1.0.0')
+
+    assert_not_nil xml
+    published_at_nodes = xml.locate("publishedAt")
+    assert_equal published_at_nodes.length, 1
+    assert_equal published_at_nodes.first.text, 'Tue, 12 Jul 2022 12:10:25 GMT'
+  end
+
 
 end
