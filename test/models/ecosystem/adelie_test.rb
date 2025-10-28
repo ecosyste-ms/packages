@@ -4,7 +4,40 @@ class AdelieTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(default: true, name: 'Adelie', url: 'https://pkg.adelielinux.org', ecosystem: 'adelie')
     @ecosystem = Ecosystem::Adelie.new(@registry)
-    @package = Package.new(ecosystem: 'adelie', name: 'test-package', metadata: { 'repository' => 'system', 'architecture' => 'x86_64' })
+    @package = Package.new(ecosystem: 'adelie', name: 'abuild', metadata: { 'repository' => 'system', 'architecture' => 'x86_64' })
+
+    # Load fixture packages
+    @fixture_packages = load_fixture_packages
+
+    # Mock packages method to use fixture data instead of downloading
+    @ecosystem.stubs(:packages).returns(@fixture_packages)
+  end
+
+  def load_fixture_packages
+    all_packages = []
+    ['system', 'user'].each do |repository|
+      fixture_file = Rails.root.join('test/fixtures/files/adelie', "APKINDEX-#{repository}.tar.gz")
+      packages = []
+      package = {'r' => repository}
+
+      Dir.mktmpdir do |dir|
+        destination = "#{dir}/APKINDEX"
+        `tar -xzf #{fixture_file} -C #{dir}`
+
+        File.foreach(destination) do |line|
+          if line.blank?
+            packages << package
+            package = {'r' => repository}
+          end
+          key = line.split(':')[0]
+          value = line.split(':')[1..-1].join(':').strip
+          package[key] = value if key.present?
+        end
+        packages << package if package['P'].present?
+      end
+      all_packages += packages
+    end
+    all_packages
   end
 
   test 'maintainers_metadata returns empty array when package not found' do
@@ -12,9 +45,23 @@ class AdelieTest < ActiveSupport::TestCase
     assert_equal [], maintainers
   end
 
+  test 'maintainers_metadata returns maintainer data when package exists' do
+    maintainers = @ecosystem.maintainers_metadata('abuild')
+    assert_equal 1, maintainers.length
+    assert_equal 'awilfox@adelielinux.org', maintainers.first[:uuid]
+    assert_equal 'A. Wilcox', maintainers.first[:name]
+  end
+
   test 'dependencies_metadata returns empty array when package not found' do
     dependencies = @ecosystem.dependencies_metadata('nonexistent-package', nil, {})
     assert_equal [], dependencies
+  end
+
+  test 'dependencies_metadata returns dependencies when package exists' do
+    dependencies = @ecosystem.dependencies_metadata('abuild', nil, {})
+    assert dependencies.length > 0
+    assert dependencies.all? { |d| d[:ecosystem] == 'adelie' }
+    assert dependencies.all? { |d| d[:kind] == 'install' }
   end
 
   test 'versions_metadata returns empty array when package not found' do
@@ -22,32 +69,40 @@ class AdelieTest < ActiveSupport::TestCase
     assert_equal [], versions
   end
 
+  test 'versions_metadata returns version data when package exists' do
+    versions = @ecosystem.versions_metadata({ name: 'abuild' })
+    assert_equal 1, versions.length
+    assert versions.first[:number].present?
+    assert versions.first[:published_at].is_a?(Time)
+    assert_equal 'x86_64', versions.first[:metadata][:architecture]
+  end
+
   test 'registry_url' do
     registry_url = @ecosystem.registry_url(@package)
-    assert_equal registry_url, 'https://pkg.adelielinux.org/current/test-package'
+    assert_equal registry_url, 'https://pkg.adelielinux.org/current/abuild'
   end
 
   test 'download_url with version' do
-    version = @package.versions.build(number: '1.0.0')
+    version = @package.versions.build(number: '3.5-r0')
     download_url = @ecosystem.download_url(@package, version)
-    assert_equal download_url, 'https://distfiles.adelielinux.org/adelie/current/system/x86_64/test-package-1.0.0.apk'
+    assert_equal download_url, 'https://distfiles.adelielinux.org/adelie/current/system/x86_64/abuild-3.5-r0.apk'
   end
 
   test 'install_command' do
     install_command = @ecosystem.install_command(@package)
-    assert_equal install_command, 'apk add test-package'
+    assert_equal install_command, 'apk add abuild'
   end
 
   test 'purl' do
     purl = @ecosystem.purl(@package)
-    assert_equal purl, 'pkg:apk/adelie/test-package?arch=x86_64'
+    assert_equal purl, 'pkg:apk/adelie/abuild?arch=x86_64'
     assert Purl.parse(purl)
   end
 
   test 'purl with version' do
-    version = @package.versions.build(number: '1.0.0')
+    version = @package.versions.build(number: '3.5-r0')
     purl = @ecosystem.purl(@package, version)
-    assert_equal purl, 'pkg:apk/adelie/test-package@1.0.0?arch=x86_64'
+    assert_equal purl, 'pkg:apk/adelie/abuild@3.5-r0?arch=x86_64'
     assert Purl.parse(purl)
   end
 end

@@ -127,7 +127,7 @@ module Ecosystem
     def dependencies_metadata(name, version, pkg_metadata)
       data = fetch_package_metadata(name)
       return [] if data.nil? || data['D'].blank?
-      deps = data['D'].split(' ').map{|dep| packages.select{|pkg| pkg['p']&& pkg['p'].include?(dep)}.first || packages.select{|pkg| pkg['P'] == dep}.first  }.uniq
+      deps = data['D'].split(' ').map{|dep| packages.select{|pkg| pkg['p']&& pkg['p'].include?(dep)}.first || packages.select{|pkg| pkg['P'] == dep}.first  }.compact.uniq
       deps.map do |dep|
         {
           package_name: dep['P'],
