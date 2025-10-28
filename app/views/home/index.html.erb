@@ -35,10 +35,10 @@
           <div class="card mb-3 registry d-flex" id="registry_<%= registry.id %>">
             <div class="card-body pb-1">
               <div class="d-flex">
-                
+
                 <div class="flex-grow-1 ms-3 text-break">
                   <h5 class='card-title'>
-                    <%= link_to ecosystem, ecosystem_path(ecosystem) %>
+                    <%= link_to ecosystem, ecosystem_path(registry.ecosystem) %>
                   </h5>
 
                   <p class="card-subtitle mb-2 text-muted">
@@ -46,7 +46,7 @@
                       <%= link_to reg.version, registry_packages_path(reg.name) %>: <%= number_with_delimiter reg.packages_count %> packages <br/>
                     <% end %>
                     <% if registries.length > 5 %>
-                      <%= link_to "more...", ecosystem_path(ecosystem) %>
+                      <%= link_to "more...", ecosystem_path(registry.ecosystem) %>
                     <% end %>
                   </p>
                 </div>
