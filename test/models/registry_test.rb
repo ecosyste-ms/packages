@@ -130,4 +130,69 @@ class RegistryTest < ActiveSupport::TestCase
     Registry.stubs(:not_docker).returns([@registry])
     Registry.sync_all_recently_updated_packages_async
   end
+
+  test 'sync_package does not trigger N+1 when checking for existing dependencies' do
+    # Create package with existing versions that have dependencies
+    package = @registry.packages.create!(name: 'test-package', ecosystem: @registry.ecosystem)
+
+    # Create 10 versions with dependencies
+    10.times do |i|
+      version = package.versions.create!(
+        number: "1.0.#{i}",
+        published_at: Time.now - i.days,
+        registry_id: @registry.id
+      )
+      version.dependencies.create!(
+        package_name: "dependency-#{i}",
+        requirements: "~> 1.0",
+        kind: "runtime",
+        ecosystem: @registry.ecosystem
+      )
+    end
+
+    # Stub HTTP requests
+    stub_request(:head, "https://rubygems.org/api/v1/versions/test-package.json")
+      .to_return(status: 200, body: "", headers: {})
+
+    # Mock the ecosystem_instance to return new versions
+    ecosystem = @registry.ecosystem_instance
+
+    # Mock package_metadata
+    package_metadata = {
+      name: 'test-package',
+      description: 'Test package',
+      versions: ['1.0.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.0.6', '1.0.7', '1.0.8', '1.0.9', '1.0.10']
+    }
+
+    ecosystem.stubs(:package_metadata).returns(package_metadata)
+
+    # Mock versions_metadata to return one new version
+    ecosystem.stubs(:versions_metadata).returns([
+      { number: '1.0.10', published_at: Time.now }
+    ])
+
+    # Mock dependencies_metadata
+    ecosystem.stubs(:dependencies_metadata).returns([])
+
+    # Track queries that check for dependencies
+    dependency_check_queries = []
+    ActiveSupport::Notifications.subscribe('sql.active_record') do |_name, _start, _finish, _id, payload|
+      sql = payload[:sql]
+      if sql.include?('dependencies') && sql.include?('version_id')
+        dependency_check_queries << sql
+      end
+    end
+
+    # Sync the package
+    @registry.sync_package('test-package', force: true)
+
+    ActiveSupport::Notifications.unsubscribe('sql.active_record')
+
+    # We should have at most 2 queries related to dependencies:
+    # 1. One query to fetch version IDs that have dependencies (the fix we added)
+    # 2. Possibly one insert query for new dependencies
+    # We should NOT have N individual queries checking if each version has dependencies
+    assert dependency_check_queries.count < 5,
+      "Expected less than 5 dependency-related queries, but got #{dependency_check_queries.count}. This suggests N+1 is still present."
+  end
 end

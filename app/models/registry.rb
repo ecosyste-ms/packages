@@ -174,15 +174,23 @@ class Registry < ApplicationRecord
       all_deps = []
       all_versions = package.versions
 
+      # Find versions without dependencies using a single efficient LEFT JOIN query
+      # This avoids both N+1 queries and large IN clauses on the dependencies table
+      version_ids_without_dependencies = package.versions
+        .left_joins(:dependencies)
+        .where(dependencies: { id: nil })
+        .pluck(:id)
+        .to_set
+
       all_versions.each do |version|
-        next if version.dependencies.any?
+        next unless version_ids_without_dependencies.include?(version.id)
 
         deps = begin
                 ecosystem_instance.dependencies_metadata(name, version.number, package_metadata)
               rescue StandardError
                 []
               end
-        next unless deps&.any? && version.dependencies.empty?
+        next unless deps&.any?
 
         all_deps << deps.map do |dep|
           dep.merge(version_id: version.id)
