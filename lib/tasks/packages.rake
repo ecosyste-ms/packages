@@ -1,13 +1,13 @@
 namespace :packages do
   desc 'sync recently updated packages'
-  task sync_recent: :environment do 
-    Registry.sync_all_recently_updated_packages_async
-  end
-
-  desc 'sync recently updated npm packages'
-  task sync_recent_npm: :environment do
-    r = Registry.find_by(ecosystem: 'npm')
-    r.sync_recently_updated_packages_async
+  task :sync_recent, [:ecosystem] => :environment do |_task, args|
+    if args[:ecosystem].blank?
+      Registry.sync_all_recently_updated_packages_async
+    else
+      r = Registry.where(ecosystem: args[:ecosystem])
+      raise ArgumentError.new("Couldn't find matching ecosystem") unless r.any?
+      r.each(&:sync_recently_updated_packages_async)
+    end
   end
 
   desc 'sync_worst_one_percent'
@@ -54,7 +54,7 @@ namespace :packages do
       names.add [[parts[0], parts[1]].join(':')]
       puts "#{i} row (#{names.length} uniq names)" if i % 10000 == 0
     end
-  
+
     puts names.length
     File.write('unique-terms.txt', names.to_a.join("\n"))
   end
