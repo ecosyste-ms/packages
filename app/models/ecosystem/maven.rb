@@ -170,7 +170,7 @@ module Ecosystem
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
-      pkg_metadata[:versions].reject{|v| existing_version_numbers.include?(v)}.sort_by { |v| Gem::Version.new(v) rescue Gem::Version.new('0') }.reverse.first(50)
+      pkg_metadata[:versions].reject{|v| existing_version_numbers.include?(v)}.sort_by { |v| Gem::Version.new(v) rescue Gem::Version.new('0') }.reverse
         .map do |version|
           pom = get_pom(*pkg_metadata[:name].split(':', 2), version)
           next if pom.nil?
