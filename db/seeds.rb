@@ -40,6 +40,9 @@ default_registries = [
   {name: 'pkg.adelielinux.org', url: "https://pkg.adelielinux.org/current", ecosystem: "adelie", github: "AdelieLinux", default: true, metadata: {repos: ['system', 'user']}},
   {name: 'bioconductor.org', url: 'https://bioconductor.org', ecosystem: 'bioconductor', github: 'Bioconductor', default: true},
   {name: 'open-vsx.org', url: 'https://open-vsx.org', ecosystem: 'openvsx', default: true, github: 'open-vsx'},
+  {name: 'build.shibboleth.net', url: 'https://build.shibboleth.net/nexus/content/repositories/releases', ecosystem: 'maven', github: 'shibboleth', default: false},
+  {name: 'repo.jenkins-ci.org', url: 'https://repo.jenkins-ci.org/public', ecosystem: 'maven', github: 'jenkinsci', default: false},
+  {name: 'nexus.gael.cloud', url: 'https://nexus.gael.cloud/repository/maven-public', ecosystem: 'maven', github: 'gael-systems', default: false},
 ]
 
 default_registries.each do |data|
