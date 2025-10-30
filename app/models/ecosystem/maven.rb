@@ -136,6 +136,7 @@ module Ecosystem
       group_id, artifact_id = *name.split(':', 2)
 
       url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/maven-metadata.xml"
+      Rails.logger.info "Fetching Maven metadata for #{name} from #{url}"
       xml = get_xml(url)
 
       # For snapshot repositories, include SNAPSHOT versions; for others, exclude them
@@ -145,12 +146,24 @@ module Ecosystem
         version_numbers = xml.css("version").map(&:text).filter { |item| !item.ends_with?("-SNAPSHOT") && valid_version?(item) }
       end
 
-      return {} if version_numbers.empty?
+      if version_numbers.empty?
+        Rails.logger.error "No valid versions found for #{name} at #{url}"
+        return {}
+      end
       latest_version_xml = fetch_latest_available_pom(group_id, artifact_id, version_numbers)
-      return nil if latest_version_xml.nil?
+      if latest_version_xml.nil?
+        Rails.logger.error "Failed to fetch latest POM for #{name}, tried versions: #{version_numbers.last(5).join(', ')}"
+        return nil
+      end
       mapping_from_pom_xml(latest_version_xml, 0).merge({ name: name, versions: version_numbers, namespace: group_id })
+    rescue Faraday::Error => e
+      Rails.logger.error "HTTP error fetching package metadata for #{name}: #{e.class} - #{e.message}"
+      Rails.logger.error "Response status: #{e.response[:status]}" if e.response
+      Rails.logger.error "URL attempted: #{url}"
+      nil
     rescue => e
-      p e
+      Rails.logger.error "Error fetching package metadata for #{name}: #{e.class} - #{e.message}"
+      Rails.logger.error e.backtrace.first(5).join("\n")
       nil
     end
 

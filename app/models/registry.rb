@@ -136,7 +136,10 @@ class Registry < ApplicationRecord
 
     logger.info "Syncing #{name}"
     package_metadata = ecosystem_instance.package_metadata(name)
-    return false unless package_metadata
+    unless package_metadata
+      logger.error "Failed to sync #{name}: package_metadata returned nil or false"
+      return false
+    end
     package_metadata[:ecosystem] = ecosystem.downcase
 
      # clean up incorrectly named package records
