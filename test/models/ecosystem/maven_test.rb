@@ -452,5 +452,36 @@ class MavenTest < ActiveSupport::TestCase
     assert_equal published_at_nodes.first.text, 'Tue, 12 Jul 2022 12:10:25 GMT'
   end
 
+  test 'fetch_package_metadata falls back to HTML directory listing when maven-metadata.xml is missing' do
+    # Simulate a package without maven-metadata.xml (returns HTML 404 page with 200 status)
+    stub_request(:get, "https://repo1.maven.org/maven2/net/jcip/jcip-annotations/maven-metadata.xml")
+      .to_return({
+        status: 200,
+        body: '<html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1></body></html>'
+      })
+
+    # HTML directory listing fallback
+    stub_request(:get, "https://repo1.maven.org/maven2/net/jcip/jcip-annotations/")
+      .to_return({
+        status: 200,
+        body: '<html><body><a href="../">../</a><a href="1.0/">1.0/</a></body></html>'
+      })
+
+    # POM file for version 1.0
+    stub_request(:get, "https://repo1.maven.org/maven2/net/jcip/jcip-annotations/1.0/jcip-annotations-1.0.pom")
+      .to_return({
+        status: 200,
+        body: file_fixture('maven/jcip-annotations-1.0.pom'),
+        headers: { 'last-modified' => 'Thu, 14 Aug 2008 02:49:00 GMT' }
+      })
+
+    package_metadata = @ecosystem.package_metadata('net.jcip:jcip-annotations')
+
+    assert_equal package_metadata[:name], "net.jcip:jcip-annotations"
+    assert_equal package_metadata[:namespace], "net.jcip"
+    assert_equal package_metadata[:versions], ["1.0"]
+    assert_not_nil package_metadata[:homepage]
+  end
+
 
 end

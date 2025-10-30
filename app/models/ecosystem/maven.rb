@@ -147,8 +147,14 @@ module Ecosystem
       end
 
       if version_numbers.empty?
-        Rails.logger.error "No valid versions found for #{name} at #{url}"
-        return {}
+        Rails.logger.info "No valid versions found for #{name} in maven-metadata.xml, trying HTML directory listing fallback"
+        version_numbers = fetch_versions_from_html_directory(group_id, artifact_id)
+
+        if version_numbers.empty?
+          Rails.logger.error "No valid versions found for #{name} from either maven-metadata.xml or HTML directory listing"
+          return {}
+        end
+        Rails.logger.info "Found #{version_numbers.size} versions from HTML directory listing for #{name}"
       end
       latest_version_xml = fetch_latest_available_pom(group_id, artifact_id, version_numbers)
       if latest_version_xml.nil?
@@ -157,6 +163,23 @@ module Ecosystem
       end
       mapping_from_pom_xml(latest_version_xml, 0).merge({ name: name, versions: version_numbers, namespace: group_id })
     rescue Faraday::Error => e
+      # Fallback: Try to parse HTML directory listing for packages without maven-metadata.xml
+      # This handles legacy packages published before maven-metadata.xml was standardized
+      if e.response && [404].include?(e.response[:status])
+        Rails.logger.info "maven-metadata.xml not found for #{name}, trying HTML directory listing fallback"
+        version_numbers = fetch_versions_from_html_directory(group_id, artifact_id)
+
+        if version_numbers.any?
+          Rails.logger.info "Found #{version_numbers.size} versions from HTML directory listing for #{name}"
+          latest_version_xml = fetch_latest_available_pom(group_id, artifact_id, version_numbers)
+          if latest_version_xml.nil?
+            Rails.logger.error "Failed to fetch latest POM for #{name} via HTML fallback, tried versions: #{version_numbers.last(5).join(', ')}"
+            return nil
+          end
+          return mapping_from_pom_xml(latest_version_xml, 0).merge({ name: name, versions: version_numbers, namespace: group_id })
+        end
+      end
+
       Rails.logger.error "HTTP error fetching package metadata for #{name}: #{e.class} - #{e.message}"
       Rails.logger.error "Response status: #{e.response[:status]}" if e.response
       Rails.logger.error "URL attempted: #{url}"
@@ -165,6 +188,28 @@ module Ecosystem
       Rails.logger.error "Error fetching package metadata for #{name}: #{e.class} - #{e.message}"
       Rails.logger.error e.backtrace.first(5).join("\n")
       nil
+    end
+
+    def fetch_versions_from_html_directory(group_id, artifact_id)
+      directory_url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/"
+      Rails.logger.info "Fetching versions from HTML directory: #{directory_url}"
+      html = get_html(directory_url)
+
+      version_numbers = html.css("a").map do |a|
+        next if a.text == "../"
+        next unless a.text.end_with?("/")
+
+        version = a.text.gsub('/', '')
+        next unless valid_version?(version)
+        next if !is_snapshot_repository? && version.ends_with?("-SNAPSHOT")
+
+        version
+      end.compact
+
+      version_numbers
+    rescue => e
+      Rails.logger.error "Failed to fetch versions from HTML directory for #{group_id}:#{artifact_id}: #{e.message}"
+      []
     end
 
     def fetch_latest_available_pom(group_id, artifact_id, version_numbers)
