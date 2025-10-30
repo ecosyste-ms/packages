@@ -17,7 +17,7 @@ module Ecosystem
 
     def check_status_url(package)
       group_id, artifact_id = *package.name.split(':', 2)
-      "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}"
+      "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/"
     end
 
     def download_url(package, version)
