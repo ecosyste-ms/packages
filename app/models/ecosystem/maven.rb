@@ -239,9 +239,10 @@ module Ecosystem
           end
 
           properties = extract_pom_properties(pom)
+          published_at_node = pom.locate("publishedAt").first
           {
             number: version,
-            published_at: Time.parse(pom.locate("publishedAt").first.text),
+            published_at: published_at_node ? Time.parse(published_at_node.text) : nil,
             licenses: license_list,
             metadata: {
               properties: properties,

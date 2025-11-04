@@ -483,5 +483,22 @@ class MavenTest < ActiveSupport::TestCase
     assert_not_nil package_metadata[:homepage]
   end
 
+  test 'versions_metadata handles missing publishedAt node gracefully' do
+    stub_request(:get, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/maven-metadata.xml")
+      .to_return({ status: 200, body: file_fixture('maven/maven-metadata.xml') })
+    stub_request(:get, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/5.17.225.2/zio-aws-autoscaling_3-5.17.225.2.pom")
+      .to_return({ status: 200, body: file_fixture('maven/zio-aws-autoscaling_3-5.17.225.2.pom'), headers: {} })
+    stub_request(:get, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/5.17.102.7/zio-aws-autoscaling_3-5.17.102.7.pom")
+      .to_return({ status: 200, body: file_fixture('maven/zio-aws-autoscaling_3-5.17.102.7.pom'), headers: {} })
+    package_metadata = @ecosystem.package_metadata('dev.zio:zio-aws-autoscaling_3')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+
+    assert_equal versions_metadata.length, 2
+    assert_equal versions_metadata[0][:number], "5.17.225.2"
+    assert_nil versions_metadata[0][:published_at]
+    assert_equal versions_metadata[1][:number], "5.17.102.7"
+    assert_nil versions_metadata[1][:published_at]
+  end
+
 
 end
