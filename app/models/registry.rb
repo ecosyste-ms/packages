@@ -83,7 +83,12 @@ class Registry < ApplicationRecord
   end
 
   def missing_package_names
-    all_package_names - existing_package_names
+    all_names = all_package_names
+    all_names = all_names.keys if all_names.is_a?(Hash)
+    Array(all_names) - existing_package_names
+  rescue => e
+    Rails.logger.error("Error in missing_package_names for registry #{id} (#{ecosystem}): #{e.message}")
+    []
   end
 
   def sync_all_packages
@@ -344,7 +349,8 @@ class Registry < ApplicationRecord
       begin
         sleep 1
         names = ecosystem_instance.namespace_package_names(namespace)
-        missing_names = names - @existing_package_names
+        names = names.keys if names.is_a?(Hash)
+        missing_names = Array(names) - @existing_package_names
         puts "Syncing #{missing_names.count} missing packages for #{namespace}"
         sync_packages_async(missing_names)
       rescue

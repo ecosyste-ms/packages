@@ -38,6 +38,19 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal @registry.missing_package_names, ['bar', 'baz']
   end
 
+  test 'missing_package_names handles Hash from all_package_names' do
+    # This can happen when an ecosystem's API returns unexpected data
+    @registry.expects(:all_package_names).returns({'foo' => 'data', 'bar' => 'data', 'baz' => 'data'})
+    @registry.expects(:existing_package_names).returns(['foo'])
+    assert_equal @registry.missing_package_names.sort, ['bar', 'baz']
+  end
+
+  test 'missing_package_names handles nil from all_package_names' do
+    @registry.expects(:all_package_names).returns(nil)
+    @registry.expects(:existing_package_names).returns(['foo'])
+    assert_equal @registry.missing_package_names, []
+  end
+
   test 'existing_package_names' do
     @registry.save
     @registry.packages.create(name: 'foo', ecosystem: @registry.ecosystem)
