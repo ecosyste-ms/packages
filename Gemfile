@@ -30,7 +30,7 @@ gem "redis"
 gem "sidekiq"
 gem 'sidekiq-unique-jobs'
 gem "bibliothecary", github: "ecosyste-ms/bibliothecary", branch: "main"
-gem "pagy"
+gem "pagy", "~> 9.4.0"
 gem "pghero"
 gem "pg_query"
 gem 'bootstrap'

@@ -186,9 +186,7 @@ GEM
     ox (2.14.23)
       bigdecimal (>= 3.0)
     packageurl-ruby (0.2.0)
-    pagy (43.0.0)
-      json
-      yaml
+    pagy (9.4.0)
     pg (1.6.2)
     pg (1.6.2-aarch64-linux-musl)
     pg (1.6.2-arm64-darwin)
@@ -337,7 +335,6 @@ GEM
     webrick (1.9.1)
     xmlrpc (0.3.3)
       webrick
-    yaml (0.4.0)
     zeitwerk (2.7.3)
 
 PLATFORMS
@@ -380,7 +377,7 @@ DEPENDENCIES
   oj
   ostruct
   ox
-  pagy
+  pagy (~> 9.4.0)
   pg
   pg_query
   pghero
@@ -495,7 +492,7 @@ CHECKSUMS
   ostruct (0.6.3) sha256=95a2ed4a4bd1d190784e666b47b2d3f078e4a9efda2fccf18f84ddc6538ed912
   ox (2.14.23) sha256=4a9aedb4d6c78c5ebac1d7287dc7cc6808e14a8831d7adb727438f6a1b461b66
   packageurl-ruby (0.2.0) sha256=9bef22c96622b7d3a0087a7fbca8903f9187b66fbfd6a78299ef115768f5012b
-  pagy (43.0.0) sha256=c052a89dd8b8eeb09dd25604b91557fd94e174dd77aec35ffb015ca9c6f068fd
+  pagy (9.4.0) sha256=db3f2e043f684155f18f78be62a81e8d033e39b9f97b1e1a8d12ad38d7bce738
   pg (1.6.2) sha256=58614afd405cc9c2c9e15bffe8432e0d6cfc58b722344ad4a47c73a85189c875
   pg (1.6.2-aarch64-linux-musl) sha256=c4402447c56279bea80472770522e95c8a2ff49b7f3e534d0cdb01eb27fd6eb8
   pg (1.6.2-arm64-darwin) sha256=4d44500b28d5193b26674583d199a6484f80f1f2ea9cf54f7d7d06a1b7e316b6
@@ -566,7 +563,6 @@ CHECKSUMS
   webmock (3.26.1) sha256=4f696fb57c90a827c20aadb2d4f9058bbff10f7f043bd0d4c3f58791143b1cd7
   webrick (1.9.1) sha256=b42d3c94f166f3fb73d87e9b359def9b5836c426fc8beacf38f2184a21b2a989
   xmlrpc (0.3.3) sha256=ec3d46bc63a44920ac2d67c49399fd493295ff98cb96adf25e59eaa718b38e3b
-  yaml (0.4.0) sha256=240e69d1e6ce3584d6085978719a0faa6218ae426e034d8f9b02fb54d3471942
   zeitwerk (2.7.3) sha256=b2e86b4a9b57d26ba68a15230dcc7fe6f040f06831ce64417b0621ad96ba3e85
 
 RUBY VERSION
