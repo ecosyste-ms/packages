@@ -74,6 +74,15 @@ module Ecosystem
 
     def check_status(package)
       url = check_status_url(package)
+      return nil if url.blank?
+
+      begin
+        URI.parse(url)
+      rescue URI::InvalidURIError => e
+        Rails.logger.warn("Invalid URI for package #{package.id} (#{package.name}): #{url} - #{e.message}")
+        return nil
+      end
+
       connection = Faraday.new(url) do |faraday|
         faraday.use Faraday::FollowRedirects::Middleware
         faraday.adapter Faraday.default_adapter
@@ -81,6 +90,9 @@ module Ecosystem
 
       response = connection.head(url)
       "removed" if [400, 404, 410].include?(response.status)
+    rescue => e
+      Rails.logger.warn("Error checking status for package #{package.id} (#{package.name}): #{e.message}")
+      nil
     end
 
     def ecosystem_name(ecosystem)
