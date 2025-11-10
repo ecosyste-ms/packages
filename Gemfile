@@ -68,7 +68,7 @@ end
 
 group :test do
   gem "shoulda-matchers"
-  gem "shoulda-context"
+  gem "shoulda-context", "~> 3.0.0.rc1"
   gem "webmock"
   gem "mocha"
   gem "rails-controller-testing"
