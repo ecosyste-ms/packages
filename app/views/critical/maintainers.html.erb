@@ -15,7 +15,7 @@
       <div class="card mb-3">
         <div class="card-body">
           <p class="mb-0">
-            <strong><%= number_with_delimiter(@pagy.count) %></strong> unique maintainers
+            <strong><%= number_with_delimiter(@pagy.count) %></strong> unique <%= @registry ? "#{@registry.name} " : "" %>maintainers
           </p>
         </div>
       </div>
@@ -26,13 +26,7 @@
             <div class="d-flex w-100 justify-content-between align-items-start">
               <div class="flex-grow-1">
                 <h5 class="mb-2">
-                  <% if maintainer[:url] %>
-                    <a href="<%= maintainer[:url] %>" target="_blank" rel="noopener noreferrer">
-                      <%= maintainer[:login] %>
-                    </a>
-                  <% else %>
-                    <%= maintainer[:login] %>
-                  <% end %>
+                  <%= link_to maintainer[:login], registry_maintainer_path(maintainer[:registry], maintainer[:login]) %>
                 </h5>
                 <p class="mb-2">
                   <span class="badge bg-primary">
@@ -43,7 +37,7 @@
                 <div class="small mt-2">
                   <% maintainer[:packages].first(5).each do |package| %>
                     <div class="mb-1">
-                      <%= link_to package[:name], "/#{package[:registry_name]}/#{package[:name]}", class: "text-decoration-none" %>
+                      <%= link_to package[:name], registry_package_path(package[:registry_name], package[:name]), class: "text-decoration-none" %>
                       <span class="text-muted">(<%= package[:ecosystem] %>)</span>
                       <% if package[:downloads] && package[:downloads] > 0 %>
                         <span class="text-muted">

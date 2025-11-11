@@ -223,25 +223,4 @@ class CriticalControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes response.body, 'npm-maintainer'
   end
 
-  test 'should return json format' do
-    get critical_maintainers_path(format: :json)
-    assert_response :success
-    json_response = JSON.parse(response.body)
-    assert json_response.is_a?(Array)
-  end
-
-  test 'should include package details in json response' do
-    get critical_maintainers_path(format: :json)
-    assert_response :success
-    json_response = JSON.parse(response.body)
-
-    maintainer = json_response.find { |m| m['login'] == 'test-maintainer' }
-    assert_not_nil maintainer
-    assert_equal 1, maintainer['packages_count']
-    assert maintainer['packages'].is_a?(Array)
-
-    package = maintainer['packages'].first
-    assert_equal 'critical-package', package['name']
-    assert_equal 'cargo', package['ecosystem']
-  end
 end

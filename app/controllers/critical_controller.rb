@@ -170,7 +170,7 @@ class CriticalController < ApplicationController
       {
         login: maintainer.login || maintainer.uuid,
         name: maintainer.name,
-        url: maintainer.html_url,
+        registry: maintainer.registry,
         packages_count: maintainer_id_counts[maintainer.id],
         packages: packages.map do |package|
           {
@@ -199,11 +199,6 @@ class CriticalController < ApplicationController
     registries_hash = Registry.where(id: registry_counts.keys).index_by(&:id)
     @registries = registry_counts.map { |registry_id, count| [registries_hash[registry_id], count] }
                                  .sort_by { |r, c| -c }
-
-    respond_to do |format|
-      format.html
-      format.json
-    end
   end
 
   def permit_scatter_params
