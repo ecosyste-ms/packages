@@ -1,0 +1,88 @@
+<% @meta_title = "Maintainers of Critical Open Source #{@registry.try(:ecosystem).try(:humanize)} Packages" %>
+<% @meta_description = "Find all unique maintainers of critical open source #{@registry.try(:ecosystem)} software packages." %>
+
+<div class="container-sm">
+  <h1 class='mb-3'>
+    Maintainers of Critical Open Source <%= @registry.try(:ecosystem).try(:humanize) %> Packages
+  </h1>
+
+  <p class='lead'>
+    All unique maintainers of critical open source <%= @registry.try(:ecosystem) %> software packages.
+  </p>
+
+  <div class="row">
+    <div class="col-lg-9">
+      <div class="card mb-3">
+        <div class="card-body">
+          <p class="mb-0">
+            <strong><%= number_with_delimiter(@maintainers.count) %></strong> unique maintainers
+          </p>
+        </div>
+      </div>
+
+      <div class="list-group mb-3">
+        <% @maintainers.each do |maintainer| %>
+          <div class="list-group-item">
+            <div class="d-flex w-100 justify-content-between align-items-start">
+              <div>
+                <h5 class="mb-1">
+                  <% if maintainer[:url] %>
+                    <a href="<%= maintainer[:url] %>" target="_blank" rel="noopener noreferrer">
+                      <%= maintainer[:login] %>
+                    </a>
+                  <% else %>
+                    <%= maintainer[:login] %>
+                  <% end %>
+                </h5>
+                <p class="mb-1">
+                  <span class="badge bg-primary">
+                    <%= number_with_delimiter(maintainer[:packages_count]) %>
+                    <%= 'package'.pluralize(maintainer[:packages_count]) %>
+                  </span>
+                </p>
+                <div class="small text-muted mt-2">
+                  <% maintainer[:packages].first(5).each do |package| %>
+                    <div>
+                      <%= link_to package[:name], "/#{package[:registry_name]}/#{package[:name]}", class: "text-decoration-none" %>
+                      <span class="text-muted">(<%= package[:ecosystem] %>)</span>
+                      <% if package[:downloads] && package[:downloads] > 0 %>
+                        <span class="text-muted ms-2">
+                          <%= number_to_human(package[:downloads], precision: 2, significant: false, format: '%n %u', units: { thousand: 'K', million: 'M', billion: 'B' }) %> downloads
+                        </span>
+                      <% end %>
+                    </div>
+                  <% end %>
+                  <% if maintainer[:packages].count > 5 %>
+                    <div class="text-muted">
+                      ... and <%= maintainer[:packages].count - 5 %> more
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card mb-3">
+        <div class="card-header">
+          Filter by Registry
+        </div>
+        <div class="list-group list-group-flush">
+          <a class="list-group-item list-group-item-action <%= 'active' unless params[:registry] %>" href="<%= critical_maintainers_path %>">
+            All Registries
+            <span class="float-end badge bg-primary rounded-pill"><%= number_with_delimiter @maintainers.count%></span>
+          </a>
+          <% @registries.each do |registry, count| %>
+            <a class="list-group-item list-group-item-action <%= 'active' if params[:registry] == registry.name %>" href="<%= critical_maintainers_path(registry: registry.name) %>">
+              <%= registry.name %>
+              <span class="float-end badge bg-primary rounded-pill"><%= number_with_delimiter count%></span>
+            </a>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

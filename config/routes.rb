@@ -111,6 +111,7 @@ Rails.application.routes.draw do
   get :critical, to: 'critical#index'
   get 'critical/scatter', to: 'critical#scatter', as: :critical_registry_scatter
   get 'critical/sole-maintainers', to: 'critical#sole_maintainers', as: :critical_sole_maintainers
+  get 'critical/maintainers', to: 'critical#maintainers', as: :critical_maintainers
   get 'critical/:id', to: 'critical#show', as: :critical_registry, constraints: { id: /[^\/]+/  }
   
 

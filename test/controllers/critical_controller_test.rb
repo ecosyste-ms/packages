@@ -3,7 +3,7 @@ require 'test_helper'
 class CriticalControllerTest < ActionDispatch::IntegrationTest
   setup do
     @registry = Registry.create(name: 'crates.io', url: 'https://crates.io', ecosystem: 'cargo')
-    @maintainer = Maintainer.create(name: 'John Doe', uuid: SecureRandom.uuid, registry: @registry)
+    @maintainer = Maintainer.create(name: 'John Doe', uuid: SecureRandom.uuid, registry: @registry, login: 'test-maintainer')
     
     @critical_package = @registry.packages.create(
       ecosystem: 'cargo', 
@@ -145,5 +145,103 @@ class CriticalControllerTest < ActionDispatch::IntegrationTest
     get critical_sole_maintainers_path
     assert_response :success
     assert_includes response.body, "critical-package"
+  end
+
+  test 'should get maintainers index' do
+    get critical_maintainers_path
+    assert_response :success
+    assert_template 'critical/maintainers'
+  end
+
+  test 'should list unique maintainers of critical packages' do
+    # Add another critical package with the same maintainer
+    second_package = @registry.packages.create(
+      ecosystem: 'cargo',
+      name: 'another-critical-package',
+      critical: true,
+      downloads: 2000,
+      issue_metadata: {
+        'maintainers' => [{'login' => 'test-maintainer', 'url' => 'https://example.com/test-maintainer'}]
+      }
+    )
+    second_package.maintainers << @maintainer
+
+    # Add a critical package with a different maintainer
+    another_maintainer = Maintainer.create(name: 'Another User', uuid: SecureRandom.uuid, registry: @registry, login: 'another-maintainer')
+    third_package = @registry.packages.create(
+      ecosystem: 'cargo',
+      name: 'third-critical-package',
+      critical: true,
+      downloads: 500,
+      issue_metadata: {
+        'maintainers' => [{'login' => 'another-maintainer', 'url' => 'https://example.com/another-maintainer'}]
+      }
+    )
+    third_package.maintainers << another_maintainer
+
+    get critical_maintainers_path
+    assert_response :success
+    assert_includes response.body, 'test-maintainer'
+    assert_includes response.body, 'another-maintainer'
+  end
+
+  test 'should show maintainer package counts' do
+    # Add another critical package with the same maintainer
+    second_package = @registry.packages.create(
+      ecosystem: 'cargo',
+      name: 'second-package',
+      critical: true,
+      downloads: 2000,
+      issue_metadata: {
+        'maintainers' => [{'login' => 'test-maintainer'}]
+      }
+    )
+    second_package.maintainers << @maintainer
+
+    get critical_maintainers_path
+    assert_response :success
+    assert_match /2\s+packages/, response.body
+  end
+
+  test 'should filter maintainers by registry' do
+    other_registry = Registry.create(name: 'npm', url: 'https://npmjs.com', ecosystem: 'npm')
+    npm_maintainer = Maintainer.create(name: 'NPM User', uuid: SecureRandom.uuid, registry: other_registry, login: 'npm-maintainer')
+    other_package = other_registry.packages.create(
+      ecosystem: 'npm',
+      name: 'npm-package',
+      critical: true,
+      downloads: 1000,
+      issue_metadata: {
+        'maintainers' => [{'login' => 'npm-maintainer'}]
+      }
+    )
+    other_package.maintainers << npm_maintainer
+
+    get critical_maintainers_path(registry: @registry.name)
+    assert_response :success
+    assert_includes response.body, 'test-maintainer'
+    assert_not_includes response.body, 'npm-maintainer'
+  end
+
+  test 'should return json format' do
+    get critical_maintainers_path(format: :json)
+    assert_response :success
+    json_response = JSON.parse(response.body)
+    assert json_response.is_a?(Array)
+  end
+
+  test 'should include package details in json response' do
+    get critical_maintainers_path(format: :json)
+    assert_response :success
+    json_response = JSON.parse(response.body)
+
+    maintainer = json_response.find { |m| m['login'] == 'test-maintainer' }
+    assert_not_nil maintainer
+    assert_equal 1, maintainer['packages_count']
+    assert maintainer['packages'].is_a?(Array)
+
+    package = maintainer['packages'].first
+    assert_equal 'critical-package', package['name']
+    assert_equal 'cargo', package['ecosystem']
   end
 end

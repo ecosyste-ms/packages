@@ -86,7 +86,7 @@ class CriticalController < ApplicationController
 
     if params[:sort].present? || params[:order].present?
       sort = params[:sort].presence || 'downloads'
-      
+
       # Handle special sort fields that need SQL casting
       case params[:sort]
       when 'stargazers_count'
@@ -108,7 +108,7 @@ class CriticalController < ApplicationController
       else
         sort = 'downloads' # fallback to safe default
       end
-      
+
       if params[:order] == 'asc'
         scope = scope.order(Arel.sql(sort).asc.nulls_last)
       else
@@ -119,8 +119,65 @@ class CriticalController < ApplicationController
     end
 
     @pagy, @packages = pagy(scope)
-    
+
     @registries = Package.critical.where(maintainers_count: 1).active.with_issue_metadata.sole_maintainer.group(:registry).count.sort_by{|r, c| c}
+  end
+
+  def maintainers
+    # Get unique maintainers of critical packages
+    maintainer_scope = Maintainer.joins(:packages)
+                                  .where(packages: { critical: true, status: nil })
+                                  .distinct
+                                  .includes(:registry)
+
+    @registry = Registry.find_by_name!(params[:registry]) if params[:registry]
+    maintainer_scope = maintainer_scope.where(registry_id: @registry.id) if params[:registry]
+
+    # Get all maintainers with their critical packages
+    maintainers_data = maintainer_scope.map do |maintainer|
+      critical_packages = maintainer.packages.critical.active.includes(:registry)
+
+      {
+        login: maintainer.login || maintainer.uuid,
+        name: maintainer.name,
+        url: maintainer.html_url,
+        packages_count: critical_packages.count,
+        packages: critical_packages.map do |package|
+          {
+            name: package.name,
+            ecosystem: package.ecosystem,
+            downloads: package.downloads,
+            registry_name: package.registry.name
+          }
+        end
+      }
+    end
+
+    # Sort by packages count by default
+    @maintainers = maintainers_data.sort_by { |m| -m[:packages_count] }
+
+    # Apply sorting if specified
+    if params[:sort].present?
+      case params[:sort]
+      when 'login'
+        @maintainers.sort_by! { |m| (m[:login] || '').downcase }
+      when 'packages_count'
+        @maintainers.sort_by! { |m| -m[:packages_count] }
+      end
+
+      @maintainers.reverse! if params[:order] == 'asc'
+    end
+
+    @registries = Maintainer.joins(:packages)
+                           .where(packages: { critical: true, status: nil })
+                           .group(:registry)
+                           .count
+                           .sort_by { |r, c| -c }
+
+    respond_to do |format|
+      format.html
+      format.json
+    end
   end
 
   def permit_scatter_params
