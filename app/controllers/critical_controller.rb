@@ -126,45 +126,45 @@ class CriticalController < ApplicationController
   def maintainers
     @registry = Registry.find_by_name!(params[:registry]) if params[:registry]
 
-    # Build base query with efficient joins and grouping
-    maintainer_scope = Maintainer.joins(:packages, :registry)
-                                  .where(packages: { critical: true, status: nil })
-                                  .select('maintainers.*, registries.name as registry_name, COUNT(DISTINCT packages.id) as critical_packages_count')
-                                  .group('maintainers.id, registries.id, registries.name')
+    # Build critical package subquery instead of plucking IDs
+    critical_package_subquery = Package.critical.active.select(:id)
+    critical_package_subquery = critical_package_subquery.where(registry_id: @registry.id) if params[:registry]
 
-    maintainer_scope = maintainer_scope.where('maintainers.registry_id' => @registry.id) if params[:registry]
+    # Get maintainer IDs and their package counts using subquery
+    maintainer_id_counts = Maintainership.where(package_id: critical_package_subquery)
+                                        .group(:maintainer_id)
+                                        .count
 
-    # Apply sorting
-    sort_column = case params[:sort]
-    when 'login' then 'maintainers.login'
-    when 'packages_count' then 'critical_packages_count'
-    else 'critical_packages_count'
+    # Load maintainers with registry
+    # Test in console: Maintainer.where(id: maintainer_id_counts.keys).includes(:registry).limit(10)
+    maintainer_scope = Maintainer.where(id: maintainer_id_counts.keys).includes(:registry)
+
+    # Sort in database if by login
+    if params[:sort] == 'login'
+      maintainer_scope = maintainer_scope.order(login: params[:order] == 'asc' ? :asc : :desc)
     end
 
-    sort_direction = params[:order] == 'asc' ? 'ASC' : 'DESC'
-    maintainer_scope = maintainer_scope.order(Arel.sql("#{sort_column} #{sort_direction} NULLS LAST"))
+    @pagy, maintainers_list = pagy(maintainer_scope)
 
-    # Load maintainers with their critical packages
-    maintainers_list = maintainer_scope.to_a
+    # Load packages for this page of maintainers using subquery
+    # Test in console: paginated_ids = maintainers_list.map(&:id); Package.joins(:maintainerships).where(maintainerships: { maintainer_id: paginated_ids }).where(id: critical_package_subquery).includes(:registry).to_a
+    paginated_ids = maintainers_list.map(&:id)
+    packages_by_maintainer_id = Package.joins(:maintainerships)
+                                      .where(maintainerships: { maintainer_id: paginated_ids })
+                                      .where(id: critical_package_subquery)
+                                      .includes(:registry)
+                                      .group_by { |pkg| pkg.maintainerships.pluck(:maintainer_id) }
+                                      .transform_keys(&:first)
 
-    # Fetch packages for each maintainer in one query
-    maintainer_ids = maintainers_list.map(&:id)
-    packages_by_maintainer = Package.joins(:maintainerships)
-                                   .where(maintainerships: { maintainer_id: maintainer_ids })
-                                   .where(critical: true, status: nil)
-                                   .includes(:registry)
-                                   .group_by(&:maintainer_ids)
-                                   .transform_values { |pkgs| pkgs.uniq }
-
-    # Build the data structure
+    # Build maintainer data
     @maintainers = maintainers_list.map do |maintainer|
-      packages = packages_by_maintainer.select { |ids, _| ids.include?(maintainer.id) }.values.flatten.uniq
+      packages = packages_by_maintainer_id[maintainer.id] || []
 
       {
         login: maintainer.login || maintainer.uuid,
         name: maintainer.name,
         url: maintainer.html_url,
-        packages_count: maintainer.critical_packages_count,
+        packages_count: maintainer_id_counts[maintainer.id],
         packages: packages.map do |package|
           {
             name: package.name,
@@ -176,12 +176,22 @@ class CriticalController < ApplicationController
       }
     end
 
-    @registries = Package.critical
-                         .active
-                         .joins(:maintainerships)
-                         .group(:registry)
-                         .count
-                         .sort_by { |r, c| -c }
+    # Sort by packages_count if needed
+    if params[:sort] != 'login'
+      @maintainers.sort_by! { |m| -m[:packages_count] }
+      @maintainers.reverse! if params[:order] == 'asc'
+    end
+
+    # Registry counts using subquery
+    registry_counts = Maintainer.joins(:maintainerships)
+                                .where(maintainerships: { package_id: Package.critical.active.select(:id) })
+                                .group(:registry_id)
+                                .distinct
+                                .count(:id)
+
+    registries_hash = Registry.where(id: registry_counts.keys).index_by(&:id)
+    @registries = registry_counts.map { |registry_id, count| [registries_hash[registry_id], count] }
+                                 .sort_by { |r, c| -c }
 
     respond_to do |format|
       format.html
