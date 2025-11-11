@@ -149,12 +149,19 @@ class CriticalController < ApplicationController
     # Load packages for this page of maintainers using subquery
     # Test in console: paginated_ids = maintainers_list.map(&:id); Package.joins(:maintainerships).where(maintainerships: { maintainer_id: paginated_ids }).where(id: critical_package_subquery).includes(:registry).to_a
     paginated_ids = maintainers_list.map(&:id)
-    packages_by_maintainer_id = Package.joins(:maintainerships)
-                                      .where(maintainerships: { maintainer_id: paginated_ids })
-                                      .where(id: critical_package_subquery)
-                                      .includes(:registry)
-                                      .group_by { |pkg| pkg.maintainerships.pluck(:maintainer_id) }
-                                      .transform_keys(&:first)
+
+    # Get maintainerships for these maintainers and critical packages
+    maintainerships_map = Maintainership.where(maintainer_id: paginated_ids, package_id: critical_package_subquery)
+                                       .group_by(&:maintainer_id)
+
+    package_ids_to_load = maintainerships_map.values.flatten.map(&:package_id).uniq
+    packages_hash = Package.where(id: package_ids_to_load).includes(:registry).index_by(&:id)
+
+    # Build packages by maintainer
+    packages_by_maintainer_id = {}
+    maintainerships_map.each do |maintainer_id, maintainerships|
+      packages_by_maintainer_id[maintainer_id] = maintainerships.map { |m| packages_hash[m.package_id] }.compact.uniq
+    end
 
     # Build maintainer data
     @maintainers = maintainers_list.map do |maintainer|

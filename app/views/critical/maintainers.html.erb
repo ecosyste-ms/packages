@@ -15,7 +15,7 @@
       <div class="card mb-3">
         <div class="card-body">
           <p class="mb-0">
-            <strong><%= number_with_delimiter(@maintainers.count) %></strong> unique maintainers
+            <strong><%= number_with_delimiter(@pagy.count) %></strong> unique maintainers
           </p>
         </div>
       </div>
@@ -24,8 +24,8 @@
         <% @maintainers.each do |maintainer| %>
           <div class="list-group-item">
             <div class="d-flex w-100 justify-content-between align-items-start">
-              <div>
-                <h5 class="mb-1">
+              <div class="flex-grow-1">
+                <h5 class="mb-2">
                   <% if maintainer[:url] %>
                     <a href="<%= maintainer[:url] %>" target="_blank" rel="noopener noreferrer">
                       <%= maintainer[:login] %>
@@ -34,26 +34,26 @@
                     <%= maintainer[:login] %>
                   <% end %>
                 </h5>
-                <p class="mb-1">
+                <p class="mb-2">
                   <span class="badge bg-primary">
                     <%= number_with_delimiter(maintainer[:packages_count]) %>
                     <%= 'package'.pluralize(maintainer[:packages_count]) %>
                   </span>
                 </p>
-                <div class="small text-muted mt-2">
+                <div class="small mt-2">
                   <% maintainer[:packages].first(5).each do |package| %>
-                    <div>
+                    <div class="mb-1">
                       <%= link_to package[:name], "/#{package[:registry_name]}/#{package[:name]}", class: "text-decoration-none" %>
                       <span class="text-muted">(<%= package[:ecosystem] %>)</span>
                       <% if package[:downloads] && package[:downloads] > 0 %>
-                        <span class="text-muted ms-2">
-                          <%= number_to_human(package[:downloads], precision: 2, significant: false, format: '%n %u', units: { thousand: 'K', million: 'M', billion: 'B' }) %> downloads
+                        <span class="text-muted">
+                          · <%= number_to_human(package[:downloads], precision: 2, significant: false, format: '%n %u', units: { thousand: 'K', million: 'M', billion: 'B' }) %> downloads
                         </span>
                       <% end %>
                     </div>
                   <% end %>
                   <% if maintainer[:packages].count > 5 %>
-                    <div class="text-muted">
+                    <div class="text-muted fst-italic">
                       ... and <%= maintainer[:packages].count - 5 %> more
                     </div>
                   <% end %>
@@ -63,6 +63,8 @@
           </div>
         <% end %>
       </div>
+
+      <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>
     </div>
 
     <div class="col">
@@ -71,14 +73,14 @@
           Filter by Registry
         </div>
         <div class="list-group list-group-flush">
-          <a class="list-group-item list-group-item-action <%= 'active' unless params[:registry] %>" href="<%= critical_maintainers_path %>">
+          <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center <%= 'active' unless params[:registry] %>" href="<%= critical_maintainers_path %>">
             All Registries
-            <span class="float-end badge bg-primary rounded-pill"><%= number_with_delimiter @maintainers.count%></span>
+            <span class="badge bg-primary rounded-pill"><%= @registries.sum { |r, c| c } %></span>
           </a>
           <% @registries.each do |registry, count| %>
-            <a class="list-group-item list-group-item-action <%= 'active' if params[:registry] == registry.name %>" href="<%= critical_maintainers_path(registry: registry.name) %>">
+            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center <%= 'active' if params[:registry] == registry.name %>" href="<%= critical_maintainers_path(registry: registry.name) %>">
               <%= registry.name %>
-              <span class="float-end badge bg-primary rounded-pill"><%= number_with_delimiter count%></span>
+              <span class="badge bg-primary rounded-pill"><%= number_with_delimiter count%></span>
             </a>
           <% end %>
         </div>
