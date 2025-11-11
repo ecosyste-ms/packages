@@ -1,13 +1,13 @@
-<% @meta_title = "Critical Open Source #{@registry.try(:ecosystem).try(:humanize)} Packages with Sole Maintainers" %>
-<% @meta_description = "Find critical open source #{@registry.try(:ecosystem)} software packages that have only one maintainer, representing a potential risk to software supply chain security." %>
+<% @meta_title = "Critical Open Source #{@registry ? "#{@registry.ecosystem.humanize} " : ""}Packages with Sole Maintainers" %>
+<% @meta_description = "Find critical open source #{@registry ? "#{@registry.ecosystem} " : ""}software packages that have only one maintainer, representing a potential risk to software supply chain security." %>
 
 <div class="container-sm">
   <h1 class='mb-3'>
-    Critical Open Source <%= @registry.try(:ecosystem).try(:humanize) %> Packages with Sole Maintainers
+    Critical Open Source <%= @registry ? "#{@registry.ecosystem.humanize} " : "" %>Packages with Sole Maintainers
   </h1>
 
   <p class='lead'>
-    Find critical open source <%= @registry.try(:ecosystem) %> software packages that have only one maintainer, representing a potential risk to software supply chain security.
+    Find critical open source <%= @registry ? "#{@registry.ecosystem} " : "" %>software packages that have only one maintainer, representing a potential risk to software supply chain security.
   </p>
 
   <ul class="nav nav-tabs my-3">

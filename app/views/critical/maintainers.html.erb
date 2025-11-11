@@ -1,13 +1,13 @@
-<% @meta_title = "Maintainers of Critical Open Source #{@registry.try(:ecosystem).try(:humanize)} Packages" %>
-<% @meta_description = "Find all unique maintainers of critical open source #{@registry.try(:ecosystem)} software packages." %>
+<% @meta_title = "Maintainers of Critical Open Source #{@registry ? "#{@registry.ecosystem.humanize} " : ""}Packages" %>
+<% @meta_description = "Find all unique maintainers of critical open source #{@registry ? "#{@registry.ecosystem} " : ""}software packages." %>
 
 <div class="container-sm">
   <h1 class='mb-3'>
-    Maintainers of Critical Open Source <%= @registry.try(:ecosystem).try(:humanize) %> Packages
+    Maintainers of Critical Open Source <%= @registry ? "#{@registry.ecosystem.humanize} " : "" %>Packages
   </h1>
 
   <p class='lead'>
-    All unique maintainers of critical open source <%= @registry.try(:ecosystem) %> software packages.
+    All unique maintainers of critical open source <%= @registry ? "#{@registry.ecosystem} " : "" %>software packages.
   </p>
 
   <div class="row">
