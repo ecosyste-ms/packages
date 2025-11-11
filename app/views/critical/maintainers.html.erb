@@ -33,15 +33,25 @@
                     <%= number_with_delimiter(maintainer[:packages_count]) %>
                     <%= 'package'.pluralize(maintainer[:packages_count]) %>
                   </span>
+                  <span class="text-muted ms-2">
+                    <%= maintainer[:registry].name %>
+                  </span>
                 </p>
                 <div class="small mt-2">
                   <% maintainer[:packages].first(5).each do |package| %>
                     <div class="mb-1">
                       <%= link_to package[:name], registry_package_path(package[:registry_name], package[:name]), class: "text-decoration-none" %>
-                      <span class="text-muted">(<%= package[:ecosystem] %>)</span>
                       <% if package[:downloads] && package[:downloads] > 0 %>
                         <span class="text-muted">
                           · <%= number_to_human(package[:downloads], precision: 2, significant: false, format: '%n %u', units: { thousand: 'K', million: 'M', billion: 'B' }) %> downloads
+                        </span>
+                      <% elsif package[:dependent_repos_count] && package[:dependent_repos_count] > 0 %>
+                        <span class="text-muted">
+                          · <%= number_with_delimiter(package[:dependent_repos_count]) %> dependent <%= 'repo'.pluralize(package[:dependent_repos_count]) %>
+                        </span>
+                      <% elsif package[:dependent_packages_count] && package[:dependent_packages_count] > 0 %>
+                        <span class="text-muted">
+                          · <%= number_with_delimiter(package[:dependent_packages_count]) %> dependent <%= 'package'.pluralize(package[:dependent_packages_count]) %>
                         </span>
                       <% end %>
                     </div>

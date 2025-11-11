@@ -177,6 +177,8 @@ class CriticalController < ApplicationController
             name: package.name,
             ecosystem: package.ecosystem,
             downloads: package.downloads,
+            dependent_repos_count: package.dependent_repos_count,
+            dependent_packages_count: package.dependent_packages_count,
             registry_name: package.registry.name
           }
         end
