@@ -16,6 +16,158 @@ externalDocs:
 servers:
 - url: https://packages.ecosyste.ms/api/v1
 paths:
+  /critical:
+    get:
+      summary: list critical packages
+      operationId: getCriticalPackages
+      tags:
+        - critical
+      parameters:
+        - name: registry
+          in: query
+          description: filter by registry name
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: pagination page number
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+            type: integer
+        - name: sort
+          in: query
+          description: field to sort results by
+          required: false
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: direction to sort results by (asc or desc)
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PackageWithRegistry'
+  /critical/sole_maintainers:
+    get:
+      summary: list critical packages with sole maintainers
+      operationId: getCriticalSoleMaintainers
+      tags:
+        - critical
+      parameters:
+        - name: registry
+          in: query
+          description: filter by registry name
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: pagination page number
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+            type: integer
+        - name: sort
+          in: query
+          description: field to sort results by
+          required: false
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: direction to sort results by (asc or desc)
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PackageWithRegistry'
+  /critical/maintainers:
+    get:
+      summary: list unique maintainers of critical packages
+      operationId: getCriticalMaintainers
+      tags:
+        - critical
+      parameters:
+        - name: registry
+          in: query
+          description: filter by registry name
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: pagination page number
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+            type: integer
+        - name: sort
+          in: query
+          description: field to sort results by (login or packages_count)
+          required: false
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: direction to sort results by (asc or desc)
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    login:
+                      type: string
+                    name:
+                      type: string
+                      nullable: true
+                    registry_name:
+                      type: string
+                    packages_count:
+                      type: integer
+                    packages:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/PackageWithRegistry'
   /packages/lookup:
     get:
       summary: lookup a package by repository URL, purl or ecosystem+name

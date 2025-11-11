@@ -19,6 +19,13 @@ Rails.application.routes.draw do
 
       resources :keywords, only: [:index, :show], constraints: { id: /.*/ }, defaults: { format: :json }
 
+      resources :critical, only: [:index] do
+        collection do
+          get :sole_maintainers, to: 'critical#sole_maintainers'
+          get :maintainers, to: 'critical#maintainers'
+        end
+      end
+
       resources :packages do
         collection do
           get :critical, to: 'packages#critical'
