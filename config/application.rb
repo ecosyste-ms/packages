@@ -25,12 +25,6 @@ module Packages
     config.load_defaults 7.0
     config.exceptions_app = self.routes
 
-    require_relative '../app/middleware/user_agent_tracker'
-    config.middleware.use UserAgentTracker
-    
-    require_relative '../app/middleware/ip_tracker'
-    config.middleware.use IpTracker
-
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
