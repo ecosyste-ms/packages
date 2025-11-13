@@ -81,4 +81,41 @@ class UnseenControllerTest < ActionDispatch::IntegrationTest
     get unseen_ecosystem_path(ecosystem: 'invalid-ecosystem')
     assert_response :not_found
   end
+
+  test 'should cache registry counts' do
+    # Enable caching for this test
+    original_cache_store = Rails.cache
+    Rails.cache = ActiveSupport::Cache::MemoryStore.new
+    Rails.cache.clear
+
+    begin
+      # First request should cache the registry counts
+      get unseen_path
+      assert_response :success
+
+      cached_value = Rails.cache.read("unseen_registry_counts")
+      assert_not_nil cached_value
+      assert_equal({@registry.id => 1}, cached_value)
+
+      # Create a new unseen package
+      @registry.packages.create(
+        ecosystem: 'npm',
+        name: 'new-unseen-package',
+        downloads: 160_000,
+        repo_metadata: {
+          'stargazers_count' => 60
+        }
+      )
+
+      # Second request should use cached value, not reflect new package
+      get unseen_path
+      assert_response :success
+
+      cached_value = Rails.cache.read("unseen_registry_counts")
+      assert_equal({@registry.id => 1}, cached_value)
+    ensure
+      # Restore original cache store
+      Rails.cache = original_cache_store
+    end
+  end
 end
