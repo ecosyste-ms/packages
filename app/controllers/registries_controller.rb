@@ -14,7 +14,9 @@ class RegistriesController < ApplicationController
   def keywords
     @registry = Registry.find_by_name!(params[:id])
     @scope = @registry.keywords || []
+    raise ActiveRecord::RecordNotFound if @scope.empty?
     @pagy, @keywords = pagy_array(@scope)
+    @keywords ||= []
   end
 
   def keyword
