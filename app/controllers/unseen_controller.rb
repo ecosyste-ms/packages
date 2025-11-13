@@ -1,6 +1,6 @@
 class UnseenController < ApplicationController
   def index
-    @scope = Package.includes(:registry).with_repo_metadata.order('packages.downloads DESC').where('packages.downloads > ?', 100_000).where("(repo_metadata ->> 'stargazers_count')::text::integer < 100")
+    @scope = Package.includes(:registry).with_repo_metadata.where('packages.downloads > ?', 100_000).where("(repo_metadata ->> 'stargazers_count')::text::integer < 100")
 
     @all_registries = Registry.all
     @registry_ids = Rails.cache.fetch("unseen_registry_counts", expires_in: 1.hour) do
@@ -12,6 +12,8 @@ class UnseenController < ApplicationController
       @registry = Registry.find_by_name!(params[:registry])
       @scope = @scope.where(registry_id: @registry.id)
     end
+
+    @scope = @scope.order(Arel.sql("(repo_metadata ->> 'stargazers_count')::text::integer ASC"))
 
     @pagy, @packages = pagy_countless(@scope)
   end
