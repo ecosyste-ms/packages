@@ -70,7 +70,7 @@ module Ecosystem
         releases: package['releases'],
         downloads_period: 'last-month',
         metadata: {
-          "funding" => package.dig("info", "project_urls", "Funding"),
+          "funding" => fetch_valid_funding_link(package.dig("info", "project_urls") || {}, %w[donate, donation, funding, sponsor]),
           "documentation" => package.dig("info", "project_urls", "Documentation"),
           "classifiers" => package["info"]["classifiers"],
           "normalized_name" => package["info"]["name"].downcase.gsub('_', '-').gsub('.', '-'),
@@ -83,6 +83,35 @@ module Ecosystem
       downloads = downloads(package)
       h[:downloads] = downloads if downloads.present?
       h
+    end
+
+    def fetch_valid_funding_link(object, keys)
+      # Normalize keys to lowercase for case-insensitive lookup
+      urls = keys.map do |key|
+        object.find { |k, _| k.downcase == key }&.last
+      end.compact
+
+      fetch_reachable_url(urls)
+    end
+
+    def fetch_reachable_url(urls)
+      connection = Faraday.new do |f|
+        f.response :follow_redirects
+        f.adapter Faraday.default_adapter
+        f.options.timeout = 3
+      end
+
+      urls.each do |url|
+        begin
+          response = connection.get(url)
+          return response.env.url.to_s unless [400, 403, 404, 410].include?(response.status)
+        rescue StandardError => e
+          # Ignore invalid URLs or network errors
+          next
+        end
+      end
+
+      nil
     end
 
     def parse_repository_url(package)

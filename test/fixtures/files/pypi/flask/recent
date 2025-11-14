@@ -1,0 +1,9 @@
+{
+  "data": {
+    "last_day": 6399553,
+    "last_month": 157236987,
+    "last_week": 39375127
+  },
+  "package": "flask",
+  "type": "recent_downloads"
+}
