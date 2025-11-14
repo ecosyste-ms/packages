@@ -115,16 +115,16 @@ GEM
     ffi (1.17.2-arm64-darwin)
     ffi (1.17.2-x86_64-linux-gnu)
     fuzzy_match (2.1.0)
-    google-protobuf (4.33.0)
+    google-protobuf (4.33.1)
       bigdecimal
       rake (>= 13)
-    google-protobuf (4.33.0-aarch64-linux-musl)
+    google-protobuf (4.33.1-aarch64-linux-musl)
       bigdecimal
       rake (>= 13)
-    google-protobuf (4.33.0-arm64-darwin)
+    google-protobuf (4.33.1-arm64-darwin)
       bigdecimal
       rake (>= 13)
-    google-protobuf (4.33.0-x86_64-linux-gnu)
+    google-protobuf (4.33.1-x86_64-linux-gnu)
       bigdecimal
       rake (>= 13)
     groupdate (6.7.0)
@@ -162,8 +162,8 @@ GEM
     mocha (2.8.0)
       ruby2_keywords (>= 0.0.5)
     msgpack (1.8.0)
-    net-http (0.7.0)
-      uri
+    net-http (0.8.0)
+      uri (>= 0.11.1)
     nio4r (2.7.5)
     nokogiri (1.18.10)
       mini_portile2 (~> 2.8.2)
@@ -456,10 +456,10 @@ CHECKSUMS
   ffi (1.17.2-arm64-darwin) sha256=54dd9789be1d30157782b8de42d8f887a3c3c345293b57ffb6b45b4d1165f813
   ffi (1.17.2-x86_64-linux-gnu) sha256=05d2026fc9dbb7cfd21a5934559f16293815b7ce0314846fee2ac8efbdb823ea
   fuzzy_match (2.1.0) sha256=e97e25d0eaee48a5f77ed970d007c7b6ff3c6a6858303fead2d1986859204dfc
-  google-protobuf (4.33.0) sha256=a4918b45bea5889c38fb82da83a5175209600f9c17fb1698be30d635696b3526
-  google-protobuf (4.33.0-aarch64-linux-musl) sha256=a9440136805b61e2d22b3c89d68c852861bc523da721bb763b25ce896638cb83
-  google-protobuf (4.33.0-arm64-darwin) sha256=def1bc3b176785cf9cc806db5d392ff6c66fcaa1ce1da7dbfa3c1f5f4613fb97
-  google-protobuf (4.33.0-x86_64-linux-gnu) sha256=02782270835a6ee35e6abdba478614c8664c9cb793e574cebf4bbf16467479ca
+  google-protobuf (4.33.1) sha256=81d9bcab7a00b30a3fd042e78fcb113a0a0f564b474c64eddc378bf0558c44ec
+  google-protobuf (4.33.1-aarch64-linux-musl) sha256=e3997ef84030af7d24e9f6015fc38bccc0bebe137cbf705b74b0ccd3e2e59e4a
+  google-protobuf (4.33.1-arm64-darwin) sha256=1d86489ed6b21d51b9eb66ca41ab26c243e01193d44bba2be4963e2ad0992103
+  google-protobuf (4.33.1-x86_64-linux-gnu) sha256=8205efe9313f19b5106a912b3c2146d6da5681a2a3427d361613a8f20f3e3750
   groupdate (6.7.0) sha256=beaa8d5bf3856814681914a1d4a20e77436a2214b85d0017dc2ea5c355fb6777
   hashdiff (1.2.1) sha256=9c079dbc513dfc8833ab59c0c2d8f230fa28499cc5efb4b8dd276cf931457cd1
   highline (3.0.1) sha256=ca18b218fd581b1fae832f89bfeaf2b34d3a93429c44fd4411042ffce286f009
@@ -478,7 +478,7 @@ CHECKSUMS
   minitest (5.26.1) sha256=f16a63d4278e230bba342c3bda3006a69c5216d46461b77dd57f7c7c529b5a96
   mocha (2.8.0) sha256=181af80fe8004f01912d3aa287e20498b45d32dc5e282b9d36952eeb2a193e37
   msgpack (1.8.0) sha256=e64ce0212000d016809f5048b48eb3a65ffb169db22238fb4b72472fecb2d732
-  net-http (0.7.0) sha256=4db7d9f558f8ffd4dcf832d0aefd02320c569c7d4f857def49e585069673a425
+  net-http (0.8.0) sha256=df42c47ce9f9e95ad32a317c97c12f945bc1af365288837ea4ff259876ecb46d
   nio4r (2.7.5) sha256=6c90168e48fb5f8e768419c93abb94ba2b892a1d0602cb06eef16d8b7df1dca1
   nokogiri (1.18.10) sha256=d5cc0731008aa3b3a87b361203ea3d19b2069628cb55e46ac7d84a0445e69cc1
   nokogiri (1.18.10-aarch64-linux-musl) sha256=7e74e58314297cc8a8f1b533f7212d1999dbe2639a9ee6d97b483ea2acc18944
