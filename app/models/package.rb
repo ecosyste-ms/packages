@@ -37,6 +37,7 @@ class Package < ApplicationRecord
   scope :keyword, ->(keyword) { where("keywords @> ARRAY[?]::varchar[]", keyword) }
   scope :without_keywords, -> { where(keywords: '{}') }
   scope :with_keywords, -> { where.not(keywords: '{}') }
+  scope :with_licenses, -> { where.not(licenses: [nil, '']) }
 
   scope :without_maintainerships, -> { includes(:maintainerships).where(maintainerships: {package_id: nil}) }
 

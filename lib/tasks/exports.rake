@@ -38,8 +38,24 @@ namespace :exports do
         csv << [package.id, package.ecosystem, package.name, package.normalized_licenses.join('|'), description, readme['plain'], package.keywords.join('|')]
       end
     end
-    
+
     # output the CSV file to stdout
     puts csv
+  end
+
+  desc 'Export top packages with licenses to CSV (usage: rake exports:licenses PERCENT=1)'
+  task licenses: :environment do
+    percent = ENV['PERCENT']&.to_f || 1.0
+
+    puts CSV.generate_line(['ecosystem', 'name', 'licenses'])
+
+    Package
+      .active
+      .top(percent)
+      .with_licenses
+      .select(:ecosystem, :name, :licenses)
+      .each_row do |row|
+        puts CSV.generate_line([row['ecosystem'], row['name'], row['licenses']])
+      end
   end
 end
