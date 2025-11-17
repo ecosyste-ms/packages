@@ -85,11 +85,16 @@ namespace :exports do
         :dependent_packages_count, :downloads, :downloads_period, :rankings
       )
       .each_row do |row|
+        normalized_licenses = JSON.parse(row['normalized_licenses']) rescue []
+        keywords_array = JSON.parse(row['keywords_array']) rescue []
+        metadata = JSON.parse(row['metadata']) rescue {}
+        rankings = JSON.parse(row['rankings']) rescue {}
+
         puts CSV.generate_line([
           row['id'], row['name'], row['ecosystem'], row['description'], row['homepage'], row['licenses'],
-          row['repository_url'], row['normalized_licenses']&.to_json, row['versions_count'], row['first_release_published_at'],
-          row['latest_release_published_at'], row['keywords_array']&.to_json, row['language'], row['status'], row['metadata']&.to_json,
-          row['dependent_packages_count'], row['downloads'], row['downloads_period'], row['rankings']&.to_json
+          row['repository_url'], normalized_licenses.to_json, row['versions_count'], row['first_release_published_at'],
+          row['latest_release_published_at'], keywords_array.to_json, row['language'], row['status'], metadata.to_json,
+          row['dependent_packages_count'], row['downloads'], row['downloads_period'], rankings.to_json
         ])
       end
   end
@@ -110,7 +115,8 @@ namespace :exports do
     scope
       .select(:id, :advisories)
       .each_row do |row|
-        puts CSV.generate_line([row['id'], row['advisories']&.to_json])
+        advisories = JSON.parse(row['advisories']) rescue []
+        puts CSV.generate_line([row['id'], advisories.to_json])
       end
   end
 
@@ -141,7 +147,7 @@ namespace :exports do
     scope
       .select(:id, :issue_metadata)
       .each_row do |row|
-        metadata = row['issue_metadata']
+        metadata = JSON.parse(row['issue_metadata']) rescue {}
         puts CSV.generate_line([
           row['id'],
           metadata['issues_count'],
@@ -193,7 +199,7 @@ namespace :exports do
     scope
       .select(:id, :repo_metadata)
       .each_row do |row|
-        metadata = row['repo_metadata']
+        metadata = JSON.parse(row['repo_metadata']) rescue {}
         puts CSV.generate_line([
           row['id'],
           metadata['id'],
