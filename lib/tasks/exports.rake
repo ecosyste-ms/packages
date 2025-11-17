@@ -59,9 +59,10 @@ namespace :exports do
       end
   end
 
-  desc 'Export top packages to CSV (usage: rake exports:packages PERCENT=1)'
+  desc 'Export top packages to CSV (usage: rake exports:packages PERCENT=1 ECOSYSTEM=npm)'
   task packages: :environment do
     percent = ENV['PERCENT']&.to_f || 1.0
+    ecosystem = ENV['ECOSYSTEM']
 
     puts CSV.generate_line([
       'package_id', 'name', 'ecosystem', 'description', 'homepage', 'licenses',
@@ -70,9 +71,13 @@ namespace :exports do
       'dependent_packages_count', 'downloads', 'downloads_period', 'rankings'
     ])
 
-    Package
-      .active
-      .top(percent)
+    scope = Package.active.top(percent)
+    if ecosystem.present?
+      registry = Registry.where(ecosystem: ecosystem, default: true).first
+      scope = scope.where(registry_id: registry.id) if registry
+    end
+
+    scope
       .select(
         :id, :name, :ecosystem, :description, :homepage, :licenses,
         :repository_url, :normalized_licenses, :versions_count, :first_release_published_at,
@@ -89,25 +94,30 @@ namespace :exports do
       end
   end
 
-  desc 'Export top packages advisories to CSV (usage: rake exports:advisories PERCENT=1)'
+  desc 'Export top packages advisories to CSV (usage: rake exports:advisories PERCENT=1 ECOSYSTEM=npm)'
   task advisories: :environment do
     percent = ENV['PERCENT']&.to_f || 1.0
+    ecosystem = ENV['ECOSYSTEM']
 
     puts CSV.generate_line(['package_id', 'advisories'])
 
-    Package
-      .active
-      .top(percent)
-      .with_advisories
+    scope = Package.active.top(percent).with_advisories
+    if ecosystem.present?
+      registry = Registry.where(ecosystem: ecosystem, default: true).first
+      scope = scope.where(registry_id: registry.id) if registry
+    end
+
+    scope
       .select(:id, :advisories)
       .each_row do |row|
         puts CSV.generate_line([row['id'], row['advisories']&.to_json])
       end
   end
 
-  desc 'Export top packages issue metadata to CSV (usage: rake exports:issue_metadata PERCENT=1)'
+  desc 'Export top packages issue metadata to CSV (usage: rake exports:issue_metadata PERCENT=1 ECOSYSTEM=npm)'
   task issue_metadata: :environment do
     percent = ENV['PERCENT']&.to_f || 1.0
+    ecosystem = ENV['ECOSYSTEM']
 
     puts CSV.generate_line([
       'package_id', 'issues_count', 'pull_requests_count', 'avg_time_to_close_issue',
@@ -122,10 +132,13 @@ namespace :exports do
       'past_year_bot_pull_requests_count', 'past_year_merged_pull_requests_count'
     ])
 
-    Package
-      .active
-      .top(percent)
-      .with_issue_metadata
+    scope = Package.active.top(percent).with_issue_metadata
+    if ecosystem.present?
+      registry = Registry.where(ecosystem: ecosystem, default: true).first
+      scope = scope.where(registry_id: registry.id) if registry
+    end
+
+    scope
       .select(:id, :issue_metadata)
       .each_row do |row|
         metadata = row['issue_metadata']
@@ -159,9 +172,10 @@ namespace :exports do
       end
   end
 
-  desc 'Export top packages repo metadata to CSV (usage: rake exports:repo_metadata PERCENT=1)'
+  desc 'Export top packages repo metadata to CSV (usage: rake exports:repo_metadata PERCENT=1 ECOSYSTEM=npm)'
   task repo_metadata: :environment do
     percent = ENV['PERCENT']&.to_f || 1.0
+    ecosystem = ENV['ECOSYSTEM']
 
     puts CSV.generate_line([
       'package_id', 'id', 'full_name', 'description', 'fork', 'pushed_at',
@@ -170,10 +184,13 @@ namespace :exports do
       'commit_stats', 'scorecard'
     ])
 
-    Package
-      .active
-      .top(percent)
-      .with_repo_metadata
+    scope = Package.active.top(percent).with_repo_metadata
+    if ecosystem.present?
+      registry = Registry.where(ecosystem: ecosystem, default: true).first
+      scope = scope.where(registry_id: registry.id) if registry
+    end
+
+    scope
       .select(:id, :repo_metadata)
       .each_row do |row|
         metadata = row['repo_metadata']
