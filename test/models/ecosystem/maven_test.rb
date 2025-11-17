@@ -113,9 +113,9 @@ class MavenTest < ActiveSupport::TestCase
 
     assert_equal versions_metadata, [
       {:number=>"5.17.225.2", :published_at=>"2022-07-12 12:10:25 +0000", :licenses=>"APL2", 
-       :metadata=>{:properties=>{}, :java_version=>nil, :maven_compiler_source=>nil, :maven_compiler_target=>nil, :maven_compiler_release=>nil, :repositories=>[], :distribution_repositories=>[]}},
+       :metadata=>{:properties=>{}, :java_version=>nil, :maven_compiler_source=>nil, :maven_compiler_target=>nil, :maven_compiler_release=>nil, :repositories=>["https://repo.maven.apache.org/maven2"], :distribution_repositories=>[]}},
       {:number=>"5.17.102.7", :published_at=>"2022-07-12 12:10:25 +0000", :licenses=>"APL2",
-       :metadata=>{:properties=>{}, :java_version=>nil, :maven_compiler_source=>nil, :maven_compiler_target=>nil, :maven_compiler_release=>nil, :repositories=>[], :distribution_repositories=>[]}},
+       :metadata=>{:properties=>{}, :java_version=>nil, :maven_compiler_source=>nil, :maven_compiler_target=>nil, :maven_compiler_release=>nil, :repositories=>["https://repo.maven.apache.org/maven2"], :distribution_repositories=>[]}},
     ]
   end
 
@@ -126,12 +126,12 @@ class MavenTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('dev.zio:zio-aws-autoscaling_3', '5.17.225.2', {})
 
     assert_equal [
-      {:package_name=>"dev.zio:zio-aws-core_3", :requirements=>"5.17.225.2", :kind=>nil, :ecosystem=>"maven"},
-      {:package_name=>"org.scala-lang:scala3-library_3", :requirements=>"3.1.3", :kind=>nil, :ecosystem=>"maven"},
-      {:package_name=>"software.amazon.awssdk:autoscaling", :requirements=>"2.17.225", :kind=>nil, :ecosystem=>"maven"},
-      {:package_name=>"dev.zio:zio_3", :requirements=>"2.0.0", :kind=>nil, :ecosystem=>"maven"},
-      {:package_name=>"dev.zio:zio-streams_3", :requirements=>"2.0.0", :kind=>nil, :ecosystem=>"maven"},
-      {:package_name=>"dev.zio:zio-mock_3", :requirements=>"1.0.0-RC8", :kind=>nil, :ecosystem=>"maven"}
+      {:package_name=>"dev.zio:zio-aws-core_3", :requirements=>"5.17.225.2", :kind=>"compile", :ecosystem=>"maven"},
+      {:package_name=>"org.scala-lang:scala3-library_3", :requirements=>"3.1.3", :kind=>"compile", :ecosystem=>"maven"},
+      {:package_name=>"software.amazon.awssdk:autoscaling", :requirements=>"2.17.225", :kind=>"compile", :ecosystem=>"maven"},
+      {:package_name=>"dev.zio:zio_3", :requirements=>"2.0.0", :kind=>"compile", :ecosystem=>"maven"},
+      {:package_name=>"dev.zio:zio-streams_3", :requirements=>"2.0.0", :kind=>"compile", :ecosystem=>"maven"},
+      {:package_name=>"dev.zio:zio-mock_3", :requirements=>"1.0.0-RC8", :kind=>"compile", :ecosystem=>"maven"}
     ], dependencies_metadata
   end
 
@@ -148,8 +148,8 @@ class MavenTest < ActiveSupport::TestCase
     first_version = versions_metadata.first
     assert_equal first_version[:metadata][:java_version], "11"
     assert_equal first_version[:metadata][:maven_compiler_release], "11"
-    assert_equal first_version[:metadata][:maven_compiler_source], "${maven.compiler.release}"
-    assert_equal first_version[:metadata][:maven_compiler_target], "${maven.compiler.release}"
+    assert_equal first_version[:metadata][:maven_compiler_source], "11"
+    assert_equal first_version[:metadata][:maven_compiler_target], "11"
     assert first_version[:metadata][:properties].key?("maven.compiler.release")
     assert_equal first_version[:metadata][:properties]["maven.compiler.release"], "11"
   end
@@ -185,7 +185,7 @@ class MavenTest < ActiveSupport::TestCase
     
     first_version = versions_metadata.first
     assert_equal first_version[:metadata][:java_version], "17"
-    assert_equal first_version[:metadata][:maven_compiler_release], "${java.version}"
+    assert_equal first_version[:metadata][:maven_compiler_release], "17"
     assert first_version[:metadata][:properties].key?("java.version")
     assert_equal first_version[:metadata][:properties]["java.version"], "17"
   end
@@ -500,5 +500,38 @@ class MavenTest < ActiveSupport::TestCase
     assert_nil versions_metadata[1][:published_at]
   end
 
+  test 'dependencies_metadata netty-nio-client' do
+    stub_request(:get, "https://repo1.maven.org/maven2/software/amazon/awssdk/netty-nio-client/2.5.6/netty-nio-client-2.5.6.pom")
+      .to_return({ status: 200, body: file_fixture('maven/netty-nio-client/netty-nio-client-2.5.6.pom'), headers: { 'last-modified' => 'Fri, 08 Mar 2019 20:22:40 GMT' } })
 
+    dependencies_metadata = @ecosystem.dependencies_metadata('software.amazon.awssdk:netty-nio-client', '2.5.6', {})
+
+    assert_equal dependencies_metadata, [
+      {:package_name=>"software.amazon.awssdk:annotations", :requirements=>"2.5.6", :kind=>"compile", :ecosystem=>"maven"},
+      {:package_name=>"software.amazon.awssdk:http-client-spi", :requirements=>"2.5.6", :kind=>"compile", :ecosystem=>"maven"},
+      {:package_name=>"software.amazon.awssdk:utils", :requirements=>"2.5.6", :kind=>"compile", :ecosystem=>"maven"},
+      {:package_name=>"io.netty:netty-codec-http", :requirements=>"4.1.33.Final", :kind=>"compile", :ecosystem=>"maven"},
+      {:package_name=>"io.netty:netty-codec-http2", :requirements=>"4.1.33.Final", :kind=>"compile", :ecosystem=>"maven"},
+      {:package_name=>"io.netty:netty-codec", :requirements=>"4.1.33.Final", :kind=>"compile", :ecosystem=>"maven"},
+      {:package_name=>"io.netty:netty-transport", :requirements=>"4.1.33.Final", :kind=>"compile", :ecosystem=>"maven"},
+      {:package_name=>"io.netty:netty-common", :requirements=>"4.1.33.Final", :kind=>"compile", :ecosystem=>"maven"},
+      {:package_name=>"io.netty:netty-buffer", :requirements=>"4.1.33.Final", :kind=>"compile", :ecosystem=>"maven"},
+      {:package_name=>"io.netty:netty-handler", :requirements=>"4.1.33.Final", :kind=>"compile", :ecosystem=>"maven"},
+      {:package_name=>"io.netty:netty-transport-native-epoll", :requirements=>"4.1.33.Final", :kind=>"compile", :ecosystem=>"maven"},
+      {:package_name=>"com.typesafe.netty:netty-reactive-streams-http", :requirements=>"2.0.0", :kind=>"compile", :ecosystem=>"maven"},
+      {:package_name=>"org.reactivestreams:reactive-streams", :requirements=>"1.0.2", :kind=>"compile", :ecosystem=>"maven"},
+      {:package_name=>"org.slf4j:slf4j-api", :requirements=>"1.7.25", :kind=>"compile", :ecosystem=>"maven"},
+
+      # test dependencies
+      {:package_name=>"com.github.tomakehurst:wiremock", :requirements=>"2.18.0", :kind=>"test", :ecosystem=>"maven"},
+      {:package_name=>"org.apache.commons:commons-lang3", :requirements=>"3.4", :kind=>"test", :ecosystem=>"maven"},
+      {:package_name=>"junit:junit", :requirements=>"4.12", :kind=>"test", :ecosystem=>"maven"},
+      {:package_name=>"org.mockito:mockito-core", :requirements=>"1.10.19", :kind=>"test", :ecosystem=>"maven"},
+      {:package_name=>"org.assertj:assertj-core", :requirements=>"3.8.0", :kind=>"test", :ecosystem=>"maven"},
+      {:package_name=>"org.reactivestreams:reactive-streams-tck", :requirements=>"1.0.2", :kind=>"test", :ecosystem=>"maven"},
+      {:package_name=>"org.slf4j:slf4j-log4j12", :requirements=>"1.7.25", :kind=>"test", :ecosystem=>"maven"},
+      {:package_name=>"log4j:log4j", :requirements=>"1.2.17", :kind=>"test", :ecosystem=>"maven"}
+    ]
+
+  end
 end

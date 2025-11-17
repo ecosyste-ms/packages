@@ -263,7 +263,7 @@ module Ecosystem
     def dependencies_metadata(name, version, mapped_package)
       group_id, artifact_id = *name.split(':', 2)
       url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.pom"
-      pom_file = request(url).body
+      pom_file = generate_effective_pom(request(url).body)
       Bibliothecary::Parsers::Maven.parse_pom_manifest(pom_file, mapped_package[:properties]).map do |dep|
         {
           package_name: dep[:name],
@@ -417,11 +417,39 @@ module Ecosystem
       missing
     end
 
+    def generate_effective_pom(xml_body)
+      Tempfile.create(%w[pom_ .xml]) do |input_file|
+        File.write(input_file.path, xml_body)
+        input_file.flush
+
+        # Run Maven to generate effective POM
+        Tempfile.create(%w[effective_pom_ .xml]) do |output_file|
+          cmd = [
+            "mvn",
+            "help:effective-pom",
+            "-f", input_file.path,
+            "-Doutput=#{output_file.path}"
+          ]
+          stdout, stderr, status = Open3.capture3(*cmd)
+
+          unless status.success?
+            return xml_body
+          end
+
+          # Parse the effective POM
+          File.read(output_file.path)
+        end
+      end
+
+    rescue => e
+      xml_body
+    end
+
     def download_pom(group_id, artifact_id, version)
       url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.pom"
       pom_request = request(url)
       return nil if pom_request.status == 404
-      xml = Ox.parse(pom_request.body)
+      xml = Ox.parse(generate_effective_pom(pom_request.body))
       return nil if xml.nil?
       published_at = pom_request.headers["Last-Modified"]
       if published_at.present?
