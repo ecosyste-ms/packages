@@ -57,9 +57,9 @@ if maintainers.any?
   end
 end
 
-json.dateCreated @package.first_release_published_at.iso8601 if @package.first_release_published_at.present?
-json.dateModified @package.latest_release_published_at.iso8601 if @package.latest_release_published_at.present?
-json.datePublished @package.latest_release_published_at.iso8601 if @package.latest_release_published_at.present?
+json.dateCreated @package.first_release_published_at.to_date.iso8601 if @package.first_release_published_at.present?
+json.dateModified @package.latest_release_published_at.to_date.iso8601 if @package.latest_release_published_at.present?
+json.datePublished @package.latest_release_published_at.to_date.iso8601 if @package.latest_release_published_at.present?
 
 if @package.first_release_published_at.present?
   json.copyrightYear @package.first_release_published_at.year
