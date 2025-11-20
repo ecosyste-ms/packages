@@ -293,4 +293,42 @@ class PypiTest < ActiveSupport::TestCase
     # Should pick the Source URL
     assert_equal 'https://github.com/test/test-package', repository_url
   end
+
+  test 'pypi package_metadata funding_url flask' do
+    stub_request(:get, "https://pypi.org/pypi/flask/json")
+      .to_return({ status: 200, body: file_fixture('pypi/flask/flask') })
+    stub_request(:get, "https://pypistats.org/api/packages/flask/recent")
+      .to_return({ status: 200, body: file_fixture('pypi/flask/recent') })
+    stub_request(:get, "https://palletsprojects.com/donate")
+      .to_return({ status: 200, body: '' })
+    package_metadata = @ecosystem.package_metadata('flask')
+
+    assert_equal package_metadata[:name], "flask"
+    assert_equal package_metadata[:description], "A simple framework for building complex web applications."
+    assert_nil package_metadata[:homepage]
+    assert_equal package_metadata[:licenses], ""
+    assert_equal package_metadata[:repository_url], "https://github.com/pallets/flask"
+    assert_equal package_metadata[:keywords_array], []
+    assert_equal package_metadata[:downloads], 157236987
+    assert_equal package_metadata[:downloads_period], "last-month"
+    assert_equal package_metadata[:metadata], {
+      "funding"=> "https://palletsprojects.com/donate",
+      "documentation" => "https://flask.palletsprojects.com/",
+      "classifiers"=> [
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Web Environment",
+        "Framework :: Flask",
+        "Intended Audience :: Developers",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+        "Topic :: Internet :: WWW/HTTP :: WSGI",
+        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+        "Topic :: Software Development :: Libraries :: Application Frameworks",
+        "Typing :: Typed"
+      ],
+      "normalized_name"=>"flask",
+      "project_status"=>nil
+    }
+  end
 end

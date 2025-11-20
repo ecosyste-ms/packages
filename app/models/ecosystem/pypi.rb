@@ -70,7 +70,7 @@ module Ecosystem
         releases: package['releases'],
         downloads_period: 'last-month',
         metadata: {
-          "funding" => package.dig("info", "project_urls", "Funding"),
+          "funding" => fetch_funding_link(package.dig("info", "project_urls") || {}, %w[donate donation funding sponsor]),
           "documentation" => package.dig("info", "project_urls", "Documentation"),
           "classifiers" => package["info"]["classifiers"],
           "normalized_name" => package["info"]["name"].downcase.gsub('_', '-').gsub('.', '-'),
@@ -83,6 +83,19 @@ module Ecosystem
       downloads = downloads(package)
       h[:downloads] = downloads if downloads.present?
       h
+    end
+
+    def fetch_funding_link(object, keys)
+      # Normalize keys to lowercase for case-insensitive lookup
+      # return after the first element found
+      keys.each do |key|
+        value = object.find { |k, _|
+            k.downcase == key
+          }&.last
+        return value if value
+      end
+      
+      nil
     end
 
     def parse_repository_url(package)
