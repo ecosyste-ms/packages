@@ -1,6 +1,8 @@
 class Api::V1::RegistriesController < Api::V1::ApplicationController
   def index
-    @pagy, @registries = pagy(Registry.order('packages_count desc'))
+    scope = Registry.all
+    scope = scope.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
+    @pagy, @registries = pagy(scope.order('packages_count desc'))
     fresh_when @registries, public: true
   end
 
