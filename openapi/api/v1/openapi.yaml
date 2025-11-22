@@ -1262,6 +1262,38 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VersionWithDependencies'
+  /registries/{registryName}/packages/{packageName}/versions/{versionNumber}/codemeta:
+    get:
+      summary: get CodeMeta metadata for a version
+      operationId: getRegistryPackageVersionCodeMeta
+      tags:
+        - packages
+      parameters:
+        - in: path
+          name: registryName
+          schema:
+            type: string
+          required: true
+          description: name of registry
+        - in: path
+          name: packageName
+          schema:
+            type: string
+          required: true
+          description: name of package
+        - in: path
+          name: versionNumber
+          schema:
+            type: string
+          required: true
+          description: number of version
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeMeta'
   /dependencies:
     get:
       summary: list dependencies
@@ -1598,6 +1630,7 @@ components:
         - updated_at
         - purl
         - version_url
+        - codemeta_url
         - related_tag
         - latest
       type: object
@@ -1643,6 +1676,8 @@ components:
           type: string
         version_url:
           type: string
+        codemeta_url:
+          type: string
         related_tag:
           type: object
     VersionWithDependencies:
@@ -1661,6 +1696,7 @@ components:
         - updated_at
         - purl
         - version_url
+        - codemeta_url
         - related_tag
         - latest
         - dependencies
@@ -1707,6 +1743,8 @@ components:
             type: string
           version_url:
             type: string
+          codemeta_url:
+            type: string
           related_tag:
             type: object
           latest:
@@ -1732,6 +1770,7 @@ components:
         - updated_at
         - purl
         - version_url
+        - codemeta_url
         - related_tag
         - latest
         - package_url
@@ -1780,6 +1819,8 @@ components:
           type: boolean
         version_url:
             type: string
+        codemeta_url:
+          type: string
         package_url:
           type: string
     Dependency:
