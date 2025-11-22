@@ -23,7 +23,8 @@
     <% if @version.download_url.present? %>
       <%= link_to 'Download', @version.download_url, target: :_blank %> -
     <% end %>
-    <%= link_to 'JSON', api_v1_registry_package_version_url(@registry, @package, @version)%>
+    <%= link_to 'JSON', api_v1_registry_package_version_url(@registry, @package, @version)%> -
+    <%= link_to 'codemeta.json', codemeta_api_v1_registry_package_version_url(@registry, @package, @version)%>
     <% if @version.integrity.present? %>
       <br>Integrity: <span title='<%= @version.integrity %>'><%= truncate(@version.integrity) %> -
     <% end %>
