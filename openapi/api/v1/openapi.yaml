@@ -287,15 +287,21 @@ paths:
       tags:
         - registries
       parameters:
+        - name: ecosystem
+          in: query
+          description: filter by ecosystem name
+          required: false
+          schema:
+            type: string
         - name: page
           in: query
-          description: pagination page number 
+          description: pagination page number
           required: false
           schema:
             type: integer
         - name: per_page
           in: query
-          description: Number of records to return 
+          description: Number of records to return
           required: false
           schema:
             type: integer
