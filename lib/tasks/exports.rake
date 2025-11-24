@@ -66,9 +66,9 @@ namespace :exports do
 
     puts CSV.generate_line([
       'package_id', 'name', 'ecosystem', 'description', 'homepage', 'licenses',
-      'repository_url', 'normalized_licenses', 'versions_count', 'first_release_published_at',
-      'latest_release_published_at', 'keywords_array', 'language', 'status', 'metadata',
-      'dependent_packages_count', 'downloads', 'downloads_period', 'rankings'
+      'repository_url', 'versions_count', 'first_release_published_at',
+      'latest_release_published_at', 'metadata',
+      'dependent_packages_count', 'downloads', 'rankings'
     ])
 
     scope = Package.active.top(percent)
@@ -80,21 +80,19 @@ namespace :exports do
     scope
       .select(
         :id, :name, :ecosystem, :description, :homepage, :licenses,
-        :repository_url, :normalized_licenses, :versions_count, :first_release_published_at,
-        :latest_release_published_at, :keywords_array, :language, :status, :metadata,
-        :dependent_packages_count, :downloads, :downloads_period, :rankings
+        :repository_url, :versions_count, :first_release_published_at,
+        :latest_release_published_at, :metadata,
+        :dependent_packages_count, :downloads, :rankings
       )
       .each_row do |row|
-        normalized_licenses = JSON.parse(row['normalized_licenses']) rescue []
-        keywords_array = JSON.parse(row['keywords_array']) rescue []
         metadata = JSON.parse(row['metadata']) rescue {}
         rankings = JSON.parse(row['rankings']) rescue {}
 
         puts CSV.generate_line([
           row['id'], row['name'], row['ecosystem'], row['description'], row['homepage'], row['licenses'],
-          row['repository_url'], normalized_licenses.to_json, row['versions_count'], row['first_release_published_at'],
-          row['latest_release_published_at'], keywords_array.to_json, row['language'], row['status'], metadata.to_json,
-          row['dependent_packages_count'], row['downloads'], row['downloads_period'], rankings.to_json
+          row['repository_url'], row['versions_count'], row['first_release_published_at'],
+          row['latest_release_published_at'], metadata.to_json,
+          row['dependent_packages_count'], row['downloads'], rankings.to_json
         ])
       end
   end
@@ -187,7 +185,7 @@ namespace :exports do
       'package_id', 'id', 'full_name', 'description', 'fork', 'pushed_at',
       'stargazers_count', 'open_issues_count', 'forks_count', 'subscribers_count',
       'topics', 'homepage', 'language', 'has_issues', 'created_at', 'updated_at',
-      'commit_stats', 'scorecard'
+      'commit_stats', 'scorecard_score'
     ])
 
     scope = Package.active.top(percent).with_repo_metadata
@@ -200,6 +198,9 @@ namespace :exports do
       .select(:id, :repo_metadata)
       .each_row do |row|
         metadata = JSON.parse(row['repo_metadata']) rescue {}
+        scorecard = metadata['scorecard'] || {}
+        scorecard_score = scorecard['score']
+
         puts CSV.generate_line([
           row['id'],
           metadata['id'],
@@ -218,7 +219,7 @@ namespace :exports do
           metadata['created_at'],
           metadata['updated_at'],
           metadata['commit_stats']&.to_json,
-          metadata['scorecard']&.to_json
+          scorecard_score
         ])
       end
   end
