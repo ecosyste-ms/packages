@@ -5,15 +5,23 @@ on:
   schedule:
     - cron: "0 0 * * 0" # Runs weekly
 
-permissions:
-  contents: write
-  pull-requests: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
 
 jobs:
   upgrade-ruby:
+    name: Upgrade Ruby version
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to update .ruby-version and other files
+      pull-requests: write # Needed to create pull requests with Ruby upgrades
     steps:
-      - uses: actions/checkout@v6
-      - uses: andrew/ruby-upgrade-action@main
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+        with:
+          persist-credentials: false
+      - uses: andrew/ruby-upgrade-action@68cb37826b94a9f50b1ff1da9ad12f65d5b619be
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}

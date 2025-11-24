@@ -1,0 +1,29 @@
+name: Zizmor Security Audit
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  zizmor:
+    name: Audit GitHub Actions
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write # Needed to upload SARIF results to GitHub Security
+      contents: read # Needed to checkout repository
+      actions: read # Needed to analyze workflow files
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+      - uses: zizmorcore/zizmor-action@e673c3917a1aef3c65c972347ed84ccd013ecda4
+        with:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
