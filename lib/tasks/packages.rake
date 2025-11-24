@@ -20,6 +20,11 @@ namespace :packages do
     Registry.sync_all_packages
   end
 
+  desc 'sync all packages async'
+  task sync_all_async: :environment do
+    Registry.sync_all_packages_async
+  end
+
   desc 'sync least recently synced packages'
   task sync_least_recent: :environment do
     Package.sync_least_recent_async
