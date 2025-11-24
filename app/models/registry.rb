@@ -26,6 +26,10 @@ class Registry < ApplicationRecord
     not_docker.each(&:sync_all_packages)
   end
 
+  def self.sync_all_packages_async
+    not_docker.each(&:sync_all_packages_async)
+  end
+
   def self.sync_all_missing_packages_async
     not_docker.each(&:sync_missing_packages_async)
   end

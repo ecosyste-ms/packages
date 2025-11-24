@@ -144,6 +144,12 @@ class RegistryTest < ActiveSupport::TestCase
     Registry.sync_all_recently_updated_packages_async
   end
 
+  test 'Registry.sync_all_packages_async' do
+    @registry.expects(:sync_all_packages_async).returns(true)
+    Registry.stubs(:not_docker).returns([@registry])
+    Registry.sync_all_packages_async
+  end
+
   test 'sync_package does not trigger N+1 when checking for existing dependencies' do
     # Create package with existing versions that have dependencies
     package = @registry.packages.create!(name: 'test-package', ecosystem: @registry.ecosystem)
