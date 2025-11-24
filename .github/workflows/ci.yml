@@ -2,14 +2,22 @@ name: CI
 
 on: [push]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
 jobs:
   verify:
     name: Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     services:
       postgres:
-        image: postgres:14
+        image: postgres:14@sha256:ca25035f7e6f74552655a1c5e4a9eb21f85e9d316f1f70371f790ef70095dd58
         env:
           POSTGRES_USER: packages
           POSTGRES_DB: packages_test
@@ -21,17 +29,19 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       redis:
-        image: redis
+        image: redis@sha256:43355efd22490e31ca14b9d569367d05121e2be61fd8e47937563ae2a80952ae
         ports:
         - 6379:6379
         options: --entrypoint redis-server
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+        with:
+          persist-credentials: false
       - name: Install dependent libraries
         run: sudo apt-get install libpq-dev
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@8aeb6ff8030dd539317f8e1769a044873b56ea71
         with:
           bundler-cache: true
 
