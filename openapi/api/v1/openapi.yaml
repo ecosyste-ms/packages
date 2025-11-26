@@ -220,6 +220,120 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/PackageWithRegistry'
+  /packages/critical:
+    get:
+      summary: list all critical packages
+      operationId: getCriticalPackagesList
+      tags:
+        - packages
+      parameters:
+        - name: page
+          in: query
+          description: pagination page number
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+            type: integer
+        - name: created_after
+          in: query
+          description: filter by created_at after given time
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: updated_after
+          in: query
+          description: filter by updated_at after given time
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: created_before
+          in: query
+          description: filter by created_at before given time
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: updated_before
+          in: query
+          description: filter by updated_at before given time
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: funding
+          in: query
+          description: filter by packages with funding information
+          required: false
+          schema:
+            type: boolean
+        - name: sort
+          in: query
+          description: field to sort results by
+          required: false
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: direction to sort results by (asc or desc)
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PackageWithRegistry'
+  /packages/bulk_lookup:
+    post:
+      summary: lookup multiple packages by repository URLs, PURLs, or names
+      operationId: bulkLookupPackages
+      tags:
+        - packages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                repository_urls:
+                  type: array
+                  description: array of repository URLs to lookup
+                  items:
+                    type: string
+                purls:
+                  type: array
+                  description: array of package URLs to lookup
+                  items:
+                    type: string
+                names:
+                  type: array
+                  description: array of package names to lookup
+                  items:
+                    type: string
+                ecosystem:
+                  type: string
+                  description: filter results by ecosystem name
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PackageWithRegistry'
   /keywords:
     get:
       summary: list keywords
@@ -1358,6 +1472,18 @@ paths:
         - name: after
           in: query
           description: filter by id after given id
+          required: false
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: field to order results by
+          required: false
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: direction to order results by
           required: false
           schema:
             type: string
