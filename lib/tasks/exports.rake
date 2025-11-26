@@ -52,7 +52,6 @@ namespace :exports do
     Package
       .active
       .top(percent)
-      .with_licenses
       .select(:ecosystem, :name, :licenses)
       .each_row do |row|
         puts CSV.generate_line([row['ecosystem'], row['name'], row['licenses']])
