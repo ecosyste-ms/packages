@@ -162,8 +162,114 @@ class PypiTest < ActiveSupport::TestCase
     ]
   end
 
-  test 'maintainer_url' do 
+  test 'maintainer_url' do
     assert_equal @ecosystem.maintainer_url(@maintainer), 'https://pypi.org/user/foo/'
+  end
+
+  test 'parse_xmlrpc_response parses package_roles response' do
+    xml_response = <<~XML
+      <?xml version='1.0'?>
+      <methodResponse>
+        <params>
+          <param>
+            <value>
+              <array>
+                <data>
+                  <value>
+                    <array>
+                      <data>
+                        <value><string>Owner</string></value>
+                        <value><string>alice</string></value>
+                      </data>
+                    </array>
+                  </value>
+                  <value>
+                    <array>
+                      <data>
+                        <value><string>Maintainer</string></value>
+                        <value><string>bob</string></value>
+                      </data>
+                    </array>
+                  </value>
+                </data>
+              </array>
+            </value>
+          </param>
+        </params>
+      </methodResponse>
+    XML
+
+    result = @ecosystem.parse_xmlrpc_response(xml_response)
+    assert_equal [["Owner", "alice"], ["Maintainer", "bob"]], result
+  end
+
+  test 'parse_xmlrpc_response raises on fault' do
+    xml_response = <<~XML
+      <?xml version='1.0'?>
+      <methodResponse>
+        <fault>
+          <value><string>Error</string></value>
+        </fault>
+      </methodResponse>
+    XML
+
+    assert_raises(RuntimeError) { @ecosystem.parse_xmlrpc_response(xml_response) }
+  end
+
+  test 'maintainers_metadata with xmlrpc' do
+    xml_response = <<~XML
+      <?xml version='1.0'?>
+      <methodResponse>
+        <params>
+          <param>
+            <value>
+              <array>
+                <data>
+                  <value>
+                    <array>
+                      <data>
+                        <value><string>Owner</string></value>
+                        <value><string>testuser</string></value>
+                      </data>
+                    </array>
+                  </value>
+                </data>
+              </array>
+            </value>
+          </param>
+        </params>
+      </methodResponse>
+    XML
+
+    stub_request(:post, "https://pypi.org/pypi")
+      .to_return({ status: 200, body: xml_response, headers: { 'Content-Type' => 'text/xml' } })
+
+    result = @ecosystem.maintainers_metadata('somepackage')
+    assert_equal [{ uuid: 'testuser', login: 'testuser', role: 'Owner' }], result
+  end
+
+  test 'maintainers_metadata falls back on error' do
+    stub_request(:post, "https://pypi.org/pypi")
+      .to_return({ status: 500, body: 'error' })
+    stub_request(:get, "https://pypi.org/project/somepackage/")
+      .to_return({ status: 200, body: '<div class="sidebar-section__maintainer"><a>fallbackuser</a></div>' })
+
+    result = @ecosystem.maintainers_metadata('somepackage')
+    assert_equal [{ uuid: 'fallbackuser', login: 'fallbackuser' }], result
+  end
+
+  test 'fallback_maintainers_metadata deduplicates maintainers' do
+    html = <<~HTML
+      <div class="sidebar-section__maintainer"><a>alice</a></div>
+      <div class="sidebar-section__maintainer"><a>bob</a></div>
+      <div class="sidebar-section__maintainer"><a>alice</a></div>
+      <div class="sidebar-section__maintainer"><a>bob</a></div>
+    HTML
+    stub_request(:get, "https://pypi.org/project/somepackage/")
+      .to_return({ status: 200, body: html })
+
+    result = @ecosystem.fallback_maintainers_metadata('somepackage')
+    assert_equal [{ uuid: 'alice', login: 'alice' }, { uuid: 'bob', login: 'bob' }], result
   end
 
   test 'parse_repository_url' do

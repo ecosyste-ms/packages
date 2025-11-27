@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-require "xmlrpc/client"
+require "rexml/document"
 
 module Ecosystem
   class Pypi < Base
@@ -229,8 +229,7 @@ module Ecosystem
     end
     
     def maintainers_metadata(name)
-      server = XMLRPC::Client.new 'pypi.org', 'pypi', 80
-      roles = server.call 'package_roles', name
+      roles = xmlrpc_package_roles(name)
 
       roles.map do |role, user|
         {
@@ -243,10 +242,45 @@ module Ecosystem
       fallback_maintainers_metadata(name)
     end
 
+    def xmlrpc_package_roles(name)
+      xml_request = <<~XML
+        <?xml version="1.0"?>
+        <methodCall>
+          <methodName>package_roles</methodName>
+          <params>
+            <param><value><string>#{name}</string></value></param>
+          </params>
+        </methodCall>
+      XML
+
+      response = Faraday.post("https://pypi.org/pypi", xml_request, "Content-Type" => "text/xml")
+      raise "XML-RPC request failed: #{response.status}" unless response.success?
+
+      parse_xmlrpc_response(response.body)
+    end
+
+    def parse_xmlrpc_response(xml)
+      doc = REXML::Document.new(xml)
+
+      if fault = doc.elements["methodResponse/fault"]
+        raise "XML-RPC fault"
+      end
+
+      # Response structure: methodResponse/params/param/value/array/data/value*
+      # Each value contains an array with [role, username]
+      results = []
+      doc.elements.each("methodResponse/params/param/value/array/data/value") do |value_elem|
+        role = value_elem.elements["array/data/value[1]/string"]&.text
+        user = value_elem.elements["array/data/value[2]/string"]&.text
+        results << [role, user] if role && user
+      end
+      results
+    end
+
     def fallback_maintainers_metadata(name)
       url = "https://pypi.org/project/#{name}/"
       page = Nokogiri::HTML(get_raw(url))
-      maintainers = page.css('.sidebar-section__maintainer a').map(&:text).map(&:strip)
+      maintainers = page.css('.sidebar-section__maintainer a').map(&:text).map(&:strip).uniq
       maintainers.map do |maintainer|
         {
           uuid: maintainer,

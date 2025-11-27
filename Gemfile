@@ -47,7 +47,6 @@ gem "groupdate"
 gem 'jquery-rails'
 gem 'addressable'
 gem 'google-protobuf'
-gem "xmlrpc"
 gem 'rexml'
 gem 'appsignal'
 gem 'faraday-typhoeus'
