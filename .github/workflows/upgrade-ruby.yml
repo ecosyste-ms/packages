@@ -19,7 +19,7 @@ jobs:
       contents: write # Needed to update .ruby-version and other files
       pull-requests: write # Needed to create pull requests with Ruby upgrades
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
           persist-credentials: false
       - uses: andrew/ruby-upgrade-action@68cb37826b94a9f50b1ff1da9ad12f65d5b619be
