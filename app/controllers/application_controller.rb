@@ -40,6 +40,24 @@ class ApplicationController < ActionController::Base
 
   private
 
+  def find_package_with_fallback(registry, package_name)
+    package = registry.packages.find_by_name(package_name)
+    return package if package.present?
+
+    case registry.ecosystem
+    when 'pypi'
+      registry.packages.find_by_normalized_name!(package_name)
+    when 'docker'
+      if package_name.include?('/')
+        registry.packages.find_by_name!(package_name.downcase)
+      else
+        registry.packages.find_by_name!("library/#{package_name}")
+      end
+    else
+      registry.packages.find_by_name!(package_name.downcase)
+    end
+  end
+
   def normalize_url(url)
     return nil if url.nil?
     url.to_s.downcase.sub(/\/+$/, '')

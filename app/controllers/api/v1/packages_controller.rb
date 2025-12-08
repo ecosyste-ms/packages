@@ -197,18 +197,8 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
   def show
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = @registry.packages.includes(maintainerships: {maintainer: :registry}).find_by_name(params[:id])
+    @package ||= find_package_with_fallback(@registry, params[:id])
     fresh_when @package, public: true
-    if @package.nil?
-      # TODO: This is a temporary fix for pypi packages with underscores in their name
-      # should redirect to the correct package name
-      if @registry.ecosystem == 'pypi'
-        @package = @registry.packages.find_by_normalized_name!(params[:id])
-      elsif @registry.ecosystem == 'docker' && !params[:id].include?('/')
-        @package = @registry.packages.find_by_name!("library/#{params[:id]}")
-      else
-        @package = @registry.packages.find_by_name!(params[:id].downcase)
-      end
-    end
   end
 
   def dependent_packages
