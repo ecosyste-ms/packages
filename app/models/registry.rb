@@ -58,6 +58,24 @@ class Registry < ApplicationRecord
     end
   end
 
+  def find_package_with_fallback(package_name)
+    package = packages.find_by_name(package_name)
+    return package if package.present?
+
+    case ecosystem
+    when 'pypi'
+      packages.find_by_normalized_name!(package_name)
+    when 'docker'
+      if package_name.include?('/')
+        packages.find_by_name!(package_name.downcase)
+      else
+        packages.find_by_name!("library/#{package_name}")
+      end
+    else
+      packages.find_by_name!(package_name.downcase)
+    end
+  end
+
   def all_package_names
     ecosystem_instance.all_package_names
   end

@@ -34,14 +34,14 @@ class PackagesController < ApplicationController
 
   def show
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = find_package_with_fallback(@registry, params[:id])
+    @package = @registry.find_package_with_fallback(params[:id])
     @pagy, @versions = pagy_countless(@package.versions.order('published_at DESC, created_at DESC'))
     fresh_when(@package, public: true)
   end
 
   def dependent_packages
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = find_package_with_fallback(@registry, params[:id])
+    @package = @registry.find_package_with_fallback(params[:id])
 
     if params[:latest] == 'false'
       scope = @package.dependent_packages(kind: params[:kind]).includes(:registry)
@@ -73,14 +73,14 @@ class PackagesController < ApplicationController
 
   def maintainers
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = find_package_with_fallback(@registry, params[:id])
+    @package = @registry.find_package_with_fallback(params[:id])
     fresh_when(@package, public: true)
     @pagy, @maintainers = pagy_countless(@package.maintainerships.includes(maintainer: :registry))
   end
 
   def related_packages
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = find_package_with_fallback(@registry, params[:id])
+    @package = @registry.find_package_with_fallback(params[:id])
 
     scope = @package.related_packages.includes(:registry)
     if params[:sort].present? || params[:order].present?
@@ -101,7 +101,7 @@ class PackagesController < ApplicationController
 
   def advisories
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = find_package_with_fallback(@registry, params[:id])
+    @package = @registry.find_package_with_fallback(params[:id])
     fresh_when(@package, public: true)
   end
 

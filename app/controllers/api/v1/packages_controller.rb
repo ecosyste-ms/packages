@@ -197,7 +197,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
   def show
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = @registry.packages.includes(maintainerships: {maintainer: :registry}).find_by_name(params[:id])
-    @package ||= find_package_with_fallback(@registry, params[:id])
+    @package ||= @registry.find_package_with_fallback(params[:id])
     fresh_when @package, public: true
   end
 
