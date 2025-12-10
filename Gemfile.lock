@@ -83,7 +83,7 @@ GEM
     crass (1.0.6)
     csv (3.3.5)
     dalli (3.2.8)
-    date (3.5.0)
+    date (3.5.1)
     deb_control (0.0.1)
     dotenv (3.2.0)
     dotenv-rails (3.2.0)
@@ -432,7 +432,7 @@ CHECKSUMS
   crass (1.0.6) sha256=dc516022a56e7b3b156099abc81b6d2b08ea1ed12676ac7a5657617f012bd45d
   csv (3.3.5) sha256=6e5134ac3383ef728b7f02725d9872934f523cb40b961479f69cf3afa6c8e73f
   dalli (3.2.8) sha256=2e63595084d91fae2655514a02c5d4fc0f16c0799893794abe23bf628bebaaa5
-  date (3.5.0) sha256=5e74fd6c04b0e65d97ad4f3bb5cb2d8efb37f386cc848f46310b4593ffc46ee5
+  date (3.5.1) sha256=750d06384d7b9c15d562c76291407d89e368dda4d4fff957eb94962d325a0dc0
   deb_control (0.0.1) sha256=4ddb6c8ece9c57d93e45edc20340f72fcbff8a1d65b5daa8a45b5d990cd51532
   dotenv (3.2.0) sha256=e375b83121ea7ca4ce20f214740076129ab8514cd81378161f11c03853fe619d
   dotenv-rails (3.2.0) sha256=657e25554ba622ffc95d8c4f1670286510f47f2edda9f68293c3f661b303beab
