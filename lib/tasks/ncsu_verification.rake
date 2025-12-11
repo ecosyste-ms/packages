@@ -40,15 +40,29 @@ namespace :ncsu do
     end
     puts "\rStep 3a: filtering packages with dependents... #{step2_with_dependents.length}                    "
 
-    print "Step 3b: checking for dependencies and loading package data..."
+    # Step 3b: Check which packages have dependencies on their latest version
+    # First batch fetch all version IDs
+    print "Step 3b: fetching version IDs..."
+    pkg_to_version = {}
+    step2_with_dependents.each_slice(1000).with_index do |batch, i|
+      print "\rStep 3b: fetching version IDs... #{i * 1000}/#{step2_with_dependents.length}"
+      $stdout.flush
+      Version.where(package_id: batch, latest: true).pluck(:package_id, :id).each do |pkg_id, version_id|
+        pkg_to_version[pkg_id] = version_id
+      end
+    end
+    puts "\rStep 3b: fetching version IDs... #{pkg_to_version.length}                    "
+
+    # Then batch check which versions have dependencies
+    print "Step 3b: checking for dependencies..."
     step3_ids = []
-    step2_with_dependents.each_slice(100).with_index do |batch, i|
-      print "\rStep 3b: checking for dependencies... #{i * 100}/#{step2_with_dependents.length}"
-      packages_with_deps = Version.where(package_id: batch, latest: true)
-                                  .joins(:dependencies)
-                                  .distinct
-                                  .pluck(:package_id)
-      step3_ids.concat(packages_with_deps)
+    version_to_pkg = pkg_to_version.invert
+    pkg_to_version.values.each_slice(1000).with_index do |batch, i|
+      print "\rStep 3b: checking for dependencies... #{i * 1000}/#{pkg_to_version.length}"
+      $stdout.flush
+      Dependency.where(version_id: batch).distinct.pluck(:version_id).each do |version_id|
+        step3_ids << version_to_pkg[version_id]
+      end
     end
     puts "\rStep 3b: checking for dependencies... #{step3_ids.length}                    "
 
