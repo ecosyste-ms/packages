@@ -53,7 +53,7 @@ gem 'faraday-typhoeus'
 gem 'purl'
 gem 'sitemap_generator'
 gem 'dalli'
-gem "connection_pool", "<3"
+gem "connection_pool", "<4"
 gem 'postgresql_cursor'
 gem 'rack-timeout'
 gem "lograge"
