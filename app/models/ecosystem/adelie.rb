@@ -77,7 +77,7 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      packages.sort_by{|p| p['t']}.reverse.map{|p| p['P'] }.first(100)
+      packages.sort_by{|p| p['t'].to_i}.reverse.map{|p| p['P'] }.first(100)
     end
 
     def fetch_package_metadata(name)

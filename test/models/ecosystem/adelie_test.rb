@@ -105,4 +105,19 @@ class AdelieTest < ActiveSupport::TestCase
     assert_equal purl, 'pkg:apk/adelie/abuild@3.5-r0?arch=x86_64'
     assert Purl.parse(purl)
   end
+
+  test 'recently_updated_package_names handles packages with nil timestamps' do
+    packages_with_nil_timestamp = [
+      { 'P' => 'pkg-with-time', 't' => '1700000000', 'r' => 'system' },
+      { 'P' => 'pkg-without-time', 't' => nil, 'r' => 'system' },
+      { 'P' => 'pkg-missing-time', 'r' => 'system' }
+    ]
+    @ecosystem.stubs(:packages).returns(packages_with_nil_timestamp)
+
+    result = @ecosystem.recently_updated_package_names
+    assert_includes result, 'pkg-with-time'
+    assert_includes result, 'pkg-without-time'
+    assert_includes result, 'pkg-missing-time'
+    assert_equal 'pkg-with-time', result.first
+  end
 end
