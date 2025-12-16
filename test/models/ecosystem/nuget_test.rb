@@ -422,4 +422,98 @@ class NugetTest < ActiveSupport::TestCase
     assert dependency_summary.has_key?("target_frameworks")
     assert dependency_summary.has_key?("total_dependencies")
   end
+
+  test 'versions_metadata includes deprecation info when present' do
+    stub_request(:get, "https://api.nuget.org/v3/registration5-gz-semver2/oldpackage/index.json")
+      .to_return({ status: 200, body: file_fixture('nuget/deprecated_package_registration.json') })
+    stub_request(:get, "https://azuresearch-usnc.nuget.org/query?q=packageid:oldpackage")
+      .to_return({ status: 200, body: '{"data":[]}' })
+    stub_request(:get, "https://api.nuget.org/v3-flatcontainer/oldpackage/1.0.0/oldpackage.nuspec")
+      .to_return({ status: 404, body: "" })
+    stub_request(:get, "https://api.nuget.org/v3-flatcontainer/oldpackage/2.0.0/oldpackage.nuspec")
+      .to_return({ status: 404, body: "" })
+
+    package_metadata = @ecosystem.package_metadata('oldpackage')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+
+    assert_equal 2, versions_metadata.length
+
+    first_version = versions_metadata.find { |v| v[:number] == "1.0.0" }
+    assert_equal "deprecated", first_version[:status]
+    assert_not_nil first_version[:metadata][:deprecation]
+    assert_equal ["Legacy"], first_version[:metadata][:deprecation]["reasons"]
+    assert_equal "This package is no longer maintained", first_version[:metadata][:deprecation]["message"]
+    assert_equal "NewPackage", first_version[:metadata][:deprecation]["alternatePackage"]["id"]
+
+    second_version = versions_metadata.find { |v| v[:number] == "2.0.0" }
+    assert_equal "deprecated", second_version[:status]
+    assert_includes second_version[:metadata][:deprecation]["reasons"], "CriticalBugs"
+    assert_includes second_version[:metadata][:deprecation]["reasons"], "Legacy"
+  end
+
+  test 'versions_metadata sets unlisted status' do
+    stub_request(:get, "https://api.nuget.org/v3/registration5-gz-semver2/unlistedpackage/index.json")
+      .to_return({ status: 200, body: file_fixture('nuget/unlisted_package_registration.json') })
+    stub_request(:get, "https://azuresearch-usnc.nuget.org/query?q=packageid:unlistedpackage")
+      .to_return({ status: 200, body: '{"data":[]}' })
+    stub_request(:get, "https://api.nuget.org/v3-flatcontainer/unlistedpackage/1.0.0/unlistedpackage.nuspec")
+      .to_return({ status: 404, body: "" })
+
+    package_metadata = @ecosystem.package_metadata('unlistedpackage')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+
+    assert_equal 1, versions_metadata.length
+    assert_equal "unlisted", versions_metadata.first[:status]
+    assert_equal false, versions_metadata.first[:metadata][:listed]
+  end
+
+  test 'check_status returns deprecated when all listed versions are deprecated' do
+    stub_request(:get, "https://api.nuget.org/v3-flatcontainer/ogcapi.net.sqlserver/index.json")
+      .to_return({ status: 200, body: '{"versions":["1.0.0","2.0.0"]}' })
+    stub_request(:get, "https://www.nuget.org/packages/ogcapi.net.sqlserver/")
+      .to_return({ status: 200, body: '' })
+    stub_request(:get, "https://api.nuget.org/v3/registration5-gz-semver2/ogcapi.net.sqlserver/index.json")
+      .to_return({ status: 200, body: file_fixture('nuget/deprecated_package_registration.json') })
+
+    @package.name = 'ogcapi.net.sqlserver'
+    status = @ecosystem.check_status(@package)
+    assert_equal "deprecated", status
+  end
+
+  test 'check_status returns nil when not all versions are deprecated' do
+    stub_request(:get, "https://api.nuget.org/v3-flatcontainer/ogcapi.net.sqlserver/index.json")
+      .to_return({ status: 200, body: '{"versions":["0.3.0","0.3.1"]}' })
+    stub_request(:get, "https://www.nuget.org/packages/ogcapi.net.sqlserver/")
+      .to_return({ status: 200, body: '' })
+    stub_request(:get, "https://api.nuget.org/v3/registration5-gz-semver2/ogcapi.net.sqlserver/index.json")
+      .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
+
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+  end
+
+  test 'deprecation_info returns deprecation details for deprecated package' do
+    stub_request(:get, "https://api.nuget.org/v3/registration5-gz-semver2/oldpackage/index.json")
+      .to_return({ status: 200, body: file_fixture('nuget/deprecated_package_registration.json') })
+
+    info = @ecosystem.deprecation_info('oldpackage')
+
+    assert_equal true, info[:is_deprecated]
+    assert_includes info[:message], "CriticalBugs"
+    assert_includes info[:message], "Legacy"
+    assert_includes info[:message], "Critical security issues found"
+    assert_includes info[:message], "Use NewPackage instead"
+    assert_equal ["CriticalBugs", "Legacy"], info[:reasons]
+    assert_equal "NewPackage", info[:alternate_package]["id"]
+  end
+
+  test 'deprecation_info returns not deprecated for normal package' do
+    stub_request(:get, "https://api.nuget.org/v3/registration5-gz-semver2/ogcapi.net.sqlserver/index.json")
+      .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
+
+    info = @ecosystem.deprecation_info('ogcapi.net.sqlserver')
+
+    assert_equal false, info[:is_deprecated]
+    assert_nil info[:message]
+  end
 end

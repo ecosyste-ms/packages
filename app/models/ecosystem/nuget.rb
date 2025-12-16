@@ -29,8 +29,22 @@ module Ecosystem
       return "removed" if [400, 404, 410].include?(response.status)
       return "removed" if response.body.include? 'This package has been deleted from the gallery.'
       return "removed" if response.body.include? "This package's content is hidden"
+
+      return "deprecated" if all_versions_deprecated?(package)
     rescue Faraday::Error => e
       nil
+    end
+
+    def all_versions_deprecated?(package)
+      releases = get_releases(package.name)
+      return false if releases.blank?
+
+      listed_releases = releases.select { |r| r.dig("catalogEntry", "listed") != false }
+      return false if listed_releases.blank?
+
+      listed_releases.all? { |r| r.dig("catalogEntry", "deprecation").present? }
+    rescue StandardError
+      false
     end
 
     def recently_updated_package_names
@@ -277,39 +291,53 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       pkg_metadata[:releases].map do |item|
-        version = item["catalogEntry"]["version"]
-        
+        catalog_entry = item["catalogEntry"]
+        version = catalog_entry["version"]
+        status = version_status(catalog_entry)
+
         {
           number: version,
-          published_at: item["catalogEntry"]["published"],
+          published_at: catalog_entry["published"],
+          status: status,
           metadata: build_version_nuspec_metadata(pkg_metadata[:name], version, pkg_metadata, item)
         }
       end
     end
 
+    def version_status(catalog_entry)
+      return "deprecated" if catalog_entry["deprecation"].present?
+      return "unlisted" if catalog_entry["listed"] == false
+      nil
+    end
+
     def build_version_nuspec_metadata(package_name, version, pkg_metadata, item)
+      catalog_entry = item["catalogEntry"]
+
       # Start with basic API metadata
       base_metadata = {
         downloads: version_downloads(pkg_metadata, version),
-        
+
         # From API catalogEntry
-        api_description: item["catalogEntry"]["description"],
-        api_summary: item["catalogEntry"]["summary"],
-        api_title: item["catalogEntry"]["title"],
-        api_authors: item["catalogEntry"]["authors"],
-        api_license_expression: item["catalogEntry"]["licenseExpression"],
-        api_license_url: item["catalogEntry"]["licenseUrl"],
-        api_project_url: item["catalogEntry"]["projectUrl"],
-        api_icon_url: item["catalogEntry"]["iconUrl"],
-        api_tags: item["catalogEntry"]["tags"],
-        api_min_client_version: item["catalogEntry"]["minClientVersion"],
-        api_language: item["catalogEntry"]["language"],
-        
+        api_description: catalog_entry["description"],
+        api_summary: catalog_entry["summary"],
+        api_title: catalog_entry["title"],
+        api_authors: catalog_entry["authors"],
+        api_license_expression: catalog_entry["licenseExpression"],
+        api_license_url: catalog_entry["licenseUrl"],
+        api_project_url: catalog_entry["projectUrl"],
+        api_icon_url: catalog_entry["iconUrl"],
+        api_tags: catalog_entry["tags"],
+        api_min_client_version: catalog_entry["minClientVersion"],
+        api_language: catalog_entry["language"],
+
         # Technical details from API
         package_content_url: item["packageContent"],
-        catalog_entry_id: item["catalogEntry"]["@id"],
-        listed: item["catalogEntry"]["listed"],
-        require_license_acceptance: item["catalogEntry"]["requireLicenseAcceptance"]
+        catalog_entry_id: catalog_entry["@id"],
+        listed: catalog_entry["listed"],
+        require_license_acceptance: catalog_entry["requireLicenseAcceptance"],
+
+        # Deprecation information from catalogEntry
+        deprecation: catalog_entry["deprecation"]
       }
       
       # Get enhanced metadata from .nuspec file
@@ -522,6 +550,34 @@ module Ecosystem
 
     def maintainer_url(maintainer)
       "https://www.nuget.org/profiles/#{maintainer.login}"
+    end
+
+    def deprecation_info(name)
+      releases = get_releases(name)
+      return { is_deprecated: false, message: nil } if releases.blank?
+
+      latest_listed = releases.reverse.find { |r| r.dig("catalogEntry", "listed") != false }
+      return { is_deprecated: false, message: nil } unless latest_listed
+
+      deprecation = latest_listed.dig("catalogEntry", "deprecation")
+      return { is_deprecated: false, message: nil } unless deprecation
+
+      message_parts = []
+      message_parts << "Reasons: #{deprecation['reasons'].join(', ')}" if deprecation['reasons'].present?
+      message_parts << deprecation['message'] if deprecation['message'].present?
+      if deprecation['alternatePackage'].present?
+        alt = deprecation['alternatePackage']
+        message_parts << "Use #{alt['id']} instead" + (alt['range'].present? ? " (#{alt['range']})" : "")
+      end
+
+      {
+        is_deprecated: true,
+        message: message_parts.any? ? message_parts.join('. ') : nil,
+        reasons: deprecation['reasons'],
+        alternate_package: deprecation['alternatePackage']
+      }
+    rescue StandardError
+      { is_deprecated: false, message: nil }
     end
   end
 end

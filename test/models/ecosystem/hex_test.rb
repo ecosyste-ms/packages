@@ -114,11 +114,11 @@ class HexTest < ActiveSupport::TestCase
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
-      {:number=>"0.1.1", :published_at=>"2022-07-08T03:08:58.458116Z", :integrity=>"sha256-38ce387d834a1f54e86be27e877938fa28cb8e33211666051508c82358e1ef21", :metadata=>{:downloads=>58}},
-      {:number=>"0.1.0-rc.2", :published_at=>"2022-03-25T02:02:53.226729Z", :integrity=>"sha256-91de7623289bc7f0fd9f015c46cae101fd760d7489def29cb88a63c9dc9b3736", :metadata=>{:downloads=>6}},
-      {:number=>"0.1.0-rc.1", :published_at=>"2022-03-23T01:30:45.366912Z", :integrity=>"sha256-e9dee9d7a45d193a17ba324b0a1d74be153e15ed1d05144a883884bbfc76e240", :metadata=>{:downloads=>nil}},
-      {:number=>"0.1.0-rc.0", :published_at=>"2022-03-23T01:13:50.946007Z", :integrity=>"sha256-feed6ef902fe8d9bf937c39261142be0aee8db84f2c12e49ed471bec2e35ac97", :metadata=>{:downloads=>nil}},
-      {:number=>"0.1.0", :published_at=>"2022-03-25T02:22:52.658502Z", :integrity=>"sha256-e2a8663260e1e6334b98160a8dafdd09d520e5955b12d4363b5e0231f7aa0a0b", :metadata=>{:downloads=>nil}},
+      {:number=>"0.1.1", :published_at=>"2022-07-08T03:08:58.458116Z", :integrity=>"sha256-38ce387d834a1f54e86be27e877938fa28cb8e33211666051508c82358e1ef21", :status=>nil, :metadata=>{:downloads=>58, :retirement=>nil}},
+      {:number=>"0.1.0-rc.2", :published_at=>"2022-03-25T02:02:53.226729Z", :integrity=>"sha256-91de7623289bc7f0fd9f015c46cae101fd760d7489def29cb88a63c9dc9b3736", :status=>nil, :metadata=>{:downloads=>6, :retirement=>nil}},
+      {:number=>"0.1.0-rc.1", :published_at=>"2022-03-23T01:30:45.366912Z", :integrity=>"sha256-e9dee9d7a45d193a17ba324b0a1d74be153e15ed1d05144a883884bbfc76e240", :status=>nil, :metadata=>{:downloads=>nil, :retirement=>nil}},
+      {:number=>"0.1.0-rc.0", :published_at=>"2022-03-23T01:13:50.946007Z", :integrity=>"sha256-feed6ef902fe8d9bf937c39261142be0aee8db84f2c12e49ed471bec2e35ac97", :status=>nil, :metadata=>{:downloads=>nil, :retirement=>nil}},
+      {:number=>"0.1.0", :published_at=>"2022-03-25T02:22:52.658502Z", :integrity=>"sha256-e2a8663260e1e6334b98160a8dafdd09d520e5955b12d4363b5e0231f7aa0a0b", :status=>nil, :metadata=>{:downloads=>nil, :retirement=>nil}},
     ]
   end
 
@@ -132,7 +132,48 @@ class HexTest < ActiveSupport::TestCase
     ]
   end
 
-  test 'maintainer_url' do 
+  test 'maintainer_url' do
     assert_equal @ecosystem.maintainer_url(@maintainer), 'https://hex.pm/users/foo'
+  end
+
+  test 'versions_metadata includes retirement info when version is retired' do
+    stub_request(:get, "https://hex.pm/api/packages/retired_pkg")
+      .to_return({ status: 200, body: '{"name":"retired_pkg","meta":{"description":"A retired package","links":{"github":"https://github.com/test/retired_pkg"}},"releases":[{"version":"1.0.0","inserted_at":"2022-01-01T00:00:00.000000Z"}],"downloads":{"all":100},"owners":[]}' })
+    stub_request(:get, "https://hex.pm/api/packages/retired_pkg/releases/1.0.0")
+      .to_return({ status: 200, body: file_fixture('hex/retired_version') })
+
+    package_metadata = @ecosystem.package_metadata('retired_pkg')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+
+    assert_equal 1, versions_metadata.length
+    version = versions_metadata.first
+    assert_equal "1.0.0", version[:number]
+    assert_equal "retired", version[:status]
+    assert_not_nil version[:metadata][:retirement]
+    assert_equal "security", version[:metadata][:retirement]["reason"]
+    assert_equal "CVE-2023-12345: Remote code execution vulnerability", version[:metadata][:retirement]["message"]
+  end
+
+  test 'versions_metadata has nil status when version is not retired' do
+    stub_request(:get, "https://hex.pm/api/packages/phoenix_copy")
+      .to_return({ status: 200, body: file_fixture('hex/phoenix_copy') })
+    stub_request(:get, "https://hex.pm/api/packages/phoenix_copy/releases/0.1.1")
+      .to_return({ status: 200, body: file_fixture('hex/0.1.1') })
+    stub_request(:get, "https://hex.pm/api/packages/phoenix_copy/releases/0.1.0")
+      .to_return({ status: 200, body: file_fixture('hex/0.1.0') })
+    stub_request(:get, "https://hex.pm/api/packages/phoenix_copy/releases/0.1.0-rc.0")
+      .to_return({ status: 200, body: file_fixture('hex/0.1.0-rc.0') })
+    stub_request(:get, "https://hex.pm/api/packages/phoenix_copy/releases/0.1.0-rc.1")
+      .to_return({ status: 200, body: file_fixture('hex/0.1.0-rc.1') })
+    stub_request(:get, "https://hex.pm/api/packages/phoenix_copy/releases/0.1.0-rc.2")
+      .to_return({ status: 200, body: file_fixture('hex/0.1.0-rc.2') })
+
+    package_metadata = @ecosystem.package_metadata('phoenix_copy')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+
+    versions_metadata.each do |version|
+      assert_nil version[:status]
+      assert_nil version[:metadata][:retirement]
+    end
   end
 end

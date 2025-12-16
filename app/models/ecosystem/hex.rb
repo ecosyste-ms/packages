@@ -68,12 +68,18 @@ module Ecosystem
       pkg_metadata[:releases].reject{|v| existing_version_numbers.include?(v['version'])}.sort_by{|v| v['version'] }.reverse.first(50).map do |version|
         vers = get("#{@registry_url}/api/packages/#{pkg_metadata[:name]}/releases/#{version["version"]}")
         return nil if vers.blank?
+
+        retirement = vers['retirement']
+        status = retirement.present? ? 'retired' : nil
+
         {
           number: version["version"],
           published_at: version["inserted_at"],
           integrity: "sha256-" + vers['checksum'],
+          status: status,
           metadata: {
-            downloads: vers['downloads']
+            downloads: vers['downloads'],
+            retirement: retirement
           }
         }
       end.compact
