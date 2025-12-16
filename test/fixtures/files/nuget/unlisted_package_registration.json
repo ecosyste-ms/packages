@@ -1,0 +1,25 @@
+{
+  "@id": "https://api.nuget.org/v3/registration5-gz-semver2/unlistedpackage/index.json",
+  "@type": ["catalog:CatalogRoot", "PackageRegistration", "catalog:Permalink"],
+  "count": 1,
+  "items": [{
+    "@id": "https://api.nuget.org/v3/registration5-gz-semver2/unlistedpackage/index.json#page/1.0.0/1.0.0",
+    "@type": "catalog:CatalogPage",
+    "count": 1,
+    "items": [{
+      "@id": "https://api.nuget.org/v3/registration5-gz-semver2/unlistedpackage/1.0.0.json",
+      "@type": "Package",
+      "catalogEntry": {
+        "@id": "https://api.nuget.org/v3/catalog0/data/unlistedpackage.1.0.0.json",
+        "@type": "PackageDetails",
+        "authors": "Test Author",
+        "description": "An unlisted package",
+        "id": "UnlistedPackage",
+        "version": "1.0.0",
+        "listed": false,
+        "published": "2020-01-01T00:00:00+00:00"
+      },
+      "packageContent": "https://api.nuget.org/v3-flatcontainer/unlistedpackage/1.0.0/unlistedpackage.1.0.0.nupkg"
+    }]
+  }]
+}

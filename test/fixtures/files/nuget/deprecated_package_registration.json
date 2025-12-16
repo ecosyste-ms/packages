@@ -1,0 +1,55 @@
+{
+  "@id": "https://api.nuget.org/v3/registration5-gz-semver2/oldpackage/index.json",
+  "@type": ["catalog:CatalogRoot", "PackageRegistration", "catalog:Permalink"],
+  "count": 1,
+  "items": [{
+    "@id": "https://api.nuget.org/v3/registration5-gz-semver2/oldpackage/index.json#page/1.0.0/2.0.0",
+    "@type": "catalog:CatalogPage",
+    "count": 2,
+    "items": [{
+      "@id": "https://api.nuget.org/v3/registration5-gz-semver2/oldpackage/1.0.0.json",
+      "@type": "Package",
+      "catalogEntry": {
+        "@id": "https://api.nuget.org/v3/catalog0/data/oldpackage.1.0.0.json",
+        "@type": "PackageDetails",
+        "authors": "Test Author",
+        "description": "An old deprecated package",
+        "id": "OldPackage",
+        "version": "1.0.0",
+        "listed": true,
+        "published": "2020-01-01T00:00:00+00:00",
+        "deprecation": {
+          "reasons": ["Legacy"],
+          "message": "This package is no longer maintained",
+          "alternatePackage": {
+            "id": "NewPackage",
+            "range": "*"
+          }
+        }
+      },
+      "packageContent": "https://api.nuget.org/v3-flatcontainer/oldpackage/1.0.0/oldpackage.1.0.0.nupkg"
+    }, {
+      "@id": "https://api.nuget.org/v3/registration5-gz-semver2/oldpackage/2.0.0.json",
+      "@type": "Package",
+      "catalogEntry": {
+        "@id": "https://api.nuget.org/v3/catalog0/data/oldpackage.2.0.0.json",
+        "@type": "PackageDetails",
+        "authors": "Test Author",
+        "description": "An old deprecated package",
+        "id": "OldPackage",
+        "version": "2.0.0",
+        "listed": true,
+        "published": "2021-01-01T00:00:00+00:00",
+        "deprecation": {
+          "reasons": ["CriticalBugs", "Legacy"],
+          "message": "Critical security issues found",
+          "alternatePackage": {
+            "id": "NewPackage",
+            "range": ">=2.0.0"
+          }
+        }
+      },
+      "packageContent": "https://api.nuget.org/v3-flatcontainer/oldpackage/2.0.0/oldpackage.2.0.0.nupkg"
+    }]
+  }]
+}
