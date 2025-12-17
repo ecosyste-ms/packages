@@ -30,11 +30,81 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
   test 'list package names for a registry' do
     get package_names_api_v1_registry_path(id: @registry.name)
     assert_response :success
-    
+
     actual_response = Oj.load(@response.body)
 
     assert_equal actual_response.length, 1
     assert_equal actual_response.first, @package.name
+  end
+
+  test 'list package names with prefix filter' do
+    @registry.packages.create(ecosystem: 'cargo', name: 'random-utils')
+    @registry.packages.create(ecosystem: 'cargo', name: 'other-package')
+
+    get package_names_api_v1_registry_path(id: @registry.name, prefix: 'ran')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 2, actual_response.length
+    assert_includes actual_response, 'rand'
+    assert_includes actual_response, 'random-utils'
+    refute_includes actual_response, 'other-package'
+  end
+
+  test 'list package names with prefix filter case insensitive' do
+    @registry.packages.create(ecosystem: 'cargo', name: 'Random-Utils')
+
+    get package_names_api_v1_registry_path(id: @registry.name, prefix: 'RAN')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 2, actual_response.length
+    assert_includes actual_response, 'rand'
+    assert_includes actual_response, 'Random-Utils'
+  end
+
+  test 'list package names with postfix filter' do
+    @registry.packages.create(ecosystem: 'cargo', name: 'my-rand')
+    @registry.packages.create(ecosystem: 'cargo', name: 'other-package')
+
+    get package_names_api_v1_registry_path(id: @registry.name, postfix: 'rand')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 2, actual_response.length
+    assert_includes actual_response, 'rand'
+    assert_includes actual_response, 'my-rand'
+    refute_includes actual_response, 'other-package'
+  end
+
+  test 'list package names with postfix filter case insensitive' do
+    @registry.packages.create(ecosystem: 'cargo', name: 'my-RAND')
+
+    get package_names_api_v1_registry_path(id: @registry.name, postfix: 'Rand')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 2, actual_response.length
+    assert_includes actual_response, 'rand'
+    assert_includes actual_response, 'my-RAND'
+  end
+
+  test 'list package names with both prefix and postfix filters' do
+    @registry.packages.create(ecosystem: 'cargo', name: 'rand-core')
+    @registry.packages.create(ecosystem: 'cargo', name: 'my-rand-core')
+    @registry.packages.create(ecosystem: 'cargo', name: 'rand-utils')
+
+    get package_names_api_v1_registry_path(id: @registry.name, prefix: 'rand', postfix: 'core')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_includes actual_response, 'rand-core'
   end
 
   test 'get a package for a registry' do

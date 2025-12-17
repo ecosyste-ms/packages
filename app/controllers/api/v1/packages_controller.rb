@@ -177,6 +177,8 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = scope.updated_before(params[:updated_before]) if params[:updated_before].present?
     scope = scope.critical if params[:critical].present?
     scope = scope.with_funding if params[:funding].present?
+    scope = scope.name_prefix(params[:prefix]) if params[:prefix].present?
+    scope = scope.name_postfix(params[:postfix]) if params[:postfix].present?
 
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'
