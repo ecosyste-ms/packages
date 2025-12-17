@@ -901,6 +901,18 @@ paths:
           required: false
           schema:
             type: boolean
+        - name: prefix
+          in: query
+          description: filter by package names starting with this string (case insensitive)
+          required: false
+          schema:
+            type: string
+        - name: postfix
+          in: query
+          description: filter by package names ending with this string (case insensitive)
+          required: false
+          schema:
+            type: string
       responses:
         200:
           description: OK

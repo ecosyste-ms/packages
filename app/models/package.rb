@@ -32,6 +32,9 @@ class Package < ApplicationRecord
  
   scope :repository_url, ->(repository_url) { where("lower(repository_url) = ?", repository_url.try(:downcase)) }
 
+  scope :name_prefix, ->(prefix) { where("lower(name) LIKE ?", "#{prefix.downcase}%") }
+  scope :name_postfix, ->(postfix) { where("lower(name) LIKE ?", "%#{postfix.downcase}") }
+
   scope :outdated, -> { where('last_synced_at < ?', 1.month.ago) }
 
   scope :keyword, ->(keyword) { where("keywords @> ARRAY[?]::varchar[]", keyword) }
