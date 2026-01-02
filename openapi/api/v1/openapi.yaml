@@ -314,7 +314,8 @@ paths:
                     type: string
                 purls:
                   type: array
-                  description: array of package URLs to lookup
+                  description: array of package URLs to lookup (maximum 100)
+                  maxItems: 100
                   items:
                     type: string
                 names:
@@ -334,6 +335,16 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/PackageWithRegistry'
+        400:
+          description: Bad Request - too many PURLs provided
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Maximum 100 PURLs allowed per request"
   /keywords:
     get:
       summary: list keywords
