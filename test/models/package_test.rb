@@ -59,6 +59,56 @@ class PackageTest < ActiveSupport::TestCase
     assert_equal @package.purl, "pkg:gem/foo"
   end
 
+  test 'Package.purl class method finds package by single purl' do
+    result = Package.purl('pkg:gem/foo')
+    assert_includes result, @package
+  end
+
+  test 'Package.purl class method finds packages by multiple purls' do
+    bar_package = @registry.packages.create(name: 'bar', ecosystem: @registry.ecosystem)
+
+    result = Package.purl(['pkg:gem/foo', 'pkg:gem/bar'])
+
+    assert_includes result, @package
+    assert_includes result, bar_package
+  end
+
+  test 'Package.purl class method returns none for empty array' do
+    result = Package.purl([])
+    assert_equal 0, result.count
+  end
+
+  test 'Package.purl class method skips invalid purls' do
+    result = Package.purl(['pkg:gem/foo', 'invalid-purl'])
+    assert_includes result, @package
+  end
+
+  test 'Package.purl class method handles docker purl without namespace' do
+    docker_registry = Registry.create(name: 'hub.docker.com', url: 'https://hub.docker.com', ecosystem: 'docker')
+    docker_package = docker_registry.packages.create(name: 'library/python', ecosystem: 'docker', namespace: 'library')
+
+    result = Package.purl('pkg:docker/python')
+
+    assert_includes result, docker_package
+  end
+
+  test 'Package.purl class method handles github purl via repository_url' do
+    @package.update(repository_url: 'https://github.com/rails/rails')
+
+    result = Package.purl('pkg:github/rails/rails')
+
+    assert_includes result, @package
+  end
+
+  test 'Package.purl class method handles npm scoped packages' do
+    npm_registry = Registry.create(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    scoped_package = npm_registry.packages.create(name: '@babel/core', ecosystem: 'npm', namespace: 'babel')
+
+    result = Package.purl('pkg:npm/@babel/core')
+
+    assert_includes result, scoped_package
+  end
+
   test 'with_advisories scope' do
     package_with_advisories = @registry.packages.create(name: 'bar', ecosystem: @registry.ecosystem, advisories: [{ 'id' => 'CVE-2024-1234' }])
     package_without_advisories = @registry.packages.create(name: 'baz', ecosystem: @registry.ecosystem, advisories: [])

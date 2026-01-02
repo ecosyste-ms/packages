@@ -286,6 +286,86 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.first['name'], @package.name
   end
 
+  test 'bulk_lookup by purls' do
+    post bulk_lookup_api_v1_packages_path, params: { purls: ['pkg:cargo/rand'] }
+    assert_response :success
+    assert_template 'packages/bulk_lookup', file: 'packages/bulk_lookup.json.jbuilder'
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal @package.name, actual_response.first['name']
+  end
+
+  test 'bulk_lookup by multiple purls' do
+    second_package = @registry.packages.create(ecosystem: 'cargo', name: 'serde')
+
+    post bulk_lookup_api_v1_packages_path, params: { purls: ['pkg:cargo/rand', 'pkg:cargo/serde'] }
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 2, actual_response.length
+    names = actual_response.map { |p| p['name'] }
+    assert_includes names, 'rand'
+    assert_includes names, 'serde'
+  end
+
+  test 'bulk_lookup by repository_urls' do
+    @package.update(repository_url: 'https://github.com/rust-random/rand')
+
+    post bulk_lookup_api_v1_packages_path, params: { repository_urls: 'https://github.com/rust-random/rand' }
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal @package.name, actual_response.first['name']
+  end
+
+  test 'bulk_lookup by names' do
+    post bulk_lookup_api_v1_packages_path, params: { names: ['rand'] }
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal @package.name, actual_response.first['name']
+  end
+
+  test 'bulk_lookup with invalid purls returns empty result' do
+    post bulk_lookup_api_v1_packages_path, params: { purls: ['invalid-purl'] }
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 0, actual_response.length
+  end
+
+  test 'bulk_lookup returns error when more than 100 purls provided' do
+    purls = (1..101).map { |i| "pkg:cargo/package#{i}" }
+
+    post bulk_lookup_api_v1_packages_path, params: { purls: purls }
+    assert_response :bad_request
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal "Maximum 100 PURLs allowed per request", actual_response['error']
+  end
+
+  test 'bulk_lookup filters by ecosystem' do
+    npm_registry = Registry.create(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    npm_package = npm_registry.packages.create(ecosystem: 'npm', name: 'rand')
+
+    post bulk_lookup_api_v1_packages_path, params: { names: ['rand'], ecosystem: 'npm' }
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal 'npm', actual_response.first['ecosystem']
+  end
+
   test 'ping package' do
     get ping_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
     assert_response :success

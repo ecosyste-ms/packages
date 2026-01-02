@@ -880,6 +880,46 @@ class Package < ApplicationRecord
 
   scope :critical, -> { where(critical: true) }
 
+  def self.purl(purl_strings)
+    purl_strings = Array(purl_strings)
+    return none if purl_strings.empty?
+
+    registry_ids_cache = {}
+
+    scopes = purl_strings.filter_map do |purl_string|
+      lookup_scope_for_purl(purl_string, registry_ids_cache)
+    end
+
+    return none if scopes.empty?
+    return scopes.first if scopes.length == 1
+
+    scopes.reduce { |result, scope| result.or(scope) }
+  end
+
+  def self.lookup_scope_for_purl(purl_string, registry_ids_cache = {})
+    purl_param = purl_string.gsub('npm/@', 'npm/%40')
+    purl = Purl.parse(purl_param)
+
+    if purl.type == 'docker' && purl.namespace.nil?
+      namespace = 'library'
+    else
+      namespace = purl.namespace
+    end
+
+    if purl.type == 'github'
+      repository_url = "https://github.com/#{purl.namespace}/#{purl.name}"
+      where("lower(repository_url) = ?", repository_url.downcase)
+    else
+      name = [namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
+      ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type)
+      registry_ids = registry_ids_cache[ecosystem] ||= Registry.where(ecosystem: ecosystem).pluck(:id)
+      where(name: name, registry_id: registry_ids)
+    end
+  rescue => e
+    Rails.logger.warn("Invalid PURL in bulk lookup: #{purl_string} - #{e.message}")
+    nil
+  end
+
   def self.funding_domains
     Rails.cache.fetch("funding:domains", expires_in: 1.week) do
       funding_domains = []

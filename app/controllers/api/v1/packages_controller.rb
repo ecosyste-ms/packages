@@ -157,6 +157,10 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
   end
 
   def bulk_lookup
+    if params[:purls].present? && Array(params[:purls]).length > 100
+      render json: { error: "Maximum 100 PURLs allowed per request" }, status: :bad_request and return
+    end
+
     if params[:repository_urls].present?
       @packages = Package.repository_url(params[:repository_urls]).limit(1000)
     elsif params[:purls].present?
