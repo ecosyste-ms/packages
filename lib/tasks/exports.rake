@@ -189,11 +189,16 @@ namespace :exports do
     puts CSV.generate_line(['date', 'versions_count'])
 
     (start_date..end_date).each do |date|
-      count = Version
-        .where(registry_id: registry.id)
-        .where(published_at: date.beginning_of_day..date.end_of_day)
-        .count
-      puts CSV.generate_line([date, count])
+      daily_count = 0
+      24.times do |hour|
+        hour_start = date.to_time.utc + hour.hours
+        hour_end = hour_start + 1.hour
+        daily_count += Version
+          .where(registry_id: registry.id)
+          .where(published_at: hour_start...hour_end)
+          .count
+      end
+      puts CSV.generate_line([date, daily_count])
     end
   end
 
