@@ -188,15 +188,13 @@ namespace :exports do
 
     puts CSV.generate_line(['date', 'versions_count'])
 
-    Version
-      .where(registry_id: registry.id)
-      .where(published_at: start_date.beginning_of_day..end_date.end_of_day)
-      .select("DATE(published_at) as publish_date, COUNT(*) as versions_count")
-      .group("DATE(published_at)")
-      .order("DATE(published_at)")
-      .each_row do |row|
-        puts CSV.generate_line([row['publish_date'], row['versions_count']])
-      end
+    (start_date..end_date).each do |date|
+      count = Version
+        .where(registry_id: registry.id)
+        .where(published_at: date.beginning_of_day..date.end_of_day)
+        .count
+      puts CSV.generate_line([date, count])
+    end
   end
 
   desc 'Export top packages repo metadata to CSV (usage: rake exports:repo_metadata PERCENT=1 ECOSYSTEM=npm)'
