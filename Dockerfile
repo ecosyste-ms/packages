@@ -21,6 +21,7 @@ RUN apk add --update \
     yaml-dev \
     libffi-dev \
     jemalloc \
+    maven \
  && rm -rf /var/cache/apk/* 
 
 # Will invalidate cache as soon as the Gemfile changes
