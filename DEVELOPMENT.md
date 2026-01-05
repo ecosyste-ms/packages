@@ -13,6 +13,7 @@ The project uses ruby on rails which have a number of system dependencies you'll
 - [redis 6+](https://redis.io/download/)
 - [node.js 16+](https://nodejs.org/en/download/)
 - [wget](https://www.gnu.org/software/wget/)
+- [maven](https://maven.apache.org/download.cgi) (`brew install maven` on macOS)
 
 You will then need to set some configuration environment variables. Copy `env.example` to `.env.development` and customise the values to suit your local setup.
 
