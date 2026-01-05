@@ -175,6 +175,30 @@ namespace :exports do
       end
   end
 
+  desc 'Export npm versions published per day (usage: rake exports:npm_versions_per_day START_DATE=2024-11-05 END_DATE=2025-01-05)'
+  task npm_versions_per_day: :environment do
+    start_date = ENV['START_DATE'] ? Date.parse(ENV['START_DATE']) : Date.new(2024, 11, 5)
+    end_date = ENV['END_DATE'] ? Date.parse(ENV['END_DATE']) : Date.new(2025, 1, 5)
+
+    registry = Registry.find_by(ecosystem: 'npm', default: true)
+    unless registry
+      $stderr.puts "npm registry not found"
+      exit 1
+    end
+
+    puts CSV.generate_line(['date', 'versions_count'])
+
+    Version
+      .where(registry_id: registry.id)
+      .where(published_at: start_date.beginning_of_day..end_date.end_of_day)
+      .select("DATE(published_at) as publish_date, COUNT(*) as versions_count")
+      .group("DATE(published_at)")
+      .order("DATE(published_at)")
+      .each_row do |row|
+        puts CSV.generate_line([row['publish_date'], row['versions_count']])
+      end
+  end
+
   desc 'Export top packages repo metadata to CSV (usage: rake exports:repo_metadata PERCENT=1 ECOSYSTEM=npm)'
   task repo_metadata: :environment do
     percent = ENV['PERCENT']&.to_f || 1.0
