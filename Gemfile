@@ -8,7 +8,7 @@ gem "activemodel", "~> 8.1.1"
 gem "activerecord", "~> 8.1.1"
 gem "actionpack", "~> 8.1.1"
 gem "actionview", "~> 8.1.1"
-gem "activesupport", "~> 8.1.1"
+gem "activesupport", "~> 8.1.2"
 gem "railties", "~> 8.1.1"
 
 gem "secure_headers"
