@@ -1,0 +1,201 @@
+{
+  "sha": "b513c12311349783f1a6bee75faf9fa14460155c",
+  "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/trees/b513c12311349783f1a6bee75faf9fa14460155c",
+  "tree": [
+    {
+      "path": ".bazelci",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "2d844bb23b14146d42ce6ed2a05b803c193a5204",
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/trees/2d844bb23b14146d42ce6ed2a05b803c193a5204"
+    },
+    {
+      "path": ".bazelignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8df5f8c50152e2a64a9fe85effb7bbe203a7c74a",
+      "size": 121,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/8df5f8c50152e2a64a9fe85effb7bbe203a7c74a"
+    },
+    {
+      "path": ".bazelversion",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6d2890793d472568bda2a7937a2b3f6496a844e6",
+      "size": 6,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/6d2890793d472568bda2a7937a2b3f6496a844e6"
+    },
+    {
+      "path": ".editorconfig",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "03feeaf297dd85b3b1f55bb4ffb9603898b2a7c5",
+      "size": 312,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/03feeaf297dd85b3b1f55bb4ffb9603898b2a7c5"
+    },
+    {
+      "path": ".gemini",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "c123c53ceafc67d1e7dc7e68ad820363205738f1",
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/trees/c123c53ceafc67d1e7dc7e68ad820363205738f1"
+    },
+    {
+      "path": ".git-blame-ignore-revs",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0f8dc983d4f1a74e0479c81d07d927b7fbf21172",
+      "size": 327,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/0f8dc983d4f1a74e0479c81d07d927b7fbf21172"
+    },
+    {
+      "path": ".gitattributes",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "aecf25037634d698b9e1c5f020e194e374bfd9a0",
+      "size": 8,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/aecf25037634d698b9e1c5f020e194e374bfd9a0"
+    },
+    {
+      "path": ".github",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "6133bf9d647ced44fd2087145e12e29c5a607693",
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/trees/6133bf9d647ced44fd2087145e12e29c5a607693"
+    },
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6cf783c617533e0e74df492c4621a23483c6e390",
+      "size": 195,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/6cf783c617533e0e74df492c4621a23483c6e390"
+    },
+    {
+      "path": ".pre-commit-config.yaml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9c1633bd442ef402c16d4d57cdc0f7d23ed656ce",
+      "size": 103,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/9c1633bd442ef402c16d4d57cdc0f7d23ed656ce"
+    },
+    {
+      "path": ".ruff.toml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f11cf6352dfc837980e09493a5bed577741bf2b6",
+      "size": 18,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/f11cf6352dfc837980e09493a5bed577741bf2b6"
+    },
+    {
+      "path": "AUTHORS",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "42818b292e7c9fc4574f29fbdf72c96100d41e7d",
+      "size": 297,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/42818b292e7c9fc4574f29fbdf72c96100d41e7d"
+    },
+    {
+      "path": "BUILD",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d16acbd933c5fee496c5863549321bfa9b123fce",
+      "size": 486,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/d16acbd933c5fee496c5863549321bfa9b123fce"
+    },
+    {
+      "path": "CODEOWNERS",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3e9285351df4bd2e67543eadc46ae8f93ca75626",
+      "size": 160,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/3e9285351df4bd2e67543eadc46ae8f93ca75626"
+    },
+    {
+      "path": "GEMINI.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f88f0a3bf5d12a98c28cd56482cb2b6e2ee41416",
+      "size": 3157,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/f88f0a3bf5d12a98c28cd56482cb2b6e2ee41416"
+    },
+    {
+      "path": "LICENSE",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+      "size": 11358,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/d645695673349e3947e8e5ae42332d0ac3164cd7"
+    },
+    {
+      "path": "MODULE.bazel",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "47a1d07b58afe12c6845466ecb0ba6086e4367ce",
+      "size": 2096,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/47a1d07b58afe12c6845466ecb0ba6086e4367ce"
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5bc36ab7d6b5e526602282f52bf2bce65808ce9f",
+      "size": 2481,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/5bc36ab7d6b5e526602282f52bf2bce65808ce9f"
+    },
+    {
+      "path": "WORKSPACE",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "bazel_registry.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ea3f94f7a1e48daf2da79ae8bed52f239773e28d",
+      "size": 22,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/ea3f94f7a1e48daf2da79ae8bed52f239773e28d"
+    },
+    {
+      "path": "docs",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "bf551bcf78169944e34c3537df10cd5aa63cb4cf",
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/trees/bf551bcf78169944e34c3537df10cd5aa63cb4cf"
+    },
+    {
+      "path": "incompatible_flags.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c6cf96600291acc7a624bcda78dae24bf7d1ed8f",
+      "size": 1067,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/c6cf96600291acc7a624bcda78dae24bf7d1ed8f"
+    },
+    {
+      "path": "metadata.schema.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5bbfa86366fed6b06e3589365f4b407281948e61",
+      "size": 2139,
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/blobs/5bbfa86366fed6b06e3589365f4b407281948e61"
+    },
+    {
+      "path": "modules",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "e5e9debb664a3bd1d7047f4395caacca16be4457",
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/trees/e5e9debb664a3bd1d7047f4395caacca16be4457"
+    },
+    {
+      "path": "tools",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "fb8d2bb522c78a4462fff39625586daed80d4a96",
+      "url": "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/trees/fb8d2bb522c78a4462fff39625586daed80d4a96"
+    }
+  ],
+  "truncated": false
+}
