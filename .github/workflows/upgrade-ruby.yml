@@ -22,6 +22,6 @@ jobs:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
           persist-credentials: false
-      - uses: andrew/ruby-upgrade-action@8f9acc112701e4c401dafa7eee6f0d469ea410e1
+      - uses: andrew/ruby-upgrade-action@6e2fd3872e875dfd321273b515a4b61c12a11166
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
