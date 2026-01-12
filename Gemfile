@@ -32,7 +32,6 @@ gem 'sidekiq-unique-jobs'
 gem "ecosystems-bibliothecary", github: "ecosyste-ms/bibliothecary", branch: "main", require: "bibliothecary"
 gem "pagy", "~> 9.4.0"
 gem "pghero"
-gem "pg_query"
 gem 'bootstrap'
 gem 'rack-cors'
 gem 'rswag-api'
@@ -46,14 +45,12 @@ gem "chartkick"
 gem "groupdate"
 gem 'jquery-rails'
 gem 'addressable'
-gem 'google-protobuf'
 gem 'rexml'
 gem 'appsignal'
 gem 'faraday-typhoeus'
 gem 'purl'
 gem 'sitemap_generator'
 gem 'dalli'
-gem "connection_pool", "<3"
 gem 'postgresql_cursor'
 gem 'rack-timeout'
 gem "lograge"
@@ -67,7 +64,6 @@ group :development do
 end
 
 group :test do
-  gem "minitest", "~> 5"
   gem "shoulda-matchers"
   gem "shoulda-context", "~> 3.0.0.rc1"
   gem "webmock"
