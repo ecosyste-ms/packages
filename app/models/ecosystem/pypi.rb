@@ -214,6 +214,7 @@ module Ecosystem
     end
 
     def licenses(package)
+      return package["info"]["license_expression"] if package["info"]["license_expression"].present?
       return package["info"]["license"] if package["info"]["license"].present?
 
       license_classifiers = package["info"]["classifiers"].select { |c| c.start_with?("License :: ") }

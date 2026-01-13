@@ -400,6 +400,39 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal 'https://github.com/test/test-package', repository_url
   end
 
+  test 'licenses prefers license_expression over license' do
+    package = {
+      "info" => {
+        "license_expression" => "Apache-2.0 OR BSD-3-Clause",
+        "license" => "Old License",
+        "classifiers" => ["License :: OSI Approved :: MIT License"]
+      }
+    }
+    assert_equal "Apache-2.0 OR BSD-3-Clause", @ecosystem.licenses(package)
+  end
+
+  test 'licenses falls back to license when license_expression is nil' do
+    package = {
+      "info" => {
+        "license_expression" => nil,
+        "license" => "MIT",
+        "classifiers" => ["License :: OSI Approved :: BSD License"]
+      }
+    }
+    assert_equal "MIT", @ecosystem.licenses(package)
+  end
+
+  test 'licenses falls back to classifiers when both license fields are nil' do
+    package = {
+      "info" => {
+        "license_expression" => nil,
+        "license" => nil,
+        "classifiers" => ["License :: OSI Approved :: MIT License", "License :: OSI Approved :: BSD License"]
+      }
+    }
+    assert_equal "MIT License,BSD License", @ecosystem.licenses(package)
+  end
+
   test 'pypi package_metadata funding_url flask' do
     stub_request(:get, "https://pypi.org/pypi/flask/json")
       .to_return({ status: 200, body: file_fixture('pypi/flask/flask') })
@@ -412,7 +445,7 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal package_metadata[:name], "flask"
     assert_equal package_metadata[:description], "A simple framework for building complex web applications."
     assert_nil package_metadata[:homepage]
-    assert_equal package_metadata[:licenses], ""
+    assert_equal package_metadata[:licenses], "BSD-3-Clause"
     assert_equal package_metadata[:repository_url], "https://github.com/pallets/flask"
     assert_equal package_metadata[:keywords_array], []
     assert_equal package_metadata[:downloads], 157236987

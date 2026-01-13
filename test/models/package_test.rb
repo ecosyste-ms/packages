@@ -33,6 +33,40 @@ class PackageTest < ActiveSupport::TestCase
     assert_equal @package.normalized_licenses, ["MIT"]
   end
 
+  test 'spdx_license does not match other to GPL' do
+    package = @registry.packages.create(name: 'test_other', ecosystem: @registry.ecosystem, licenses: 'other')
+    assert_equal [], package.spdx_license
+  end
+
+  test 'spdx_license does not match unknown to any license' do
+    package = @registry.packages.create(name: 'test_unknown', ecosystem: @registry.ecosystem, licenses: 'unknown')
+    assert_equal [], package.spdx_license
+  end
+
+  test 'normalize_licenses returns Other for unrecognized license strings' do
+    package = @registry.packages.create(name: 'test_other', ecosystem: @registry.ecosystem, licenses: 'other')
+    package.normalize_licenses
+    assert_equal ["Other"], package.normalized_licenses
+  end
+
+  test 'normalize_licenses handles compound OR licenses' do
+    package = @registry.packages.create(name: 'test_or', ecosystem: @registry.ecosystem, licenses: 'Apache-2.0 OR BSD-3-Clause')
+    package.normalize_licenses
+    assert_equal ["Apache-2.0", "BSD-3-Clause"], package.normalized_licenses
+  end
+
+  test 'normalize_licenses handles compound AND licenses' do
+    package = @registry.packages.create(name: 'test_and', ecosystem: @registry.ecosystem, licenses: 'Apache-2.0 AND MIT')
+    package.normalize_licenses
+    assert_equal ["Apache-2.0", "MIT"], package.normalized_licenses
+  end
+
+  test 'normalize_licenses handles parenthesized compound licenses' do
+    package = @registry.packages.create(name: 'test_parens', ecosystem: @registry.ecosystem, licenses: '(Apache-2.0 OR BSD-3-Clause)')
+    package.normalize_licenses
+    assert_equal ["Apache-2.0", "BSD-3-Clause"], package.normalized_licenses
+  end
+
   test 'set_latest_release_published_at' do
     @package.set_latest_release_published_at
     assert_equal @package.latest_release_published_at, @version2.published_at
