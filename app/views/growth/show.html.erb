@@ -55,7 +55,10 @@
       </div>
     </div>
 
-    <h4>Historical Data</h4>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4 class="mb-0">Historical Data</h4>
+      <%= link_to 'Export CSV', growth_registry_export_path(@registry.name), class: 'btn btn-sm btn-outline-secondary' %>
+    </div>
     <table class="table table-striped">
       <thead>
         <tr>
