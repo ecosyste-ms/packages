@@ -446,12 +446,8 @@ class Registry < ApplicationRecord
 
     # Calculate baseline: everything before min_year
     baseline_end = Date.new(min_year - 1, 12, 31).end_of_day
-    running_packages = chunked_count(
-      packages.where("COALESCE(first_release_published_at, created_at) <= ?", baseline_end)
-    )
-    running_versions = chunked_count(
-      versions.where("COALESCE(published_at, created_at) <= ?", baseline_end)
-    )
+    running_packages = count_packages_before(baseline_end)
+    running_versions = count_versions_before(baseline_end)
 
     (min_year..end_year).each do |year|
       existing = registry_growth_stats.find_by(year: year)
@@ -469,19 +465,8 @@ class Registry < ApplicationRecord
       year_end = Date.new(year, 12, 31).end_of_day
 
       # Only count NEW items for this specific year (bounded, smaller counts)
-      new_packages_count = chunked_count(
-        packages.where(
-          "COALESCE(first_release_published_at, created_at) >= ? AND COALESCE(first_release_published_at, created_at) <= ?",
-          year_start, year_end
-        )
-      )
-
-      new_versions_count = chunked_count(
-        versions.where(
-          "COALESCE(published_at, created_at) >= ? AND COALESCE(published_at, created_at) <= ?",
-          year_start, year_end
-        )
-      )
+      new_packages_count = count_packages_in_range(year_start, year_end)
+      new_versions_count = count_versions_in_range(year_start, year_end)
 
       # Cumulative = previous total + new this year
       running_packages += new_packages_count
@@ -499,21 +484,25 @@ class Registry < ApplicationRecord
     end
   end
 
-  # Count records in chunks by ID range to avoid query timeouts on large tables
-  def chunked_count(relation, chunk_size: 100_000)
-    bounds = relation.pluck(Arel.sql('MIN(id), MAX(id)')).first
-    return 0 if bounds.nil? || bounds[0].nil?
+  # Simple indexed counts - avoid COALESCE which prevents index usage
+  def count_packages_before(date)
+    packages.where("first_release_published_at <= ?", date).count +
+      packages.where(first_release_published_at: nil).where("created_at <= ?", date).count
+  end
 
-    min_id, max_id = bounds
-    total = 0
-    current_id = min_id
+  def count_packages_in_range(start_date, end_date)
+    packages.where(first_release_published_at: start_date..end_date).count +
+      packages.where(first_release_published_at: nil).where(created_at: start_date..end_date).count
+  end
 
-    while current_id <= max_id
-      total += relation.where(id: current_id..(current_id + chunk_size - 1)).count
-      current_id += chunk_size
-    end
+  def count_versions_before(date)
+    versions.where("published_at <= ?", date).count +
+      versions.where(published_at: nil).where("created_at <= ?", date).count
+  end
 
-    total
+  def count_versions_in_range(start_date, end_date)
+    versions.where(published_at: start_date..end_date).count +
+      versions.where(published_at: nil).where(created_at: start_date..end_date).count
   end
 
   def find_critical_packages

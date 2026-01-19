@@ -257,17 +257,4 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal 3, stat_2022.packages_count
   end
 
-  test 'chunked_count returns zero for empty relation' do
-    result = @registry.chunked_count(@registry.packages.where(name: 'nonexistent'))
-    assert_equal 0, result
-  end
-
-  test 'chunked_count handles small datasets' do
-    @registry.packages.create!(name: 'pkg1', ecosystem: @registry.ecosystem)
-    @registry.packages.create!(name: 'pkg2', ecosystem: @registry.ecosystem)
-    @registry.packages.create!(name: 'pkg3', ecosystem: @registry.ecosystem)
-
-    result = @registry.chunked_count(@registry.packages)
-    assert_equal 3, result
-  end
 end
