@@ -41,7 +41,10 @@
         <% combined_filtered = @combined_stats.to_a.drop_while { |s| s.packages_count.to_i == 0 && s.versions_count.to_i == 0 } %>
         <div class="card mb-4" id="combined">
           <div class="card-body">
-            <h4 class="card-title mb-3">All Registries Combined</h4>
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <h4 class="card-title mb-0">All Registries Combined</h4>
+              <%= link_to 'Export CSV', growth_export_path, class: 'btn btn-sm btn-outline-secondary' %>
+            </div>
             <p class="card-subtitle text-muted mb-3">
               <%= number_with_delimiter @registries.sum { |r| r.packages_count.to_i } %> packages,
               <%= number_with_delimiter @registries.sum { |r| r.versions_count.to_i } %> versions
@@ -207,7 +210,8 @@
                   <%= number_with_delimiter registry.versions_count %> versions
                 </p>
               </div>
-              <div class="flex-shrink-0">
+              <div class="flex-shrink-0 d-flex align-items-start gap-2">
+                <%= link_to 'Export CSV', growth_registry_export_path(registry.name), class: 'btn btn-sm btn-outline-secondary' %>
                 <img src="<%= registry.icon_url %>" class="rounded" height='40' width='40' onerror="this.style.display='none'">
               </div>
             </div>

@@ -169,4 +169,22 @@ class GrowthControllerTest < ActionDispatch::IntegrationTest
     get growth_registry_export_path('nonexistent')
     assert_response :not_found
   end
+
+  test 'index shows export csv link for combined data' do
+    get growth_path
+    assert_response :success
+    assert_includes response.body, growth_export_path
+  end
+
+  test 'index shows export csv link for each registry' do
+    get growth_path
+    assert_response :success
+    assert_includes response.body, growth_registry_export_path(@registry.name)
+  end
+
+  test 'show displays export csv link' do
+    get growth_registry_path(@registry.name)
+    assert_response :success
+    assert_includes response.body, growth_registry_export_path(@registry.name)
+  end
 end
