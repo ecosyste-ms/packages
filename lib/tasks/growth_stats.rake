@@ -4,7 +4,7 @@ namespace :growth_stats do
     force = ENV["FORCE"] == "1"
     puts "Calculating growth stats for all registries#{force ? ' (forcing recalculation)' : ' (skipping existing)'}..."
 
-    Registry.order(:packages_count).find_each do |registry|
+    Registry.order(:packages_count).each do |registry|
       puts "Processing registry: #{registry.name} (#{registry.packages_count} packages)"
       registry.calculate_growth_stats(force: force) do |year, status, stat|
         if status == :skipped
