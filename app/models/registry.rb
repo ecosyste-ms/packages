@@ -6,6 +6,7 @@ class Registry < ApplicationRecord
   has_many :packages
   has_many :versions
   has_many :maintainers
+  has_many :registry_growth_stats
 
   scope :not_docker, -> { where.not(ecosystem: 'docker') }
 

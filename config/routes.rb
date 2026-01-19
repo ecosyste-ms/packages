@@ -130,6 +130,9 @@ Rails.application.routes.draw do
   get 'funding/platforms', to: 'funding#platforms'
   get 'funding/:id', to: 'funding#show', as: :funding_registry, constraints: { id: /[^\/]+/  }
 
+  get :growth, to: 'growth#index'
+  get 'growth/:id', to: 'growth#show', as: :growth_registry, constraints: { id: /[^\/]+/  }
+
   get :underproduction, to: 'underproduction#index'
   get 'underproduction/:id', to: 'underproduction#show', as: :underproduction_registry, constraints: { id: /[^\/]+/  }
 
