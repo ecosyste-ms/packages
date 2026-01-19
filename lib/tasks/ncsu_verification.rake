@@ -150,9 +150,9 @@ namespace :ncsu do
     }
   end
 
-  desc "Verify NCSU PhD student package counts. Usage: ECOSYSTEM=npm rake ncsu:verify_counts"
-  task verify_counts: :environment do
-    ecosystem_name = ENV.fetch('ECOSYSTEM') { abort "Usage: ECOSYSTEM=npm rake ncsu:verify_counts" }
+  desc "Verify NCSU PhD student package counts. Usage: rake ncsu:verify_counts[npm]"
+  task :verify_counts, [:ecosystem] => :environment do |_t, args|
+    ecosystem_name = args[:ecosystem] || abort("Usage: rake ncsu:verify_counts[npm]")
 
     results = filter_packages(ecosystem_name)
 
@@ -166,10 +166,10 @@ namespace :ncsu do
     puts "Step 7 (more than one release in past 2 years): #{results[:step7_ids].length}"
   end
 
-  desc "Export package names and GitHub URLs. Usage: ECOSYSTEM=npm OUTPUT=packages.csv rake ncsu:export_packages"
-  task export_packages: :environment do
-    ecosystem_name = ENV.fetch('ECOSYSTEM') { abort "Usage: ECOSYSTEM=npm OUTPUT=packages.csv rake ncsu:export_packages" }
-    output_file = ENV.fetch('OUTPUT') { abort "Usage: ECOSYSTEM=npm OUTPUT=packages.csv rake ncsu:export_packages" }
+  desc "Export package names and GitHub URLs. Usage: rake ncsu:export_packages[npm,packages.csv]"
+  task :export_packages, [:ecosystem, :output] => :environment do |_t, args|
+    ecosystem_name = args[:ecosystem] || abort("Usage: rake ncsu:export_packages[npm,packages.csv]")
+    output_file = args[:output] || abort("Usage: rake ncsu:export_packages[npm,packages.csv]")
 
     results = filter_packages(ecosystem_name)
     packages_data = results[:packages_data]
@@ -188,9 +188,9 @@ namespace :ncsu do
     puts "Done. Exported #{final_ids.length} packages."
   end
 
-  desc "Export CSV to stdout (for piping via dokku). Usage: dokku run packages ECOSYSTEM=npm rake ncsu:export_csv > packages.csv"
-  task export_csv: :environment do
-    ecosystem_name = ENV.fetch('ECOSYSTEM') { abort "Usage: ECOSYSTEM=npm rake ncsu:export_csv" }
+  desc "Export CSV to stdout (for piping via dokku). Usage: dokku run packages rake ncsu:export_csv[npm] > packages.csv"
+  task :export_csv, [:ecosystem] => :environment do |_t, args|
+    ecosystem_name = args[:ecosystem] || abort("Usage: rake ncsu:export_csv[npm]")
 
     results = filter_packages(ecosystem_name, output: $stderr)
     packages_data = results[:packages_data]
