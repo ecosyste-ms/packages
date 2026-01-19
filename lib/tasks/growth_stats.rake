@@ -1,63 +1,36 @@
 namespace :growth_stats do
-  desc "Calculate and cache year-over-year growth stats for all registries"
+  desc "Calculate and cache year-over-year growth stats for all registries (skips existing data, use FORCE=1 to recalculate)"
   task calculate: :environment do
-    puts "Calculating growth stats for all registries..."
+    force = ENV["FORCE"] == "1"
+    puts "Calculating growth stats for all registries#{force ? ' (forcing recalculation)' : ' (skipping existing)'}..."
 
-    min_year = RegistryGrowthStat::MIN_YEAR
-    end_year = Time.current.year
-
-    puts "Calculating stats from #{min_year} to #{end_year}"
-
-    Registry.find_each do |registry|
-      puts "Processing registry: #{registry.name} (id: #{registry.id})"
-      calculate_growth_stats_for_registry(registry, min_year, end_year)
+    Registry.order(:packages_count).find_each do |registry|
+      puts "Processing registry: #{registry.name} (#{registry.packages_count} packages)"
+      registry.calculate_growth_stats(force: force) do |year, status, stat|
+        if status == :skipped
+          puts "  #{year}: skipped (already calculated)"
+        else
+          puts "  #{year}: #{stat.packages_count} packages (#{stat.new_packages_count} new), #{stat.versions_count} versions (#{stat.new_versions_count} new)"
+        end
+      end
     end
 
     puts "Finished calculating growth stats"
   end
 
-  desc "Calculate growth stats for a specific registry"
+  desc "Calculate growth stats for a specific registry (use FORCE=1 to recalculate existing)"
   task :calculate_for, [:registry_name] => :environment do |_t, args|
     registry = Registry.find_by_name!(args[:registry_name])
-    min_year = RegistryGrowthStat::MIN_YEAR
-    end_year = Time.current.year
+    force = ENV["FORCE"] == "1"
 
-    puts "Processing registry: #{registry.name} (#{min_year} to #{end_year})"
-    calculate_growth_stats_for_registry(registry, min_year, end_year)
-    puts "Finished"
-  end
-
-  def calculate_growth_stats_for_registry(registry, start_year, end_year)
-    (start_year..end_year).each do |year|
-      year_end = Date.new(year, 12, 31).end_of_day
-
-      # Use efficient SQL counts
-      packages_count = registry.packages
-        .where("COALESCE(first_release_published_at, created_at) <= ?", year_end)
-        .count
-
-      versions_count = registry.versions
-        .where("COALESCE(published_at, created_at) <= ?", year_end)
-        .count
-
-      year_start = Date.new(year, 1, 1).beginning_of_day
-      new_packages_count = registry.packages
-        .where("COALESCE(first_release_published_at, created_at) >= ? AND COALESCE(first_release_published_at, created_at) <= ?", year_start, year_end)
-        .count
-
-      new_versions_count = registry.versions
-        .where("COALESCE(published_at, created_at) >= ? AND COALESCE(published_at, created_at) <= ?", year_start, year_end)
-        .count
-
-      stat = RegistryGrowthStat.find_or_initialize_by(registry_id: registry.id, year: year)
-      stat.update!(
-        packages_count: packages_count,
-        versions_count: versions_count,
-        new_packages_count: new_packages_count,
-        new_versions_count: new_versions_count
-      )
-
-      puts "  #{year}: #{packages_count} packages (#{new_packages_count} new), #{versions_count} versions (#{new_versions_count} new)"
+    puts "Processing registry: #{registry.name}#{force ? ' (forcing recalculation)' : ''}"
+    registry.calculate_growth_stats(force: force) do |year, status, stat|
+      if status == :skipped
+        puts "  #{year}: skipped (already calculated)"
+      else
+        puts "  #{year}: #{stat.packages_count} packages (#{stat.new_packages_count} new), #{stat.versions_count} versions (#{stat.new_versions_count} new)"
+      end
     end
+    puts "Finished"
   end
 end
