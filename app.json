@@ -75,6 +75,10 @@
     {
       "command": "bundle exec rake packages:clean_up_sidekiq_unique_jobs",
       "schedule": "0 0 * * 0"
+    },
+    {
+      "command": "bundle exec rake growth_stats:calculate",
+      "schedule": "0 2 * * 0"
     }
   ]
 }

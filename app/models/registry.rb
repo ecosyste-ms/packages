@@ -6,6 +6,7 @@ class Registry < ApplicationRecord
   has_many :packages
   has_many :versions
   has_many :maintainers
+  has_many :registry_growth_stats
 
   scope :not_docker, -> { where.not(ecosystem: 'docker') }
 
@@ -434,9 +435,53 @@ class Registry < ApplicationRecord
     read_attribute(:downloads) || 0
   end
 
+  def calculate_growth_stats(force: false)
+    min_year = RegistryGrowthStat::MIN_YEAR
+    end_year = Time.current.year
+
+    (min_year..end_year).each do |year|
+      existing = registry_growth_stats.find_by(year: year)
+
+      # Always recalculate current year, skip past years unless forcing
+      if existing && !force && year < end_year
+        yield(year, :skipped) if block_given?
+        next
+      end
+
+      year_end = Date.new(year, 12, 31).end_of_day
+      year_start = Date.new(year, 1, 1).beginning_of_day
+
+      packages_count = packages
+        .where("COALESCE(first_release_published_at, created_at) <= ?", year_end)
+        .count
+
+      versions_count_val = versions
+        .where("COALESCE(published_at, created_at) <= ?", year_end)
+        .count
+
+      new_packages_count = packages
+        .where("COALESCE(first_release_published_at, created_at) >= ? AND COALESCE(first_release_published_at, created_at) <= ?", year_start, year_end)
+        .count
+
+      new_versions_count = versions
+        .where("COALESCE(published_at, created_at) >= ? AND COALESCE(published_at, created_at) <= ?", year_start, year_end)
+        .count
+
+      stat = existing || registry_growth_stats.new(year: year)
+      stat.update!(
+        packages_count: packages_count,
+        versions_count: versions_count_val,
+        new_packages_count: new_packages_count,
+        new_versions_count: new_versions_count
+      )
+
+      yield(year, :calculated, stat) if block_given?
+    end
+  end
+
   def find_critical_packages
     # only calculate critical packages for registries with more than 4000 packages
-    return if packages_count < 4_000 
+    return if packages_count < 4_000
   
     if downloads > 0 && ecosystem != 'hackage' # hackage download numbers are not reliable
   
