@@ -3,6 +3,6 @@ class AddIndexToPackagesFirstReleasePublishedAt < ActiveRecord::Migration[8.1]
 
   def change
     ActiveRecord::Base.connection.execute('SET statement_timeout TO 0')
-    add_index :packages, :first_release_published_at, algorithm: :concurrently
+    add_index :packages, :first_release_published_at, algorithm: :concurrently unless index_exists?(:packages, :first_release_published_at)
   end
 end
