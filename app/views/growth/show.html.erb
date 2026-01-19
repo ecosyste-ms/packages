@@ -22,7 +22,7 @@
         <div class="card">
           <div class="card-body">
             <h5 class="card-title">Cumulative Packages</h5>
-            <%= line_chart filtered_stats.map { |s| [s.year, s.packages_count] }, height: "300px", library: { scales: { y: { beginAtZero: true } } } %>
+            <%= line_chart filtered_stats.map { |s| [s.year, s.packages_count] }, height: "300px", xmax: Time.current.year, library: { scales: { y: { beginAtZero: true } } } %>
           </div>
         </div>
       </div>
@@ -30,7 +30,7 @@
         <div class="card">
           <div class="card-body">
             <h5 class="card-title">Cumulative Versions</h5>
-            <%= line_chart filtered_stats.map { |s| [s.year, s.versions_count] }, height: "300px", library: { scales: { y: { beginAtZero: true } } } %>
+            <%= line_chart filtered_stats.map { |s| [s.year, s.versions_count] }, height: "300px", xmax: Time.current.year, library: { scales: { y: { beginAtZero: true } } } %>
           </div>
         </div>
       </div>
