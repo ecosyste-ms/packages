@@ -26,9 +26,8 @@ class NcsuVerificationRakeTest < ActiveSupport::TestCase
   end
 
   test 'verify_counts runs without error for empty registry' do
-    ENV['ECOSYSTEM'] = 'rubygems'
     assert_nothing_raised do
-      Rake::Task['ncsu:verify_counts'].invoke
+      Rake::Task['ncsu:verify_counts'].invoke('rubygems')
     end
   end
 
@@ -36,10 +35,7 @@ class NcsuVerificationRakeTest < ActiveSupport::TestCase
     create_qualifying_package('test-export-package')
     output_file = Rails.root.join('tmp', 'test_export.csv').to_s
 
-    ENV['ECOSYSTEM'] = 'rubygems'
-    ENV['OUTPUT'] = output_file
-
-    Rake::Task['ncsu:export_packages'].invoke
+    Rake::Task['ncsu:export_packages'].invoke('rubygems', output_file)
 
     assert File.exist?(output_file)
     csv_content = CSV.read(output_file)
@@ -55,11 +51,8 @@ class NcsuVerificationRakeTest < ActiveSupport::TestCase
   test 'export_packages creates empty CSV when no packages match' do
     output_file = Rails.root.join('tmp', 'test_export_empty.csv').to_s
 
-    ENV['ECOSYSTEM'] = 'rubygems'
-    ENV['OUTPUT'] = output_file
-
     Rake::Task['ncsu:export_packages'].reenable
-    Rake::Task['ncsu:export_packages'].invoke
+    Rake::Task['ncsu:export_packages'].invoke('rubygems', output_file)
 
     assert File.exist?(output_file)
     csv_content = CSV.read(output_file)
@@ -72,12 +65,10 @@ class NcsuVerificationRakeTest < ActiveSupport::TestCase
   test 'export_csv outputs CSV to stdout' do
     create_qualifying_package('test-stdout-package')
 
-    ENV['ECOSYSTEM'] = 'rubygems'
-
     Rake::Task['ncsu:export_csv'].reenable
 
     output = capture_io do
-      Rake::Task['ncsu:export_csv'].invoke
+      Rake::Task['ncsu:export_csv'].invoke('rubygems')
     end
 
     stdout_output = output[0]
