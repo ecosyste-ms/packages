@@ -54,11 +54,11 @@
             <div class="row mb-3">
               <div class="col-md-6">
                 <h6>Cumulative Packages</h6>
-                <%= line_chart combined_filtered.map { |s| [s.year, s.packages_count] }, height: "250px", library: { scales: { y: { beginAtZero: true } } } %>
+                <%= line_chart combined_filtered.map { |s| [s.year, s.packages_count] }, height: "250px", xmax: Time.current.year, library: { scales: { y: { beginAtZero: true } } } %>
               </div>
               <div class="col-md-6">
                 <h6>Cumulative Versions</h6>
-                <%= line_chart combined_filtered.map { |s| [s.year, s.versions_count] }, height: "250px", library: { scales: { y: { beginAtZero: true } } } %>
+                <%= line_chart combined_filtered.map { |s| [s.year, s.versions_count] }, height: "250px", xmax: Time.current.year, library: { scales: { y: { beginAtZero: true } } } %>
               </div>
             </div>
 
@@ -168,22 +168,22 @@
               <div class="row mb-3">
                 <div class="col-md-6">
                   <h6>Cumulative Packages</h6>
-                  <%= line_chart comparison_packages, height: "300px", legend: "bottom", library: { plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } } %>
+                  <%= line_chart comparison_packages, height: "300px", legend: "bottom", xmax: Time.current.year, library: { plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } } %>
                 </div>
                 <div class="col-md-6">
                   <h6>Cumulative Versions</h6>
-                  <%= line_chart comparison_versions, height: "300px", legend: "bottom", library: { plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } } %>
+                  <%= line_chart comparison_versions, height: "300px", legend: "bottom", xmax: Time.current.year, library: { plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } } %>
                 </div>
               </div>
 
               <div class="row mb-3">
                 <div class="col-md-6">
                   <h6>New Packages per Year</h6>
-                  <%= line_chart comparison_new_packages, height: "300px", legend: "bottom", library: { plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } } %>
+                  <%= line_chart comparison_new_packages, height: "300px", legend: "bottom", xmax: Time.current.year, library: { plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } } %>
                 </div>
                 <div class="col-md-6">
                   <h6>New Versions per Year</h6>
-                  <%= line_chart comparison_new_versions, height: "300px", legend: "bottom", library: { plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } } %>
+                  <%= line_chart comparison_new_versions, height: "300px", legend: "bottom", xmax: Time.current.year, library: { plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } } %>
                 </div>
               </div>
             </div>
@@ -219,11 +219,11 @@
             <div class="row mb-3">
               <div class="col-md-6">
                 <h6>Cumulative Packages</h6>
-                <%= line_chart stats.map { |s| [s.year, s.packages_count] }, height: "200px", library: { scales: { y: { beginAtZero: true } } } %>
+                <%= line_chart stats.map { |s| [s.year, s.packages_count] }, height: "200px", xmax: Time.current.year, library: { scales: { y: { beginAtZero: true } } } %>
               </div>
               <div class="col-md-6">
                 <h6>Cumulative Versions</h6>
-                <%= line_chart stats.map { |s| [s.year, s.versions_count] }, height: "200px", library: { scales: { y: { beginAtZero: true } } } %>
+                <%= line_chart stats.map { |s| [s.year, s.versions_count] }, height: "200px", xmax: Time.current.year, library: { scales: { y: { beginAtZero: true } } } %>
               </div>
             </div>
 
