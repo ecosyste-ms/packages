@@ -435,6 +435,87 @@ class Registry < ApplicationRecord
     read_attribute(:downloads) || 0
   end
 
+  def calculate_growth_stats(force: false)
+    min_year = RegistryGrowthStat::MIN_YEAR
+    end_year = Time.current.year
+
+    # Use incremental counting: only count new items per year and maintain running totals
+    # This avoids expensive cumulative counts that scan the entire table for each year
+    running_packages = 0
+    running_versions = 0
+
+    # Calculate baseline: everything before min_year
+    baseline_end = Date.new(min_year - 1, 12, 31).end_of_day
+    running_packages = chunked_count(
+      packages.where("COALESCE(first_release_published_at, created_at) <= ?", baseline_end)
+    )
+    running_versions = chunked_count(
+      versions.where("COALESCE(published_at, created_at) <= ?", baseline_end)
+    )
+
+    (min_year..end_year).each do |year|
+      existing = registry_growth_stats.find_by(year: year)
+
+      # Always recalculate current year, skip past years unless forcing
+      if existing && !force && year < end_year
+        # Update running totals from existing data so subsequent years are correct
+        running_packages = existing.packages_count
+        running_versions = existing.versions_count
+        yield(year, :skipped) if block_given?
+        next
+      end
+
+      year_start = Date.new(year, 1, 1).beginning_of_day
+      year_end = Date.new(year, 12, 31).end_of_day
+
+      # Only count NEW items for this specific year (bounded, smaller counts)
+      new_packages_count = chunked_count(
+        packages.where(
+          "COALESCE(first_release_published_at, created_at) >= ? AND COALESCE(first_release_published_at, created_at) <= ?",
+          year_start, year_end
+        )
+      )
+
+      new_versions_count = chunked_count(
+        versions.where(
+          "COALESCE(published_at, created_at) >= ? AND COALESCE(published_at, created_at) <= ?",
+          year_start, year_end
+        )
+      )
+
+      # Cumulative = previous total + new this year
+      running_packages += new_packages_count
+      running_versions += new_versions_count
+
+      stat = existing || registry_growth_stats.new(year: year)
+      stat.update!(
+        packages_count: running_packages,
+        versions_count: running_versions,
+        new_packages_count: new_packages_count,
+        new_versions_count: new_versions_count
+      )
+
+      yield(year, :calculated, stat) if block_given?
+    end
+  end
+
+  # Count records in chunks by ID range to avoid query timeouts on large tables
+  def chunked_count(relation, chunk_size: 100_000)
+    bounds = relation.pluck(Arel.sql('MIN(id), MAX(id)')).first
+    return 0 if bounds.nil? || bounds[0].nil?
+
+    min_id, max_id = bounds
+    total = 0
+    current_id = min_id
+
+    while current_id <= max_id
+      total += relation.where(id: current_id..(current_id + chunk_size - 1)).count
+      current_id += chunk_size
+    end
+
+    total
+  end
+
   def find_critical_packages
     # only calculate critical packages for registries with more than 4000 packages
     return if packages_count < 4_000 
