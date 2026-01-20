@@ -439,13 +439,39 @@ class Registry < ApplicationRecord
     min_year = RegistryGrowthStat::MIN_YEAR
     end_year = Time.current.year
 
+    # Batch load existing stats
+    existing_stats = registry_growth_stats.where(year: min_year..end_year).index_by(&:year)
+    last_year_stat = existing_stats[end_year - 1]
+
+    # Fast path: if we have last year's stats and aren't forcing, just update current year
+    # using registry totals instead of expensive counts
+    if last_year_stat && !force
+      (min_year...end_year).each do |year|
+        yield(year, :skipped) if block_given?
+      end
+
+      new_packages_count = packages_count.to_i - last_year_stat.packages_count
+      new_versions_count = versions_count.to_i - last_year_stat.versions_count
+
+      stat = existing_stats[end_year] || registry_growth_stats.new(year: end_year)
+      stat.update!(
+        packages_count: packages_count.to_i,
+        versions_count: versions_count.to_i,
+        new_packages_count: new_packages_count,
+        new_versions_count: new_versions_count
+      )
+
+      yield(end_year, :calculated, stat) if block_given?
+      return
+    end
+
+    # Slow path: count from database using small weekly chunks
     running_packages = 0
     running_versions = 0
 
     (min_year..end_year).each do |year|
-      existing = registry_growth_stats.find_by(year: year)
+      existing = existing_stats[year]
 
-      # Always recalculate current year, skip past years unless forcing
       if existing && !force && year < end_year
         running_packages = existing.packages_count
         running_versions = existing.versions_count
@@ -456,8 +482,15 @@ class Registry < ApplicationRecord
       year_start = Date.new(year, 1, 1).beginning_of_day
       year_end = Date.new(year, 12, 31).end_of_day
 
-      new_packages_count = count_packages_in_range(year_start, year_end)
-      new_versions_count = count_versions_in_range(year_start, year_end)
+      chunk_size = versions_count.to_i > 1_000_000 ? 1.day : 1.week
+
+      new_packages_count = count_in_chunks(year_start, year_end, chunk_size) do |chunk_start, chunk_end|
+        packages.where(first_release_published_at: chunk_start..chunk_end).count
+      end
+
+      new_versions_count = count_in_chunks(year_start, year_end, chunk_size) do |chunk_start, chunk_end|
+        versions.where(published_at: chunk_start..chunk_end).count
+      end
 
       running_packages += new_packages_count
       running_versions += new_versions_count
@@ -474,26 +507,14 @@ class Registry < ApplicationRecord
     end
   end
 
-  def count_packages_in_range(start_date, end_date)
-    count_in_range_by_month(start_date, end_date) do |month_start, month_end|
-      packages.where(first_release_published_at: month_start..month_end).count
-    end
-  end
-
-  def count_versions_in_range(start_date, end_date)
-    count_in_range_by_month(start_date, end_date) do |month_start, month_end|
-      versions.where(published_at: month_start..month_end).count
-    end
-  end
-
-  def count_in_range_by_month(start_date, end_date)
+  def count_in_chunks(start_date, end_date, chunk_size)
     total = 0
-    current = start_date.to_date.beginning_of_month
+    current = start_date.to_date
     while current <= end_date
-      month_start = [current.beginning_of_day, start_date].max
-      month_end = [current.end_of_month.end_of_day, end_date].min
-      total += yield(month_start, month_end)
-      current = current.next_month
+      chunk_start = current.beginning_of_day
+      chunk_end = [(current + chunk_size - 1.day).end_of_day, end_date].min
+      total += yield(chunk_start, chunk_end)
+      current += chunk_size
     end
     total
   end
