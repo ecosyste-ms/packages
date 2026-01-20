@@ -484,15 +484,12 @@ class Registry < ApplicationRecord
     end
   end
 
-  # Simple indexed counts - avoid COALESCE which prevents index usage
   def count_packages_before(date)
-    packages.where("first_release_published_at <= ?", date).count +
-      packages.where(first_release_published_at: nil).where("created_at <= ?", date).count
+    packages.where("first_release_published_at <= ?", date).count
   end
 
   def count_packages_in_range(start_date, end_date)
-    packages.where(first_release_published_at: start_date..end_date).count +
-      packages.where(first_release_published_at: nil).where(created_at: start_date..end_date).count
+    packages.where(first_release_published_at: start_date..end_date).count
   end
 
   def count_versions_before(date)
