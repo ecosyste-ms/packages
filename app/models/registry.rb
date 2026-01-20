@@ -489,7 +489,9 @@ class Registry < ApplicationRecord
   end
 
   def count_packages_in_range(start_date, end_date)
-    packages.where(first_release_published_at: start_date..end_date).count
+    count_in_range_by_month(start_date, end_date) do |month_start, month_end|
+      packages.where(first_release_published_at: month_start..month_end).count
+    end
   end
 
   def count_versions_before(date)
@@ -497,7 +499,21 @@ class Registry < ApplicationRecord
   end
 
   def count_versions_in_range(start_date, end_date)
-    versions.where(published_at: start_date..end_date).count
+    count_in_range_by_month(start_date, end_date) do |month_start, month_end|
+      versions.where(published_at: month_start..month_end).count
+    end
+  end
+
+  def count_in_range_by_month(start_date, end_date)
+    total = 0
+    current = start_date.to_date.beginning_of_month
+    while current <= end_date
+      month_start = [current.beginning_of_day, start_date].max
+      month_end = [current.end_of_month.end_of_day, end_date].min
+      total += yield(month_start, month_end)
+      current = current.next_month
+    end
+    total
   end
 
   def find_critical_packages
