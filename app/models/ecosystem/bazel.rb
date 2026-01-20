@@ -8,6 +8,9 @@ module Ecosystem
     BAZEL_CENTRAL_REGISTRY_URL = "https://bcr.bazel.build".freeze
     DEFAULT_MODULE_TYPE = "archive".freeze
     GIT_REPOSITORY_MODULE_TYPE = "git_repository".freeze
+    RECENTLY_UPDATED_SECTION_XPATH = "//h2[contains(@class, 'font-bold') " \
+      "and contains(@class, 'text-lg') and normalize-space(text())='Recently updated']/following-sibling::*[1][contains(@class, "\
+      "'grid grid-cols-1')]".freeze
 
     def registry_url(package, version = nil)
       version_part = version ? "/#{version}" : ""
@@ -42,6 +45,10 @@ module Ecosystem
     end
 
     def recently_updated_package_names
+      doc = get_html("https://registry.bazel.build/")
+      modules_table = doc.at_xpath(RECENTLY_UPDATED_SECTION_XPATH)
+      names = modules_table.css('a div.font-bold').map { |div| div.text.strip }
+    rescue StandardError
       []
     end
 

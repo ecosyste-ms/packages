@@ -62,7 +62,21 @@ class BazelTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
-    assert_equal @ecosystem.recently_updated_package_names, []
+    stub_request(:get, "https://registry.bazel.build/")
+      .to_return({ status: 200, body: file_fixture('bazel/index.html') })
+    recently_updated_package_names = @ecosystem.recently_updated_package_names
+    assert_equal recently_updated_package_names, [
+      "opentelemetry-cpp",
+      "maliput_malidrive",
+      "maliput",
+      "glog",
+      "rules_itest",
+      "linenoise",
+      "behaviortree_ros2",
+      "bazeldnf",
+      "aspect_rules_js",
+      "libpng"
+    ]
   end
 
   test 'package_metadata' do
