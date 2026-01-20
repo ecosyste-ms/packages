@@ -183,6 +183,26 @@ class BazelTest < ActiveSupport::TestCase
       }
   end
 
+  test 'dependencies_metadata' do
+    @package = Package.new(ecosystem: 'Bazel', name: 'elemental2')
+    @version = @package.versions.build(number: '1.3.2')
+    stub_request(:get, "https://bcr.bazel.build/modules/elemental2/1.3.2/MODULE.bazel")
+      .to_return({ status: 200, body: file_fixture('bazel/MODULE.bazel') })
+    dependencies_metadata = @ecosystem.dependencies_metadata('elemental2', '1.3.2', nil)
+
+    assert_equal dependencies_metadata, [
+      {package_name: "j2cl", requirements: "*", kind: "runtime", ecosystem: "bazel"},
+      {package_name: "jsinterop_generator", requirements: "20250812", kind: "runtime", ecosystem: "bazel"},
+      {package_name: "jsinterop_base", requirements: "1.1.0", kind: "runtime", ecosystem: "bazel"},
+      {package_name: "bazel_skylib", requirements: "1.7.1", kind: "runtime", ecosystem: "bazel"},
+      {package_name: "google_bazel_common", requirements: "0.0.1", kind: "runtime", ecosystem: "bazel"},
+      {package_name: "rules_java", requirements: "8.13.0", kind: "runtime", ecosystem: "bazel"},
+      {package_name: "rules_license", requirements: "1.0.0", kind: "runtime", ecosystem: "bazel"},
+      {package_name: "google_benchmark", requirements: "1.9.4", kind: "development", ecosystem: "bazel"},
+      {package_name: "rules_jvm_external", requirements: "6.6", kind: "runtime", ecosystem: "bazel"}
+    ]
+  end
+
   test 'maintainers_metadata' do
     stub_request(:get, "https://bcr.bazel.build/modules/rules_go/metadata.json")
       .to_return({ status: 200, body: file_fixture('bazel/rules_go_package_metadata') })

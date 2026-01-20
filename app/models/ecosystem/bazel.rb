@@ -112,6 +112,20 @@ module Ecosystem
       end
     end
 
+    def dependencies_metadata(name, version, _package)
+      module_verison_data = get_raw("#{BAZEL_CENTRAL_REGISTRY_URL}/modules/#{name}/#{version}/MODULE.bazel")
+      Bibliothecary::Parsers::Bazel.parse_module_bazel(module_verison_data).dependencies.map do |dep|
+        {
+          package_name: dep[:name],
+          requirements: dep[:requirement],
+          kind: dep[:type],
+          ecosystem: self.class.name.demodulize.downcase
+        }
+      end
+    rescue StandardError
+      []
+    end
+
     def maintainers_metadata(name)
       fetched_data = get("#{BAZEL_CENTRAL_REGISTRY_URL}/modules/#{name}/metadata.json")
       return [] if fetched_data.blank?
