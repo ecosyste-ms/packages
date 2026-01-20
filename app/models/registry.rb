@@ -496,13 +496,11 @@ class Registry < ApplicationRecord
   end
 
   def count_versions_before(date)
-    versions.where("published_at <= ?", date).count +
-      versions.where(published_at: nil).where("created_at <= ?", date).count
+    versions.where("published_at <= ?", date).count
   end
 
   def count_versions_in_range(start_date, end_date)
-    versions.where(published_at: start_date..end_date).count +
-      versions.where(published_at: nil).where(created_at: start_date..end_date).count
+    versions.where(published_at: start_date..end_date).count
   end
 
   def find_critical_packages
