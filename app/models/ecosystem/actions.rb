@@ -21,7 +21,34 @@ module Ecosystem
     end
 
     def check_status(package)
-      return 'removed' if fetch_package_metadata(package.name).nil?
+      # Use raw.githubusercontent.com to avoid GitHub.com rate limits
+      parts = package.name.split('/')
+      return nil if parts.length < 2
+      full_name = parts[0..1].join('/')
+      path = parts.length > 2 ? parts[2..-1].join('/') : nil
+
+      default_branch = package.metadata&.dig('default_branch') || 'main'
+      yaml_path = path.present? ? "#{path}/action" : "action"
+
+      url = "https://raw.githubusercontent.com/#{full_name}/#{default_branch}/#{yaml_path}.yml"
+
+      connection = Faraday.new(url) do |faraday|
+        faraday.use Faraday::FollowRedirects::Middleware
+        faraday.adapter Faraday.default_adapter
+      end
+
+      response = connection.head(url)
+      return nil unless [400, 404, 410].include?(response.status)
+
+      # Try .yaml extension before marking as removed
+      yaml_url = "https://raw.githubusercontent.com/#{full_name}/#{default_branch}/#{yaml_path}.yaml"
+      response = connection.head(yaml_url)
+      return 'removed' if [400, 404, 410].include?(response.status)
+
+      nil
+    rescue => e
+      Rails.logger.warn("Error checking status for action #{package.id} (#{package.name}): #{e.message}")
+      nil
     end
 
     def registry_url(package, _version = nil)

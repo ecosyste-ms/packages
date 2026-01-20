@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_13_124934) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_20_094500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -136,6 +136,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_13_124934) do
     t.index "registry_id, (((repo_metadata ->> 'stargazers_count'::text))::integer)", name: "index_packages_on_stargazers_count"
     t.index "registry_id, ((metadata ->> 'normalized_name'::text))", name: "index_packages_on_registry_id_and_normalized_name", where: "((metadata ->> 'normalized_name'::text) IS NOT NULL)"
     t.index ["critical"], name: "index_packages_on_critical", where: "(critical = true)"
+    t.index ["first_release_published_at"], name: "index_packages_on_first_release_published_at"
     t.index ["keywords"], name: "index_packages_on_keywords", using: :gin
     t.index ["latest_release_published_at"], name: "index_packages_on_latest_release_published_at"
     t.index ["registry_id", "dependent_packages_count"], name: "index_packages_on_registry_id_and_dependent_packages_count"
@@ -192,6 +193,19 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_13_124934) do
     t.integer "versions_count"
   end
 
+  create_table "registry_growth_stats", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "new_packages_count", default: 0
+    t.bigint "new_versions_count", default: 0
+    t.bigint "packages_count", default: 0
+    t.bigint "registry_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "versions_count", default: 0
+    t.integer "year", null: false
+    t.index ["registry_id", "year"], name: "index_registry_growth_stats_on_registry_id_and_year", unique: true
+    t.index ["registry_id"], name: "index_registry_growth_stats_on_registry_id"
+  end
+
   create_table "sources", force: :cascade do |t|
     t.integer "advisories_count", default: 0
     t.datetime "created_at", null: false
@@ -216,8 +230,10 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_13_124934) do
     t.datetime "updated_at", null: false
     t.index ["package_id", "number"], name: "index_versions_on_package_id_and_number", unique: true
     t.index ["published_at"], name: "index_versions_on_published_at"
-    t.index ["registry_id"], name: "index_versions_on_registry_id"
+    t.index ["registry_id", "created_at"], name: "index_versions_on_registry_id_and_created_at"
+    t.index ["registry_id", "published_at"], name: "index_versions_on_registry_id_and_published_at"
   end
 
   add_foreign_key "advisories", "sources"
+  add_foreign_key "registry_growth_stats", "registries"
 end

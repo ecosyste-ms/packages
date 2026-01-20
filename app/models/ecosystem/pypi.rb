@@ -151,12 +151,17 @@ module Ecosystem
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
-      pkg_metadata[:releases].map do |k, v|
+      clear_version_cache
+      name = pkg_metadata[:name]
+      pkg_metadata[:releases].filter_map do |k, v|
+        next if existing_version_numbers.include?(k)
+
         if v == []
           {
             number: k,
             published_at: nil,
             integrity: nil,
+            licenses: nil,
             metadata: {
               download_url: nil
             }
@@ -166,6 +171,7 @@ module Ecosystem
             number: k,
             published_at: v[0]["upload_time"],
             integrity: 'sha256-' + v[0]['digests']['sha256'],
+            licenses: version_licenses(name, k),
             metadata: {
               download_url: v[0]['url'],
               requires_python: v[0]['requires_python'],
@@ -190,8 +196,24 @@ module Ecosystem
       [name.remove(/\s/), version&.remove(/[()]/) || "", environment_markers || ""]
     end
 
+    def fetch_version(name, version)
+      @version_cache ||= {}
+      @version_cache[[name, version]] ||= get_json("#{@registry_url}/pypi/#{name}/#{version}/json")
+    rescue
+      {}
+    end
+
+    def clear_version_cache
+      @version_cache = {}
+    end
+
+    def version_licenses(name, version)
+      info = fetch_version(name, version)["info"] || {}
+      info["license_expression"].presence || info["license"].presence
+    end
+
     def dependencies_metadata(name, version, _package)
-      requires_dist = get_json("#{@registry_url}/pypi/#{name}/#{version}/json")["info"]["requires_dist"]
+      requires_dist = fetch_version(name, version).dig("info", "requires_dist")
       return [] if requires_dist.nil?
 
       requires_dist.flat_map do |dep|
@@ -214,6 +236,7 @@ module Ecosystem
     end
 
     def licenses(package)
+      return package["info"]["license_expression"] if package["info"]["license_expression"].present?
       return package["info"]["license"] if package["info"]["license"].present?
 
       license_classifiers = package["info"]["classifiers"].select { |c| c.start_with?("License :: ") }

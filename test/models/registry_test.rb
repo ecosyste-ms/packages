@@ -214,4 +214,47 @@ class RegistryTest < ActiveSupport::TestCase
     assert dependency_check_queries.count < 5,
       "Expected less than 5 dependency-related queries, but got #{dependency_check_queries.count}. This suggests N+1 is still present."
   end
+
+  test 'calculate_growth_stats uses incremental counting' do
+    # Create packages across multiple years
+    @registry.packages.create!(name: 'pkg1', ecosystem: @registry.ecosystem, first_release_published_at: Date.new(2020, 6, 15))
+    @registry.packages.create!(name: 'pkg2', ecosystem: @registry.ecosystem, first_release_published_at: Date.new(2021, 3, 10))
+    @registry.packages.create!(name: 'pkg3', ecosystem: @registry.ecosystem, first_release_published_at: Date.new(2021, 8, 20))
+
+    @registry.calculate_growth_stats(force: true)
+
+    stat_2020 = @registry.registry_growth_stats.find_by(year: 2020)
+    stat_2021 = @registry.registry_growth_stats.find_by(year: 2021)
+
+    # 2020: 1 new, 1 cumulative
+    assert_equal 1, stat_2020.new_packages_count
+    assert_equal 1, stat_2020.packages_count
+
+    # 2021: 2 new, 3 cumulative (1 + 2)
+    assert_equal 2, stat_2021.new_packages_count
+    assert_equal 3, stat_2021.packages_count
+  end
+
+  test 'calculate_growth_stats preserves running totals when skipping years' do
+    # Create packages across multiple years
+    @registry.packages.create!(name: 'pkg1', ecosystem: @registry.ecosystem, first_release_published_at: Date.new(2020, 6, 15))
+    @registry.packages.create!(name: 'pkg2', ecosystem: @registry.ecosystem, first_release_published_at: Date.new(2021, 3, 10))
+
+    # Calculate stats only up to 2021 by manually creating records
+    @registry.registry_growth_stats.create!(year: 2020, packages_count: 1, new_packages_count: 1, versions_count: 0, new_versions_count: 0)
+    @registry.registry_growth_stats.create!(year: 2021, packages_count: 2, new_packages_count: 1, versions_count: 0, new_versions_count: 0)
+
+    # Add a package in 2022
+    @registry.packages.create!(name: 'pkg3', ecosystem: @registry.ecosystem, first_release_published_at: Date.new(2022, 1, 5))
+
+    # Run without force - should skip 2020, 2021 but calculate 2022 with correct running totals
+    @registry.calculate_growth_stats(force: false)
+
+    stat_2022 = @registry.registry_growth_stats.find_by(year: 2022)
+
+    # Should pick up running total from skipped 2021 (2) and add new package
+    assert_equal 1, stat_2022.new_packages_count
+    assert_equal 3, stat_2022.packages_count
+  end
+
 end

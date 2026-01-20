@@ -275,6 +275,8 @@ class Package < ApplicationRecord
     read_attribute(:licenses).presence || repo_metadata && repo_metadata['license']
   end
 
+  NON_SPDX_LICENSE_VALUES = %w[other unknown none noassertion proprietary custom see\ license].freeze
+
   def spdx_license
     licenses
       .downcase
@@ -284,7 +286,7 @@ class Package < ApplicationRecord
       .flat_map { |l| l.split(" and ") }
       .map { |l| manual_license_format(l) }
       .flat_map { |l| l.split(/[,\/]/) }
-      .map(&Spdx.method(:find))
+      .map { |l| NON_SPDX_LICENSE_VALUES.include?(l.strip) ? nil : Spdx.find(l) }
       .compact
       .map(&:id)
   end

@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby '3.4.8'
+ruby '4.0.0'
 
 # Rails components
 gem "activemodel", "~> 8.1.1"
@@ -29,10 +29,9 @@ gem "simple-rss"
 gem "redis"
 gem "sidekiq"
 gem 'sidekiq-unique-jobs'
-gem "ecosystems-bibliothecary", github: "ecosyste-ms/bibliothecary", branch: "main"
+gem "ecosystems-bibliothecary", github: "ecosyste-ms/bibliothecary", branch: "main", require: "bibliothecary"
 gem "pagy", "~> 9.4.0"
 gem "pghero"
-gem "pg_query"
 gem 'bootstrap'
 gem 'rack-cors'
 gem 'rswag-api'
@@ -46,14 +45,12 @@ gem "chartkick"
 gem "groupdate"
 gem 'jquery-rails'
 gem 'addressable'
-gem 'google-protobuf'
 gem 'rexml'
 gem 'appsignal'
 gem 'faraday-typhoeus'
 gem 'purl'
 gem 'sitemap_generator'
 gem 'dalli'
-gem "connection_pool", "<3"
 gem 'postgresql_cursor'
 gem 'rack-timeout'
 gem "lograge"
@@ -61,6 +58,7 @@ gem 'csv'
 gem 'bootstrap-icons', require: 'bootstrap_icons'
 gem 'ostruct'
 gem 'matrix'
+gem 'cgi'
 
 group :development do
   gem "web-console"

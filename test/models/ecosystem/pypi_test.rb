@@ -108,14 +108,17 @@ class PypiTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('pypi/yiban') })
     stub_request(:get, "https://pypistats.org/api/packages/yiban/recent")
       .to_return({ status: 200, body: file_fixture('pypi/recent') })
+    stub_request(:get, "https://pypi.org/pypi/yiban/0.1.2.32/json")
+      .to_return({ status: 200, body: file_fixture('pypi/yiban-0.1.2.32-json') })
     package_metadata = @ecosystem.package_metadata('yiban')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
       {
-        :number=>"0.1.2.32", 
-        :published_at=>"2019-11-05T15:06:04", 
-        :integrity=>"sha256-29ffb8f9b1d6114757a53a1a713a4e07ce4e1c4c50d31332644593db208f30e7", 
+        :number=>"0.1.2.32",
+        :published_at=>"2019-11-05T15:06:04",
+        :integrity=>"sha256-29ffb8f9b1d6114757a53a1a713a4e07ce4e1c4c50d31332644593db208f30e7",
+        :licenses=>nil,
         :metadata=>{
           :download_url=>"https://files.pythonhosted.org/packages/8b/e1/40122572f57349365391b8955178d52cd42d2c1f767030cbd196883adee7/yiban-0.1.2.32-py3-none-any.whl",
           :requires_python=>">=3.8",
@@ -282,14 +285,42 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal @ecosystem.parse_repository_url(description), 'https://github.com/easybuilders/easybuild-easyconfigs'
   end
 
-  test 'versions_metadata includes python requirements and pypi specific fields' do
+  test 'versions_metadata skips existing version numbers' do
     stub_request(:get, "https://pypi.org/pypi/yiban/json")
       .to_return({ status: 200, body: file_fixture('pypi/yiban') })
     stub_request(:get, "https://pypistats.org/api/packages/yiban/recent")
       .to_return({ status: 200, body: file_fixture('pypi/recent') })
     package_metadata = @ecosystem.package_metadata('yiban')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata, ['0.1.2.32'])
+
+    assert_equal [], versions_metadata
+  end
+
+  test 'versions_metadata includes version licenses' do
+    stub_request(:get, "https://pypi.org/pypi/yiban/json")
+      .to_return({ status: 200, body: file_fixture('pypi/yiban') })
+    stub_request(:get, "https://pypistats.org/api/packages/yiban/recent")
+      .to_return({ status: 200, body: file_fixture('pypi/recent') })
+    version_json = JSON.parse(file_fixture('pypi/yiban-0.1.2.32-json').read)
+    version_json['info']['license'] = 'MIT'
+    stub_request(:get, "https://pypi.org/pypi/yiban/0.1.2.32/json")
+      .to_return({ status: 200, body: version_json.to_json })
+    package_metadata = @ecosystem.package_metadata('yiban')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
-    
+
+    assert_equal 'MIT', versions_metadata.first[:licenses]
+  end
+
+  test 'versions_metadata includes python requirements and pypi specific fields' do
+    stub_request(:get, "https://pypi.org/pypi/yiban/json")
+      .to_return({ status: 200, body: file_fixture('pypi/yiban') })
+    stub_request(:get, "https://pypistats.org/api/packages/yiban/recent")
+      .to_return({ status: 200, body: file_fixture('pypi/recent') })
+    stub_request(:get, "https://pypi.org/pypi/yiban/0.1.2.32/json")
+      .to_return({ status: 200, body: file_fixture('pypi/yiban-0.1.2.32-json') })
+    package_metadata = @ecosystem.package_metadata('yiban')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+
     first_version = versions_metadata.first
     assert_equal first_version[:metadata][:requires_python], ">=3.8"
     assert_equal first_version[:metadata][:yanked], false
@@ -400,6 +431,39 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal 'https://github.com/test/test-package', repository_url
   end
 
+  test 'licenses prefers license_expression over license' do
+    package = {
+      "info" => {
+        "license_expression" => "Apache-2.0 OR BSD-3-Clause",
+        "license" => "Old License",
+        "classifiers" => ["License :: OSI Approved :: MIT License"]
+      }
+    }
+    assert_equal "Apache-2.0 OR BSD-3-Clause", @ecosystem.licenses(package)
+  end
+
+  test 'licenses falls back to license when license_expression is nil' do
+    package = {
+      "info" => {
+        "license_expression" => nil,
+        "license" => "MIT",
+        "classifiers" => ["License :: OSI Approved :: BSD License"]
+      }
+    }
+    assert_equal "MIT", @ecosystem.licenses(package)
+  end
+
+  test 'licenses falls back to classifiers when both license fields are nil' do
+    package = {
+      "info" => {
+        "license_expression" => nil,
+        "license" => nil,
+        "classifiers" => ["License :: OSI Approved :: MIT License", "License :: OSI Approved :: BSD License"]
+      }
+    }
+    assert_equal "MIT License,BSD License", @ecosystem.licenses(package)
+  end
+
   test 'pypi package_metadata funding_url flask' do
     stub_request(:get, "https://pypi.org/pypi/flask/json")
       .to_return({ status: 200, body: file_fixture('pypi/flask/flask') })
@@ -412,7 +476,7 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal package_metadata[:name], "flask"
     assert_equal package_metadata[:description], "A simple framework for building complex web applications."
     assert_nil package_metadata[:homepage]
-    assert_equal package_metadata[:licenses], ""
+    assert_equal package_metadata[:licenses], "BSD-3-Clause"
     assert_equal package_metadata[:repository_url], "https://github.com/pallets/flask"
     assert_equal package_metadata[:keywords_array], []
     assert_equal package_metadata[:downloads], 157236987

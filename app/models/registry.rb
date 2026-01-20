@@ -6,6 +6,7 @@ class Registry < ApplicationRecord
   has_many :packages
   has_many :versions
   has_many :maintainers
+  has_many :registry_growth_stats
 
   scope :not_docker, -> { where.not(ecosystem: 'docker') }
 
@@ -432,6 +433,69 @@ class Registry < ApplicationRecord
 
   def downloads
     read_attribute(:downloads) || 0
+  end
+
+  def calculate_growth_stats(force: false)
+    min_year = RegistryGrowthStat::MIN_YEAR
+    end_year = Time.current.year
+
+    running_packages = 0
+    running_versions = 0
+
+    (min_year..end_year).each do |year|
+      existing = registry_growth_stats.find_by(year: year)
+
+      # Always recalculate current year, skip past years unless forcing
+      if existing && !force && year < end_year
+        running_packages = existing.packages_count
+        running_versions = existing.versions_count
+        yield(year, :skipped) if block_given?
+        next
+      end
+
+      year_start = Date.new(year, 1, 1).beginning_of_day
+      year_end = Date.new(year, 12, 31).end_of_day
+
+      new_packages_count = count_packages_in_range(year_start, year_end)
+      new_versions_count = count_versions_in_range(year_start, year_end)
+
+      running_packages += new_packages_count
+      running_versions += new_versions_count
+
+      stat = existing || registry_growth_stats.new(year: year)
+      stat.update!(
+        packages_count: running_packages,
+        versions_count: running_versions,
+        new_packages_count: new_packages_count,
+        new_versions_count: new_versions_count
+      )
+
+      yield(year, :calculated, stat) if block_given?
+    end
+  end
+
+  def count_packages_in_range(start_date, end_date)
+    count_in_range_by_month(start_date, end_date) do |month_start, month_end|
+      packages.where(first_release_published_at: month_start..month_end).count
+    end
+  end
+
+  def count_versions_in_range(start_date, end_date)
+    count_in_range_by_month(start_date, end_date) do |month_start, month_end|
+      versions.where(published_at: month_start..month_end).count
+    end
+  end
+
+  def count_in_range_by_month(start_date, end_date)
+    total = 0
+    current = start_date.to_date.beginning_of_month
+    while current <= end_date
+      month_start = [current.beginning_of_day, start_date].max
+      month_end = [current.end_of_month.end_of_day, end_date].min
+      total += yield(month_start, month_end)
+      current = current.next_month
+    end
+    total
   end
 
   def find_critical_packages

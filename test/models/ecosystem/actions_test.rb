@@ -48,6 +48,69 @@ class ActionsTest < ActiveSupport::TestCase
     assert_equal check_status_url, "https://github.com/getsentry/action-git-diff-suggestions"
   end
 
+  test 'check_status returns removed when action.yml returns 404' do
+    stub_request(:head, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/main/action.yml")
+      .to_return(status: 404)
+    stub_request(:head, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/main/action.yaml")
+      .to_return(status: 404)
+    status = @ecosystem.check_status(@package)
+    assert_equal 'removed', status
+  end
+
+  test 'check_status returns removed when action.yml returns 410' do
+    stub_request(:head, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/main/action.yml")
+      .to_return(status: 410)
+    stub_request(:head, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/main/action.yaml")
+      .to_return(status: 410)
+    status = @ecosystem.check_status(@package)
+    assert_equal 'removed', status
+  end
+
+  test 'check_status returns nil when action.yml returns 200' do
+    stub_request(:head, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/main/action.yml")
+      .to_return(status: 200)
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+  end
+
+  test 'check_status returns nil when action.yml returns 404 but action.yaml returns 200' do
+    stub_request(:head, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/main/action.yml")
+      .to_return(status: 404)
+    stub_request(:head, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/main/action.yaml")
+      .to_return(status: 200)
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+  end
+
+  test 'check_status returns nil when action.yml returns 500' do
+    stub_request(:head, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/main/action.yml")
+      .to_return(status: 500)
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+  end
+
+  test 'check_status returns nil when action.yml returns 503' do
+    stub_request(:head, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/main/action.yml")
+      .to_return(status: 503)
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+  end
+
+  test 'check_status returns nil on connection error' do
+    stub_request(:head, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/main/action.yml")
+      .to_timeout
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+  end
+
+  test 'check_status uses default_branch from metadata' do
+    @package.update(metadata: { 'default_branch' => 'master' })
+    stub_request(:head, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/master/action.yml")
+      .to_return(status: 200)
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+  end
+
   test 'all_package_names' do
     stub_request(:get, "https://repos.ecosyste.ms/api/v1/package_names/actions")
       .to_return({ status: 200, body: file_fixture('actions/actions') })

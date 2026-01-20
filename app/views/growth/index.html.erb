@@ -1,0 +1,297 @@
+<% @meta_title = "Registry Growth" %>
+<% @meta_description = "Year-over-year growth of packages and versions across all package registries." %>
+
+<div class="container-fluid">
+  <div class="row">
+    <% if @stats_by_registry.any? %>
+      <div class="col-md-2 d-none d-md-block">
+        <nav class="position-sticky" style="top: 80px;">
+          <div class="list-group list-group-flush small">
+            <a href="#combined" class="list-group-item list-group-item-action py-2">Combined</a>
+            <a href="#comparison" class="list-group-item list-group-item-action py-2">Comparison</a>
+            <div class="list-group-item py-2 text-muted fw-bold">Registries</div>
+            <% @registries.group_by(&:ecosystem).each do |ecosystem, registries| %>
+              <% registry = registries.first %>
+              <% stats = @stats_by_registry[registry.id] %>
+              <% next if stats.blank? %>
+              <a href="#registry_<%= registry.id %>" class="list-group-item list-group-item-action py-2 text-truncate">
+                <%= registry.name %>
+              </a>
+            <% end %>
+          </div>
+        </nav>
+      </div>
+      <div class="col-md-10">
+    <% else %>
+      <div class="col-12">
+    <% end %>
+
+    <h1 class='mb-3'>Registry Growth</h1>
+
+    <p class='lead'>
+      Year-over-year growth of packages and versions across all package registries.
+    </p>
+
+    <% if @stats_by_registry.empty? %>
+      <div class="alert alert-info">
+        Growth stats have not been calculated yet. Run <code>rake growth_stats:calculate</code> to generate the data.
+      </div>
+    <% else %>
+      <% if @combined_stats.any? %>
+        <% combined_filtered = @combined_stats.to_a.drop_while { |s| s.packages_count.to_i == 0 && s.versions_count.to_i == 0 } %>
+        <div class="card mb-4" id="combined">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <h4 class="card-title mb-0">All Registries Combined</h4>
+              <%= link_to 'Export CSV', growth_export_path, class: 'btn btn-sm btn-outline-secondary' %>
+            </div>
+            <p class="card-subtitle text-muted mb-3">
+              <%= number_with_delimiter @registries.sum { |r| r.packages_count.to_i } %> packages,
+              <%= number_with_delimiter @registries.sum { |r| r.versions_count.to_i } %> versions
+              across <%= @registries.count %> registries
+            </p>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <h6>Cumulative Packages</h6>
+                <%= line_chart combined_filtered.map { |s| [s.year, s.packages_count] }, height: "250px", xmax: Time.current.year, library: { scales: { y: { beginAtZero: true } } } %>
+              </div>
+              <div class="col-md-6">
+                <h6>Cumulative Versions</h6>
+                <%= line_chart combined_filtered.map { |s| [s.year, s.versions_count] }, height: "250px", xmax: Time.current.year, library: { scales: { y: { beginAtZero: true } } } %>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <h6>New Packages per Year</h6>
+                <%= column_chart combined_filtered.map { |s| [s.year, s.new_packages_count] }, height: "250px", library: { scales: { y: { beginAtZero: true } } } %>
+              </div>
+              <div class="col-md-6">
+                <h6>New Versions per Year</h6>
+                <%= column_chart combined_filtered.map { |s| [s.year, s.new_versions_count] }, height: "250px", library: { scales: { y: { beginAtZero: true } } } %>
+              </div>
+            </div>
+
+            <table class="table table-sm table-striped mb-0">
+              <thead>
+                <tr>
+                  <th>Year</th>
+                  <th class="text-end">Packages</th>
+                  <th class="text-end">New</th>
+                  <th class="text-end">Growth</th>
+                  <th class="text-end">Versions</th>
+                  <th class="text-end">New</th>
+                  <th class="text-end">Growth</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% combined_array = combined_filtered %>
+                <% combined_array.last(10).reverse.each_with_index do |stat, idx| %>
+                  <% reverse_idx = combined_array.size - 1 - (combined_array.size - 10 + (9 - idx)) rescue 0 %>
+                  <% prev_stat = combined_array[combined_array.index { |s| s.year == stat.year } - 1] if combined_array.index { |s| s.year == stat.year }.to_i > 0 %>
+                  <% pkg_growth = prev_stat && prev_stat.packages_count > 0 ? ((stat.packages_count - prev_stat.packages_count).to_f / prev_stat.packages_count * 100).round(2) : nil %>
+                  <% ver_growth = prev_stat && prev_stat.versions_count > 0 ? ((stat.versions_count - prev_stat.versions_count).to_f / prev_stat.versions_count * 100).round(2) : nil %>
+                  <tr>
+                    <td><%= stat.year %></td>
+                    <td class="text-end"><%= number_with_delimiter stat.packages_count %></td>
+                    <td class="text-end"><%= number_with_delimiter stat.new_packages_count %></td>
+                    <td class="text-end">
+                      <% if pkg_growth %>
+                        <% if pkg_growth > 0 %>
+                          <span class="text-success">+<%= pkg_growth %>%</span>
+                        <% elsif pkg_growth < 0 %>
+                          <span class="text-danger"><%= pkg_growth %>%</span>
+                        <% else %>
+                          0%
+                        <% end %>
+                      <% else %>
+                        -
+                      <% end %>
+                    </td>
+                    <td class="text-end"><%= number_with_delimiter stat.versions_count %></td>
+                    <td class="text-end"><%= number_with_delimiter stat.new_versions_count %></td>
+                    <td class="text-end">
+                      <% if ver_growth %>
+                        <% if ver_growth > 0 %>
+                          <span class="text-success">+<%= ver_growth %>%</span>
+                        <% elsif ver_growth < 0 %>
+                          <span class="text-danger"><%= ver_growth %>%</span>
+                        <% else %>
+                          0%
+                        <% end %>
+                      <% else %>
+                        -
+                      <% end %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <%
+          # Prepare multi-series data for comparison charts (top 10 registries only)
+          top_registries = @registries.first(10)
+
+          comparison_packages = top_registries.map do |r|
+            stats = (@stats_by_registry[r.id]&.sort_by(&:year) || []).drop_while { |s| s.packages_count.to_i == 0 && s.versions_count.to_i == 0 }
+            next if stats.empty?
+            { name: r.name, data: stats.map { |s| [s.year, s.packages_count] } }
+          end.compact
+
+          comparison_new_packages = top_registries.map do |r|
+            stats = (@stats_by_registry[r.id]&.sort_by(&:year) || []).drop_while { |s| s.packages_count.to_i == 0 && s.versions_count.to_i == 0 }
+            next if stats.empty?
+            { name: r.name, data: stats.map { |s| [s.year, s.new_packages_count] } }
+          end.compact
+
+          comparison_versions = top_registries.map do |r|
+            stats = (@stats_by_registry[r.id]&.sort_by(&:year) || []).drop_while { |s| s.packages_count.to_i == 0 && s.versions_count.to_i == 0 }
+            next if stats.empty?
+            { name: r.name, data: stats.map { |s| [s.year, s.versions_count] } }
+          end.compact
+
+          comparison_new_versions = top_registries.map do |r|
+            stats = (@stats_by_registry[r.id]&.sort_by(&:year) || []).drop_while { |s| s.packages_count.to_i == 0 && s.versions_count.to_i == 0 }
+            next if stats.empty?
+            { name: r.name, data: stats.map { |s| [s.year, s.new_versions_count] } }
+          end.compact
+        %>
+
+        <% if comparison_packages.any? %>
+          <div class="card mb-4" id="comparison">
+            <div class="card-body">
+              <h4 class="card-title mb-3">Registry Comparison (Top 10)</h4>
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <h6>Cumulative Packages</h6>
+                  <%= line_chart comparison_packages, height: "300px", legend: "bottom", xmax: Time.current.year, library: { plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } } %>
+                </div>
+                <div class="col-md-6">
+                  <h6>Cumulative Versions</h6>
+                  <%= line_chart comparison_versions, height: "300px", legend: "bottom", xmax: Time.current.year, library: { plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } } %>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <h6>New Packages per Year</h6>
+                  <%= line_chart comparison_new_packages, height: "300px", legend: "bottom", xmax: Time.current.year, library: { plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } } %>
+                </div>
+                <div class="col-md-6">
+                  <h6>New Versions per Year</h6>
+                  <%= line_chart comparison_new_versions, height: "300px", legend: "bottom", xmax: Time.current.year, library: { plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } } %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <h4 class="mb-3" id="by-registry">By Registry</h4>
+      <% end %>
+
+      <% @registries.group_by(&:ecosystem).each do |ecosystem, registries| %>
+        <% registry = registries.first %>
+        <% stats = (@stats_by_registry[registry.id]&.sort_by(&:year) || []).drop_while { |s| s.packages_count.to_i == 0 && s.versions_count.to_i == 0 } %>
+        <% next if stats.empty? %>
+
+        <div class="card mb-3" id="registry_<%= registry.id %>">
+          <div class="card-body">
+            <div class="d-flex mb-3">
+              <div class="flex-grow-1 ms-3 text-break">
+                <h5 class='card-title'>
+                  <%= link_to registry.name, growth_registry_path(registry.name) %>
+                </h5>
+                <p class="card-subtitle text-muted">
+                  <%= number_with_delimiter registry.packages_count %> packages,
+                  <%= number_with_delimiter registry.versions_count %> versions
+                </p>
+              </div>
+              <div class="flex-shrink-0 d-flex align-items-start gap-2">
+                <%= link_to 'Export CSV', growth_registry_export_path(registry.name), class: 'btn btn-sm btn-outline-secondary' %>
+                <img src="<%= registry.icon_url %>" class="rounded" height='40' width='40' onerror="this.style.display='none'">
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <h6>Cumulative Packages</h6>
+                <%= line_chart stats.map { |s| [s.year, s.packages_count] }, height: "200px", xmax: Time.current.year, library: { scales: { y: { beginAtZero: true } } } %>
+              </div>
+              <div class="col-md-6">
+                <h6>Cumulative Versions</h6>
+                <%= line_chart stats.map { |s| [s.year, s.versions_count] }, height: "200px", xmax: Time.current.year, library: { scales: { y: { beginAtZero: true } } } %>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <h6>New Packages per Year</h6>
+                <%= column_chart stats.map { |s| [s.year, s.new_packages_count] }, height: "200px", library: { scales: { y: { beginAtZero: true } } } %>
+              </div>
+              <div class="col-md-6">
+                <h6>New Versions per Year</h6>
+                <%= column_chart stats.map { |s| [s.year, s.new_versions_count] }, height: "200px", library: { scales: { y: { beginAtZero: true } } } %>
+              </div>
+            </div>
+
+            <table class="table table-sm table-striped mb-0">
+              <thead>
+                <tr>
+                  <th>Year</th>
+                  <th class="text-end">Packages</th>
+                  <th class="text-end">New</th>
+                  <th class="text-end">Growth</th>
+                  <th class="text-end">Versions</th>
+                  <th class="text-end">New</th>
+                  <th class="text-end">Growth</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% stats.last(5).reverse.each do |stat| %>
+                  <tr>
+                    <td><%= stat.year %></td>
+                    <td class="text-end"><%= number_with_delimiter stat.packages_count %></td>
+                    <td class="text-end"><%= number_with_delimiter stat.new_packages_count %></td>
+                    <td class="text-end">
+                      <% if stat.packages_growth_rate %>
+                        <% if stat.packages_growth_rate > 0 %>
+                          <span class="text-success">+<%= stat.packages_growth_rate %>%</span>
+                        <% elsif stat.packages_growth_rate < 0 %>
+                          <span class="text-danger"><%= stat.packages_growth_rate %>%</span>
+                        <% else %>
+                          0%
+                        <% end %>
+                      <% else %>
+                        -
+                      <% end %>
+                    </td>
+                    <td class="text-end"><%= number_with_delimiter stat.versions_count %></td>
+                    <td class="text-end"><%= number_with_delimiter stat.new_versions_count %></td>
+                    <td class="text-end">
+                      <% if stat.versions_growth_rate %>
+                        <% if stat.versions_growth_rate > 0 %>
+                          <span class="text-success">+<%= stat.versions_growth_rate %>%</span>
+                        <% elsif stat.versions_growth_rate < 0 %>
+                          <span class="text-danger"><%= stat.versions_growth_rate %>%</span>
+                        <% else %>
+                          0%
+                        <% end %>
+                      <% else %>
+                        -
+                      <% end %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+    </div>
+  </div>
+</div>
