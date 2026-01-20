@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_19_181737) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_20_094500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -230,7 +230,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_19_181737) do
     t.datetime "updated_at", null: false
     t.index ["package_id", "number"], name: "index_versions_on_package_id_and_number", unique: true
     t.index ["published_at"], name: "index_versions_on_published_at"
-    t.index ["registry_id"], name: "index_versions_on_registry_id"
+    t.index ["registry_id", "created_at"], name: "index_versions_on_registry_id_and_created_at"
+    t.index ["registry_id", "published_at"], name: "index_versions_on_registry_id_and_published_at"
   end
 
   add_foreign_key "advisories", "sources"
