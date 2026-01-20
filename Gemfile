@@ -58,6 +58,7 @@ gem 'csv'
 gem 'bootstrap-icons', require: 'bootstrap_icons'
 gem 'ostruct'
 gem 'matrix'
+gem 'cgi'
 
 group :development do
   gem "web-console"
