@@ -439,22 +439,14 @@ class Registry < ApplicationRecord
     min_year = RegistryGrowthStat::MIN_YEAR
     end_year = Time.current.year
 
-    # Use incremental counting: only count new items per year and maintain running totals
-    # This avoids expensive cumulative counts that scan the entire table for each year
     running_packages = 0
     running_versions = 0
-
-    # Calculate baseline: everything before min_year
-    baseline_end = Date.new(min_year - 1, 12, 31).end_of_day
-    running_packages = count_packages_before(baseline_end)
-    running_versions = count_versions_before(baseline_end)
 
     (min_year..end_year).each do |year|
       existing = registry_growth_stats.find_by(year: year)
 
       # Always recalculate current year, skip past years unless forcing
       if existing && !force && year < end_year
-        # Update running totals from existing data so subsequent years are correct
         running_packages = existing.packages_count
         running_versions = existing.versions_count
         yield(year, :skipped) if block_given?
@@ -464,11 +456,9 @@ class Registry < ApplicationRecord
       year_start = Date.new(year, 1, 1).beginning_of_day
       year_end = Date.new(year, 12, 31).end_of_day
 
-      # Only count NEW items for this specific year (bounded, smaller counts)
       new_packages_count = count_packages_in_range(year_start, year_end)
       new_versions_count = count_versions_in_range(year_start, year_end)
 
-      # Cumulative = previous total + new this year
       running_packages += new_packages_count
       running_versions += new_versions_count
 
@@ -484,18 +474,10 @@ class Registry < ApplicationRecord
     end
   end
 
-  def count_packages_before(date)
-    packages.where("first_release_published_at <= ?", date).count
-  end
-
   def count_packages_in_range(start_date, end_date)
     count_in_range_by_month(start_date, end_date) do |month_start, month_end|
       packages.where(first_release_published_at: month_start..month_end).count
     end
-  end
-
-  def count_versions_before(date)
-    versions.where("published_at <= ?", date).count
   end
 
   def count_versions_in_range(start_date, end_date)
