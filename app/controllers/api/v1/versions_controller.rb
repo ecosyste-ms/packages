@@ -1,8 +1,7 @@
 class Api::V1::VersionsController < Api::V1::ApplicationController
   def index
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = @registry.packages.find_by_name(params[:package_id])
-    @package = @registry.packages.find_by_name!(params[:package_id].downcase) if @package.nil?
+    @package = find_package_with_normalization!(@registry, params[:package_id])
     scope = @package.versions#.includes(:dependencies)
 
     scope = scope.created_after(params[:created_after]) if params[:created_after].present?
@@ -29,8 +28,7 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
 
   def show
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = @registry.packages.find_by_name(params[:package_id])
-    @package = @registry.packages.find_by_name!(params[:package_id].downcase) if @package.nil?
+    @package = find_package_with_normalization!(@registry, params[:package_id])
     @version = @package.versions.find_by_number!(params[:id])
     fresh_when @version, public: true
   end
@@ -63,8 +61,7 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
 
   def version_numbers
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = @registry.packages.find_by_name(params[:id])
-    @package = @registry.packages.find_by_name!(params[:id].downcase) if @package.nil?
+    @package = find_package_with_normalization!(@registry, params[:id])
     if stale?(@package, public: true)
       numbers = @package.versions.pluck(:number)
       render json: numbers
@@ -73,8 +70,7 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
 
   def codemeta
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = @registry.packages.find_by_name(params[:package_id])
-    @package = @registry.packages.find_by_name!(params[:package_id].downcase) if @package.nil?
+    @package = find_package_with_normalization!(@registry, params[:package_id])
     @version = @package.versions.find_by_number!(params[:id])
     fresh_when @version, public: true
   end

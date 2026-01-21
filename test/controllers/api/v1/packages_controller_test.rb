@@ -732,6 +732,57 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response['name'], 'test-package'
   end
 
+  test 'get pypi package with underscore in name' do
+    pypi_registry = Registry.create(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    pypi_package = pypi_registry.packages.create(
+      ecosystem: 'pypi',
+      name: 'tomli-w',
+      metadata: { 'normalized_name' => 'tomli-w' }
+    )
+
+    get api_v1_registry_package_path(registry_id: pypi_registry.name, id: 'tomli_w')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal 'tomli-w', actual_response['name']
+  end
+
+  test 'get dependent_packages for pypi package with underscore in name' do
+    pypi_registry = Registry.create(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    pypi_package = pypi_registry.packages.create(
+      ecosystem: 'pypi',
+      name: 'tomli-w',
+      metadata: { 'normalized_name' => 'tomli-w' }
+    )
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: pypi_registry.name, id: 'tomli_w')
+    assert_response :success
+  end
+
+  test 'get dependent_package_kinds for pypi package with underscore in name' do
+    pypi_registry = Registry.create(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    pypi_package = pypi_registry.packages.create(
+      ecosystem: 'pypi',
+      name: 'tomli-w',
+      metadata: { 'normalized_name' => 'tomli-w' }
+    )
+
+    get dependent_package_kinds_api_v1_registry_package_path(registry_id: pypi_registry.name, id: 'tomli_w')
+    assert_response :success
+  end
+
+  test 'get related_packages for pypi package with underscore in name' do
+    pypi_registry = Registry.create(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    pypi_package = pypi_registry.packages.create(
+      ecosystem: 'pypi',
+      name: 'tomli-w',
+      metadata: { 'normalized_name' => 'tomli-w' }
+    )
+
+    get related_packages_api_v1_registry_package_path(registry_id: pypi_registry.name, id: 'tomli_w')
+    assert_response :success
+  end
+
   test 'get codemeta for docker library package' do
     docker_registry = Registry.create(name: 'hub.docker.com', url: 'https://hub.docker.com', ecosystem: 'docker')
     docker_package = docker_registry.packages.create(

@@ -38,7 +38,18 @@ class ApplicationController < ActionController::Base
     Package.none
   end
 
-  private
+  def find_package_with_normalization!(registry, name)
+    package = registry.packages.find_by_name(name)
+    return package if package
+
+    if registry.ecosystem == 'pypi'
+      registry.packages.find_by_normalized_name!(name)
+    elsif registry.ecosystem == 'docker' && !name.include?('/')
+      registry.packages.find_by_name!("library/#{name}")
+    else
+      registry.packages.find_by_name!(name.downcase)
+    end
+  end
 
   def normalize_url(url)
     return nil if url.nil?

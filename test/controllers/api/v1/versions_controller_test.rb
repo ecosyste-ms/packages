@@ -5,6 +5,14 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     @registry = Registry.create(name: 'crates.io', url: 'https://crates.io', ecosystem: 'cargo')
     @package = @registry.packages.create(ecosystem: 'cargo', name: 'rand')
     @version = @package.versions.create(number: '1.0.0', metadata: {foo: 'bar'}, registry_id: @registry.id)
+
+    @pypi_registry = Registry.create(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    @pypi_package = @pypi_registry.packages.create(
+      ecosystem: 'pypi',
+      name: 'tomli-w',
+      metadata: { 'normalized_name' => 'tomli-w' }
+    )
+    @pypi_version = @pypi_package.versions.create(number: '1.0.0', registry_id: @pypi_registry.id)
   end
 
   test 'list versions for a package' do
@@ -148,5 +156,47 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response['funder'].first['url'], 'https://github.com/sponsors/rust-random'
     assert_equal actual_response['https://www.w3.org/ns/activitystreams#likes'], 500
     assert_equal actual_response['https://forgefed.org/ns#forks'], 75
+  end
+
+  test 'get version numbers for pypi package with underscore in name' do
+    get version_numbers_api_v1_registry_package_path(registry_id: @pypi_registry.name, id: 'tomli_w')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal actual_response, ['1.0.0']
+  end
+
+  test 'get version numbers for pypi package with hyphen in name' do
+    get version_numbers_api_v1_registry_package_path(registry_id: @pypi_registry.name, id: 'tomli-w')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal actual_response, ['1.0.0']
+  end
+
+  test 'list versions for pypi package with underscore in name' do
+    get api_v1_registry_package_versions_path(registry_id: @pypi_registry.name, package_id: 'tomli_w')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal actual_response.length, 1
+    assert_equal actual_response.first['number'], '1.0.0'
+  end
+
+  test 'get version of pypi package with underscore in name' do
+    get api_v1_registry_package_version_path(registry_id: @pypi_registry.name, package_id: 'tomli_w', id: '1.0.0')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal actual_response['number'], '1.0.0'
+  end
+
+  test 'get codemeta for pypi package with underscore in name' do
+    get codemeta_api_v1_registry_package_version_path(registry_id: @pypi_registry.name, package_id: 'tomli_w', id: '1.0.0')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal actual_response['name'], 'tomli-w'
+    assert_equal actual_response['version'], '1.0.0'
   end
 end

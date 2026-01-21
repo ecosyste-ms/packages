@@ -34,36 +34,14 @@ class PackagesController < ApplicationController
 
   def show
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = @registry.packages.find_by_name(params[:id])
-    if @package.nil?
-      # TODO: This is a temporary fix for pypi packages with underscores in their name
-      # should redirect to the correct package name
-      if @registry.ecosystem == 'pypi'
-        @package = @registry.packages.find_by_normalized_name!(params[:id])
-      elsif @registry.ecosystem == 'docker' && !params[:id].include?('/')
-        @package = @registry.packages.find_by_name!("library/#{params[:id]}")
-      else
-        @package = @registry.packages.find_by_name!(params[:id].downcase)
-      end
-    end
+    @package = find_package_with_normalization!(@registry, params[:id])
     @pagy, @versions = pagy_countless(@package.versions.order('published_at DESC, created_at DESC'))
     fresh_when(@package, public: true)
   end
 
   def dependent_packages
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = @registry.packages.find_by_name(params[:id])
-    if @package.nil?
-      # TODO: This is a temporary fix for pypi packages with underscores in their name
-      # should redirect to the correct package name
-      if @registry.ecosystem == 'pypi'
-        @package = @registry.packages.find_by_normalized_name!(params[:id])
-      elsif @registry.ecosystem == 'docker' && !params[:id].include?('/')
-        @package = @registry.packages.find_by_name!("library/#{params[:id]}")
-      else
-        @package = @registry.packages.find_by_name!(params[:id].downcase)
-      end
-    end
+    @package = find_package_with_normalization!(@registry, params[:id])
 
     if params[:latest] == 'false'
       scope = @package.dependent_packages(kind: params[:kind]).includes(:registry)
@@ -95,36 +73,14 @@ class PackagesController < ApplicationController
 
   def maintainers
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = @registry.packages.find_by_name(params[:id])
-    if @package.nil?
-      # TODO: This is a temporary fix for pypi packages with underscores in their name
-      # should redirect to the correct package name
-      if @registry.ecosystem == 'pypi'
-        @package = @registry.packages.find_by_normalized_name!(params[:id])
-      elsif @registry.ecosystem == 'docker' && !params[:id].include?('/')
-        @package = @registry.packages.find_by_name!("library/#{params[:id]}")
-      else
-        @package = @registry.packages.find_by_name!(params[:id].downcase)
-      end
-    end
+    @package = find_package_with_normalization!(@registry, params[:id])
     fresh_when(@package, public: true)
     @pagy, @maintainers = pagy_countless(@package.maintainerships.includes(maintainer: :registry))
   end
 
   def related_packages
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = @registry.packages.find_by_name(params[:id])
-    if @package.nil?
-      # TODO: This is a temporary fix for pypi packages with underscores in their name
-      # should redirect to the correct package name
-      if @registry.ecosystem == 'pypi'
-        @package = @registry.packages.find_by_normalized_name!(params[:id])
-      elsif @registry.ecosystem == 'docker' && !params[:id].include?('/')
-        @package = @registry.packages.find_by_name!("library/#{params[:id]}")
-      else
-        @package = @registry.packages.find_by_name!(params[:id].downcase)
-      end
-    end
+    @package = find_package_with_normalization!(@registry, params[:id])
 
     scope = @package.related_packages.includes(:registry)
     if params[:sort].present? || params[:order].present?
@@ -145,18 +101,7 @@ class PackagesController < ApplicationController
 
   def advisories
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = @registry.packages.find_by_name(params[:id])
-    if @package.nil?
-      # TODO: This is a temporary fix for pypi packages with underscores in their name
-      # should redirect to the correct package name
-      if @registry.ecosystem == 'pypi'
-        @package = @registry.packages.find_by_normalized_name!(params[:id])
-      elsif @registry.ecosystem == 'docker' && !params[:id].include?('/')
-        @package = @registry.packages.find_by_name!("library/#{params[:id]}")
-      else
-        @package = @registry.packages.find_by_name!(params[:id].downcase)
-      end
-    end
+    @package = find_package_with_normalization!(@registry, params[:id])
     fresh_when(@package, public: true)
   end
 

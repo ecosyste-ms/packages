@@ -34,4 +34,32 @@ class VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_template 'versions/show', file: 'versions/show.html.erb'
   end
+
+  test 'list versions for pypi package with underscore in name' do
+    pypi_registry = Registry.create(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    pypi_package = pypi_registry.packages.create(
+      ecosystem: 'pypi',
+      name: 'tomli-w',
+      metadata: { 'normalized_name' => 'tomli-w' }
+    )
+    pypi_version = pypi_package.versions.create(number: '1.0.0')
+
+    get registry_package_versions_path(registry_id: pypi_registry.name, package_id: 'tomli_w')
+    assert_response :success
+  end
+
+  test 'get version for pypi package with underscore in name' do
+    pypi_registry = Registry.create(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    pypi_package = pypi_registry.packages.create(
+      ecosystem: 'pypi',
+      name: 'tomli-w',
+      metadata: { 'normalized_name' => 'tomli-w' }
+    )
+    pypi_version = pypi_package.versions.create(number: '1.0.0')
+
+    stub_request(:get, /archives\.ecosyste\.ms/).to_return(status: 200, body: '[]')
+
+    get registry_package_version_path(registry_id: pypi_registry.name, package_id: 'tomli_w', id: '1.0.0')
+    assert_response :success
+  end
 end
