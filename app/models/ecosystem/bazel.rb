@@ -80,7 +80,7 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata, _existing_version_numbers = [])
       # The package version metadata's specification: https://bazel.build/external/registry#source-json
-      yanked_versions = pkg_metadata.dig(:metadata, :yanked_versions)&.keys
+      yanked_versions = pkg_metadata.dig(:metadata, :yanked_versions)&.keys || []
 
       pkg_metadata[:versions].map do |version|
         source = fetch_package_version_metadata(pkg_metadata[:name], version)
