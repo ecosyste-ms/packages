@@ -1,0 +1,62 @@
+{
+  "0": {
+    "name": "7bitconf",
+    "info": {
+      "version": "1.2.0",
+      "description": "7bitConf is a simple C++17 centralized configuration provider library.",
+      "timestamp": "2024-02-24",
+      "age": 698,
+      "licenses": {"MIT": 4},
+      "labels": {"configuration": 6, "cpp17": 5},
+      "deprecated": "false"
+    }
+  },
+  "1": {
+    "name": "abseil",
+    "info": {
+      "version": "20230802.1",
+      "description": "Abseil Common Libraries (C++) from Google",
+      "timestamp": "2024-01-15",
+      "age": 730,
+      "licenses": {"Apache-2.0": 1},
+      "labels": {"algorithm": 1, "google": 1},
+      "deprecated": "false"
+    }
+  },
+  "2": {
+    "name": "boost",
+    "info": {
+      "version": "1.84.0",
+      "description": "Boost provides free peer-reviewed portable C++ source libraries",
+      "timestamp": "2024-01-10",
+      "age": 735,
+      "licenses": {"BSL-1.0": 1},
+      "labels": {"cpp": 1, "boost": 1},
+      "deprecated": "false"
+    }
+  },
+  "3": {
+    "name": "fmt",
+    "info": {
+      "version": "10.0.0",
+      "description": "A modern formatting library",
+      "timestamp": "2024-01-05",
+      "age": 740,
+      "licenses": {"MIT": 1},
+      "labels": {"formatting": 1, "string": 1},
+      "deprecated": "false"
+    }
+  },
+  "4": {
+    "name": "zlib",
+    "info": {
+      "version": "1.3.1",
+      "description": "A Massively Spiffy Yet Delicately Unobtrusive Compression Library",
+      "timestamp": "2024-01-20",
+      "age": 725,
+      "licenses": {"Zlib": 1},
+      "labels": {"compression": 1, "zlib": 1},
+      "deprecated": "false"
+    }
+  }
+}

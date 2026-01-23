@@ -1,0 +1,44 @@
+{
+  "1.0.0": {
+    "use_it": {
+      "headers": ["7bitConf/Details/JsonConfiguration.hpp"],
+      "requires": ["taocpp-json/1.0.0-beta.14"],
+      "properties": {
+        "cmake_file_name": "7bitConf",
+        "cmake_target_name": "7bitConf::7bitConf"
+      },
+      "package_type": "static-library",
+      "build_requires": [],
+      "components_properties": {}
+    },
+    "recipe_revision": "abc123"
+  },
+  "1.1.0": {
+    "use_it": {
+      "headers": ["7bitConf/Details/JsonConfiguration.hpp"],
+      "requires": ["taocpp-json/1.0.0-beta.14"],
+      "properties": {
+        "cmake_file_name": "7bitConf",
+        "cmake_target_name": "7bitConf::7bitConf"
+      },
+      "package_type": "static-library",
+      "build_requires": [],
+      "components_properties": {}
+    },
+    "recipe_revision": "def456"
+  },
+  "1.2.0": {
+    "use_it": {
+      "headers": ["7bitConf/Impl/JsonConfiguration.hpp"],
+      "requires": ["taocpp-json/1.0.0-beta.14"],
+      "properties": {
+        "cmake_file_name": "7bitConf",
+        "cmake_target_name": "7bitConf::7bitConf"
+      },
+      "package_type": "static-library",
+      "build_requires": [],
+      "components_properties": {}
+    },
+    "recipe_revision": "ghi789"
+  }
+}
