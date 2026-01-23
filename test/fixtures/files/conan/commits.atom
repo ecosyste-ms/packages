@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xml:lang="en-US">
+  <id>tag:github.com,2008:https://github.com/conan-io/conan-center-index/commits/master</id>
+  <link type="text/html" rel="alternate" href="https://github.com/conan-io/conan-center-index/commits/master"/>
+  <link type="application/atom+xml" rel="self" href="https://github.com/conan-io/conan-center-index/commits/master.atom"/>
+  <title>Recent Commits to conan-center-index:master</title>
+  <updated>2024-01-15T10:00:00Z</updated>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/abc123</id>
+    <link type="text/html" rel="alternate" href="https://github.com/conan-io/conan-center-index/commit/abc123"/>
+    <title>[zlib] bump version to 1.3.1</title>
+    <updated>2024-01-15T10:00:00Z</updated>
+    <author>
+      <name>contributor</name>
+    </author>
+    <content type="html">Update zlib package</content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Grit::Commit/def456</id>
+    <link type="text/html" rel="alternate" href="https://github.com/conan-io/conan-center-index/commit/def456"/>
+    <title>[boost] fix compilation issue</title>
+    <updated>2024-01-14T10:00:00Z</updated>
+    <author>
+      <name>contributor</name>
+    </author>
+    <content type="html">Fix boost package</content>
+  </entry>
+</feed>
