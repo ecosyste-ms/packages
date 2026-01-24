@@ -217,6 +217,49 @@ module Ecosystem
       []
     end
 
+    def download_and_cache(url, cache_key, ttl: 1.hour)
+      cache_dir = Rails.root.join('tmp', 'cache', 'ecosystems')
+      FileUtils.mkdir_p(cache_dir)
+      cached_file = cache_dir.join(cache_key)
+
+      if cached_file.exist? && cached_file.mtime > ttl.ago
+        return cached_file
+      end
+
+      Dir.mktmpdir do |dir|
+        `wget -q -P #{dir} #{url}`
+        downloaded = Dir.glob("#{dir}/*").first
+        if downloaded && File.exist?(downloaded)
+          if downloaded.end_with?('.tar.gz')
+            `tar -xzf #{downloaded} -C #{dir}`
+            extracted = Dir.glob("#{dir}/*").reject { |f| f.end_with?('.tar.gz') }.first
+            FileUtils.cp(extracted, cached_file) if extracted
+          else
+            FileUtils.cp(downloaded, cached_file)
+          end
+        end
+      end
+
+      cached_file
+    end
+
+    def parse_apkindex(file, repository = nil)
+      packages = []
+      package = repository ? {'r' => repository} : {}
+
+      File.foreach(file) do |line|
+        if line.blank?
+          packages << package
+          package = repository ? {'r' => repository} : {}
+        end
+        key = line.split(':')[0]
+        value = line.split(':')[1..-1].join(':').strip
+        package[key] = value if key.present?
+      end
+      packages << package if package['P'].present?
+      packages
+    end
+
     private
 
     def get_raw_no_exception(url, options = {})

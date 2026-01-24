@@ -36,28 +36,9 @@ module Ecosystem
     def fetch_packages(repository, architecture)
       version = @registry.version
       url = "https://dl-cdn.alpinelinux.org/alpine/#{version}/#{repository}/#{architecture}/APKINDEX.tar.gz"
-
-      packages = []
-      package = {'r' => repository}
-
-      Dir.mktmpdir do |dir|
-
-        destination = "#{dir}/APKINDEX"
-        `wget -P #{dir} #{url}`
-        `tar -xzf #{dir}/APKINDEX.tar.gz -C #{dir}`
-        
-        File.foreach(destination) do |line|
-          if line.blank?
-            packages << package
-            package = {'r' => repository}
-          end
-          key = line.split(':')[0]
-          value = line.split(':')[1..-1].join(':').strip
-          package[key] = value if key.present?
-        end
-        packages << package if package['P'].present?
-      end
-      packages
+      cache_key = "alpine-#{version}-#{repository}-#{architecture}"
+      cached_file = download_and_cache(url, cache_key)
+      parse_apkindex(cached_file, repository)
     end
  
     def packages
