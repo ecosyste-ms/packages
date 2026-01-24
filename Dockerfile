@@ -22,6 +22,7 @@ RUN apk add --update \
     libffi-dev \
     jemalloc \
     maven \
+    brotli \
  && rm -rf /var/cache/apk/* 
 
 # Will invalidate cache as soon as the Gemfile changes
