@@ -92,9 +92,10 @@ class NixpkgsTest < ActiveSupport::TestCase
       }
     }
 
-    mapped = @ecosystem.map_package_metadata(raw_metadata)
+    # attribute_path is passed as second argument
+    mapped = @ecosystem.map_package_metadata(raw_metadata, 'python313Packages.numpy')
 
-    assert_equal mapped[:name], 'numpy'
+    assert_equal mapped[:name], 'python313Packages.numpy'
     assert_equal mapped[:description], 'Scientific tools for Python'
     assert_equal mapped[:homepage], 'https://numpy.org/'
     assert_equal mapped[:licenses], 'BSD-3-Clause'
@@ -115,19 +116,19 @@ class NixpkgsTest < ActiveSupport::TestCase
       }
     }
 
-    mapped = @ecosystem.map_package_metadata(raw_metadata)
+    mapped = @ecosystem.map_package_metadata(raw_metadata, 'test')
     assert_equal mapped[:licenses], 'MIT, Apache-2.0'
   end
 
   test 'map_package_metadata returns false for blank metadata' do
-    assert_equal @ecosystem.map_package_metadata(nil), false
-    assert_equal @ecosystem.map_package_metadata({}), false
-    assert_equal @ecosystem.map_package_metadata({ 'pname' => nil }), false
+    assert_equal @ecosystem.map_package_metadata(nil, 'test'), false
+    assert_equal @ecosystem.map_package_metadata({}, 'test'), false
+    assert_equal @ecosystem.map_package_metadata({ 'pname' => nil }, 'test'), false
   end
 
   test 'versions_metadata' do
     @ecosystem.instance_variable_set(:@packages, {
-      'numpy' => {
+      'python313Packages.numpy' => {
         'pname' => 'numpy',
         'version' => '2.3.5',
         'name' => 'python3.13-numpy-2.3.5',
@@ -139,7 +140,7 @@ class NixpkgsTest < ActiveSupport::TestCase
       }
     })
 
-    versions = @ecosystem.versions_metadata({ name: 'numpy' })
+    versions = @ecosystem.versions_metadata({ name: 'python313Packages.numpy' })
 
     assert_equal versions.length, 1
     assert_equal versions[0][:number], '2.3.5'
@@ -149,7 +150,7 @@ class NixpkgsTest < ActiveSupport::TestCase
 
   test 'maintainers_metadata' do
     @ecosystem.instance_variable_set(:@packages, {
-      'numpy' => {
+      'python313Packages.numpy' => {
         'pname' => 'numpy',
         'meta' => {
           'maintainers' => [
@@ -159,7 +160,7 @@ class NixpkgsTest < ActiveSupport::TestCase
       }
     })
 
-    maintainers = @ecosystem.maintainers_metadata('numpy')
+    maintainers = @ecosystem.maintainers_metadata('python313Packages.numpy')
 
     assert_equal maintainers.length, 1
     assert_equal maintainers[0][:uuid], 'doronbehar'

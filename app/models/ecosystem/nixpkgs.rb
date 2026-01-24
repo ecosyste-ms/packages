@@ -85,13 +85,21 @@ module Ecosystem
       packages[name]
     end
 
-    def map_package_metadata(pkg)
+    # Override to pass the attribute path (hash key) to map_package_metadata
+    def package_metadata(name)
+      pkg = fetch_package_metadata(name)
+      map_package_metadata(pkg, name)
+    end
+
+    def map_package_metadata(pkg, attribute_path = nil)
       return false if pkg.blank? || pkg['pname'].blank?
 
       meta = pkg['meta'] || {}
 
+      # Use the full nix attribute path (e.g. "python313Packages.numpy") as the name
+      # since pname alone isn't unique in nixpkgs
       {
-        name: pkg['pname'],
+        name: attribute_path || pkg['pname'],
         description: meta['description'],
         homepage: meta['homepage'],
         licenses: map_licenses(meta['license']),
