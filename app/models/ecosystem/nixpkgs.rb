@@ -41,7 +41,14 @@ module Ecosystem
     end
 
     def packages
-      @packages ||= fetch_packages_json
+      # Use class-level cache keyed by channel to avoid re-downloading
+      # when new ecosystem instances are created (e.g., from package.registry)
+      @@packages_cache ||= {}
+      @@packages_cache[channel] ||= fetch_packages_json
+    end
+
+    def self.clear_packages_cache!
+      @@packages_cache = {}
     end
 
     def fetch_packages_json
