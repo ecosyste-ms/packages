@@ -55,7 +55,7 @@ end
 
 alpine_registries = []
 # TODO automate version list from https://dl-cdn.alpinelinux.org/alpine/
-alpine_versions = ['edge', 'v3.22', 'v3.21', 'v3.20', 'v3.19', 'v3.18', 'v3.17','v3.16','v3.15','v3.14','v3.13','v3.12', 'v3.11', 'v3.10', 'v3.9', 'v3.8', 'v3.7', 'v3.6', 'v3.5', 'v3.4', 'v3.3']
+alpine_versions = ['edge', 'v3.23', 'v3.22', 'v3.21', 'v3.20', 'v3.19', 'v3.18', 'v3.17','v3.16','v3.15','v3.14','v3.13','v3.12', 'v3.11', 'v3.10', 'v3.9', 'v3.8', 'v3.7', 'v3.6', 'v3.5', 'v3.4', 'v3.3']
 
 alpine_versions.each do |version|
   repos = ['main', 'community']
@@ -81,7 +81,7 @@ end
 
 postmarketos_registries = []
 # TODO automate version list from http://mirror.postmarketos.org/postmarketos/
-postmarketos_versions = ['master', 'v25.06', 'v24.12', 'v24.06', 'v23.12', 'v23.06', 'v22.12', 'v22.06', 'v21.12', 'v21.06', 'v21.03', 'v20.05']
+postmarketos_versions = ['master', 'v25.12', 'v25.06', 'v24.12', 'v24.06', 'v23.12', 'v23.06', 'v22.12', 'v22.06', 'v21.12', 'v21.06', 'v21.03', 'v20.05']
 
 postmarketos_versions.each do |version|
   postmarketos_registries << {
