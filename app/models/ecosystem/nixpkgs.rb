@@ -44,14 +44,32 @@ module Ecosystem
       # Use class-level cache keyed by channel to avoid re-downloading
       # when new ecosystem instances are created (e.g., from package.registry)
       @@packages_cache ||= {}
-      @@packages_cache[channel] ||= fetch_packages_json
+      @@packages_cache[channel] ||= load_packages_json
     end
 
     def self.clear_packages_cache!
       @@packages_cache = {}
     end
 
-    def fetch_packages_json
+    def load_packages_json
+      json_file = download_and_cache_packages
+      Rails.logger.info "[Nixpkgs] Loading packages from cached file: #{json_file}"
+      data = Oj.load(File.read(json_file))
+      data['packages'] || {}
+    end
+
+    def download_and_cache_packages(ttl: 1.hour)
+      cache_dir = Rails.root.join('tmp', 'cache', 'ecosystems', 'nixpkgs')
+      FileUtils.mkdir_p(cache_dir)
+      cached_file = cache_dir.join("packages-#{channel}.json")
+
+      if cached_file.exist? && cached_file.mtime > ttl.ago
+        Rails.logger.info "[Nixpkgs] Using cached packages.json for #{channel} (age: #{((Time.now - cached_file.mtime) / 60).round}m)"
+        return cached_file
+      end
+
+      Rails.logger.info "[Nixpkgs] Downloading packages.json.br for #{channel} from #{packages_url}"
+
       Dir.mktmpdir do |dir|
         compressed_path = "#{dir}/packages.json.br"
         json_path = "#{dir}/packages.json"
@@ -59,9 +77,13 @@ module Ecosystem
         system("curl", "-sL", packages_url, "-o", compressed_path)
         system("brotli", "-d", compressed_path, "-o", json_path)
 
-        data = Oj.load(File.read(json_path))
-        data['packages'] || {}
+        if File.exist?(json_path)
+          FileUtils.cp(json_path, cached_file)
+          Rails.logger.info "[Nixpkgs] Cached packages.json for #{channel} (#{(File.size(cached_file) / 1024.0 / 1024.0).round(1)}MB)"
+        end
       end
+
+      cached_file
     end
 
     def all_package_names
