@@ -99,3 +99,24 @@ postmarketos_registries.each do |data|
   r.assign_attributes(data)
   r.save
 end
+
+nixpkgs_registries = []
+# NixOS channels - unstable plus recent stable releases
+nixpkgs_channels = ['unstable', '24.11', '24.05', '23.11', '23.05']
+
+nixpkgs_channels.each do |channel|
+  nixpkgs_registries << {
+    name: "nixpkgs-#{channel}",
+    url: "https://channels.nixos.org/nixos-#{channel}",
+    ecosystem: 'nixpkgs',
+    github: 'NixOS',
+    default: channel == 'unstable',
+    version: channel
+  }
+end
+
+nixpkgs_registries.each do |data|
+  r = Registry.find_or_initialize_by(url: data[:url])
+  r.assign_attributes(data)
+  r.save
+end
