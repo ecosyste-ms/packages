@@ -74,7 +74,7 @@ module Ecosystem
       raise "Failed to download packages.json.br from #{packages_url}: #{response.status}" unless response.success?
 
       decompressed = Brotli.inflate(response.body)
-      File.write(cached_file, decompressed)
+      File.binwrite(cached_file, decompressed)
       Rails.logger.info "[Nixpkgs] Cached packages.json for #{channel} (#{(File.size(cached_file) / 1024.0 / 1024.0).round(1)}MB)"
 
       cached_file
@@ -84,7 +84,8 @@ module Ecosystem
       connection = Faraday.new(packages_url) do |builder|
         builder.use Faraday::FollowRedirects::Middleware
         builder.request :retry, { max: 3, interval: 0.5, backoff_factor: 2 }
-        builder.adapter Faraday.default_adapter
+        builder.headers['Accept-Encoding'] = 'identity'
+        builder.adapter :net_http
       end
       connection.get
     end
