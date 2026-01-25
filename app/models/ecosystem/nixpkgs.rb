@@ -336,18 +336,15 @@ module Ecosystem
     end
 
     def extract_function_args(content)
-      # Try simple pattern first: { args }: at start of file
-      # This handles most packages
-      if content =~ /\A\s*\{\s*([^}]+)\}\s*:/m
-        return $1.scan(/\b([a-zA-Z_][a-zA-Z0-9_'-]*)\b/).flatten.uniq
-      end
+      return [] if content.blank?
 
-      # For complex files with multiline args, try to find balanced braces
-      return [] unless content.start_with?('{')
+      # Find balanced braces using character iteration (safe from ReDoS)
+      stripped = content.lstrip
+      return [] unless stripped.start_with?('{')
 
       depth = 0
       end_pos = nil
-      content.each_char.with_index do |c, i|
+      stripped.each_char.with_index do |c, i|
         depth += 1 if c == '{'
         depth -= 1 if c == '}'
         if depth == 0
@@ -356,9 +353,13 @@ module Ecosystem
         end
       end
 
-      return [] unless end_pos && content[end_pos + 1, 2]&.strip&.start_with?(':')
+      return [] unless end_pos
 
-      args_block = content[1...end_pos]
+      # Check that this is a function definition (followed by :)
+      after_brace = stripped[end_pos + 1..]
+      return [] unless after_brace&.lstrip&.start_with?(':')
+
+      args_block = stripped[1...end_pos]
       args_block.scan(/\b([a-zA-Z_][a-zA-Z0-9_'-]*)\b/).flatten.uniq
     end
 
