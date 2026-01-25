@@ -43,9 +43,9 @@ module Ecosystem
  
     def packages
       @packages ||= begin
-        
+
         # TODO architectures ['x86_64', 'x86', 'aarch64', 'armhf', 'ppc64le', 's390x', 'armv7', 'riscv64']
-        
+
         main_packages = fetch_packages('main', 'x86_64')
         community_packages = fetch_packages('community', 'x86_64')
 
@@ -55,20 +55,39 @@ module Ecosystem
         else
           main_packages + community_packages
         end
-        
+
+      end
+    end
+
+    def packages_by_name
+      @packages_by_name ||= packages.index_by { |p| p['P'] }
+    end
+
+    def packages_by_provides
+      @packages_by_provides ||= begin
+        index = {}
+        packages.each do |pkg|
+          next unless pkg['p']
+          pkg['p'].split(' ').each do |provided|
+            # Strip version constraints like "so:libfoo.so.1=1.0"
+            name = provided.split('=').first
+            (index[name] ||= []) << pkg
+          end
+        end
+        index
       end
     end
 
     def all_package_names
-      packages.map{|p| p['P'] }
+      packages_by_name.keys
     end
 
     def recently_updated_package_names
-      packages.sort_by{|p| p['t']}.reverse.map{|p| p['P'] }.first(100)
+      packages.sort_by { |p| p['t'].to_i }.last(100).reverse.map { |p| p['P'] }
     end
 
     def fetch_package_metadata(name)
-      packages.find{|p| p['P'] == name }
+      packages_by_name[name]
     end
 
     def map_package_metadata(pkg_metadata)
@@ -112,8 +131,15 @@ module Ecosystem
 
     def dependencies_metadata(name, version, pkg_metadata)
       data = fetch_package_metadata(name)
-      deps = data['D'].split(' ').map{|dep| packages.select{|pkg| pkg['p']&& pkg['p'].include?(dep)}.first || packages.select{|pkg| pkg['P'] == dep}.first  }.uniq
-      deps.map do |dep|
+      return [] if data.blank? || data['D'].blank?
+
+      dep_names = data['D'].split(' ')
+      resolved = dep_names.map do |dep|
+        # Try provides index first, then direct name lookup
+        packages_by_provides[dep]&.first || packages_by_name[dep]
+      end.compact.uniq
+
+      resolved.map do |dep|
         {
           package_name: dep['P'],
           requirements: '*',
