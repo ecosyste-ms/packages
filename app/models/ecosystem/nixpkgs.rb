@@ -70,20 +70,23 @@ module Ecosystem
 
       Rails.logger.info "[Nixpkgs] Downloading packages.json.br for #{channel} from #{packages_url}"
 
-      Dir.mktmpdir do |dir|
-        compressed_path = "#{dir}/packages.json.br"
-        json_path = "#{dir}/packages.json"
+      response = download_packages_json
+      raise "Failed to download packages.json.br from #{packages_url}: #{response.status}" unless response.success?
 
-        system("curl", "-sL", packages_url, "-o", compressed_path)
-        system("brotli", "-d", compressed_path, "-o", json_path)
-
-        if File.exist?(json_path)
-          FileUtils.cp(json_path, cached_file)
-          Rails.logger.info "[Nixpkgs] Cached packages.json for #{channel} (#{(File.size(cached_file) / 1024.0 / 1024.0).round(1)}MB)"
-        end
-      end
+      decompressed = Brotli.inflate(response.body)
+      File.write(cached_file, decompressed)
+      Rails.logger.info "[Nixpkgs] Cached packages.json for #{channel} (#{(File.size(cached_file) / 1024.0 / 1024.0).round(1)}MB)"
 
       cached_file
+    end
+
+    def download_packages_json
+      connection = Faraday.new(packages_url) do |builder|
+        builder.use Faraday::FollowRedirects::Middleware
+        builder.request :retry, { max: 3, interval: 0.5, backoff_factor: 2 }
+        builder.adapter Faraday.default_adapter
+      end
+      connection.get
     end
 
     def all_package_names

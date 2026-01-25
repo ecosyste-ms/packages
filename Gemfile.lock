@@ -63,6 +63,7 @@ GEM
       popper_js (>= 2.11.8, < 3)
     bootstrap-icons (1.0.15)
       nokogiri (~> 1)
+    brotli (0.7.0)
     builder (3.3.0)
     cgi (0.5.1)
     chartkick (5.2.1)
@@ -330,6 +331,7 @@ DEPENDENCIES
   bootsnap
   bootstrap
   bootstrap-icons
+  brotli
   cgi
   chartkick
   counter_culture
@@ -397,6 +399,7 @@ CHECKSUMS
   bootsnap (1.21.1) sha256=9373acfe732da35846623c337d3481af8ce77c7b3a927fb50e9aa92b46dbc4c4
   bootstrap (5.3.8) sha256=1c23b06df24ec28a0058ad90a0da93e260d2c0a5c453d7087f6bad428464742f
   bootstrap-icons (1.0.15) sha256=4a19c2360f88263c1606235813b8575ff3d6c0773174ed4ceb368628e5541ae9
+  brotli (0.7.0) sha256=e9e4fa5036e59e344798be8e35f44301ed8d10dc94d68195b6587e9c78b63a41
   builder (3.3.0) sha256=497918d2f9dca528fdca4b88d84e4ef4387256d984b8154e9d5d3fe5a9c8835f
   cgi (0.5.1) sha256=e93fcafc69b8a934fe1e6146121fa35430efa8b4a4047c4893764067036f18e9
   chartkick (5.2.1) sha256=2848d7de87189f30f28d077eb0bbdebc8a1f0f6f81de1ded95008fe564369949

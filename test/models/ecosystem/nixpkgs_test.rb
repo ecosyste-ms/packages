@@ -6,6 +6,15 @@ class NixpkgsTest < ActiveSupport::TestCase
     @ecosystem = Ecosystem::Nixpkgs.new(@registry)
     @package = Package.new(ecosystem: 'nixpkgs', name: 'numpy', metadata: { 'position' => 'pkgs/development/python-modules/numpy/2.nix:205' })
     @version = @package.versions.build(number: '2.3.5')
+    Ecosystem::Nixpkgs.clear_packages_cache!
+  end
+
+  teardown do
+    Ecosystem::Nixpkgs.clear_packages_cache!
+  end
+
+  def stub_packages(packages)
+    Ecosystem::Nixpkgs.class_variable_set(:@@packages_cache, { 'unstable' => packages })
   end
 
   test 'registry_url' do
@@ -127,7 +136,7 @@ class NixpkgsTest < ActiveSupport::TestCase
   end
 
   test 'versions_metadata' do
-    @ecosystem.instance_variable_set(:@packages, {
+    stub_packages({
       'python313Packages.numpy' => {
         'pname' => 'numpy',
         'version' => '2.3.5',
@@ -149,7 +158,7 @@ class NixpkgsTest < ActiveSupport::TestCase
   end
 
   test 'maintainers_metadata' do
-    @ecosystem.instance_variable_set(:@packages, {
+    stub_packages({
       'python313Packages.numpy' => {
         'pname' => 'numpy',
         'meta' => {
@@ -170,7 +179,7 @@ class NixpkgsTest < ActiveSupport::TestCase
   end
 
   test 'maintainers_metadata returns empty for missing maintainers' do
-    @ecosystem.instance_variable_set(:@packages, {
+    stub_packages({
       'test' => { 'pname' => 'test', 'meta' => {} }
     })
 
@@ -179,7 +188,7 @@ class NixpkgsTest < ActiveSupport::TestCase
   end
 
   test 'dependencies_metadata returns empty when no position' do
-    @ecosystem.instance_variable_set(:@packages, {
+    stub_packages({
       'test-pkg' => { 'pname' => 'test', 'meta' => {} }
     })
 
@@ -357,7 +366,7 @@ class NixpkgsTest < ActiveSupport::TestCase
   end
 
   test 'dependencies_metadata with stubbed fetch' do
-    @ecosystem.instance_variable_set(:@packages, {
+    stub_packages({
       'python313Packages.numpy' => {
         'pname' => 'numpy',
         'meta' => { 'position' => 'pkgs/development/python-modules/numpy/default.nix:1' }
@@ -572,5 +581,30 @@ class NixpkgsTest < ActiveSupport::TestCase
     assert_nil @ecosystem.build_upstream_purl('unknown', 'package')
     assert_nil @ecosystem.build_upstream_purl(nil, 'package')
     assert_nil @ecosystem.build_upstream_purl('pypi', nil)
+  end
+
+  test 'download_and_cache_packages raises error when download fails' do
+    stub_request(:get, "https://channels.nixos.org/nixos-unstable/packages.json.br")
+      .to_return(status: 500, body: "")
+
+    error = assert_raises(RuntimeError) do
+      @ecosystem.download_and_cache_packages(ttl: 0.seconds)
+    end
+    assert_match(/Failed to download/, error.message)
+  end
+
+  test 'download_and_cache_packages succeeds with valid brotli response' do
+    json_content = '{"packages":{"test":{"pname":"test","version":"1.0"}}}'
+    compressed = Brotli.deflate(json_content)
+
+    stub_request(:get, "https://channels.nixos.org/nixos-unstable/packages.json.br")
+      .to_return(status: 200, body: compressed)
+
+    cache_file = @ecosystem.download_and_cache_packages(ttl: 0.seconds)
+
+    assert File.exist?(cache_file)
+    assert_equal json_content, File.read(cache_file)
+
+    FileUtils.rm_f(cache_file)
   end
 end
