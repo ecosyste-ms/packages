@@ -78,7 +78,7 @@ GEM
       rexml
     crass (1.0.6)
     csv (3.3.5)
-    dalli (4.0.1)
+    dalli (4.1.0)
       logger
     date (3.5.1)
     dotenv (3.2.0)
@@ -229,7 +229,7 @@ GEM
       tsort
     redis (5.4.1)
       redis-client (>= 0.22.0)
-    redis-client (0.26.3)
+    redis-client (0.26.4)
       connection_pool
     reline (0.6.3)
       io-console (~> 0.5)
@@ -410,7 +410,7 @@ CHECKSUMS
   crack (1.0.1) sha256=ff4a10390cd31d66440b7524eb1841874db86201d5b70032028553130b6d4c7e
   crass (1.0.6) sha256=dc516022a56e7b3b156099abc81b6d2b08ea1ed12676ac7a5657617f012bd45d
   csv (3.3.5) sha256=6e5134ac3383ef728b7f02725d9872934f523cb40b961479f69cf3afa6c8e73f
-  dalli (4.0.1) sha256=1614b71ff4348bd1531e2b544dc5daf3275d59a46974defe666e961045ecb999
+  dalli (4.1.0) sha256=67e2098e67e6e7cf4f5f4c8d8c1e37a6f493890164131d6efb5bb989a7223736
   date (3.5.1) sha256=750d06384d7b9c15d562c76291407d89e368dda4d4fff957eb94962d325a0dc0
   dotenv (3.2.0) sha256=e375b83121ea7ca4ce20f214740076129ab8514cd81378161f11c03853fe619d
   dotenv-rails (3.2.0) sha256=657e25554ba622ffc95d8c4f1670286510f47f2edda9f68293c3f661b303beab
@@ -488,7 +488,7 @@ CHECKSUMS
   rake (13.3.1) sha256=8c9e89d09f66a26a01264e7e3480ec0607f0c497a861ef16063604b1b08eb19c
   rdoc (7.1.0) sha256=494899df0706c178596ca6e1d50f1b7eb285a9b2aae715be5abd742734f17363
   redis (5.4.1) sha256=b5e675b57ad22b15c9bcc765d5ac26f60b675408af916d31527af9bd5a81faae
-  redis-client (0.26.3) sha256=37a95ca193b7a79f350c09fe5e696dc15d1701195d559d031a107ab725effc49
+  redis-client (0.26.4) sha256=3ad70beff5da2653e02dfeae996e7d8d7147a558da12b16b2282ad345e4c7120
   reline (0.6.3) sha256=1198b04973565b36ec0f11542ab3f5cfeeec34823f4e54cebde90968092b1835
   request_store (1.7.0) sha256=e1b75d5346a315f452242a68c937ef8e48b215b9453a77a6c0acdca2934c88cb
   rexml (3.4.4) sha256=19e0a2c3425dfbf2d4fc1189747bdb2f849b6c5e74180401b15734bc97b5d142
