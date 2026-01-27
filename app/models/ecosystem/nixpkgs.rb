@@ -301,8 +301,15 @@ module Ecosystem
       nil
     end
 
+    def strip_nix_comments(content)
+      return '' if content.blank?
+      # Remove block comments /* ... */ then line comments # ...
+      content.gsub(%r{/\*.*?\*/}m, '').gsub(/#[^\n]*/, '')
+    end
+
     def parse_nix_dependencies(content)
       deps = []
+      content = strip_nix_comments(content)
 
       # Extract function arguments: { lib, stdenv, fetchFromGitHub, numpy, blas }:
       # For simple files this works; for complex files we fall back to just using buildInputs

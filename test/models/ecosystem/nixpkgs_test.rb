@@ -344,6 +344,47 @@ class NixpkgsTest < ActiveSupport::TestCase
     deps = @ecosystem.parse_nix_dependencies(nix_content)
     assert deps.any? { |d| d[:package_name] == 'blas' }
     assert deps.any? { |d| d[:package_name] == 'lapack' }
+    dep_names = deps.map { |d| d[:package_name] }
+    assert_not_includes dep_names, 'inline'
+    assert_not_includes dep_names, 'comment'
+    assert_not_includes dep_names, 'This'
+  end
+
+  test 'parse_nix_dependencies strips block comments' do
+    nix_content = <<~NIX
+      { lib, stdenv, blas, lapack }:
+      stdenv.mkDerivation {
+        buildInputs = [
+          blas
+          /* lapack is a circular dependency, not packaged */
+        ];
+      }
+    NIX
+
+    deps = @ecosystem.parse_nix_dependencies(nix_content)
+    dep_names = deps.map { |d| d[:package_name] }
+    assert_includes dep_names, 'blas'
+    assert_not_includes dep_names, 'circular'
+    assert_not_includes dep_names, 'dependency'
+    assert_not_includes dep_names, 'packaged'
+  end
+
+  test 'parse_nix_dependencies strips comments with words matching function args' do
+    nix_content = <<~NIX
+      { lib, stdenv, blas, round, building }:
+      stdenv.mkDerivation {
+        buildInputs = [
+          blas
+          # round and building are not real deps
+        ];
+      }
+    NIX
+
+    deps = @ecosystem.parse_nix_dependencies(nix_content)
+    dep_names = deps.map { |d| d[:package_name] }
+    assert_includes dep_names, 'blas'
+    assert_not_includes dep_names, 'round'
+    assert_not_includes dep_names, 'building'
   end
 
   test 'parse_nix_dependencies returns empty for malformed content' do
