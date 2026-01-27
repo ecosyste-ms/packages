@@ -1,0 +1,24 @@
+{
+  "id": "terraform-aws-modules/vpc/aws/6.6.0",
+  "owner": "antonbabenko",
+  "namespace": "terraform-aws-modules",
+  "name": "vpc",
+  "version": "6.6.0",
+  "provider": "aws",
+  "provider_logo_url": "/images/providers/aws.png",
+  "description": "Terraform module to create AWS VPC resources \ud83c\uddfa\ud83c\udde6",
+  "source": "https://github.com/terraform-aws-modules/terraform-aws-vpc",
+  "tag": "v6.6.0",
+  "published_at": "2026-01-08T19:16:31.278629Z",
+  "downloads": 164832241,
+  "verified": false,
+  "providers": [
+    "aws"
+  ],
+  "versions": [
+    "1.0.0",
+    "1.0.1",
+    "1.0.2"
+  ],
+  "deprecation": null
+}

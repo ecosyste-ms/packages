@@ -1,0 +1,28 @@
+{
+  "data": [
+    {
+      "id": "terraform-aws-modules/vpc/aws",
+      "type": "modules",
+      "attributes": {
+        "full-name": "terraform-aws-modules/vpc/aws",
+        "namespace": "terraform-aws-modules",
+        "name": "vpc",
+        "provider": "aws"
+      }
+    },
+    {
+      "id": "hashicorp/consul/aws", 
+      "type": "modules",
+      "attributes": {
+        "full-name": "hashicorp/consul/aws",
+        "namespace": "hashicorp",
+        "name": "consul", 
+        "provider": "aws"
+      }
+    }
+  ],
+  "links": {
+    "self": "https://registry.terraform.io/v2/modules?page[number]=1&page[size]=100",
+    "next": "https://registry.terraform.io/v2/modules?page[number]=2&page[size]=100"
+  }
+}
