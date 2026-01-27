@@ -10,7 +10,7 @@
     A list of package registries within the <%= params[:id] %> ecosystem, offering access to essential tools and libraries.
   </p>
 
-  <h4 class='mb-3'>Total packages indexed: <%= number_with_delimiter @registries.sum(&:packages_count) %> - Unique packages: <%= number_with_delimiter @unique_packages_count %></h4>
+  <h4 class='mb-3'>Total packages indexed: <%= number_with_delimiter @registries.sum(&:packages_count) %></h4>
   
   <div class='row'>
     <%= render @registries %>
