@@ -144,4 +144,189 @@ namespace :packages do
   task clean_up_sidekiq_unique_jobs: :environment do
     REDIS.del('uniquejobs:digests')
   end
+
+  desc 'report upstream ecosystem groupings for nixpkgs packages'
+  task nixpkgs_upstream_ecosystems: :environment do
+    registry = Registry.where(ecosystem: 'nixpkgs').order(packages_count: :desc).first
+    abort "No nixpkgs registry found" unless registry
+
+    puts "Registry: #{registry.name} (#{registry.packages_count} packages)"
+    puts
+
+    prefix_mappings = {
+      /^python\d*Packages\./ => 'pypi',
+      /^rubyPackages\./ => 'rubygems',
+      /^nodePackages(?:_latest)?\./ => 'npm',
+      /^perl\d*Packages\./ => 'cpan',
+      /^haskellPackages\./ => 'hackage',
+      /^ocamlPackages\./ => 'opam',
+      /^lua\d*Packages\./ => 'luarocks',
+      /^luajitPackages\./ => 'luarocks',
+      /^rPackages\./ => 'cran',
+      /^beamPackages\./ => 'hex',
+      /^emacsPackages\./ => 'elpa',
+      /^coqPackages\./ => 'opam',
+      /^idrisPackages\./ => 'hackage',
+      /^octavePackages\./ => 'octave',
+      /^chickenPackages_\d+\./ => 'chicken',
+      /^akkuPackages\./ => 'akku',
+    }
+
+    counts = Hash.new(0)
+    registry.packages.active.select(:id, :name).each_instance do |pkg|
+      ecosystem = prefix_mappings.detect { |pattern, _| pkg.name =~ pattern }&.last
+      counts[ecosystem.presence || '(none)'] += 1
+      print "."
+    end
+    puts
+
+    counts.sort_by { |_, v| -v }.each do |label, count|
+      puts "  #{label}: #{count}"
+    end
+
+    total_with = counts.reject { |k, _| k == '(none)' }.values.sum
+    puts
+    puts "Total with upstream mapping: #{total_with}"
+    puts "Total without: #{counts['(none)']}"
+  end
+
+  desc 'report native/system dependencies of nixpkgs python packages'
+  task nixpkgs_python_native_deps: :environment do
+    registry = Registry.where(ecosystem: 'nixpkgs').order(packages_count: :desc).first
+    abort "No nixpkgs registry found" unless registry
+
+    # Build set of known python package bare names
+    # e.g. "python311Packages.numpy" -> "numpy"
+    python_names = Set.new
+    python_package_ids = []
+    registry.packages.active.select(:id, :name).each_instance do |pkg|
+      next unless pkg.name =~ /^python\d*Packages\./
+      bare = pkg.name.sub(/^python\d*Packages\./, '')
+      python_names << bare
+      next if bare == 'jsonnet'
+      python_package_ids << pkg.id
+    end
+    puts "Known python package names: #{python_names.size}"
+
+    # Nix builtins and python build tooling to ignore
+    ignore = Set.new(%w[
+      lib stdenv stdenvNoCC fetchurl fetchFromGitHub fetchFromGitLab fetchgit
+      fetchzip fetchpatch fetchpatch2 makeWrapper writeText writeScript runCommand
+      symlinkJoin buildEnv callPackage mkDerivation overrideAttrs
+      optional optionals mkIf then else if inherit src version pname
+      meta maintainers platforms homepage description license
+      pytestCheckHook pythonImportsCheckHook pythonRelaxDepsHook
+      setuptools wheel pip flit-core poetry-core hatchling hatch-vcs
+      cython cython_0 meson-python meson ninja cmake pkg-config
+      buildPythonPackage fetchPypi python pythonOlder pythonAtLeast
+      substituteAll versionCheckHook writePythonModule
+      unittestCheckHook sphinxHook autopatchelfHook autoPatchelfHook
+      autoreconfHook addOpenGLRunpath installShellFiles unzip
+      pkgs python3 python3Packages pythonPackages rustPlatform
+      cargo rustc which typing enum34
+      toPythonApplication ensureNewerSourcesForZipFilesHook
+      removeReferencesTo memorymappingHook memstreamHook
+      wrapGAppsHook wrapQtAppsHook npmHooks autoAddOpenGLRunpathHook
+      buildPackages pythonForBuild nukeReferences configd
+      cc out
+    ])
+
+    # For each python package, find deps that aren't python or ignored
+    results = Hash.new { |h, k| h[k] = { count: 0, examples: [] } }
+
+    python_package_ids.each_slice(500) do |batch_ids|
+      Version.where(package_id: batch_ids)
+             .includes(:dependencies, :package)
+             .each_instance do |version|
+        version.dependencies.each do |dep|
+          name = dep.package_name
+          next if python_names.include?(name)
+          next if ignore.include?(name)
+
+          results[name][:count] += 1
+          pkg_bare = version.package.name.sub(/^python\d*Packages\./, '')
+          results[name][:examples] << pkg_bare if results[name][:examples].size < 3
+        end
+        print "."
+      end
+    end
+    puts
+    $stderr.puts "Native/system dependencies found: #{results.size}"
+
+    puts "dependency,python_package_count,examples"
+    results.sort_by { |_, v| -v[:count] }.each do |name, data|
+      puts "#{name},#{data[:count]},#{data[:examples].join(';')}"
+    end;nil
+  end
+
+  desc 'list nixpkgs python packages and their native/system dependencies'
+  task nixpkgs_python_packages_with_native_deps: :environment do
+    registry = Registry.where(ecosystem: 'nixpkgs').order(packages_count: :desc).first
+    abort "No nixpkgs registry found" unless registry
+
+    python_names = Set.new
+    python_package_ids = []
+    registry.packages.active.select(:id, :name).each_instance do |pkg|
+      next unless pkg.name =~ /^python\d*Packages\./
+      bare = pkg.name.sub(/^python\d*Packages\./, '')
+      python_names << bare
+      next if bare == 'jsonnet'
+      python_package_ids << pkg.id
+    end
+    $stderr.puts "Python packages: #{python_package_ids.size}"
+
+    ignore = Set.new(%w[
+      lib stdenv stdenvNoCC fetchurl fetchFromGitHub fetchFromGitLab fetchgit
+      fetchzip fetchpatch fetchpatch2 makeWrapper writeText writeScript runCommand
+      symlinkJoin buildEnv callPackage mkDerivation overrideAttrs
+      optional optionals mkIf then else if inherit src version pname for the
+      meta maintainers platforms homepage description license
+      pytestCheckHook pythonImportsCheckHook pythonRelaxDepsHook
+      setuptools wheel pip flit-core poetry-core hatchling hatch-vcs
+      cython cython_0 meson-python meson ninja cmake pkg-config
+      buildPythonPackage fetchPypi python pythonOlder pythonAtLeast
+      substituteAll versionCheckHook writePythonModule
+      unittestCheckHook sphinxHook autopatchelfHook autoPatchelfHook
+      autoreconfHook addOpenGLRunpath installShellFiles unzip
+      pkgs python3 python3Packages pythonPackages rustPlatform
+      cargo rustc which typing enum34
+      Security CoreServices CoreFoundation ApplicationServices
+      Cocoa Foundation AppKit Accelerate IOKit CoreAudio AudioToolbox
+      AudioUnit CoreGraphics CoreVideo CoreMIDI CFNetwork Carbon
+      VideoDecodeAcceleration OpenGL GSS PCSC
+      toPythonApplication ensureNewerSourcesForZipFilesHook
+      removeReferencesTo memorymappingHook memstreamHook
+      wrapGAppsHook wrapQtAppsHook npmHooks autoAddOpenGLRunpathHook
+      buildPackages pythonForBuild nukeReferences configd
+      cc out needed with to docs tests
+      findXMLCatalogs darwin
+      isPy3k functools32 futures backports backports_os
+      AX_CHECK_COMPILE_FLAG moveBuildTree
+      pkgs-systemd pkgs-docker
+    ])
+
+    results = Hash.new { |h, k| h[k] = [] }
+
+    python_package_ids.each_slice(500) do |batch_ids|
+      Version.where(package_id: batch_ids)
+             .includes(:dependencies, :package)
+             .each_instance do |version|
+        pkg_bare = version.package.name.sub(/^python\d*Packages\./, '')
+        version.dependencies.each do |dep|
+          name = dep.package_name
+          next if python_names.include?(name)
+          next if ignore.include?(name)
+          results[pkg_bare] << "#{name} (#{dep.kind})"
+        end
+        print "."
+      end
+    end
+    puts
+    $stderr.puts "Python packages with native deps: #{results.size}"
+
+    puts "python_package,native_dependency_count,native_dependencies"
+    results.sort_by { |_, v| -v.size }.each do |pkg, deps|
+      puts "#{pkg},#{deps.size},#{deps.uniq.join(';')}"
+    end;nil
+  end
 end
