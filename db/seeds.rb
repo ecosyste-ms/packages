@@ -46,6 +46,7 @@ default_registries = [
   {name: 'repo.jenkins-ci.org', url: 'https://repo.jenkins-ci.org/public', ecosystem: 'maven', github: 'jenkinsci', default: false},
   {name: 'nexus.gael.cloud', url: 'https://nexus.gael.cloud/repository/maven-public', ecosystem: 'maven', github: 'gael-systems', default: false},
   {name: 'registry.terraform.io', url: 'https://registry.terraform.io', ecosystem: 'terraform', github: 'hashicorp', default: true},
+  {name: 'artifacthub.io', url: 'https://artifacthub.io', ecosystem: 'helm', github: 'artifacthub', default: true},
 ]
 
 default_registries.each do |data|
