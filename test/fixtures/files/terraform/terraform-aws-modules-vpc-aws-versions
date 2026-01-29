@@ -1,0 +1,57 @@
+{
+  "modules": [
+    {
+      "source": "terraform-aws-modules/vpc/aws",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "root": {
+            "providers": [
+              {
+                "name": "aws",
+                "namespace": "",
+                "source": "",
+                "version": ""
+              }
+            ],
+            "dependencies": []
+          },
+          "submodules": [],
+          "deprecation": null
+        },
+        {
+          "version": "1.0.1",
+          "root": {
+            "providers": [
+              {
+                "name": "aws",
+                "namespace": "",
+                "source": "",
+                "version": ""
+              }
+            ],
+            "dependencies": []
+          },
+          "submodules": [],
+          "deprecation": null
+        },
+        {
+          "version": "1.0.2",
+          "root": {
+            "providers": [
+              {
+                "name": "aws",
+                "namespace": "",
+                "source": "",
+                "version": ""
+              }
+            ],
+            "dependencies": []
+          },
+          "submodules": [],
+          "deprecation": null
+        }
+      ]
+    }
+  ]
+}
