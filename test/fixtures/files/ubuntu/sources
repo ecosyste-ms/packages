@@ -1,0 +1,43 @@
+Package: aalib
+Format: 3.0 (quilt)
+Binary: libaa1-dev, libaa1, libaa-bin
+Architecture: any
+Version: 1.4p5-51.1
+Priority: optional
+Section: libs
+Maintainer: Jonathan Carter <jcc@debian.org>
+Standards-Version: 4.6.2
+Build-Depends: debhelper-compat (= 13), dpkg-dev (>= 1.14.9), libgpm-dev [linux-any], libncurses5-dev, libslang2-dev, libx11-dev, patch, texinfo
+Homepage: http://aa-project.sourceforge.net/aalib/
+Vcs-Browser: https://salsa.debian.org/debian/aalib
+Vcs-Git: https://salsa.debian.org/debian/aalib.git
+Directory: pool/main/a/aalib
+
+Package: abseil
+Format: 3.0 (quilt)
+Binary: libabsl-dev, libabsl20220623t64
+Architecture: any
+Version: 20220623.1-3.1ubuntu3
+Priority: optional
+Section: misc
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Standards-Version: 4.6.1
+Build-Depends: dpkg-dev (>= 1.22.5), cmake (>= 3.5), debhelper-compat (= 12), g++-12, googletest (>= 1.12) [!mipsel !ppc64] <!nocheck>
+Homepage: https://abseil.io/
+Vcs-Browser: https://salsa.debian.org/debian/abseil
+Vcs-Git: https://salsa.debian.org/debian/abseil.git
+Directory: pool/main/a/abseil
+
+Package: libreoffice
+Format: 3.0 (quilt)
+Binary: libreoffice, libreoffice-core
+Architecture: any
+Version: 4:24.2.2-0ubuntu1
+Priority: optional
+Section: editors
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Standards-Version: 4.6.2
+Build-Depends: debhelper (>= 13), cmake, libboost-dev
+Homepage: https://www.libreoffice.org
+Vcs-Browser: https://salsa.debian.org/libreoffice-team/libreoffice
+Directory: pool/main/libr/libreoffice
