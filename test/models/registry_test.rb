@@ -235,6 +235,17 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal 3, stat_2021.packages_count
   end
 
+  test 'icon_url returns github avatar by default' do
+    @registry.github = 'rubygems'
+    assert_equal 'https://github.com/rubygems.png', @registry.icon_url
+  end
+
+  test 'icon_url returns metadata icon_url when present' do
+    @registry.github = 'rubygems'
+    @registry.metadata = {'icon_url' => 'https://example.com/custom-logo.png'}
+    assert_equal 'https://example.com/custom-logo.png', @registry.icon_url
+  end
+
   test 'calculate_growth_stats preserves running totals when skipping years' do
     # Create packages across multiple years
     @registry.packages.create!(name: 'pkg1', ecosystem: @registry.ecosystem, first_release_published_at: Date.new(2020, 6, 15))

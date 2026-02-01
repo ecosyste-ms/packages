@@ -14,7 +14,7 @@ default_registries = [
   {name: 'gem.coop', url: 'https://gem.coop', ecosystem: 'rubygems', github: 'gem-coop', default: false},
   {name: 'spack.io', url: 'https://packages.spack.io', ecosystem: 'spack', github: 'spack', default: true},
   {name: 'hackage.haskell.org', url: 'https://hackage.haskell.org', ecosystem: 'hackage', github: 'haskell-infra', default: true},
-  {name: 'cran.r-project.org', url: 'https://cran.r-project.org', ecosystem: 'cran', github: 'r-project-org', default: true},
+  {name: 'cran.r-project.org', url: 'https://cran.r-project.org', ecosystem: 'cran', github: 'r-project-org', metadata: {'icon_url' => 'https://cran.r-project.org/CRANlogo.png'}, default: true},
   {name: 'formulae.brew.sh', url: 'https://formulae.brew.sh', ecosystem: 'homebrew', github: 'homebrew', default: true},
   {name: 'forge.puppet.com', url: 'https://forge.puppet.com', ecosystem: 'puppet', github: 'puppet', default: true},
   {name: 'juliahub.com', url: 'https://juliahub.com', ecosystem: 'julia', github: 'JuliaRegistries', default: true},

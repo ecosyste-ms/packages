@@ -376,7 +376,7 @@ class Registry < ApplicationRecord
   end
 
   def icon_url
-    "https://github.com/#{github}.png"
+    metadata&.dig('icon_url') || "https://github.com/#{github}.png"
   end
 
   def outdated_packages_count
