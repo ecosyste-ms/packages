@@ -424,32 +424,62 @@ module Ecosystem
 
         # Run Maven to generate effective POM
         Tempfile.create(%w[effective_pom_ .xml]) do |output_file|
-          cmd = [
-            "mvn",
-            "help:effective-pom",
-            "-B",
-            "-q",
-            "-f", input_file.path,
-            "-Doutput=#{output_file.path}"
-          ]
+          # Throttle based on concurrent Maven processes
+          wait_for_maven_capacity
 
-          env = {
-            "MAVEN_OPTS" => "-Xmx128m -Xms64m -XX:+UseSerialGC -XX:MaxMetaspaceSize=64m"
-          }
+          begin
+            cmd = [
+              "mvn",
+              "help:effective-pom",
+              "-B",
+              "-q",
+              "-f", input_file.path,
+              "-Doutput=#{output_file.path}"
+            ]
 
-          stdout, stderr, status = Open3.capture3(env, *cmd)
+            env = {
+              "MAVEN_OPTS" => "-Xmx128m -Xms64m -XX:+UseSerialGC -XX:MaxMetaspaceSize=64m"
+            }
 
-          unless status.success?
-            return xml_body
+            stdout, stderr, status = Open3.capture3(env, *cmd)
+
+            unless status.success?
+              return xml_body
+            end
+
+            # Parse the effective POM
+            File.read(output_file.path)
+          ensure
+            release_maven_capacity
           end
-
-          # Parse the effective POM
-          File.read(output_file.path)
         end
       end
 
     rescue => e
       xml_body
+    end
+
+    def wait_for_maven_capacity
+      max_concurrent = ENV.fetch('MAX_CONCURRENT_MAVEN', '10').to_i
+      redis_key = 'maven:running_processes'
+
+      loop do
+        current = REDIS.get(redis_key).to_i
+        break if current < max_concurrent
+        sleep(0.5)
+      end
+
+      REDIS.incr(redis_key)
+      REDIS.expire(redis_key, 300)
+    rescue => e
+      Rails.logger.warn("Failed to check Maven capacity: #{e.message}")
+    end
+
+    def release_maven_capacity
+      redis_key = 'maven:running_processes'
+      REDIS.decr(redis_key)
+    rescue => e
+      Rails.logger.warn("Failed to release Maven capacity: #{e.message}")
     end
 
     def download_pom(group_id, artifact_id, version)
