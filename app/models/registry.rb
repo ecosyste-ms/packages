@@ -121,11 +121,18 @@ class Registry < ApplicationRecord
   end
 
   def sync_packages(package_names)
-    package_names.each do |name|
+    package_names.each_with_index do |name, index|
       begin
         sync_package(name)
+
+        # Force garbage collection every 100 packages for system package managers
+        # to prevent memory buildup from memoized package indexes
+        if ecosystem_instance.sync_in_batches? && (index + 1) % 100 == 0
+          GC.start
+          logger.info "Forced GC after #{index + 1} packages"
+        end
       rescue => e
-        puts "error syncing #{name} (#{ecosystem})"
+        puts "error syncing #{name} (#{ecosystem}}"
         puts e.message
       end
     end

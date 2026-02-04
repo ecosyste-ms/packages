@@ -49,12 +49,36 @@ module Ecosystem
     end
 
     def parse_sources(file_path, component)
-      content = Zlib::GzipReader.open(file_path, &:read)
-      entries = content.split("\n\n").reject(&:blank?)
+      return [] if file_path.nil? || !File.exist?(file_path)
 
-      entries.map do |entry|
-        parse_source_entry(entry, component)
-      end.compact
+      # Stream the Sources.gz file line-by-line to avoid loading
+      # multi-gigabyte uncompressed content into memory at once
+      results = []
+      current_entry = []
+
+      Zlib::GzipReader.open(file_path) do |gz|
+        gz.each_line do |line|
+          if line.strip.empty?
+            unless current_entry.empty?
+              entry_text = current_entry.join("\n")
+              parsed = parse_source_entry(entry_text, component)
+              results << parsed if parsed
+              current_entry = []
+            end
+          else
+            current_entry << line.chomp
+          end
+        end
+
+        # Handle last entry if file doesn't end with blank line
+        unless current_entry.empty?
+          entry_text = current_entry.join("\n")
+          parsed = parse_source_entry(entry_text, component)
+          results << parsed if parsed
+        end
+      end
+
+      results
     end
 
     def parse_source_entry(entry, component)
