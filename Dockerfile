@@ -23,6 +23,7 @@ RUN apk add --update \
     jemalloc \
     maven \
     brotli \
+    coreutils \
  && rm -rf /var/cache/apk/* 
 
 # Will invalidate cache as soon as the Gemfile changes

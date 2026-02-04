@@ -264,7 +264,8 @@ module Ecosystem
       group_id, artifact_id = *name.split(':', 2)
       url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.pom"
       pom_file = generate_effective_pom(request(url).body)
-      Bibliothecary::Parsers::Maven.parse_pom_manifest(pom_file, mapped_package[:properties]).map do |dep|
+      properties = mapped_package&.dig(:properties) || {}
+      Bibliothecary::Parsers::Maven.parse_pom_manifest(pom_file, properties).map do |dep|
         {
           package_name: dep[:name],
           requirements: dep[:requirement],
@@ -428,17 +429,18 @@ module Ecosystem
           wait_for_maven_capacity
 
           begin
-            cmd = [
-              "mvn",
-              "help:effective-pom",
-              "-B",
-              "-q",
-              "-f", input_file.path,
-              "-Doutput=#{output_file.path}"
-            ]
+            cmd = ["mvn", "help:effective-pom", "-B", "-q", "-f", input_file.path, "-Doutput=#{output_file.path}"]
+
+            # Add timeout and nice if available (Linux servers)
+            if system("which timeout > /dev/null 2>&1")
+              cmd.unshift("timeout", "60s")
+            end
+            if system("which nice > /dev/null 2>&1")
+              cmd.unshift("nice", "-n", "10")
+            end
 
             env = {
-              "MAVEN_OPTS" => "-Xmx128m -Xms64m -XX:+UseSerialGC -XX:MaxMetaspaceSize=64m"
+              "MAVEN_OPTS" => "-Xmx128m -Xms64m -XX:+UseSerialGC -XX:MaxMetaspaceSize=64m -XX:ActiveProcessorCount=1 -XX:CICompilerCount=1"
             }
 
             stdout, stderr, status = Open3.capture3(env, *cmd)
@@ -462,24 +464,44 @@ module Ecosystem
     def wait_for_maven_capacity
       max_concurrent = ENV.fetch('MAX_CONCURRENT_MAVEN', '10').to_i
       redis_key = 'maven:running_processes'
+      max_wait = 300
+
+      started_at = Time.now
+
+      lua_script = <<-LUA
+        local key = KEYS[1]
+        local max = tonumber(ARGV[1])
+        local current = tonumber(redis.call('get', key) or 0)
+        if current < max then
+          redis.call('incr', key)
+          redis.call('expire', key, 300)
+          return 1
+        else
+          return 0
+        end
+      LUA
 
       loop do
-        current = REDIS.get(redis_key).to_i
-        break if current < max_concurrent
+        result = REDIS.eval(lua_script, keys: [redis_key], argv: [max_concurrent])
+        break if result == 1
+
+        if Time.now - started_at > max_wait
+          Rails.logger.error("Timed out waiting for Maven capacity after #{max_wait}s")
+          raise "Maven capacity timeout"
+        end
+
         sleep(0.5)
       end
-
-      REDIS.incr(redis_key)
-      REDIS.expire(redis_key, 300)
     rescue => e
-      Rails.logger.warn("Failed to check Maven capacity: #{e.message}")
+      Rails.logger.error("Failed to acquire Maven capacity: #{e.message}")
+      raise
     end
 
     def release_maven_capacity
       redis_key = 'maven:running_processes'
       REDIS.decr(redis_key)
     rescue => e
-      Rails.logger.warn("Failed to release Maven capacity: #{e.message}")
+      Rails.logger.error("Failed to release Maven capacity: #{e.message}")
     end
 
     def download_pom(group_id, artifact_id, version)
