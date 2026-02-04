@@ -122,3 +122,60 @@ nixpkgs_registries.each do |data|
   r.assign_attributes(data)
   r.save
 end
+
+ubuntu_registries = []
+# Ubuntu LTS and current releases - https://releases.ubuntu.com/
+ubuntu_releases = [
+  {codename: 'noble', version: '24.04'},      # LTS until 2029
+  {codename: 'jammy', version: '22.04'},      # LTS until 2027
+  {codename: 'focal', version: '20.04'},      # LTS until 2025
+  {codename: 'oracular', version: '24.10', mirror: 'http://old-releases.ubuntu.com/ubuntu'},
+  {codename: 'mantic', version: '23.10', mirror: 'http://old-releases.ubuntu.com/ubuntu'},
+  {codename: 'lunar', version: '23.04', mirror: 'http://old-releases.ubuntu.com/ubuntu'},
+]
+ubuntu_releases.each do |release|
+  metadata = { codename: release[:codename] }
+  metadata[:mirror] = release[:mirror] if release[:mirror]
+  ubuntu_registries << {
+    name: "ubuntu-#{release[:version]}",
+    url: "https://launchpad.net/ubuntu/#{release[:codename]}",
+    ecosystem: 'ubuntu',
+    github: 'ubuntu',
+    default: release[:version] == '24.04',
+    version: release[:version],
+    metadata: metadata
+  }
+end
+
+ubuntu_registries.each do |data|
+  r = Registry.find_or_initialize_by(url: data[:url])
+  r.assign_attributes(data)
+  r.save
+end
+
+debian_registries = []
+debian_releases = [
+  {codename: 'bookworm', version: '12'},   # stable
+  {codename: 'bullseye', version: '11'},   # oldstable
+  {codename: 'buster', version: '10', mirror: 'http://archive.debian.org/debian'},  # archived
+  {codename: 'trixie', version: '13'},     # testing
+]
+debian_releases.each do |release|
+  metadata = { codename: release[:codename] }
+  metadata[:mirror] = release[:mirror] if release[:mirror]
+  debian_registries << {
+    name: "debian-#{release[:version]}",
+    url: "https://packages.debian.org/#{release[:codename]}",
+    ecosystem: 'debian',
+    github: 'debian',
+    default: release[:version] == '12',
+    version: release[:version],
+    metadata: metadata
+  }
+end
+
+debian_registries.each do |data|
+  r = Registry.find_or_initialize_by(url: data[:url])
+  r.assign_attributes(data)
+  r.save
+end
