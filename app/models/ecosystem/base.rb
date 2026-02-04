@@ -229,21 +229,40 @@ module Ecosystem
       Dir.mktmpdir do |dir|
         `wget -q -P #{dir} #{url}`
         downloaded = Dir.glob("#{dir}/*").first
-        if downloaded && File.exist?(downloaded)
-          if downloaded.end_with?('.tar.gz')
-            `tar -xzf #{downloaded} -C #{dir}`
-            extracted = Dir.glob("#{dir}/*").reject { |f| f.end_with?('.tar.gz') }.first
-            FileUtils.cp(extracted, cached_file) if extracted
-          else
-            FileUtils.cp(downloaded, cached_file)
-          end
+
+        if downloaded.nil? || !File.exist?(downloaded)
+          Rails.logger.error "Failed to download from #{url}: wget returned no files, deleting stale cache if exists"
+          File.delete(cached_file) if cached_file.exist?
+          return nil
         end
+
+        if downloaded.end_with?('.tar.gz')
+          `tar -xzf #{downloaded} -C #{dir}`
+          extracted = Dir.glob("#{dir}/*").reject { |f| f.end_with?('.tar.gz') }.first
+
+          if extracted.nil?
+            Rails.logger.error "Failed to extract #{downloaded}: no files found after extraction, deleting stale cache if exists"
+            File.delete(cached_file) if cached_file.exist?
+            return nil
+          end
+
+          FileUtils.cp(extracted, cached_file)
+        else
+          FileUtils.cp(downloaded, cached_file)
+        end
+      end
+
+      unless cached_file.exist?
+        Rails.logger.error "Failed to create cache file #{cached_file} from #{url}"
+        return nil
       end
 
       cached_file
     end
 
     def parse_apkindex(file, repository = nil)
+      return [] if file.nil? || !File.exist?(file)
+
       packages = []
       package = repository ? {'r' => repository} : {}
 
