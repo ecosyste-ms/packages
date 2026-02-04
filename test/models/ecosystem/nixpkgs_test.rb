@@ -648,4 +648,54 @@ class NixpkgsTest < ActiveSupport::TestCase
 
     FileUtils.rm_f(cache_file)
   end
+
+  test 'download_and_cache_packages raises error when decompression fails' do
+    stub_request(:get, "https://channels.nixos.org/nixos-unstable/packages.json.br")
+      .to_return(status: 200, body: "")
+
+    error = assert_raises(RuntimeError) do
+      @ecosystem.download_and_cache_packages(ttl: 0.seconds)
+    end
+    assert_match(/Failed to decompress/, error.message)
+  end
+
+  test 'download_and_cache_packages raises error when JSON is null' do
+    compressed = Brotli.deflate('null')
+
+    stub_request(:get, "https://channels.nixos.org/nixos-unstable/packages.json.br")
+      .to_return(status: 200, body: compressed)
+
+    error = assert_raises(RuntimeError) do
+      @ecosystem.download_and_cache_packages(ttl: 0.seconds)
+    end
+    assert_match(/Invalid packages.json format/, error.message)
+  end
+
+  test 'download_and_cache_packages raises error when JSON is missing packages key' do
+    compressed = Brotli.deflate('{"foo":"bar"}')
+
+    stub_request(:get, "https://channels.nixos.org/nixos-unstable/packages.json.br")
+      .to_return(status: 200, body: compressed)
+
+    error = assert_raises(RuntimeError) do
+      @ecosystem.download_and_cache_packages(ttl: 0.seconds)
+    end
+    assert_match(/Invalid packages.json format/, error.message)
+  end
+
+  test 'load_packages_json deletes cache and raises when data is nil' do
+    cache_dir = Rails.root.join('tmp', 'cache', 'ecosystems', 'nixpkgs')
+    FileUtils.mkdir_p(cache_dir)
+    cached_file = cache_dir.join("packages-unstable-test-nil.json")
+    File.write(cached_file, 'null')
+
+    @ecosystem.define_singleton_method(:download_and_cache_packages) { cached_file }
+
+    error = assert_raises(RuntimeError) do
+      @ecosystem.load_packages_json
+    end
+
+    assert_match(/Invalid packages.json data/, error.message)
+    assert_not File.exist?(cached_file), "Cache file should be deleted after encountering nil data"
+  end
 end

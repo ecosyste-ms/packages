@@ -55,6 +55,13 @@ module Ecosystem
       json_file = download_and_cache_packages
       Rails.logger.info "[Nixpkgs] Loading packages from cached file: #{json_file}"
       data = Oj.load(File.read(json_file))
+
+      if data.nil?
+        Rails.logger.error "[Nixpkgs] Cached file #{json_file} contains null/invalid JSON, deleting cache"
+        File.delete(json_file) if File.exist?(json_file)
+        raise "Invalid packages.json data for #{channel}"
+      end
+
       data['packages'] || {}
     end
 
@@ -73,7 +80,22 @@ module Ecosystem
       response = download_packages_json
       raise "Failed to download packages.json.br from #{packages_url}: #{response.status}" unless response.success?
 
-      decompressed = Brotli.inflate(response.body)
+      begin
+        decompressed = Brotli.inflate(response.body)
+      rescue Brotli::Error => e
+        raise "Failed to decompress packages.json.br from #{packages_url}: #{e.message}"
+      end
+
+      if decompressed.blank?
+        raise "Failed to decompress packages.json.br from #{packages_url}: empty result"
+      end
+
+      # Validate JSON is parseable and contains packages key
+      parsed = Oj.load(decompressed)
+      if parsed.nil? || !parsed.is_a?(Hash) || !parsed.key?('packages')
+        raise "Invalid packages.json format from #{packages_url}: #{parsed.inspect.truncate(100)}"
+      end
+
       File.binwrite(cached_file, decompressed)
       Rails.logger.info "[Nixpkgs] Cached packages.json for #{channel} (#{(File.size(cached_file) / 1024.0 / 1024.0).round(1)}MB)"
 
