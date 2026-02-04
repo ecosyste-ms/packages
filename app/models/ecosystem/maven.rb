@@ -429,18 +429,16 @@ module Ecosystem
           wait_for_maven_capacity
 
           begin
-            cmd = ["mvn", "help:effective-pom", "-B", "-q", "-f", input_file.path, "-Doutput=#{output_file.path}"]
-
-            # Add timeout and nice if available (Linux servers)
-            if system("which timeout > /dev/null 2>&1")
-              cmd.unshift("timeout", "60s")
-            end
-            if system("which nice > /dev/null 2>&1")
-              cmd.unshift("nice", "-n", "10")
+            # Build command - use timeout/nice in production (Docker has coreutils)
+            # Fallback to plain mvn on dev machines
+            if File.exist?("/usr/bin/timeout") || File.exist?("/bin/timeout")
+              cmd = ["timeout", "180s", "nice", "-n", "10", "mvn", "help:effective-pom", "-B", "-q", "-f", input_file.path, "-Doutput=#{output_file.path}"]
+            else
+              cmd = ["mvn", "help:effective-pom", "-B", "-q", "-f", input_file.path, "-Doutput=#{output_file.path}"]
             end
 
             env = {
-              "MAVEN_OPTS" => "-Xmx128m -Xms64m -XX:+UseSerialGC -XX:MaxMetaspaceSize=64m -XX:ActiveProcessorCount=1 -XX:CICompilerCount=1"
+              "MAVEN_OPTS" => "-Xmx128m -Xms64m -XX:+UseSerialGC -XX:MaxMetaspaceSize=64m -XX:ActiveProcessorCount=1"
             }
 
             stdout, stderr, status = Open3.capture3(env, *cmd)
