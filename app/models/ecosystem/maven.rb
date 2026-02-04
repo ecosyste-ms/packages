@@ -427,10 +427,17 @@ module Ecosystem
           cmd = [
             "mvn",
             "help:effective-pom",
+            "-B",
+            "-q",
             "-f", input_file.path,
             "-Doutput=#{output_file.path}"
           ]
-          stdout, stderr, status = Open3.capture3(*cmd)
+
+          env = {
+            "MAVEN_OPTS" => "-Xmx128m -Xms64m -XX:+UseSerialGC -XX:MaxMetaspaceSize=64m"
+          }
+
+          stdout, stderr, status = Open3.capture3(env, *cmd)
 
           unless status.success?
             return xml_body
