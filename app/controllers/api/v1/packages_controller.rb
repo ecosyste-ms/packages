@@ -1,4 +1,6 @@
 class Api::V1::PackagesController < Api::V1::ApplicationController
+  skip_before_action :set_cache_headers, only: [:ping, :ping_all, :bulk_lookup]
+  skip_before_action :set_api_cache_headers, only: [:ping, :ping_all, :bulk_lookup]
 
   def index
     @registry = Registry.find_by_name!(params[:registry_id])

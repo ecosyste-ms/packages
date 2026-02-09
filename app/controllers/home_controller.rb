@@ -1,7 +1,6 @@
 class HomeController < ApplicationController
   def index
     @registries = Registry.order('packages_count desc').all
-    expires_in 1.day, public: true
   end
 
   def recent_versions_data
@@ -9,6 +8,5 @@ class HomeController < ApplicationController
       Version.where('published_at > ?', 1.months.ago.beginning_of_day).where('published_at < ?', 1.day.ago.end_of_day).group_by_day(:published_at).count
     end
     render json: @recent_versions
-    expires_in 1.hour, public: true
   end
 end

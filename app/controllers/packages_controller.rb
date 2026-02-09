@@ -29,7 +29,6 @@ class PackagesController < ApplicationController
       @registry.versions.where('published_at > ?', 1.month.ago.beginning_of_day).where('published_at < ?', 1.day.ago.end_of_day).group_by_day(:published_at).count
     end
     render json: @recent_versions
-    expires_in 1.hour, public: true
   end
 
   def show
