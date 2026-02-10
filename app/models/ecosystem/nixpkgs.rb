@@ -14,6 +14,10 @@ module Ecosystem
       true
     end
 
+    def has_dependent_repos?
+      false
+    end
+
     def registry_url(package, _version = nil)
       "https://search.nixos.org/packages?channel=#{channel}&query=#{package.name}"
     end

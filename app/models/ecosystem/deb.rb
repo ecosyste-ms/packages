@@ -9,6 +9,10 @@ module Ecosystem
       true
     end
 
+    def has_dependent_repos?
+      false
+    end
+
     def purl_params(package, version = nil)
       {
         type: 'deb',

@@ -18,6 +18,10 @@ module Ecosystem
       false
     end
 
+    def has_dependent_repos?
+      true
+    end
+
     def self.list
       @ecosystems ||= begin
         Dir[Rails.root.join("app", "models", "ecosystem", "*.rb")].sort.each do |file|

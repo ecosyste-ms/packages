@@ -143,16 +143,6 @@ class Registry < ApplicationRecord
   end
 
   def sync_package(name, force: false)
-    existing_package = packages.find_by_name(name)
-    if !force && existing_package&.last_synced_at && existing_package.last_synced_at > 1.day.ago
-      unless sync_in_batches?
-        # if recently synced, schedule for syncing 1 day later
-        delay = (existing_package.last_synced_at + 1.day) - Time.now
-        SyncPackageWorker.perform_in(delay, id, name)
-      end
-      return
-    end
-
     logger.info "Syncing #{name}"
     package_metadata = ecosystem_instance.package_metadata(name)
     unless package_metadata
@@ -161,13 +151,24 @@ class Registry < ApplicationRecord
     end
     package_metadata[:ecosystem] = ecosystem.downcase
 
-     # clean up incorrectly named package records
-    if package_metadata[:name] != name 
-      # example: request 'aracnid_utils' from pypi but get 'aracnid-utils' back
-      packages.find_by_name(name).try(:destroy)
+    # clean up incorrectly named package records
+    unless sync_in_batches?
+      if package_metadata[:name] != name
+        # example: request 'aracnid_utils' from pypi but get 'aracnid-utils' back
+        packages.find_by_name(name).try(:destroy)
+      end
     end
 
     package = packages.find_or_initialize_by(name: package_metadata[:name])
+
+    if !force && package.last_synced_at && package.last_synced_at > 1.day.ago
+      unless sync_in_batches?
+        # if recently synced, schedule for syncing 1 day later
+        delay = (package.last_synced_at + 1.day) - Time.now
+        SyncPackageWorker.perform_in(delay, id, name)
+      end
+      return
+    end
 
     package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page, :time, :download_stats, :tags_url))
 
@@ -227,7 +228,7 @@ class Registry < ApplicationRecord
 
     package.update(versions_count: package.versions.count, last_synced_at: Time.zone.now)
     package.update_details
-    package.update_dependent_repos_count_async
+    package.update_dependent_repos_count_async if ecosystem_instance.has_dependent_repos?
     if ecosystem_class.instance_methods(false).include? :maintainers_metadata
       if ecosystem_instance.sync_maintainers_inline?
         sync_maintainers(package)
