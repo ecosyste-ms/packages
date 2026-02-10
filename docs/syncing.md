@@ -2,6 +2,8 @@
 
 packages.ecosyste.ms tracks millions of packages across dozens of registries. Keeping them current involves several overlapping strategies: polling registries for recent changes, accepting pings from sibling services, running periodic sweeps to catch anything that fell through the cracks, and prioritising high-value packages for more frequent updates.
 
+This is all best effort. packages.ecosyste.ms is a free, open source service and there are no guarantees about how fresh any given package's data will be. The system is designed to keep the most popular packages reasonably current and eventually catch up on everything else, but delays happen -- especially for less popular packages or registries with limited APIs.
+
 All scheduling is defined in [`app.json`](../app.json) as Heroku-style cron entries. Sidekiq processes the resulting background jobs across three queues (critical, default, low).
 
 ## Polling registries for recent changes
