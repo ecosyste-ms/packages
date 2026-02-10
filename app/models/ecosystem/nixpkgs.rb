@@ -65,8 +65,7 @@ module Ecosystem
       data = Oj.load(File.read(json_file))
 
       if data.nil?
-        Rails.logger.error "[Nixpkgs] Cached file #{json_file} contains null/invalid JSON, deleting cache"
-        File.delete(json_file) if File.exist?(json_file)
+        Rails.logger.error "[Nixpkgs] Cached file #{json_file} contains null/invalid JSON"
         raise "Invalid packages.json data for #{channel}"
       end
 
@@ -104,8 +103,12 @@ module Ecosystem
         raise "Invalid packages.json format from #{packages_url}: #{parsed.inspect.truncate(100)}"
       end
 
-      File.binwrite(cached_file, decompressed)
-      Rails.logger.info "[Nixpkgs] Cached packages.json for #{channel} (#{(File.size(cached_file) / 1024.0 / 1024.0).round(1)}MB)"
+      # Write to a temp file and atomically rename to avoid race conditions
+      # where another worker reads a partially-written cache file
+      tmp_file = cache_dir.join("packages-#{channel}.json.tmp.#{Process.pid}")
+      File.binwrite(tmp_file, decompressed)
+      FileUtils.mv(tmp_file, cached_file)
+      Rails.logger.info "[Nixpkgs] Cached packages.json for #{channel} (#{(decompressed.bytesize / 1024.0 / 1024.0).round(1)}MB)"
 
       cached_file
     end

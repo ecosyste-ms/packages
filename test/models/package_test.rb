@@ -143,6 +143,25 @@ class PackageTest < ActiveSupport::TestCase
     assert_includes result, scoped_package
   end
 
+  test 'sync_async enqueues UpdatePackageWorker' do
+    @package.update(last_synced_at: 2.days.ago)
+    UpdatePackageWorker.expects(:perform_async).with(@package.id).once
+    @package.sync_async
+  end
+
+  test 'sync_async skips recently synced packages' do
+    @package.update(last_synced_at: 1.hour.ago)
+    UpdatePackageWorker.expects(:perform_async).never
+    @package.sync_async
+  end
+
+  test 'sync_async skips batch ecosystem packages' do
+    batch_registry = Registry.create(name: 'nixpkgs-unstable', url: 'https://channels.nixos.org/nixos-unstable', ecosystem: 'nixpkgs', version: 'unstable')
+    batch_package = batch_registry.packages.create(name: 'hello', ecosystem: 'nixpkgs', last_synced_at: 2.days.ago)
+    UpdatePackageWorker.expects(:perform_async).never
+    batch_package.sync_async
+  end
+
   test 'with_advisories scope' do
     package_with_advisories = @registry.packages.create(name: 'bar', ecosystem: @registry.ecosystem, advisories: [{ 'id' => 'CVE-2024-1234' }])
     package_without_advisories = @registry.packages.create(name: 'baz', ecosystem: @registry.ecosystem, advisories: [])

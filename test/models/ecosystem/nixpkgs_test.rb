@@ -683,7 +683,7 @@ class NixpkgsTest < ActiveSupport::TestCase
     assert_match(/Invalid packages.json format/, error.message)
   end
 
-  test 'load_packages_json deletes cache and raises when data is nil' do
+  test 'load_packages_json raises when data is nil' do
     cache_dir = Rails.root.join('tmp', 'cache', 'ecosystems', 'nixpkgs')
     FileUtils.mkdir_p(cache_dir)
     cached_file = cache_dir.join("packages-unstable-test-nil.json")
@@ -696,6 +696,26 @@ class NixpkgsTest < ActiveSupport::TestCase
     end
 
     assert_match(/Invalid packages.json data/, error.message)
-    assert_not File.exist?(cached_file), "Cache file should be deleted after encountering nil data"
+  ensure
+    FileUtils.rm_f(cached_file)
+  end
+
+  test 'download_and_cache_packages writes atomically via temp file' do
+    json_content = '{"packages":{"test":{"pname":"test","version":"1.0"}}}'
+    compressed = Brotli.deflate(json_content)
+
+    stub_request(:get, "https://channels.nixos.org/nixos-unstable/packages.json.br")
+      .to_return(status: 200, body: compressed)
+
+    cache_file = @ecosystem.download_and_cache_packages(ttl: 0.seconds)
+
+    assert File.exist?(cache_file)
+    assert_equal json_content, File.read(cache_file)
+
+    # Temp file should not be left behind
+    tmp_files = Dir.glob(cache_file.to_s.sub('.json', '.json.tmp.*'))
+    assert_empty tmp_files, "Temp files should be cleaned up after atomic rename"
+
+    FileUtils.rm_f(cache_file)
   end
 end
