@@ -631,6 +631,18 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.second['name'], 'z-package'
   end
 
+  test 'list packages for a nixpkgs registry' do
+    nix_registry = Registry.create(name: 'nixpkgs-23.05', url: 'https://channels.nixos.org/nixos-23.05', ecosystem: 'nixpkgs', version: '23.05')
+    nix_registry.packages.create(ecosystem: 'nixpkgs', name: 'python313Packages.numpy', metadata: { 'position' => 'pkgs/development/python-modules/numpy/2.nix:205' })
+
+    get api_v1_registry_packages_path(registry_id: nix_registry.name)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal 1, actual_response.length
+    assert_equal 'python313Packages.numpy', actual_response.first['name']
+  end
+
   test 'get codemeta for a package' do
     get codemeta_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
     assert_response :success

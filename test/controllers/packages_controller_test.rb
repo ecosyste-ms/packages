@@ -18,6 +18,15 @@ class PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_template 'packages/show', file: 'packages/show.html.erb'
   end
 
+  test 'list packages for a nixpkgs registry' do
+    nix_registry = Registry.create(name: 'nixpkgs-23.05', url: 'https://channels.nixos.org/nixos-23.05', ecosystem: 'nixpkgs', version: '23.05')
+    nix_registry.packages.create(ecosystem: 'nixpkgs', name: 'python313Packages.numpy', metadata: { 'position' => 'pkgs/development/python-modules/numpy/2.nix:205' })
+
+    get registry_packages_path(registry_id: nix_registry.name)
+    assert_response :success
+    assert_template 'packages/index', file: 'packages/index.html.erb'
+  end
+
   test 'get a package with nil keywords should not error' do
     package = @registry.packages.create(ecosystem: 'cargo', name: 'test-package', keywords: nil)
     get registry_package_path(registry_id: @registry.name, id: package.name)
