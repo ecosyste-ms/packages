@@ -2,7 +2,7 @@
 
 packages.ecosyste.ms tracks millions of packages across dozens of registries. Keeping them current involves several overlapping strategies: polling registries for recent changes, accepting pings from sibling services, running periodic sweeps to catch anything that fell through the cracks, and prioritising high-value packages for more frequent updates.
 
-This is all best effort. packages.ecosyste.ms is a free, open source service and there are no guarantees about how fresh any given package's data will be. The system is designed to keep the most popular packages reasonably current and eventually catch up on everything else, but delays happen -- especially for less popular packages or registries with limited APIs.
+This is all best effort. packages.ecosyste.ms is a free, open source project and none of the timings described here are commitments. In practice, popular packages tend to stay fairly current while less popular ones can lag, especially on registries with limited APIs.
 
 All scheduling is defined in [`app.json`](../app.json) as Heroku-style cron entries. Sidekiq processes the resulting background jobs across three queues (critical, default, low).
 
@@ -93,13 +93,13 @@ Several mechanisms prevent redundant syncing:
 - [`recently_updated_package_names_excluding_recently_synced`](../app/models/registry.rb#L70) filters out packages synced in the last 10 minutes.
 - [`Package.sync_download_counts_async`](../app/models/package.rb#L93) and [`sync_maintainers_async`](../app/models/package.rb#L101) check the Sidekiq default queue size and bail out if it exceeds 20,000 jobs.
 
-## Priority tiers
+## How packages are prioritised
 
-Not all packages get the same treatment. The system treats high-value packages differently:
+The catch-up sweeps above weight their effort toward packages that matter most:
 
-- **Top 2% packages** (by ranking percentile, based on downloads, dependents, stars, forks) get synced every 30 minutes if they're more than 12 hours stale. ([`sync_least_recent_top_async`](../app/models/package.rb#L85))
-- **Regular packages** get caught by the least-recent sweep if they're more than a month stale. ([`sync_least_recent_async`](../app/models/package.rb#L81))
-- **Worst-performing registry** gets targeted attention every 20 minutes via [`sync_worst_one_percent`](../app/models/registry.rb#L423), which finds whichever registry has the highest percentage of outdated packages and syncs 1% of them.
+- **Top 2% packages** (by ranking percentile, based on downloads, dependents, stars, forks) are picked up by `sync_least_recent_top_async` once they're more than 12 hours stale. ([source](../app/models/package.rb#L85))
+- **Everything else** enters the `sync_least_recent_async` pool once stale for over a month. ([source](../app/models/package.rb#L81))
+- **Worst-performing registry** -- [`sync_worst_one_percent`](../app/models/registry.rb#L423) finds whichever registry has the highest percentage of outdated packages and syncs 1% of them at random.
 
 ## Enrichment jobs
 
