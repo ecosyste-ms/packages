@@ -133,6 +133,23 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal package.versions.sort.last.dependencies.length, 1
   end
 
+  test 'sync_package returns false when package_metadata name is blank' do
+    ecosystem = @registry.ecosystem_instance
+    ecosystem.stubs(:package_metadata).returns({ name: '', description: 'Test' })
+
+    result = @registry.sync_package('some-package')
+    assert_equal false, result
+    assert_nil @registry.packages.find_by(name: '')
+  end
+
+  test 'sync_package returns false when package_metadata name is nil' do
+    ecosystem = @registry.ecosystem_instance
+    ecosystem.stubs(:package_metadata).returns({ name: nil, description: 'Test' })
+
+    result = @registry.sync_package('some-package')
+    assert_equal false, result
+  end
+
   test 'sync_package_async' do
     SyncPackageWorker.expects(:perform_async).with(@registry.id, 'split')
     @registry.sync_package_async('split')

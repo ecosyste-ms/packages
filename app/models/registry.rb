@@ -149,6 +149,10 @@ class Registry < ApplicationRecord
       logger.error "Failed to sync #{name}: package_metadata returned nil or false"
       return false
     end
+    if package_metadata[:name].blank?
+      logger.error "Failed to sync #{name}: package_metadata returned blank name"
+      return false
+    end
     package_metadata[:ecosystem] = ecosystem.downcase
 
     # clean up incorrectly named package records

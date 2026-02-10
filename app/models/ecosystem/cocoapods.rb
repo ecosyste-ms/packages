@@ -81,6 +81,7 @@ module Ecosystem
 
     def map_package_metadata(package)
       return false unless package
+      return false if package["name"].blank?
       {
         name: package["name"],
         description: package["summary"],

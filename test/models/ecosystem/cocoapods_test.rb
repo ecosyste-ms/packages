@@ -92,6 +92,16 @@ class CocoapodsTest < ActiveSupport::TestCase
     assert_nil package_metadata[:keywords_array]
   end
 
+  test 'package_metadata returns false for deprecated pod with no name' do
+    stub_request(:get, "https://cdn.cocoapods.org/all_pods_versions_6_c_e.txt")
+      .to_return({ status: 200, body: "EmplateSDK/4.0.0\n" })
+    stub_request(:get, "https://cdn.cocoapods.org/Specs/6/c/e/EmplateSDK/4.0.0/EmplateSDK.podspec.json")
+      .to_return({ status: 200, body: '{"deprecated":true,"platforms":{"osx":null,"ios":null,"tvos":null,"watchos":null}}' })
+    package_metadata = @ecosystem.package_metadata('EmplateSDK')
+
+    assert_equal false, package_metadata
+  end
+
   test 'versions_metadata' do
     stub_request(:get, "https://cdn.cocoapods.org/all_pods_versions_1_3_5.txt")
       .to_return({ status: 200, body: file_fixture('cocoapods/all_pods_versions_1_3_5.txt') })
