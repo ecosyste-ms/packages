@@ -109,15 +109,15 @@ class Registry < ApplicationRecord
   end
 
   def sync_all_packages_async
-    sync_packages_async(all_package_names)
+    sync_in_batches? ? sync_all_packages : sync_packages_async(all_package_names)
   end
 
   def sync_missing_packages_async
-    sync_packages_async(missing_package_names)
+    sync_in_batches? ? sync_missing_packages : sync_packages_async(missing_package_names)
   end
 
   def sync_recently_updated_packages_async
-    sync_packages_async(recently_updated_package_names_excluding_recently_synced)
+    sync_in_batches? ? sync_recently_updated_packages : sync_packages_async(recently_updated_package_names_excluding_recently_synced)
   end
 
   def sync_packages(package_names)
@@ -145,9 +145,11 @@ class Registry < ApplicationRecord
   def sync_package(name, force: false)
     existing_package = packages.find_by_name(name)
     if !force && existing_package&.last_synced_at && existing_package.last_synced_at > 1.day.ago
-      # if recently synced, schedule for syncing 1 day later
-      delay = (existing_package.last_synced_at + 1.day) - Time.now
-      SyncPackageWorker.perform_in(delay, id, name)
+      unless sync_in_batches?
+        # if recently synced, schedule for syncing 1 day later
+        delay = (existing_package.last_synced_at + 1.day) - Time.now
+        SyncPackageWorker.perform_in(delay, id, name)
+      end
       return
     end
 
