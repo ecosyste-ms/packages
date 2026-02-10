@@ -2,6 +2,10 @@
 
 module Ecosystem
   class Npm < Base
+    def sync_maintainers_inline?
+      true
+    end
+
     def registry_url(package, version = nil)
       "https://www.npmjs.com/package/#{package.name}" + (version ? "/v/#{version}" : "")
     end
@@ -68,7 +72,7 @@ module Ecosystem
       (rss_names + recent_names).uniq
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       get_json("#{@registry_url}/#{name.gsub('/', '%2F')}")
     rescue
       {}
@@ -210,7 +214,7 @@ module Ecosystem
     end
 
     def maintainers_metadata(name)
-      json = get_json("#{@registry_url}/#{name.gsub('/', '%2F')}")
+      json = fetch_package_metadata(name)
       json['maintainers'].map do |user|
         {
           uuid: user["name"],

@@ -72,7 +72,7 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       return nil unless packages.is_a?(Array)
       packages.find{|pkg| pkg['name'] == name}
     end

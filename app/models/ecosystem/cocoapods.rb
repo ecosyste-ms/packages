@@ -58,7 +58,7 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       digest = Digest::MD5.hexdigest(name)
       chars = digest[0..2].split('')
       versions_lists = get_raw("https://cdn.cocoapods.org/all_pods_versions_#{chars.join('_')}.txt").force_encoding('UTF-8')

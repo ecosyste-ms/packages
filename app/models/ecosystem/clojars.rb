@@ -40,7 +40,7 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       group_id, artifact_id = *name.split('/', 2)
       artifact_id = group_id if artifact_id.blank?
       

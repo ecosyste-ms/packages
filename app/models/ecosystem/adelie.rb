@@ -6,6 +6,10 @@ module Ecosystem
       true
     end
 
+    def sync_maintainers_inline?
+      true
+    end
+
     def purl_params(package, version = nil)
       {
         type: 'apk',
@@ -61,7 +65,7 @@ module Ecosystem
       packages.sort_by{|p| p['t'].to_i}.reverse.map{|p| p['P'] }.first(100)
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       packages.find{|p| p['P'] == name }
     end
 

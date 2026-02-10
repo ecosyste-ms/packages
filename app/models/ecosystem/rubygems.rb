@@ -43,7 +43,7 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       get_json("#{@registry_url}/api/v1/gems/#{name}.json")
     rescue StandardError
       {}

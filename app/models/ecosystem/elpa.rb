@@ -2,6 +2,10 @@
 
 module Ecosystem
   class Elpa < Base
+    def sync_maintainers_inline?
+      true
+    end
+
     def self.purl_type
       'melpa'
     end
@@ -29,7 +33,7 @@ module Ecosystem
       all_package_names
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       page = get_html("#{@registry_url}/#{name}.html", headers: { "Accept" => "text/html" })
       {
         name: name,
@@ -68,8 +72,8 @@ module Ecosystem
     end
 
     def maintainers_metadata(name)
-      page = get_html("#{@registry_url}/#{name}.html", headers: { "Accept" => "text/html" })
-      fields = extract_fields(page)
+      pkg = fetch_package_metadata(name)
+      fields = extract_fields(pkg[:page])
       fields['Maintainer'].split(', ').map do |string|
         name, email = string.split(' <')
         email = email.gsub('>','')

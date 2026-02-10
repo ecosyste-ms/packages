@@ -2,6 +2,10 @@
 
 module Ecosystem
   class Bazel < Base
+    def sync_maintainers_inline?
+      true
+    end
+
     BAZEL_CENTRAL_REGISTRY_BASE_GITHUB_TREE_URL = "https://api.github.com/repos/bazelbuild/bazel-central-registry/git/trees".freeze
     BAZEL_CENTRAL_REGISTRY_GITHUB_BASE = "https://raw.githubusercontent.com/bazelbuild/bazel-central-registry/main".freeze
     # This URL is for the registry itself (API), unlike https://registry.bazel.build that is just UI app for the registry
@@ -52,7 +56,7 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       fetched_data = get("#{BAZEL_CENTRAL_REGISTRY_URL}/modules/#{name}/metadata.json")
       {
         "name" => name,
@@ -134,7 +138,7 @@ module Ecosystem
     end
 
     def maintainers_metadata(name)
-      fetched_data = get("#{BAZEL_CENTRAL_REGISTRY_URL}/modules/#{name}/metadata.json")
+      fetched_data = fetch_package_metadata(name)
       return [] if fetched_data.blank?
       fetched_data['maintainers'].map do |user|
         {

@@ -2,6 +2,10 @@
 
 module Ecosystem
   class Openvsx < Base
+    def sync_maintainers_inline?
+      true
+    end
+
     def purl_params(package, version = nil)
       {
         type: purl_type,
@@ -48,7 +52,7 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       get("#{@registry_url}/api/#{name}")
     rescue URI::InvalidURIError => e
       Rails.logger.warn "Invalid package name for OpenVSX: #{name.inspect} - #{e.message}"

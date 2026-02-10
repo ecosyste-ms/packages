@@ -14,6 +14,10 @@ module Ecosystem
       false
     end
 
+    def sync_maintainers_inline?
+      false
+    end
+
     def self.list
       @ecosystems ||= begin
         Dir[Rails.root.join("app", "models", "ecosystem", "*.rb")].sort.each do |file|
@@ -101,6 +105,12 @@ module Ecosystem
 
     def dependencies_metadata(_name, _version, _package)
       []
+    end
+
+    def fetch_package_metadata(name)
+      return @last_fetched_metadata if @last_fetched_name == name
+      @last_fetched_name = name
+      @last_fetched_metadata = fetch_package_metadata_uncached(name)
     end
 
     def package_metadata(name)

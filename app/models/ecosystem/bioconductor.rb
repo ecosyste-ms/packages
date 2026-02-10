@@ -2,6 +2,10 @@
 
 module Ecosystem
   class Bioconductor < Base
+    def sync_maintainers_inline?
+      true
+    end
+
     def registry_url(package, _version = nil)
       "https://bioconductor.org/packages/#{package.name}"
     end
@@ -30,7 +34,7 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       html = get_html("https://www.bioconductor.org/packages/release/bioc/html/#{name}.html")
       properties = {}
       table = html.css("h3#details + table")[0]

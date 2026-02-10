@@ -55,7 +55,7 @@ module Ecosystem
       "https://github.com/#{package.name}"
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       parts = name.split('/')
       return nil if parts.length < 2
       return nil unless parts[0].match?(/^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i) # valid github username

@@ -104,7 +104,7 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       parts = name.split('/')
       return nil unless parts.length == 2
 

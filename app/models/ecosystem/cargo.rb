@@ -48,7 +48,7 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       get("#{@registry_url}/api/v1/crates/#{name}")
     rescue URI::InvalidURIError => e
       Rails.logger.warn "Invalid package name for Cargo: #{name.inspect} - #{e.message}"

@@ -31,7 +31,7 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       get("#{@registry_url}/api/packages/#{name}")
     rescue
       {}

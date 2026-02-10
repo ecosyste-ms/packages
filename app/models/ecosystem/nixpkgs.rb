@@ -10,6 +10,10 @@ module Ecosystem
       true
     end
 
+    def sync_maintainers_inline?
+      true
+    end
+
     def registry_url(package, _version = nil)
       "https://search.nixos.org/packages?channel=#{channel}&query=#{package.name}"
     end
@@ -136,7 +140,7 @@ module Ecosystem
       end
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       packages[name]
     end
 

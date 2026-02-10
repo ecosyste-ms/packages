@@ -29,7 +29,7 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       page = get_html("#{@registry_url}/package/#{name}", headers: { "Accept" => "text/html" })
       return nil unless page.css('#content div').first
       {

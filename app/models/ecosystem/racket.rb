@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 module Ecosystem
   class Racket < Base
+    def sync_maintainers_inline?
+      true
+    end
+
     def package_link(package, version = nil)
       "#{@registry_url}/package/#{package.name}"
     end
@@ -50,7 +54,7 @@ module Ecosystem
       "raco pkg install #{package.name}"
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       all_package_data[name]
     end
 

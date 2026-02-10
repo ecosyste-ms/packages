@@ -2,6 +2,10 @@
 
 module Ecosystem
   class Hex < Base
+    def sync_maintainers_inline?
+      true
+    end
+
     def registry_url(package, version = nil)
       "#{@registry_url}/packages/#{package.name}/#{version}"
     end
@@ -41,7 +45,7 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       get("#{@registry_url}/api/packages/#{name}", headers: {"Authorization" => REDIS.get("hex_api_key_#{@registry.id}")})
     rescue
       false
@@ -101,7 +105,7 @@ module Ecosystem
     end
 
     def maintainers_metadata(name)
-      json = get("#{@registry_url}/api/packages/#{name}", headers: {"Authorization" => REDIS.get("hex_api_key_#{@registry.id}")})
+      json = fetch_package_metadata(name)
       json['owners'].map do |user|
         {
           uuid: user["username"],

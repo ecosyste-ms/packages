@@ -5,6 +5,10 @@ module Ecosystem
       true
     end
 
+    def sync_maintainers_inline?
+      true
+    end
+
     def purl_params(package, version = nil)
       {
         type: 'deb',
@@ -135,7 +139,7 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       packages_by_name[name]
     end
 

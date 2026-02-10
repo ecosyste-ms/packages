@@ -28,7 +28,7 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       versions = get("https://package.elm-lang.org/packages/#{name}/releases.json") # get list of version numbers first
       latest_version = versions.keys.last
       get("https://package.elm-lang.org/packages/#{name}/#{latest_version}/elm.json")

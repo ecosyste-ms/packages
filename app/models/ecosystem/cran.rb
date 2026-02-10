@@ -2,6 +2,10 @@
 
 module Ecosystem
   class Cran < Base
+    def sync_maintainers_inline?
+      true
+    end
+
     def registry_url(package, _version = nil)
       "https://cran.r-project.org/package=#{package.name}"
     end
@@ -32,7 +36,7 @@ module Ecosystem
       all_package_names.uniq.first(100)
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       html = get_html("https://cran.r-project.org/web/packages/#{name}/index.html")
       properties = {}
       table = html.css("table")[0]

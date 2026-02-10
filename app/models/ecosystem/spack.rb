@@ -38,7 +38,7 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       json = get_json("#{@registry_url}/data/packages/#{name}.json")
       data = package_data["packages"][name]
       data["name"] = name

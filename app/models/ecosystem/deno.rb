@@ -50,7 +50,7 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       meta = get("https://apiland.deno.dev/v2/modules/#{name}")
       versions = meta['versions']
       latest_version_number = meta['latest_version']

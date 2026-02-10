@@ -80,7 +80,7 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       json = get_json("https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://#{CGI.escape(name)}")
       return nil if json.nil?
       return nil if json['error'].present?

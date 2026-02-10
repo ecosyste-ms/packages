@@ -2,6 +2,9 @@
 
 module Ecosystem
   class Packagist < Base
+    def sync_maintainers_inline?
+      true
+    end
 
     def self.purl_type
       "composer"
@@ -46,7 +49,7 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       get_json("https://packagist.org/packages/#{name}.json")['package']
       # get_json("https://repo.packagist.org/p2/#{name}.json")&.dig("packages", name).presence || get_json("https://repo.packagist.org/p2/#{name}~dev.json")&.dig("packages", name)
     rescue
@@ -135,7 +138,7 @@ module Ecosystem
     end
 
     def maintainers_metadata(name)
-      json = get_json("https://packagist.org/packages/#{name}.json")['package']
+      json = fetch_package_metadata(name)
       json['maintainers'].map do |user|
         {
           uuid: user["name"],

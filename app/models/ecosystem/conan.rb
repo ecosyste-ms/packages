@@ -61,7 +61,7 @@ module Ecosystem
       {}
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       api_info = packages_data[name]
 
       config = get_raw("#{GITHUB_RAW_BASE}/#{name}/config.yml") rescue nil

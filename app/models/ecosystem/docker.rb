@@ -19,7 +19,7 @@ module Ecosystem
       "https://hub.docker.com/v2/repositories/#{package.name}"
     end
 
-    def fetch_package_metadata(name)
+    def fetch_package_metadata_uncached(name)
       name = "library/#{name}" if name.split('/').length == 1
       get_json("https://hub.docker.com/v2/repositories/#{name}/")
     rescue
