@@ -28,6 +28,16 @@ module Ecosystem
       "#{@registry_url}/api/v1/versions/#{package.name}.json"
     end
 
+    def check_status(package)
+      json = fetch_package_metadata(package.name)
+      return nil if json.present? && json.is_a?(Hash) && json["name"].present?
+
+      # Fall back to a direct request if not cached
+      url = check_status_url(package)
+      response = Faraday.get(url)
+      return "removed" if [400, 404, 410].include?(response.status)
+    end
+
     def all_package_names
       gems = Marshal.load(Gem::Util.gunzip(get_raw("#{@registry_url}/specs.4.8.gz")))
       gems.map(&:first).uniq

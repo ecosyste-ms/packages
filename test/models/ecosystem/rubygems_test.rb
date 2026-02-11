@@ -190,4 +190,34 @@ class RubygemsTest < ActiveSupport::TestCase
     result = @ecosystem.map_package_metadata({"info" => "some description"})
     assert_equal false, result
   end
+
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://rubygems.org/api/v1/gems/nokogiri.json")
+      .to_return({ status: 200, body: file_fixture('rubygems/nokogiri.json') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('nokogiri')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The gems API should only have been called once (for the initial fetch)
+    assert_requested(:get, "https://rubygems.org/api/v1/gems/nokogiri.json", times: 1)
+    # The versions endpoint should NOT have been called
+    assert_not_requested(:get, "https://rubygems.org/api/v1/versions/nokogiri.json")
+  end
+
+  test 'check_status returns removed when package not found' do
+    stub_request(:get, "https://rubygems.org/api/v1/gems/nonexistent.json")
+      .to_return({ status: 404 })
+    stub_request(:get, "https://rubygems.org/api/v1/versions/nonexistent.json")
+      .to_return({ status: 404 })
+
+    @package = Package.new(ecosystem: 'rubygems', name: 'nonexistent')
+    @ecosystem.package_metadata('nonexistent')
+
+    status = @ecosystem.check_status(@package)
+    assert_equal 'removed', status
+  end
 end
