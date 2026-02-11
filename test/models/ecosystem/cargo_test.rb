@@ -248,4 +248,21 @@ class CargoTest < ActiveSupport::TestCase
     assert_nil first_version[:metadata][:lib_links]
     assert_equal first_version[:metadata][:features]["default"], ["std"]
   end
+
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://crates.io/api/v1/crates/parameters_lib")
+      .to_return({ status: 200, body: file_fixture('cargo/parameters_lib') })
+
+    package = Package.new(ecosystem: 'Cargo', name: 'parameters_lib')
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('parameters_lib')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(package)
+    assert_nil status
+
+    # The API should only have been called once (for the initial fetch)
+    assert_requested(:get, "https://crates.io/api/v1/crates/parameters_lib", times: 1)
+  end
 end
