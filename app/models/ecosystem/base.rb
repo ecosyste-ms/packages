@@ -94,6 +94,8 @@ module Ecosystem
       connection = Faraday.new(url) do |faraday|
         faraday.use Faraday::FollowRedirects::Middleware
         faraday.adapter Faraday.default_adapter
+        faraday.options.timeout = 10
+        faraday.options.open_timeout = 5
       end
 
       response = connection.head(url)
@@ -314,11 +316,13 @@ module Ecosystem
       end
       connection = Faraday.new url.strip, options do |builder|
         builder.use Faraday::FollowRedirects::Middleware
-        builder.request :retry, { max: 5, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
+        builder.request :retry, { max: 3, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
 
         builder.request :instrumentation
         builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
 
+        builder.options.timeout = 30
+        builder.options.open_timeout = 10
       end
       connection.get
     end
