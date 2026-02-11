@@ -101,12 +101,13 @@ module Ecosystem
     def parse_repository_url(package)
       project_urls = package.dig("info", "project_urls") || {}
 
-      priority_keys = ["Repository", "Source", "Source Code", "Code"]
+      priority_labels = ["repository", "source", "sourcecode", "code", "github"]
       priority_url = nil
 
-      priority_keys.each do |key|
-        if project_urls[key].present?
-          parsed = UrlParser.try_all(project_urls[key]) rescue nil
+      priority_labels.each do |label|
+        url = project_urls.find { |k, _| k.gsub(/[\s\-_.]/, '').downcase == label }&.last
+        if url.present?
+          parsed = UrlParser.try_all(url) rescue nil
           if parsed && !parsed.include?('github.com/sponsors')
             priority_url = parsed
             break

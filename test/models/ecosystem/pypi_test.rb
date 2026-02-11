@@ -444,6 +444,42 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal 'https://github.com/test/test-package', repository_url
   end
 
+  test 'parse_repository_url finds GitHub key' do
+    package_data = {
+      "info" => {
+        "name" => "power-grid-model",
+        "project_urls" => {
+          "Discussion" => "https://github.com/orgs/PowerGridModel/discussions",
+          "Documentation" => "https://power-grid-model.readthedocs.io/en/stable/",
+          "GitHub" => "https://github.com/PowerGridModel/power-grid-model",
+          "Home-page" => "https://lfenergy.org/projects/power-grid-model/",
+          "Mailing-list" => "https://lists.lfenergy.org/g/powergridmodel"
+        },
+        "home_page" => "https://lfenergy.org/projects/power-grid-model/",
+        "description" => ""
+      }
+    }
+
+    repository_url = @ecosystem.parse_repository_url(package_data)
+    assert_equal 'https://github.com/PowerGridModel/power-grid-model', repository_url
+  end
+
+  test 'parse_repository_url matches priority keys case-insensitively' do
+    package_data = {
+      "info" => {
+        "name" => "test-package",
+        "project_urls" => {
+          "source code" => "https://github.com/test/test-package"
+        },
+        "home_page" => nil,
+        "description" => ""
+      }
+    }
+
+    repository_url = @ecosystem.parse_repository_url(package_data)
+    assert_equal 'https://github.com/test/test-package', repository_url
+  end
+
   test 'licenses prefers license_expression over license' do
     package = {
       "info" => {
