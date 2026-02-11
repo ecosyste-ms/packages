@@ -112,4 +112,22 @@ class PubTest < ActiveSupport::TestCase
       {:package_name=>"test", :requirements=>"^1.18.2", :kind=>"Development", :optional=>false, :ecosystem=>"pub"}
     ]
   end
+
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://pub.dev/api/packages/bloc")
+      .to_return({ status: 200, body: file_fixture('pub/bloc') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('bloc')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The API should only have been called once (for the initial fetch)
+    assert_requested(:get, "https://pub.dev/api/packages/bloc", times: 1)
+    # The registry URL should NOT have been hit
+    assert_not_requested(:get, "https://pub.dev/packages/bloc")
+    assert_not_requested(:head, "https://pub.dev/packages/bloc")
+  end
 end
