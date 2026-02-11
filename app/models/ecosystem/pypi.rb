@@ -319,16 +319,18 @@ module Ecosystem
     end
 
     def check_status(package)
-      url = check_status_url(package)
-      response = Faraday.get(url)
-      return "removed" if [400, 404, 410].include?(response.status)
-      
-      begin
-        json = get_json("#{@registry_url}/pypi/#{package.name}/json")
+      json = fetch_package_metadata(package.name)
+
+      if json.blank?
+        url = check_status_url(package)
+        response = Faraday.get(url)
+        return "removed" if [400, 404, 410].include?(response.status)
+        json = get_json("#{@registry_url}/pypi/#{package.name}/json") rescue nil
+      end
+
+      if json.present?
         project_status = json.dig("project-status", "status")
         return project_status if project_status.present? && project_status != "active"
-      rescue
-        # Fall back to default behavior if API call fails
       end
     end
   end

@@ -348,12 +348,10 @@ class PypiTest < ActiveSupport::TestCase
   test 'check_status returns project status from API' do
     package_json = JSON.parse(file_fixture('pypi/yiban').read)
     package_json['project-status'] = { 'status' => 'archived' }
-    
-    stub_request(:get, "https://pypi.org/project/urllib3/")
-      .to_return({ status: 200, body: '' })
+
     stub_request(:get, "https://pypi.org/pypi/urllib3/json")
       .to_return({ status: 200, body: package_json.to_json })
-    
+
     status = @ecosystem.check_status(@package)
     assert_equal status, 'archived'
   end
@@ -361,22 +359,37 @@ class PypiTest < ActiveSupport::TestCase
   test 'check_status returns nil for active status' do
     package_json = JSON.parse(file_fixture('pypi/yiban').read)
     package_json['project-status'] = { 'status' => 'active' }
-    
-    stub_request(:get, "https://pypi.org/project/urllib3/")
-      .to_return({ status: 200, body: '' })
+
     stub_request(:get, "https://pypi.org/pypi/urllib3/json")
       .to_return({ status: 200, body: package_json.to_json })
-    
+
     status = @ecosystem.check_status(@package)
     assert_nil status
   end
 
   test 'check_status returns removed for 404' do
+    stub_request(:get, "https://pypi.org/pypi/urllib3/json")
+      .to_return({ status: 404 })
     stub_request(:get, "https://pypi.org/project/urllib3/")
       .to_return({ status: 404 })
 
     status = @ecosystem.check_status(@package)
     assert_equal status, 'removed'
+  end
+
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://pypi.org/pypi/urllib3/json")
+      .to_return({ status: 200, body: file_fixture('pypi/yiban') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.fetch_package_metadata('urllib3')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The JSON API should only have been called once (for the initial fetch)
+    assert_requested(:get, "https://pypi.org/pypi/urllib3/json", times: 1)
   end
 
   test 'parse_repository_url prefers Repository key over Changelog in project_urls' do
