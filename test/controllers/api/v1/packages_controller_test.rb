@@ -643,6 +643,33 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal 'python313Packages.numpy', actual_response.first['name']
   end
 
+  test 'api response returns nil status for active packages' do
+    @package.update_column(:status, 'active')
+    get api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_nil actual_response['status']
+  end
+
+  test 'api response returns nil status for nil status packages' do
+    @package.update_column(:status, nil)
+    get api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_nil actual_response['status']
+  end
+
+  test 'api response returns removed status for removed packages' do
+    @package.update_column(:status, 'removed')
+    get api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal 'removed', actual_response['status']
+  end
+
   test 'get codemeta for a package' do
     get codemeta_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
     assert_response :success

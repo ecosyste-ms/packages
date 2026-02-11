@@ -162,6 +162,43 @@ class PackageTest < ActiveSupport::TestCase
     batch_package.sync_async
   end
 
+  test 'status reader returns nil for active packages' do
+    @package.update_column(:status, 'active')
+    assert_nil @package.reload.status
+  end
+
+  test 'status reader returns nil for nil status' do
+    @package.update_column(:status, nil)
+    assert_nil @package.reload.status
+  end
+
+  test 'status reader returns removed for removed packages' do
+    @package.update_column(:status, 'removed')
+    assert_equal 'removed', @package.reload.status
+  end
+
+  test 'check_status sets active when ecosystem returns nil' do
+    @package.registry.ecosystem_instance.expects(:check_status).with(@package).returns(nil)
+    @package.check_status
+    assert_equal 'active', @package.read_attribute(:status)
+    assert_not_nil @package.last_synced_at
+  end
+
+  test 'check_status sets removed when ecosystem returns removed' do
+    @package.registry.ecosystem_instance.expects(:check_status).with(@package).returns('removed')
+    @package.check_status
+    assert_equal 'removed', @package.read_attribute(:status)
+    assert_not_nil @package.last_synced_at
+  end
+
+  test 'check_status always updates last_synced_at' do
+    @package.update_column(:status, 'active')
+    @package.update_column(:last_synced_at, 2.months.ago)
+    @package.registry.ecosystem_instance.expects(:check_status).with(@package).returns(nil)
+    @package.check_status
+    assert @package.last_synced_at > 1.minute.ago
+  end
+
   test 'with_advisories scope' do
     package_with_advisories = @registry.packages.create(name: 'bar', ecosystem: @registry.ecosystem, advisories: [{ 'id' => 'CVE-2024-1234' }])
     package_without_advisories = @registry.packages.create(name: 'baz', ecosystem: @registry.ecosystem, advisories: [])

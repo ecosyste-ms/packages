@@ -349,9 +349,14 @@ class Package < ApplicationRecord
     versions.each_instance(&:update_integrity_async)
   end
 
+  def status
+    val = read_attribute(:status)
+    val == 'active' ? nil : val
+  end
+
   def check_status
-    self.status = registry.ecosystem_instance.check_status(self)
-    update(status: status, last_synced_at: Time.now) if status_changed? or status.present?
+    result = registry.ecosystem_instance.check_status(self)
+    update(status: result || 'active', last_synced_at: Time.now)
   end
 
   def check_status_async
