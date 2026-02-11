@@ -210,7 +210,47 @@ class CpanTest < ActiveSupport::TestCase
     ]
   end
 
-  test 'maintainer_url' do 
+  test 'maintainer_url' do
     assert_equal @ecosystem.maintainer_url(@maintainer), 'https://metacpan.org/author/foo'
+  end
+
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://fastapi.metacpan.org/v1/release/Dpkg")
+      .to_return({ status: 200, body: file_fixture('cpan/Dpkg') })
+    stub_request(:get, "https://fastapi.metacpan.org/v1/release/_search?q=distribution:Dpkg&size=5000")
+      .to_return({ status: 200, body: file_fixture('cpan/_search?q=distribution:Dpkg&size=5000') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('Dpkg')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The release API should only have been called once (for the initial fetch)
+    assert_requested(:get, "https://fastapi.metacpan.org/v1/release/Dpkg", times: 1)
+    # The metacpan.org HTML page should NOT have been hit
+    assert_not_requested(:get, "https://metacpan.org/dist/Dpkg")
+    assert_not_requested(:head, "https://metacpan.org/dist/Dpkg")
+  end
+
+  test 'maintainers_metadata reuses memoized metadata' do
+    stub_request(:get, "https://fastapi.metacpan.org/v1/release/Dpkg")
+      .to_return({ status: 200, body: file_fixture('cpan/Dpkg') })
+    stub_request(:get, "https://fastapi.metacpan.org/v1/release/_search?q=distribution:Dpkg&size=5000")
+      .to_return({ status: 200, body: file_fixture('cpan/_search?q=distribution:Dpkg&size=5000') })
+    stub_request(:get, "https://fastapi.metacpan.org/author/GUILLEM")
+      .to_return({ status: 200, body: '{"pauseid":"GUILLEM","name":"Guillem Jover","email":["guillem@debian.org"],"website":["https://www.hadrons.org/~guillem/"]}' })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('Dpkg')
+
+    # maintainers_metadata should reuse cached release data
+    maintainers = @ecosystem.maintainers_metadata('Dpkg')
+    assert_equal maintainers.first[:uuid], 'GUILLEM'
+    assert_equal maintainers.first[:login], 'GUILLEM'
+
+    # The release API should only have been called once (for the initial fetch)
+    assert_requested(:get, "https://fastapi.metacpan.org/v1/release/Dpkg", times: 1)
   end
 end

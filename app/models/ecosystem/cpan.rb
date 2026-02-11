@@ -10,6 +10,16 @@ module Ecosystem
       "https://metacpan.org/dist/#{package.name}"
     end
 
+    def check_status(package)
+      json = fetch_package_metadata(package.name)
+      return nil if json.present? && json.is_a?(Hash) && json["distribution"].present?
+
+      # Fall back to a direct request if not cached
+      url = check_status_url(package)
+      response = Faraday.get(url)
+      return "removed" if [400, 404, 410].include?(response.status)
+    end
+
     def download_url(package, version)
       return nil unless version.present?
       return version.metadata["download_url"] if version.metadata["download_url"].present?
@@ -102,7 +112,7 @@ module Ecosystem
     end
 
     def maintainers_metadata(name)
-      pkg = get("https://fastapi.metacpan.org/v1/release/#{name}")
+      pkg = fetch_package_metadata(name)
       return unless pkg && pkg["author"].present?
       author = get("https://fastapi.metacpan.org/author/#{pkg["author"]}")
       return unless author 
