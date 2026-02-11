@@ -539,4 +539,17 @@ class MavenTest < ActiveSupport::TestCase
     ]
 
   end
+
+  test 'download_pom is memoized within an instance' do
+    pom_stub = stub_request(:get, "https://repo1.maven.org/maven2/com/example/test-package/1.0.0/test-package-1.0.0.pom")
+      .to_return({ status: 200, body: file_fixture('maven/zio-aws-autoscaling_3-5.17.225.2.pom'), headers: { 'last-modified' => 'Tue, 12 Jul 2022 12:10:25 GMT' } })
+
+    result1 = @ecosystem.send(:download_pom, 'com.example', 'test-package', '1.0.0')
+    result2 = @ecosystem.send(:download_pom, 'com.example', 'test-package', '1.0.0')
+
+    assert_not_nil result1
+    assert_not_nil result2
+    # Should only have made one HTTP request
+    assert_requested(pom_stub, times: 1)
+  end
 end

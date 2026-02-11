@@ -505,6 +505,14 @@ module Ecosystem
     end
 
     def download_pom(group_id, artifact_id, version)
+      @pom_cache ||= {}
+      cache_key = "#{group_id}/#{artifact_id}/#{version}"
+      return @pom_cache[cache_key] if @pom_cache.key?(cache_key)
+
+      @pom_cache[cache_key] = fetch_pom(group_id, artifact_id, version)
+    end
+
+    def fetch_pom(group_id, artifact_id, version)
       url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.pom"
       pom_request = request(url)
       return nil if pom_request.status == 404
