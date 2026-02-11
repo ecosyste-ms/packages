@@ -176,4 +176,24 @@ class HexTest < ActiveSupport::TestCase
       assert_nil version[:metadata][:retirement]
     end
   end
+
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://hex.pm/api/packages/phoenix_copy")
+      .to_return({ status: 200, body: file_fixture('hex/phoenix_copy') })
+
+    package = Package.new(ecosystem: 'Hex', name: 'phoenix_copy')
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('phoenix_copy')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(package)
+    assert_nil status
+
+    # The API should only have been called once (for the initial fetch)
+    assert_requested(:get, "https://hex.pm/api/packages/phoenix_copy", times: 1)
+    # The registry HTML page should NOT have been hit
+    assert_not_requested(:get, "https://hex.pm/packages/phoenix_copy")
+    assert_not_requested(:head, "https://hex.pm/packages/phoenix_copy")
+  end
 end
