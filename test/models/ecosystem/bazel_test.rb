@@ -197,6 +197,25 @@ class BazelTest < ActiveSupport::TestCase
       }
   end
 
+  test 'versions_metadata skips existing non-yanked versions' do
+    stub_request(:get, "https://bcr.bazel.build/modules/rules_go/metadata.json")
+      .to_return({ status: 200, body: file_fixture('bazel/rules_go_package_metadata') })
+    # Only stub source.json for 0.37.0 (yanked) - 0.59.0 should be skipped
+    stub_request(:get, "https://bcr.bazel.build/modules/rules_go/0.37.0/source.json")
+      .to_return({ status: 200, body: file_fixture('bazel/rules_go_package_version_metadata1') })
+
+    package_metadata = @ecosystem.package_metadata('rules_go')
+    # Pass 0.59.0 as existing (non-yanked), 0.37.0 as existing (but yanked, should still be fetched)
+    versions_metadata = @ecosystem.versions_metadata(package_metadata, ["0.59.0", "0.37.0"])
+
+    # Should only return the yanked version since it needs status update
+    assert_equal 1, versions_metadata.length
+    assert_equal "0.37.0", versions_metadata.first[:number]
+    assert_equal "yanked", versions_metadata.first[:status]
+    # Should NOT have fetched source.json for the existing non-yanked version
+    assert_not_requested(:get, "https://bcr.bazel.build/modules/rules_go/0.59.0/source.json")
+  end
+
   test 'dependencies_metadata' do
     @package = Package.new(ecosystem: 'Bazel', name: 'elemental2')
     @version = @package.versions.build(number: '1.3.2')
