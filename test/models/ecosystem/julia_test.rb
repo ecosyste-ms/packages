@@ -143,6 +143,31 @@ class JuliaTest < ActiveSupport::TestCase
     ]
   end
 
+  test 'versions_metadata skips existing versions' do
+    stub_request(:get, "https://juliahub.com/app/packages/info")
+      .to_return({ status: 200, body: file_fixture('julia/info') })
+    stub_request(:get, "https://pkgs.genieframework.com/api/v1/badge/Inequality")
+      .to_return({ status: 200, body: file_fixture('julia/Inequality') })
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/JosepER/Inequality.jl")
+      .to_return({ status: 200, body: file_fixture('julia/lookup?url=https:%2F%2Fgithub.com%2FJosepER%2FInequality.jl') })
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/JosepER/Inequality.jl/tags")
+      .to_return({ status: 200, body: file_fixture('julia/tags') })
+    stub_request(:get, "https://juliahub.com/docs/General/Inequality/stable/pkg.json")
+      .to_return({ status: 200, body: file_fixture('julia/pkg.json') })
+    stub_request(:get, "https://juliahub.com/docs/General/Inequality/versions.json")
+      .to_return({ status: 200, body: file_fixture('julia/versions.json') })
+    stub_request(:post, "https://juliahub.com/v1/graphql").
+      to_return(status: 200, body: "", headers: {})
+    package_metadata = @ecosystem.package_metadata('Inequality')
+
+    # Pass "0.0.4" as existing - should skip the per-version pkg.json fetch
+    versions_metadata = @ecosystem.versions_metadata(package_metadata, ["0.0.4"])
+
+    assert_equal [], versions_metadata
+    # Should NOT have fetched the per-version pkg.json
+    assert_not_requested(:get, "https://juliahub.com/docs/General/Inequality/0.0.4/pkg.json")
+  end
+
   test 'all_package_names when API fails should return empty array' do
     stub_request(:get, "https://juliahub.com/app/packages/info")
       .to_return({ status: 500, body: "Server Error" })

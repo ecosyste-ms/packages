@@ -134,7 +134,7 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       version_numbers = get_json("#{@registry_url}/docs/General/#{pkg_metadata[:name]}/versions.json")
-      version_numbers.map do |v|
+      version_numbers.reject { |v| existing_version_numbers.include?(v) }.map do |v|
         begin
           version_json = get_json("#{@registry_url}/docs/General/#{pkg_metadata[:name]}/#{v}/pkg.json")
           next if version_json.nil?
