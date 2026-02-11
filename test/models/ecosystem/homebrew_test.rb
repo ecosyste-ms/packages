@@ -100,6 +100,23 @@ class HomebrewTest < ActiveSupport::TestCase
     assert_equal versions_metadata, [{:number=>"0.6.1"}]
   end
 
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://formulae.brew.sh/api/formula/abook.json")
+      .to_return({ status: 200, body: file_fixture('homebrew/abook.json') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('abook')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The formula JSON should only have been fetched once (for the initial fetch)
+    assert_requested(:get, "https://formulae.brew.sh/api/formula/abook.json", times: 1)
+    # The formula page should NOT have been hit
+    assert_not_requested(:head, "https://formulae.brew.sh/formula/abook")
+  end
+
   test 'dependencies_metadata' do
     stub_request(:get, "https://formulae.brew.sh/api/formula/abook.json")
       .to_return({ status: 200, body: file_fixture('homebrew/abook.json') })

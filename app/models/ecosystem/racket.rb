@@ -14,6 +14,10 @@ module Ecosystem
     end
 
     def check_status(package)
+      pkg = fetch_package_metadata(package.name)
+      return nil if pkg.present?
+
+      # Fall back to a direct request if not cached
       url = check_status_url(package)
       connection = Faraday.new do |faraday|
         faraday.use Faraday::FollowRedirects::Middleware
@@ -22,7 +26,6 @@ module Ecosystem
 
       response = connection.head(url)
       return "removed" if [400, 404, 410].include?(response.status)
-      return 'removed' if fetch_package_metadata(package.name).nil?
     end
 
     def documentation_url(package, version = nil)

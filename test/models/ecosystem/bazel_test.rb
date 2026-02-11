@@ -265,6 +265,23 @@ class BazelTest < ActiveSupport::TestCase
     ]
   end
 
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://bcr.bazel.build/modules/rules_go/metadata.json")
+      .to_return({ status: 200, body: file_fixture('bazel/rules_go_package_metadata') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('rules_go')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The metadata should only have been fetched once
+    assert_requested(:get, "https://bcr.bazel.build/modules/rules_go/metadata.json", times: 1)
+    # The registry page should NOT have been hit
+    assert_not_requested(:head, "https://registry.bazel.build/modules/rules_go")
+  end
+
   test 'purl' do
     purl = @ecosystem.purl(@package)
     assert_equal purl, 'pkg:bazel/rules_go'

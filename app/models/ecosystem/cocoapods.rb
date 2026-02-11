@@ -34,6 +34,10 @@ module Ecosystem
 
     def check_status(package)
       begin
+        pkg = fetch_package_metadata(package.name)
+        return nil if pkg.present? && pkg.is_a?(Hash) && pkg["name"].present?
+
+        # Fall back to existing checks if not cached
         return 'removed' unless all_package_names.include?(package.name)
         url = URI.parse(check_status_url(package))
         raise "Invalid URL" unless url.kind_of?(URI::HTTP) || url.kind_of?(URI::HTTPS)

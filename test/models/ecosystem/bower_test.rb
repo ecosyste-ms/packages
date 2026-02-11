@@ -103,6 +103,23 @@ class BowerTest < ActiveSupport::TestCase
       {:number=>"v1.2.8-build.2092+sha.95e1b2d", :published_at=>"2014-01-08T08:49:35.000Z", :metadata=>{:sha=>"24c0a22b32631277c6da4c419a484278e560c7a1", :download_url=>"https://codeload.github.com/angular/bower-angular/tar.gz/v1.2.8-build.2092+sha.95e1b2d"}}]
   end
 
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://registry.bower.io/packages")
+      .to_return({ status: 200, body: file_fixture('bower/packages') })
+    stub_request(:get, "https://raw.githubusercontent.com/angular/bower-angular/master/bower.json")
+      .to_return({ status: 200, body: file_fixture('bower/bower.json') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('bower-angular')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The git URL should NOT have been hit with a HEAD request
+    assert_not_requested(:head, "https://github.com/angular/bower-angular.git")
+  end
+
   test 'dependencies_metadata' do
     stub_request(:get, "https://raw.githubusercontent.com/advancedcontrol/composer/v2.5.1/bower.json")
       .to_return({ status: 200, body: file_fixture('bower/bower.json.1') })

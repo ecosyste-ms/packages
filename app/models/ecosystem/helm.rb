@@ -48,6 +48,10 @@ module Ecosystem
       url = check_status_url(package)
       return nil unless url
 
+      pkg = fetch_package_metadata(package.name)
+      return nil if pkg.present? && pkg.is_a?(Hash) && pkg["name"].present?
+
+      # Fall back to a direct request if not cached
       response = request(url)
       "removed" if [400, 404, 410].include?(response.status)
     end

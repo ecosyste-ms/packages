@@ -21,6 +21,9 @@ module Ecosystem
     end
 
     def check_status(package)
+      pkg = fetch_package_metadata(package.name)
+      return nil if pkg.present? && pkg.is_a?(Hash) && pkg['name'].present?
+
       # Use raw.githubusercontent.com to avoid GitHub.com rate limits
       parts = package.name.split('/')
       return nil if parts.length < 2

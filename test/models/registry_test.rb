@@ -187,6 +187,8 @@ class RegistryTest < ActiveSupport::TestCase
     end
 
     # Stub HTTP requests
+    stub_request(:get, "https://rubygems.org/api/v1/gems/test-package.json")
+      .to_return(status: 200, body: '{"name":"test-package"}', headers: {'Content-Type' => 'application/json'})
     stub_request(:head, "https://rubygems.org/api/v1/versions/test-package.json")
       .to_return(status: 200, body: "", headers: {})
 

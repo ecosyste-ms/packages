@@ -19,6 +19,16 @@ module Ecosystem
       "https://bioconductor.org/packages/release/bioc/vignettes/#{package.name}/inst/doc/#{package.name}.pdf"
     end
 
+    def check_status(package)
+      pkg = fetch_package_metadata(package.name)
+      return nil if pkg.present? && pkg.is_a?(Hash) && pkg[:name].present?
+
+      # Fall back to a direct request if not cached
+      url = check_status_url(package)
+      response = Faraday.head(url)
+      return "removed" if [400, 404, 410].include?(response.status)
+    end
+
     def check_status_url(package)
       "https://www.bioconductor.org/packages/release/bioc/html/#{package.name}.html"
     end

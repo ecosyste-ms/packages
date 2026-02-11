@@ -95,6 +95,21 @@ class RacketTest < ActiveSupport::TestCase
     assert_equal versions_metadata, []
   end
 
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://pkgs.racket-lang.org/pkgs-all.json.gz")
+      .to_return({ status: 200, body: file_fixture('racket/pkgs-all.json.gz') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.fetch_package_metadata('4chdl')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The package page should NOT have been hit with a HEAD request
+    assert_not_requested(:head, "http://pkgs.racket-lang.org/package/4chdl")
+  end
+
   test 'dependencies_metadata' do
     dependencies_metadata = @ecosystem.dependencies_metadata('4chdl', '0.3.0', nil)
     

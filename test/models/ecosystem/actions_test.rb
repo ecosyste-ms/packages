@@ -6,6 +6,11 @@ class ActionsTest < ActiveSupport::TestCase
     @ecosystem = Ecosystem::Actions.new(@registry)
     @package = @registry.packages.create(ecosystem: 'actions', name: 'getsentry/action-git-diff-suggestions', repository_url: "https://github.com/getsentry/action-git-diff-suggestions")
     @version = @package.versions.create(number: 'v1', metadata: {download_url:"https://codeload.github.com/getsentry/action-git-diff-suggestions/tar.gz/refs/v1"})
+    # Default stub so fetch_package_metadata_uncached returns nil (no cached data),
+    # allowing check_status to fall through to the HEAD request logic.
+    # Individual tests that need real metadata will override this stub.
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/getsentry/action-git-diff-suggestions")
+      .to_return({ status: 404, body: '{"error":"not found"}' })
   end
 
   test 'registry_url' do
@@ -109,6 +114,27 @@ class ActionsTest < ActiveSupport::TestCase
       .to_return(status: 200)
     status = @ecosystem.check_status(@package)
     assert_nil status
+  end
+
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/getsentry/action-git-diff-suggestions")
+      .to_return({ status: 200, body: file_fixture('actions/lookup?url=https:%2F%2Fgithub.com%2Fgetsentry%2Faction-git-diff-suggestions') })
+    stub_request(:get, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/main/action.yml")
+      .to_return({ status: 200, body: file_fixture('actions/action.yml') })
+    stub_request(:get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/getsentry%2Faction-git-diff-suggestions/tags?per_page=1000")
+      .to_return({ status: 200, body: file_fixture('actions/tags') })
+    stub_request(:get, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/v1/action.yml")
+      .to_return({ status: 200, body: file_fixture('actions/action.yml.1') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('getsentry/action-git-diff-suggestions')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The HEAD requests to raw.githubusercontent.com should NOT have been made
+    assert_not_requested(:head, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/main/action.yml")
   end
 
   test 'all_package_names' do

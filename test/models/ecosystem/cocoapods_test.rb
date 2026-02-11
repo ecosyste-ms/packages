@@ -124,6 +124,25 @@ class CocoapodsTest < ActiveSupport::TestCase
     ]
   end
 
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://cdn.cocoapods.org/all_pods_versions_1_3_5.txt")
+      .to_return({ status: 200, body: file_fixture('cocoapods/all_pods_versions_1_3_5.txt') })
+    stub_request(:get, "https://cdn.cocoapods.org/Specs/1/3/5/Foo/1.1.3/Foo.podspec.json")
+      .to_return({ status: 200, body: file_fixture('cocoapods/Foo.podspec.json') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('Foo')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The all_pods.txt should NOT have been fetched
+    assert_not_requested(:get, "https://cdn.cocoapods.org/all_pods.txt")
+    # The registry page should NOT have been hit
+    assert_not_requested(:head, "https://cocoapods.org/pods/Foo")
+  end
+
   test 'dependencies_metadata' do
     stub_request(:get, "https://cdn.cocoapods.org/Specs/2/2/2/AppNetworkManager/1.0.0/AppNetworkManager.podspec.json")
       .to_return({ status: 200, body: file_fixture('cocoapods/AppNetworkManager.podspec.json') })

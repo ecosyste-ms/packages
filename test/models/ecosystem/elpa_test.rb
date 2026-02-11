@@ -103,6 +103,23 @@ class ElpaTest < ActiveSupport::TestCase
     ]
   end
 
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://elpa.nongnu.org/nongnu/ample-theme.html")
+      .to_return({ status: 200, body: file_fixture('elpa/ample-theme.html') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('ample-theme')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The HTML page should only have been fetched once (for the initial fetch)
+    assert_requested(:get, "https://elpa.nongnu.org/nongnu/ample-theme.html", times: 1)
+    # The HEAD request should NOT have been made
+    assert_not_requested(:head, "https://elpa.nongnu.org/nongnu/ample-theme.html")
+  end
+
   test 'dependencies_metadata' do
     dependencies_metadata = @ecosystem.dependencies_metadata('ample-theme', '0.3.0', nil)
 

@@ -42,6 +42,16 @@ module Ecosystem
       "https://registry.bazel.build/docs/#{package.name}#{version_part}"
     end
 
+    def check_status(package)
+      pkg = fetch_package_metadata(package.name)
+      return nil if pkg.present? && pkg.is_a?(Hash) && pkg["name"].present?
+
+      # Fall back to a direct request if not cached
+      url = check_status_url(package)
+      response = Faraday.head(url)
+      return "removed" if [400, 404, 410].include?(response.status)
+    end
+
     def all_package_names
       github_modules_tree.map { |package| package["path"] }.compact
     rescue StandardError

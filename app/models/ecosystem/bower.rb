@@ -49,6 +49,10 @@ module Ecosystem
     end
 
     def check_status(package)
+      cached = fetch_package_metadata(package.name)
+      return nil if cached.present? && cached.is_a?(Hash) && cached["name"].present?
+
+      # Fall back to existing checks if not cached
       pkg = packages[package.name.downcase]
       return "removed" if pkg.nil?
       connection = Faraday.new do |faraday|
