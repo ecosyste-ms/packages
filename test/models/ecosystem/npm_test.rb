@@ -151,6 +151,23 @@ class NpmTest < ActiveSupport::TestCase
     assert_equal @ecosystem.maintainer_url(@maintainer), 'https://www.npmjs.com/~foo'
   end
 
+  test 'check_status uses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://registry.npmjs.org/base62")
+      .to_return({ status: 200, body: file_fixture('npm/base62') })
+    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/base62")
+      .to_return({ status: 200, body: file_fixture('npm/base62.1') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('base62')
+
+    # check_status should reuse cached data, not make a new request
+    status = @ecosystem.check_status(@package)
+    assert_nil status # base62 is not deprecated/removed
+
+    # The registry URL should only have been called once (for the initial fetch)
+    assert_requested(:get, "https://registry.npmjs.org/base62", times: 1)
+  end
+
   test 'versions_metadata includes npm specific fields for modern packages' do
     stub_request(:get, "https://registry.npmjs.org/react")
       .to_return({ status: 200, body: file_fixture('npm/react_fresh') })

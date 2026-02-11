@@ -34,12 +34,17 @@ module Ecosystem
     end
 
     def check_status(package)
-      url = check_status_url(package)
-      response = Faraday.get(url)
-      return "removed" if [400, 404, 410].include?(response.status)
-      json = Oj.load(response.body)
+      json = fetch_package_metadata(package.name)
 
-      if json 
+      if json.blank? || json["versions"].blank?
+        # Fall back to a direct request if not cached or missing versions
+        url = check_status_url(package)
+        response = Faraday.get(url)
+        return "removed" if [400, 404, 410].include?(response.status)
+        json = Oj.load(response.body)
+      end
+
+      if json
         return "unpublished" if json["versions"].blank?
         non_prerelease_versions = json["versions"].values.reject{|v| Semantic::Version.new(v['version']).pre rescue true}
 
