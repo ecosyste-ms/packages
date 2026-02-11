@@ -176,4 +176,19 @@ class TerraformTest < ActiveSupport::TestCase
     status = @ecosystem.check_status(@package)
     assert_nil status
   end
+
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://registry.terraform.io/v1/modules/terraform-aws-modules/vpc/aws")
+      .to_return({ status: 200, body: file_fixture('terraform/terraform-aws-modules-vpc-aws') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('terraform-aws-modules/vpc/aws')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The API should only have been called once (for the initial fetch)
+    assert_requested(:get, "https://registry.terraform.io/v1/modules/terraform-aws-modules/vpc/aws", times: 1)
+  end
 end

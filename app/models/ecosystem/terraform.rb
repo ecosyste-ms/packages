@@ -46,6 +46,10 @@ module Ecosystem
     end
 
     def check_status(package)
+      json = fetch_package_metadata(package.name)
+      return nil if json.present? && json.is_a?(Hash) && json["id"].present?
+
+      # Fall back to a direct request if not cached
       url = check_status_url(package)
       return nil unless url
 
