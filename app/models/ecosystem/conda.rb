@@ -21,6 +21,10 @@ module Ecosystem
     end
 
     def check_status(package)
+      json = fetch_package_metadata(package.name)
+      return nil if json.present? && json.is_a?(Hash) && json["name"].present?
+
+      # Fall back to a direct request if not cached
       url = registry_url(package)
       response = Faraday.get(url)
       return "removed" if [302, 404].include?(response.status)

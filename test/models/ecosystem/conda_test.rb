@@ -142,4 +142,19 @@ class CondaTest < ActiveSupport::TestCase
     check_status_url = @ecosystem2.check_status_url(@package2)
     assert_equal check_status_url, "https://anaconda.org/conda-forge/aiofiles"
   end
+
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://conda.ecosyste.ms/Main/")
+      .to_return({ status: 200, body: file_fixture('conda/index.html') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('aiofiles')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The anaconda.org HTML page should NOT have been hit
+    assert_not_requested(:get, "https://anaconda.org/anaconda/aiofiles")
+  end
 end
