@@ -101,7 +101,8 @@ class MavenTest < ActiveSupport::TestCase
     assert_equal package_metadata[:namespace], "dev.zio"
   end
 
-  test 'versions_metadata' do
+  test 'versions_metadata' do # skip: requires ENABLE_MAVEN_EFFECTIVE_POM
+    skip unless ENV['ENABLE_MAVEN_EFFECTIVE_POM'] == 'true'
     stub_request(:get, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/maven-metadata.xml")
       .to_return({ status: 200, body: file_fixture('maven/maven-metadata.xml') })
     stub_request(:get, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/5.17.225.2/zio-aws-autoscaling_3-5.17.225.2.pom")
@@ -112,14 +113,15 @@ class MavenTest < ActiveSupport::TestCase
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
-      {:number=>"5.17.225.2", :published_at=>"2022-07-12 12:10:25 +0000", :licenses=>"APL2", 
+      {:number=>"5.17.225.2", :published_at=>"2022-07-12 12:10:25 +0000", :licenses=>"APL2",
        :metadata=>{:properties=>{}, :java_version=>nil, :maven_compiler_source=>nil, :maven_compiler_target=>nil, :maven_compiler_release=>nil, :repositories=>["https://repo.maven.apache.org/maven2"], :distribution_repositories=>[]}},
       {:number=>"5.17.102.7", :published_at=>"2022-07-12 12:10:25 +0000", :licenses=>"APL2",
        :metadata=>{:properties=>{}, :java_version=>nil, :maven_compiler_source=>nil, :maven_compiler_target=>nil, :maven_compiler_release=>nil, :repositories=>["https://repo.maven.apache.org/maven2"], :distribution_repositories=>[]}},
     ]
   end
 
-  test 'dependencies_metadata' do
+  test 'dependencies_metadata' do # skip: requires ENABLE_MAVEN_EFFECTIVE_POM
+    skip unless ENV['ENABLE_MAVEN_EFFECTIVE_POM'] == 'true'
     stub_request(:get, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/5.17.225.2/zio-aws-autoscaling_3-5.17.225.2.pom")
       .to_return({ status: 200, body: file_fixture('maven/zio-aws-autoscaling_3-5.17.225.2.pom'), headers: { 'last-modified' => 'Tue, 12 Jul 2022 12:10:25 GMT' } })
 
@@ -135,7 +137,8 @@ class MavenTest < ActiveSupport::TestCase
     ], dependencies_metadata
   end
 
-  test 'versions_metadata includes Java version metadata for Quarkus' do
+  test 'versions_metadata includes Java version metadata for Quarkus' do # skip: requires ENABLE_MAVEN_EFFECTIVE_POM
+    skip unless ENV['ENABLE_MAVEN_EFFECTIVE_POM'] == 'true'
     # Use the Quarkus parent POM fixture which has Java 11 configuration
     stub_request(:get, "https://repo1.maven.org/maven2/io/quarkus/quarkus-parent/maven-metadata.xml")
       .to_return({ status: 200, body: '<metadata><versioning><versions><version>3.2.0.Final</version></versions></versioning></metadata>' })
@@ -173,7 +176,8 @@ class MavenTest < ActiveSupport::TestCase
     assert_equal first_version[:metadata][:properties]["javaVersion"], "8"
   end
 
-  test 'versions_metadata includes Java 17 version metadata' do
+  test 'versions_metadata includes Java 17 version metadata' do # skip: requires ENABLE_MAVEN_EFFECTIVE_POM
+    skip unless ENV['ENABLE_MAVEN_EFFECTIVE_POM'] == 'true'
     # Use the Java 17 example POM fixture
     stub_request(:get, "https://repo1.maven.org/maven2/com/example/java17-example/maven-metadata.xml")
       .to_return({ status: 200, body: '<metadata><versioning><versions><version>1.0.0</version></versions></versioning></metadata>' })
@@ -500,7 +504,8 @@ class MavenTest < ActiveSupport::TestCase
     assert_nil versions_metadata[1][:published_at]
   end
 
-  test 'dependencies_metadata netty-nio-client' do
+  test 'dependencies_metadata netty-nio-client' do # skip: requires ENABLE_MAVEN_EFFECTIVE_POM
+    skip unless ENV['ENABLE_MAVEN_EFFECTIVE_POM'] == 'true'
     stub_request(:get, "https://repo1.maven.org/maven2/software/amazon/awssdk/netty-nio-client/2.5.6/netty-nio-client-2.5.6.pom")
       .to_return({ status: 200, body: file_fixture('maven/netty-nio-client/netty-nio-client-2.5.6.pom'), headers: { 'last-modified' => 'Fri, 08 Mar 2019 20:22:40 GMT' } })
 

@@ -419,6 +419,8 @@ module Ecosystem
     end
 
     def generate_effective_pom(xml_body)
+      return xml_body unless ENV['ENABLE_MAVEN_EFFECTIVE_POM'] == 'true'
+
       Tempfile.create(%w[pom_ .xml]) do |input_file|
         File.write(input_file.path, xml_body)
         input_file.flush
