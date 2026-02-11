@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_20_094500) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_11_180158) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -125,7 +125,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_20_094500) do
     t.json "repo_metadata", default: {}
     t.datetime "repo_metadata_updated_at"
     t.string "repository_url"
-    t.string "status"
+    t.string "status", default: "active"
     t.datetime "updated_at", null: false
     t.integer "versions_count", default: 0, null: false
     t.datetime "versions_updated_at"

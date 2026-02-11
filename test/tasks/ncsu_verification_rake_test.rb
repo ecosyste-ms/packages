@@ -82,8 +82,7 @@ class NcsuVerificationRakeTest < ActiveSupport::TestCase
 
   def create_package(attrs = {})
     @registry.packages.create!({
-      ecosystem: @registry.ecosystem,
-      status: nil
+      ecosystem: @registry.ecosystem
     }.merge(attrs))
   end
 
