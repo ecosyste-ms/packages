@@ -20,9 +20,12 @@ module Ecosystem
     end
 
     def check_status(package)
-      url = "https://cran.r-project.org/web/packages/#{package.name}/index.html"
-      html = get_html(url)
-      return 'removed' if html.css('.container').text.match?("Package ‘#{package.name}’ was removed from the CRAN repository.")
+      pkg = fetch_package_metadata(package.name)
+      return nil if pkg.present? && pkg.is_a?(Hash) && pkg[:name].present?
+
+      # Fall back to fetching the page directly
+      html = get_html("https://cran.r-project.org/web/packages/#{package.name}/index.html")
+      return 'removed' if html.css('.container').text.match?("Package '#{package.name}' was removed from the CRAN repository.")
     end
 
     def all_package_names

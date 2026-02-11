@@ -139,4 +139,21 @@ class CranTest < ActiveSupport::TestCase
       {:package_name=>"foreach", :requirements=>">= 1.4.4", :kind=>"suggests", :ecosystem=>"cran"}
     ]
   end
+
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://cran.r-project.org/web/packages/pack/index.html")
+      .to_return({ status: 200, body: file_fixture('cran/index.html') })
+    stub_request(:get, "https://cranlogs.r-pkg.org/downloads/total/last-month/pack")
+      .to_return({ status: 200, body: file_fixture('cran/pack') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('pack')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The index.html should only have been called once (for the initial fetch)
+    assert_requested(:get, "https://cran.r-project.org/web/packages/pack/index.html", times: 1)
+  end
 end
