@@ -106,6 +106,23 @@ class ElmTest < ActiveSupport::TestCase
     ]
   end
 
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://package.elm-lang.org/packages/rtfeldman/count/releases.json")
+      .to_return({ status: 200, body: file_fixture('elm/releases.json') })
+    stub_request(:get, "https://package.elm-lang.org/packages/rtfeldman/count/1.0.1/elm.json")
+      .to_return({ status: 200, body: file_fixture('elm/elm.json') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('rtfeldman/count')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The registry page should NOT have been hit
+    assert_not_requested(:head, "https://package.elm-lang.org/packages/rtfeldman/count/latest")
+  end
+
   test 'dependencies_metadata' do
     stub_request(:get, "https://package.elm-lang.org/packages/rtfeldman/count/1.0.1/elm.json")
       .to_return({ status: 200, body: file_fixture('elm/elm.json') })

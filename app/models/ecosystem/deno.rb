@@ -17,6 +17,10 @@ module Ecosystem
     end
 
     def check_status(package)
+      pkg = fetch_package_metadata(package.name)
+      return nil if pkg.present? && pkg.is_a?(Hash) && pkg[:name].present?
+
+      # Fall back to a direct request if not cached
       url = check_status_url(package)
       connection = Faraday.new do |faraday|
         faraday.use Faraday::FollowRedirects::Middleware

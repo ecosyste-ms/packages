@@ -11,6 +11,16 @@ module Ecosystem
       "#{@registry_url}/package/#{package.name}-#{version}/#{package.name}-#{version}.tar.gz"
     end
 
+    def check_status(package)
+      pkg = fetch_package_metadata(package.name)
+      return nil if pkg.present? && pkg.is_a?(Hash) && pkg[:name].present?
+
+      # Fall back to a direct request if not cached
+      url = check_status_url(package)
+      response = Faraday.get(url)
+      return "removed" if [400, 404, 410].include?(response.status)
+    end
+
     def install_command(package, version = nil)
       "cabal install #{package.name}" + (version ? "-#{version}" : "")
     end

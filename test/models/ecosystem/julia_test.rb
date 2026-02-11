@@ -215,6 +215,21 @@ class JuliaTest < ActiveSupport::TestCase
     end
   end
 
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://juliahub.com/app/packages/info")
+      .to_return({ status: 200, body: file_fixture('julia/info') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.fetch_package_metadata('Inequality')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The docs endpoint should NOT have been hit
+    assert_not_requested(:head, "https://juliahub.com/docs/General/Inequality/stable/pkg.json")
+  end
+
   test 'packages method returns array even with malformed response' do
     stub_request(:get, "https://juliahub.com/app/packages/info")
       .to_return({ status: 200, body: "not json" })

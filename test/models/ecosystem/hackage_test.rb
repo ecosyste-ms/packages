@@ -134,7 +134,22 @@ class HackageTest < ActiveSupport::TestCase
       {:package_name=>"vector", :requirements=>">=0.7", :kind=>"runtime", :ecosystem=>"hackage"}]
   end
 
-  test 'maintainer_url' do 
+  test 'maintainer_url' do
     assert_equal @ecosystem.maintainer_url(@maintainer), 'https://hackage.haskell.org/user/foo'
+  end
+
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://hackage.haskell.org/package/blockfrost-client")
+      .to_return({ status: 200, body: file_fixture('hackage/blockfrost-client') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('blockfrost-client')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The API should only have been called once (for the initial fetch)
+    assert_requested(:get, "https://hackage.haskell.org/package/blockfrost-client", times: 1)
   end
 end

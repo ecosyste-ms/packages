@@ -116,6 +116,23 @@ class DenoTest < ActiveSupport::TestCase
     ]
   end
 
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://apiland.deno.dev/v2/modules/deno_es")
+      .to_return({ status: 200, body: file_fixture('deno/deno_es') })
+    stub_request(:get, "https://cdn.deno.land/deno_es/versions/v0.4.3/meta/meta.json")
+      .to_return({ status: 200, body: file_fixture('deno/meta.json.2') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('deno_es')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The apiland endpoint should only have been called once (for the initial fetch)
+    assert_requested(:get, "https://apiland.deno.dev/v2/modules/deno_es", times: 1)
+  end
+
   test 'dependencies_metadata' do
     stub_request(:get, "https://cdn.deno.land/deno_es/versions/v0.4.2/meta/deps_v2.json")
       .to_return({ status: 200, body: file_fixture('deno/deps_v2.json') })

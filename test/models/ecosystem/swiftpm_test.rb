@@ -118,6 +118,23 @@ class SwiftpmTest < ActiveSupport::TestCase
     ]
   end
 
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/swift-cloud/Compute")
+      .to_return({ status: 200, body: file_fixture('swiftpm/lookup?url=https:%2F%2Fgithub.com%2Fswift-cloud%2FCompute') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.fetch_package_metadata('github.com/swift-cloud/Compute')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The repos API should only have been called once (for the initial fetch)
+    assert_requested(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/swift-cloud/Compute", times: 1)
+    # The swiftpackageindex.com page should NOT have been hit
+    assert_not_requested(:head, "https://swiftpackageindex.com/swift-cloud/Compute")
+  end
+
   test 'dependencies_metadata' do
     stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/swift-cloud/Compute")
       .to_return({ status: 200, body: file_fixture('swiftpm/lookup?url=https:%2F%2Fgithub.com%2Fswift-cloud%2FCompute') })
