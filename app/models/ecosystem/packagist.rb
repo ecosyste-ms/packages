@@ -57,13 +57,19 @@ module Ecosystem
     end
 
     def check_status(package)
-      url = check_status_url(package)
-      response = Faraday.head(url)
-      return "removed" if [302, 404].include?(response.status)
+      json = fetch_package_metadata(package.name)
 
-      json = get_json("https://repo.packagist.org/p2/#{package.name}~dev.json")
-      return "abandoned" if json == "404 not found, no packages here"
-      res = json&.dig("packages", package.name)
+      if json.blank? || json == false
+        url = check_status_url(package)
+        response = Faraday.head(url)
+        return "removed" if [302, 404].include?(response.status)
+      end
+
+      return "abandoned" if json.is_a?(Hash) && json["abandoned"].present?
+
+      p2_json = get_json("https://repo.packagist.org/p2/#{package.name}~dev.json")
+      return "abandoned" if p2_json == "404 not found, no packages here"
+      res = p2_json&.dig("packages", package.name)
       return "abandoned" if res == []
     end
 

@@ -150,4 +150,23 @@ class PackagistTest < ActiveSupport::TestCase
     assert_equal first_version[:metadata][:autoload], {"psr-4" => {"Intervention\\Image\\" => "src"}}
     assert first_version[:metadata][:extra].key?("laravel")
   end
+
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://packagist.org/packages/psr/log.json")
+      .to_return({ status: 200, body: file_fixture('packagist/log.json.1') })
+    stub_request(:get, "https://repo.packagist.org/p2/psr/log~dev.json")
+      .to_return({ status: 200, body: '{"packages":{"psr/log":[{"version":"dev-master"}]}}' })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('psr/log')
+
+    # check_status should reuse cached data, skipping the HEAD request
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The packages API should only have been called once (for the initial fetch)
+    assert_requested(:get, "https://packagist.org/packages/psr/log.json", times: 1)
+    # The HEAD request to registry URL should NOT have been made
+    assert_not_requested(:head, "https://packagist.org/packages/psr/log")
+  end
 end
