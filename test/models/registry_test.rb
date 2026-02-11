@@ -157,13 +157,13 @@ class RegistryTest < ActiveSupport::TestCase
 
   test 'sync_all_recently_updated_packages_async' do
     @registry.expects(:sync_recently_updated_packages_async).returns(true)
-    Registry.stubs(:not_docker).returns([@registry])
+    Registry.stubs(:frequently_synced).returns([@registry])
     Registry.sync_all_recently_updated_packages_async
   end
 
   test 'Registry.sync_all_packages_async' do
     @registry.expects(:sync_all_packages_async).returns(true)
-    Registry.stubs(:not_docker).returns([@registry])
+    Registry.stubs(:frequently_synced).returns([@registry])
     Registry.sync_all_packages_async
   end
 

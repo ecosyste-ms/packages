@@ -9,6 +9,7 @@ class Registry < ApplicationRecord
   has_many :registry_growth_stats
 
   scope :not_docker, -> { where.not(ecosystem: 'docker') }
+  scope :frequently_synced, -> { where.not(ecosystem: ['docker', 'cocoapods', 'bower']) }
 
   def self.find_by_name!(name)
     name = 'cocoapods.org' if name == 'cocoapod.org'
@@ -20,19 +21,19 @@ class Registry < ApplicationRecord
   end
 
   def self.sync_all_recently_updated_packages_async
-    not_docker.each(&:sync_recently_updated_packages_async)
+    frequently_synced.each(&:sync_recently_updated_packages_async)
   end
 
   def self.sync_all_packages
-    not_docker.each(&:sync_all_packages)
+    frequently_synced.each(&:sync_all_packages)
   end
 
   def self.sync_all_packages_async
-    not_docker.each(&:sync_all_packages_async)
+    frequently_synced.each(&:sync_all_packages_async)
   end
 
   def self.sync_all_missing_packages_async
-    not_docker.each(&:sync_missing_packages_async)
+    frequently_synced.each(&:sync_missing_packages_async)
   end
 
   def sync_in_batches?
@@ -434,7 +435,7 @@ class Registry < ApplicationRecord
   end
 
   def self.sync_worst_one_percent
-    Registry.not_docker.sort_by(&:outdated_percentage).last.sync_one_percent_of_packages
+    Registry.frequently_synced.sort_by(&:outdated_percentage).last.sync_one_percent_of_packages
   end
 
   # underproduction

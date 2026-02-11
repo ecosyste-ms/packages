@@ -52,6 +52,7 @@ class Package < ApplicationRecord
   scope :order_by_maintainer_count_asc, -> { order(Arel.sql("json_array_length(issue_metadata->'maintainers') ASC NULLS LAST")) }
 
   scope :not_docker, -> { joins(:registry).where.not(registries: { ecosystem: 'docker' }) }
+  scope :frequently_synced, -> { joins(:registry).where.not(registries: { ecosystem: ['docker', 'cocoapods', 'bower'] }) }
 
   scope :repository_owner, ->(owner) { where("repo_metadata->'owner_record'->>'login' = ?", owner) }
 
@@ -79,30 +80,30 @@ class Package < ApplicationRecord
   end
 
   def self.sync_least_recent_async
-    Package.active.outdated.not_docker.order('RANDOM()').limit(4000).select('packages.id, packages.last_synced_at, packages.registry_id').each(&:sync_async)
+    Package.active.outdated.frequently_synced.order('RANDOM()').limit(4000).select('packages.id, packages.last_synced_at, packages.registry_id').each(&:sync_async)
   end
 
   def self.sync_least_recent_top_async
-    Package.active.not_docker.order('RANDOM()').top(2).where('packages.last_synced_at < ?', 12.hours.ago).select('packages.id, packages.last_synced_at, packages.registry_id').limit(3_000).each(&:sync_async)
+    Package.active.frequently_synced.order('RANDOM()').top(2).where('packages.last_synced_at < ?', 12.hours.ago).select('packages.id, packages.last_synced_at, packages.registry_id').limit(3_000).each(&:sync_async)
   end
 
   def self.check_statuses_async
-    Package.not_docker.active.where('last_synced_at < ?', 5.weeks.ago).limit(1000).select('packages.id').each(&:check_status_async)
+    Package.frequently_synced.active.where('last_synced_at < ?', 5.weeks.ago).limit(1000).select('packages.id').each(&:check_status_async)
   end
 
   def self.sync_download_counts_async
     return if Sidekiq::Queue.new('default').size > 20_000
-    Package.active.not_docker
+    Package.active.frequently_synced
             .where(downloads: nil)
-            .where(ecosystem: ['cargo','clojars','docker','hackage','hex','homebrew','julia','npm','nuget','packagist','puppet','rubygems','pypi'])
+            .where(ecosystem: ['cargo','clojars','hackage','hex','homebrew','julia','npm','nuget','packagist','puppet','rubygems','pypi'])
             .limit(1000).select('packages.id, packages.last_synced_at, packages.registry_id').each(&:sync_async)
   end
 
   def self.sync_maintainers_async
     return if Sidekiq::Queue.new('default').size > 20_000
-    Package.active.not_docker
+    Package.active.frequently_synced
             .without_maintainerships
-            .where(ecosystem: ['cargo','clojars','cocoapods','cpan','cran','elpa','hackage','hex','npm','nuget','packagist','pypi','rubygems','racket','spack'])
+            .where(ecosystem: ['cargo','clojars','cpan','cran','elpa','hackage','hex','npm','nuget','packagist','pypi','rubygems','racket','spack'])
             .order('last_synced_at desc nulls last')
             .limit(1000).select('packages.registry_id, packages.id').each(&:sync_maintainers_async)
   end
