@@ -516,4 +516,74 @@ class NugetTest < ActiveSupport::TestCase
     assert_equal false, info[:is_deprecated]
     assert_nil info[:message]
   end
+
+  test 'versions_metadata skips nuspec download for existing versions' do
+    stub_request(:get, "https://api.nuget.org/v3/registration5-gz-semver2/ogcapi.net.sqlserver/index.json")
+      .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
+    stub_request(:get, "https://azuresearch-usnc.nuget.org/query?q=packageid:ogcapi.net.sqlserver")
+      .to_return({ status: 200, body: file_fixture('nuget/query_packageid:OgcApi.Net.SqlServer') })
+    # Only stub nuspec for the NEW version (0.3.1), not the existing one (0.3.0)
+    nuspec_stub_031 = stub_request(:get, "https://api.nuget.org/v3-flatcontainer/ogcapi.net.sqlserver/0.3.1/ogcapi.net.sqlserver.nuspec")
+      .to_return({ status: 404, body: "" })
+
+    package_metadata = @ecosystem.package_metadata('ogcapi.net.sqlserver')
+    # Tell versions_metadata that 0.3.0 already exists
+    versions_metadata = @ecosystem.versions_metadata(package_metadata, ["0.3.0"])
+
+    assert_equal 2, versions_metadata.length
+
+    # Existing version should have API metadata but no nuspec fields
+    existing_version = versions_metadata.find { |v| v[:number] == "0.3.0" }
+    assert_not_nil existing_version[:metadata]
+    assert existing_version[:metadata].has_key?(:api_description)
+    assert_not existing_version[:metadata].has_key?(:nuspec_id)
+
+    # New version should still attempt nuspec download
+    new_version = versions_metadata.find { |v| v[:number] == "0.3.1" }
+    assert_not_nil new_version[:metadata]
+    assert new_version[:metadata].has_key?(:api_description)
+
+    # Verify nuspec for 0.3.0 was never requested
+    assert_not_requested(:get, "https://api.nuget.org/v3-flatcontainer/ogcapi.net.sqlserver/0.3.0/ogcapi.net.sqlserver.nuspec")
+    assert_requested(nuspec_stub_031)
+  end
+
+  test 'parse_nuspec_metadata is memoized within an instance' do
+    nuspec_stub = stub_request(:get, "https://api.nuget.org/v3-flatcontainer/newtonsoft.json/13.0.3/newtonsoft.json.nuspec")
+      .to_return({ status: 200, body: file_fixture('nuget/newtonsoft.json_nuspec.xml') })
+
+    # Call twice with same arguments
+    result1 = @ecosystem.parse_nuspec_metadata('newtonsoft.json', '13.0.3')
+    result2 = @ecosystem.parse_nuspec_metadata('newtonsoft.json', '13.0.3')
+
+    assert_not_nil result1
+    assert_equal result1, result2
+    # Should only have made one HTTP request
+    assert_requested(nuspec_stub, times: 1)
+  end
+
+  test 'parse_nuspec_metadata does not store raw_xml' do
+    stub_request(:get, "https://api.nuget.org/v3-flatcontainer/newtonsoft.json/13.0.3/newtonsoft.json.nuspec")
+      .to_return({ status: 200, body: file_fixture('nuget/newtonsoft.json_nuspec.xml') })
+
+    result = @ecosystem.parse_nuspec_metadata('newtonsoft.json', '13.0.3')
+
+    assert_not_nil result
+    assert_not result.has_key?(:raw_xml)
+  end
+
+  test 'fetch_package_metadata_uncached does not call versions_metadata' do
+    stub_request(:get, "https://api.nuget.org/v3/registration5-gz-semver2/ogcapi.net.sqlserver/index.json")
+      .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
+    stub_request(:get, "https://azuresearch-usnc.nuget.org/query?q=packageid:ogcapi.net.sqlserver")
+      .to_return({ status: 200, body: file_fixture('nuget/query_packageid:OgcApi.Net.SqlServer') })
+
+    result = @ecosystem.fetch_package_metadata_uncached('ogcapi.net.sqlserver')
+
+    # Should have releases but not pre-computed versions
+    assert result[:releases].any?
+    assert_nil result[:versions]
+    # Should not have requested any nuspec files
+    assert_not_requested(:get, /v3-flatcontainer.*nuspec/)
+  end
 end

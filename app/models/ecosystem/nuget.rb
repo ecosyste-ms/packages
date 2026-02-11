@@ -81,9 +81,8 @@ module Ecosystem
       }
       h[:releases] = get_releases(name)
       h[:download_stats] = download_stats(name)
-      h[:versions] = versions_metadata(h)
-      
-      return {} unless h[:versions].any?
+
+      return {} unless h[:releases].any?
 
       h
     end
@@ -219,20 +218,28 @@ module Ecosystem
 
     def parse_nuspec_metadata(package_name, version)
       return nil unless package_name && version
-      
+
+      @nuspec_cache ||= {}
+      cache_key = "#{package_name.downcase}/#{version}"
+      return @nuspec_cache[cache_key] if @nuspec_cache.key?(cache_key)
+
+      @nuspec_cache[cache_key] = fetch_nuspec_metadata(package_name, version)
+    end
+
+    def fetch_nuspec_metadata(package_name, version)
       nuspec_url = "https://api.nuget.org/v3-flatcontainer/#{package_name.downcase}/#{version}/#{package_name.downcase}.nuspec"
       response = Faraday.get(nuspec_url)
       return nil unless response.success?
-      
+
       # Parse XML to extract comprehensive metadata
       require 'nokogiri'
       doc = Nokogiri::XML(response.body)
-      
+
       # Remove namespace for easier querying
       doc.remove_namespaces!
       metadata_node = doc.at_xpath('//metadata')
       return nil unless metadata_node
-      
+
       # Extract comprehensive metadata
       {
         # Basic package information
@@ -277,8 +284,6 @@ module Ecosystem
         content_files: extract_content_files(metadata_node),
         package_types: extract_package_types(metadata_node),
         
-        # Additional metadata
-        raw_xml: response.body # Store raw XML for any future parsing needs
       }
     rescue => e
       Rails.logger.debug "Failed to parse .nuspec for #{package_name} v#{version}: #{e.message}"
@@ -290,6 +295,7 @@ module Ecosystem
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
+      existing_set = existing_version_numbers.to_set
       pkg_metadata[:releases].map do |item|
         catalog_entry = item["catalogEntry"]
         version = catalog_entry["version"]
@@ -299,7 +305,7 @@ module Ecosystem
           number: version,
           published_at: catalog_entry["published"],
           status: status,
-          metadata: build_version_nuspec_metadata(pkg_metadata[:name], version, pkg_metadata, item)
+          metadata: build_version_nuspec_metadata(pkg_metadata[:name], version, pkg_metadata, item, skip_nuspec: existing_set.include?(version.to_s))
         }
       end
     end
@@ -310,7 +316,7 @@ module Ecosystem
       nil
     end
 
-    def build_version_nuspec_metadata(package_name, version, pkg_metadata, item)
+    def build_version_nuspec_metadata(package_name, version, pkg_metadata, item, skip_nuspec: false)
       catalog_entry = item["catalogEntry"]
 
       # Start with basic API metadata
@@ -339,7 +345,9 @@ module Ecosystem
         # Deprecation information from catalogEntry
         deprecation: catalog_entry["deprecation"]
       }
-      
+
+      return base_metadata if skip_nuspec
+
       # Get enhanced metadata from .nuspec file
       nuspec_metadata = parse_nuspec_metadata(package_name, version)
       return base_metadata unless nuspec_metadata
