@@ -132,7 +132,46 @@ class ClojarsTest < ActiveSupport::TestCase
     ], dependencies_metadata
   end
 
-  test 'maintainer_url' do 
+  test 'maintainer_url' do
     assert_equal @ecosystem.maintainer_url(@maintainer), "https://clojars.org/users/foo"
+  end
+
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://repo.clojars.org/missionary/missionary/maven-metadata.xml")
+      .to_return({ status: 200, body: file_fixture('clojars/maven-metadata.xml') })
+    stub_request(:get, "https://clojars.org/api/artifacts/missionary")
+      .to_return({ status: 200, body: file_fixture('clojars/missionary') })
+    stub_request(:get, "https://repo.clojars.org/missionary/missionary/b.26/missionary-b.26.pom")
+      .to_return({ status: 200, body: file_fixture('clojars/missionary-b.26.pom'), headers: { 'last-modified' => 'Tue, 11 Jan 2022 14:34:47 GMT' } })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('missionary')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The registry URL should NOT have been hit
+    assert_not_requested(:get, "https://clojars.org/missionary/")
+    assert_not_requested(:head, "https://clojars.org/missionary/")
+  end
+
+  test 'pom downloads are memoized across calls' do
+    stub_request(:get, "https://repo.clojars.org/missionary/missionary/maven-metadata.xml")
+      .to_return({ status: 200, body: file_fixture('clojars/maven-metadata.xml') })
+    stub_request(:get, "https://clojars.org/api/artifacts/missionary")
+      .to_return({ status: 200, body: file_fixture('clojars/missionary') })
+    stub_request(:get, "https://repo.clojars.org/missionary/missionary/b.26/missionary-b.26.pom")
+      .to_return({ status: 200, body: file_fixture('clojars/missionary-b.26.pom'), headers: { 'last-modified' => 'Tue, 11 Jan 2022 14:34:47 GMT' } })
+    stub_request(:get, "https://repo.clojars.org/missionary/missionary/b.25/missionary-b.25.pom")
+      .to_return({ status: 200, body: file_fixture('clojars/missionary-b.25.pom'), headers: { 'last-modified' => 'Fri, 24 Dec 2021 08:31:43 GMT' } })
+
+    # package_metadata downloads b.26 POM
+    package_metadata = @ecosystem.package_metadata('missionary')
+    # versions_metadata also needs b.26 POM - should be cached
+    @ecosystem.versions_metadata(package_metadata)
+
+    # b.26 POM should only have been fetched once despite being needed by both methods
+    assert_requested(:get, "https://repo.clojars.org/missionary/missionary/b.26/missionary-b.26.pom", times: 1)
   end
 end

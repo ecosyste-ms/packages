@@ -13,6 +13,16 @@ module Ecosystem
       "https://clojars.org/#{package.name}/#{version.present? ? 'versions/' + version.number : ''}"
     end
 
+    def check_status(package)
+      json = fetch_package_metadata(package.name)
+      return nil if json.present? && json.is_a?(Hash) && json[:name].present?
+
+      # Fall back to a direct request if not cached
+      url = check_status_url(package)
+      response = Faraday.get(url)
+      return "removed" if [400, 404, 410].include?(response.status)
+    end
+
     def documentation_url(package, version = nil)
       "https://cljdoc.org/d/#{package.name}/#{version}"
     end
@@ -169,6 +179,13 @@ module Ecosystem
     end
 
     def download_pom(group_id, artifact_id, version)
+      @pom_cache ||= {}
+      cache_key = "#{group_id}/#{artifact_id}/#{version}"
+      return @pom_cache[cache_key] if @pom_cache.key?(cache_key)
+      @pom_cache[cache_key] = fetch_pom(group_id, artifact_id, version)
+    end
+
+    def fetch_pom(group_id, artifact_id, version)
       url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.pom"
       pom_request = request(url)
       return nil if pom_request.status == 404
