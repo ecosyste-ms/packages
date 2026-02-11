@@ -129,33 +129,29 @@ module Ecosystem
           }
         end
       else
-        versions_fallback(pkg_metadata, existing_version_numbers)
+        versions_fallback(pkg_metadata, existing_version_numbers, html_resp)
       end
 
     rescue StandardError
       []
     end
 
-    def versions_fallback(package, existing_version_numbers = [])
-      doc_html = get_html("https://pkg.go.dev/#{package[:name]}?tab=versions")
+    def versions_fallback(package, existing_version_numbers = [], html_resp = nil)
+      html_resp ||= get_html("https://pkg.go.dev/#{package[:name]}?tab=versions")
 
-      if resp.success?
-        doc_html.css(".Version-tag a").first(50).map do |link|
-          next if existing_version_numbers.include?(link.text)
-          {
-            number: link.text,
-            published_at: get_version(package[:name], link.text).fetch('Time',nil),
-            status: fetch_version_status(resp, link.text)
-          }
-        end.compact
-      else
-        []
-      end
+      html_resp.css(".Version-tag a").first(50).map do |link|
+        next if existing_version_numbers.include?(link.text)
+        {
+          number: link.text,
+          published_at: get_version(package[:name], link.text).fetch('Time',nil),
+          status: fetch_version_status(html_resp, link.text)
+        }
+      end.compact
     end
 
     def fetch_version_status(html_resp, version_number)
       html_resp.css(".Version-tag a").each do |link|
-        return link.parent.css('~ .Version-commitTime').first.css('.go-Chip').try(:text).presence if link.text == version_number
+        return link.parent.css('~ .Version-commitTime').first&.css('.go-Chip')&.text&.presence if link.text == version_number
       end
       nil
     end

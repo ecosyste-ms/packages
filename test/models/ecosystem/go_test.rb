@@ -118,7 +118,25 @@ generators."
     stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/v1.9.0.mod")
       .to_return({ status: 200, body: file_fixture('go/v1.9.0.mod') })
     dependencies_metadata = @ecosystem.dependencies_metadata('github.com/aws/smithy-go', 'v1.9.0', nil)
-    
+
     assert_equal dependencies_metadata, [{:package_name=>"github.com/google/go-cmp", :requirements=>"v0.5.4", :kind=>"runtime", :ecosystem=>"go"}]
+  end
+
+  test 'versions_metadata falls back to HTML scraping when proxy list is empty' do
+    stub_request(:get, "https://pkg.go.dev/github.com/aws/smithy-go")
+      .to_return({ status: 200, body: file_fixture('go/rand') })
+    # Proxy list returns empty
+    stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/list")
+      .to_return({ status: 200, body: "" })
+    stub_request(:get, "https://pkg.go.dev/github.com/aws/smithy-go?tab=versions")
+      .to_return({ status: 200, body: file_fixture('go/smithy-go?tab=versions') })
+    # Stub all version info requests from the HTML fixture
+    stub_request(:get, /proxy\.golang\.org\/github\.com\/aws\/smithy-go\/@v\/v.*\.info/)
+      .to_return({ status: 200, body: '{"Version":"v1.19.0","Time":"2023-11-15T20:00:00Z"}' })
+
+    package_metadata = @ecosystem.package_metadata('github.com/aws/smithy-go')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+
+    assert versions_metadata.length > 0, "Expected versions from fallback but got: #{versions_metadata.inspect}"
   end
 end
