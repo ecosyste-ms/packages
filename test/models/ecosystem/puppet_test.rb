@@ -124,4 +124,19 @@ class PuppetTest < ActiveSupport::TestCase
       {:package_name=>"puppetlabs-stdlib", :requirements=>">= 4.25.0 < 9.0.0", :kind=>"runtime", :ecosystem=>"puppet"}
     ]
   end
+
+  test 'check_status reuses memoized metadata without extra HTTP request' do
+    stub_request(:get, "https://forge.puppet.com/v3/modules/puppet-fail2ban")
+      .to_return({ status: 200, body: file_fixture('puppet/puppet-fail2ban') })
+
+    # Fetch metadata first to populate the cache
+    @ecosystem.package_metadata('puppet-fail2ban')
+
+    # check_status should reuse cached data
+    status = @ecosystem.check_status(@package)
+    assert_nil status
+
+    # The API should only have been called once (for the initial fetch)
+    assert_requested(:get, "https://forge.puppet.com/v3/modules/puppet-fail2ban", times: 1)
+  end
 end

@@ -100,10 +100,15 @@ module Ecosystem
     end
 
     def check_status(package)
-      url = "#{@registry_url}/v3/modules/#{package.name}"
-      response = Faraday.get(url)
-      return "removed" if [400, 404, 410].include?(response.status)
-      json = Oj.load(response.body)
+      json = fetch_package_metadata(package.name)
+
+      if json.blank?
+        url = "#{@registry_url}/v3/modules/#{package.name}"
+        response = Faraday.get(url)
+        return "removed" if [400, 404, 410].include?(response.status)
+        json = Oj.load(response.body)
+      end
+
       return "unpublished" if json && json["current_release"].blank?
     end
   end
