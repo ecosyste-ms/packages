@@ -193,7 +193,8 @@ namespace :packages do
   desc 'clean up sidekiq unique jobs'
   task clean_up_sidekiq_unique_jobs: :environment do
     with_rake_lock('packages:clean_up_sidekiq_unique_jobs') do
-      REDIS.del('uniquejobs:digests')
+      SidekiqUniqueJobs::Digests.new.delete_by_pattern("*", count: 10_000)
+      SidekiqUniqueJobs::ExpiringDigests.new.delete_by_pattern("*", count: 10_000)
     end
   end
 
