@@ -6,7 +6,7 @@ class TopController < ApplicationController
   def ecosystem
     @registry = Registry.find_by_ecosystem(params[:ecosystem])
 
-    @scope = @registry.packages.where('versions_count > 0 and (status is null or status != ?)', 'removed')
+    @scope = @registry.packages.where("versions_count > 0 and status != 'removed'")
 
     case params[:sort]  
     when 'downloads'
