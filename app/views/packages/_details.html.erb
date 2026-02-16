@@ -1,147 +1,61 @@
-  <% if @package.rankings.present? %>
-    <div class="text-end float-end">
-    <% if @package.rankings.present? && @package.rankings['average'] && @package.rankings['average'] < 10.05 %>
-      <span class='badge bg-secondary'>
-        Top <%= [@package.rankings['average'].round(1), 0.1].max %>% on <%= @package.registry %>
-      </span><br>
-    <% end %>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><%= link_to "Registries", registries_path %></li>
+    <li class="breadcrumb-item"><%= link_to @registry.name, registry_packages_path(@registry.name) %></li>
+    <li class="breadcrumb-item active" aria-current="page"><%= @package.name %></li>
+  </ol>
+</nav>
 
-    <% if @package.downloads && @package.downloads > 0 && @package.rankings.present? && @package.rankings['downloads'] && @package.rankings['downloads'] < 10.05 %>
-      <span class='badge bg-secondary'>
-        Top <%= [@package.rankings['downloads'].round(1), 0.1].max %>% downloads on <%= @package.registry %>
-      </span><br>
-    <% end %>
-
-    <% if @package.dependent_packages_count && @package.dependent_packages_count > 0 && @package.rankings.present? && @package.rankings['dependent_packages_count'] && @package.rankings['dependent_packages_count'] < 10.05 %>
-      <span class='badge bg-secondary'>
-        Top <%= [@package.rankings['dependent_packages_count'].round(1), 0.1].max %>% dependent packages on <%= @package.registry %>
-      </span><br>
-    <% end %>
-
-    <% if @package.dependent_repos_count && @package.dependent_repos_count > 0 && @package.rankings.present? && @package.rankings['dependent_repos_count'] && @package.rankings['dependent_repos_count'] < 10.05 %>
-      <span class='badge bg-secondary'>
-        Top <%= [@package.rankings['dependent_repos_count'].round(1), 0.1].max %>% dependent repos on <%= @package.registry %>
-      </span><br>
-    <% end %>
-
-    <% if @package.rankings.present? && @package.rankings['stars_count'] && @package.stars && @package.stars > 0 && @package.stars < 10.05 %>
-      <span class='badge bg-secondary'>
-        Top <%= [@package.stars.round(1), 0.1].max %>% stars on <%= @package.registry %>
-      </span><br>
-    <% end %>
-
-    <% if @package.rankings.present? && @package.rankings['forks_count'] && @package.forks && @package.forks > 0 && @package.rankings['forks_count'] < 10.05 %>
-      <span class='badge bg-secondary'>
-        Top <%= [@package.rankings['forks_count'].round(1), 0.1].max %>% forks on <%= @package.registry %>
-      </span><br>
-    <% end %>
-
-    <% if @package.rankings.present? && @package.rankings['docker_downloads_count'] && @package.docker_downloads_count && @package.docker_downloads_count > 0 && @package.rankings['docker_downloads_count'] < 10.05 %>
-      <span class='badge bg-secondary'>
-        Top <%= [@package.rankings['docker_downloads_count'].round(1), 0.1].max %>% docker downloads on <%= @package.registry %>
-      </span><br>
-    <% end %>
-    </div>
-  <%end %>
-
-  <h2>
-    <%= link_to @registry, registry_packages_path(@registry.name) %> : <%= @package.name %>
-  </h2>
-
-  <p>
-    <%= @package.description_with_fallback %>
-  </p>
-
-  <p>
-    <% if @package.registry_url %>
-      <%= link_to 'Registry', @package.registry_url %>
-    <% end %>
-    <% if sanitize_user_url(@package.repository_url).present? && @package.repository_url != @package.registry_url %>
-      <%= '-' if @package.registry_url %>
-      <%= link_to 'Source', sanitize_user_url(@package.repository_url), :rel => 'nofollow' %>
-    <% end %>
-    <% if sanitize_user_url(@package.homepage).present?  && @package.repository_url != @package.homepage %>
-      - <%= link_to('Homepage', sanitize_user_url(@package.homepage), :rel => 'nofollow') %>
-    <% end %>
-    <% if link = @package.documentation_url %>
-      - <%= link_to 'Documentation', link %>
-    <% end %>
-
-    - <%= link_to 'JSON', api_v1_registry_package_url(@registry, @package)%>
-    - <%= link_to 'codemeta.json', codemeta_api_v1_registry_package_url(@registry, @package)%>
-
-    <br>
-    <%= link_to 'purl', 'https://github.com/package-url/purl-spec', target: :_blank %>: <code><%= @package.purl %></code>
-
-    <% if @package.keywords&.reject(&:blank?)&.any? %>
-      <br/> Keywords: <% @package.keywords.reject(&:blank?).uniq.each_with_index do |k, i| %>
-        <% k = k.first if k.is_a?(Array) %>
-        <%= ', ' if i > 0 %><%= link_to k, keyword_registry_path(@registry.name, k.squish) %>
+<div class="card mb-4">
+  <div class="card-header">
+    <h1 class="h4 mb-0">
+      <code><%= @package.name %></code>
+      <% if @package.status && @package.status != 'active' %>
+        <span class="badge bg-warning ms-2 fs-6"><%= @package.status %></span>
       <% end %>
+    </h1>
+  </div>
+  <div class="card-body">
+    <% if @package.description_with_fallback.present? %>
+      <p class="mb-3"><%= @package.description_with_fallback %></p>
     <% end %>
 
-    <% if @package.normalized_licenses %>
-      <br/>License: <%= @package.normalized_licenses.join(',') %>
-    <% end %>
-
-    <% if @package.status %>
-      <br/>Status: <%= @package.status %>
-    <% end %>
-    <% if @package.latest_release_published_at %>
-        <br><span title="<%= @package.latest_release_published_at %>">Latest release: <%= time_ago_in_words @package.latest_release_published_at %> ago</span>
-    <% end %>
-
-    <% if @package.first_release_published_at %>
-        <br><span title="<%= @package.first_release_published_at %>">First release: <%= time_ago_in_words @package.first_release_published_at %> ago</span>
-    <% end %>
-
-    <% if @package.namespace.present? %>  
-      <br/>Namespace: <%= link_to @package.namespace, registry_namespace_path(@registry.name, @package.namespace) %>
-    <% end %>
-
-    <% if @package.dependent_packages_count && @package.dependent_packages_count > 0 %>  
-      <br/>Dependent packages: <%= number_with_delimiter(@package.dependent_packages_count) %>
-    <% end %>
-
-    <% if @package.dependent_repos_count && @package.dependent_repos_count > 0 %>
-      <br/>Dependent repositories: <%= link_to number_with_delimiter(@package.dependent_repos_count), "https://repos.ecosyste.ms/usage/#{@package.ecosystem}/#{@package.name}", target: :_blank %>
-    <% end %>
-    
-
-    <% if @package.downloads && @package.downloads_period %>
-      <br/>Downloads: <%= number_with_delimiter(@package.downloads) %> <%= download_period(@package.downloads_period) %>
-    <% end %>
-
-    <% if @package.stars %>
-      <br/>Stars: <%= number_with_delimiter(@package.stars) %> on <%= @package.repo_metadata.fetch('host',{})['name'] %>
-    <% end %>
-
-    <% if @package.forks %>
-      <br/>Forks: <%= number_with_delimiter(@package.forks) %> on <%= @package.repo_metadata.fetch('host',{})['name'] %>
-    <% end %>
-
-    <% if @package.docker_dependents_count %>
-      <br/>Docker dependents: <%= link_to number_with_delimiter(@package.docker_dependents_count), @package.docker_usage_url, target: :_blank %>
-      <br/>Docker downloads: <%= link_to number_with_delimiter(@package.docker_downloads_count), @package.docker_usage_url, target: :_blank %>
-    <% end %>
-
-    <% if @package.commit_stats.present? %>
-      <br/>Total Commits: <%= @package.commit_stats['total_commits'] %>
-      <br/>Committers: <%= @package.commit_stats['total_committers'] %>
-      <br/>Average commits per author: <%= @package.commit_stats['mean_commits'].to_f.round(3) %>
-      <br/>Development Distribution Score (<a href='https://report.opensustain.tech/chapters/development-distribution-score.html' target="_blank">DDS</a>): <%= @package.commit_stats['dds'].to_f.round(3) %>
-      <br/>More commit stats: <%= link_to 'commits.ecosyste.ms', @package.commits_url, target: :_blank %>
-    <% end %>
-
-    <% if @package.repos_url %>
-      <br/>See more repository details: <%= link_to 'repos.ecosyste.ms', @package.repos_url, target: :_blank %>
-    <% end %>    
-
-    <% if @package.funding_links.any? %>
-      <br/>Funding links: <% @package.funding_links.each_with_index do |url,i| %><%= ', ' if i > 0 %><%= link_to(url, sanitize_user_url(url), target: :_blank) %><% end %>
-    <% end %>
-
-    <% if @package.last_synced_at %>
-      <br/><span title="<%= @package.last_synced_at %>">Last synced: <%= time_ago_in_words @package.last_synced_at %> ago</span>
-    <% end %>
-  </p>
+    <div class="row">
+      <div class="col-md-4 mb-2">
+        <strong>Ecosystem</strong><br>
+        <span class="badge bg-primary fs-6"><%= @registry.name %></span>
+      </div>
+      <% if @package.latest_release_number %>
+        <div class="col-md-4 mb-2">
+          <strong>Latest Release</strong><br>
+          <code><%= @package.latest_release_number %></code>
+          <% if @package.latest_release_published_at %>
+            <br><small class="text-muted" title="<%= @package.latest_release_published_at %>"><%= time_ago_in_words(@package.latest_release_published_at) %> ago</small>
+          <% end %>
+        </div>
+      <% end %>
+      <div class="col-md-4 mb-2">
+        <strong>Versions</strong><br>
+        <%= number_with_delimiter @package.versions_count %>
+      </div>
+      <% if @package.downloads && @package.downloads_period %>
+        <div class="col-md-4 mb-2">
+          <strong>Downloads</strong><br>
+          <%= number_with_delimiter(@package.downloads) %> <%= download_period(@package.downloads_period) %>
+        </div>
+      <% end %>
+      <% if @package.dependent_packages_count && @package.dependent_packages_count > 0 %>
+        <div class="col-md-4 mb-2">
+          <strong>Dependent Packages</strong><br>
+          <%= number_with_delimiter(@package.dependent_packages_count) %>
+        </div>
+      <% end %>
+      <% if @package.dependent_repos_count && @package.dependent_repos_count > 0 %>
+        <div class="col-md-4 mb-2">
+          <strong>Dependent Repos</strong><br>
+          <%= link_to number_with_delimiter(@package.dependent_repos_count), "https://repos.ecosyste.ms/usage/#{@package.ecosystem}/#{@package.name}", target: :_blank %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

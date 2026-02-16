@@ -1,14 +1,15 @@
-<% @meta_title = "#{params[:id]} registries" %>
-<% @meta_description = "A list of package registries within the #{params[:id]} ecosystem, offering access to essential tools and libraries." %>
+<% @meta_title = "Ecosystems" %>
+<% @meta_description = "Browse all package ecosystems and their registries." %>
 
 <div class="container-sm">
-  <h1 class='mb-3'>
-    <%= params[:id]%> registries
-  </h1>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><%= link_to "Registries", registries_path %></li>
+      <li class="breadcrumb-item active" aria-current="page">Ecosystems</li>
+    </ol>
+  </nav>
 
-  <p class='lead'>
-    A list of package registries within the <%= params[:id] %> ecosystem, offering access to essential tools and libraries.
-  </p>
+  <h1 class="h4 mb-3">Ecosystems</h1>
 
   <%= render @registries %>
 </div>

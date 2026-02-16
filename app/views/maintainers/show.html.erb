@@ -2,42 +2,121 @@
 <% @meta_description = "View the packages maintained by #{@maintainer} on the #{@registry} package registry, including their contributions and dependencies." %>
 
 <div class="container-sm">
-  <h1 class='mb-3'>
-    <%= link_to @registry.name, registry_maintainers_path %> maintainers:
-    <% if @maintainer.html_url.present? %>
-      <%= link_to @maintainer, @maintainer.html_url, target: :_blank %>
-    <% else%>
-      <%= @maintainer %>
-    <% end %>
-  </h1>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><%= link_to "Registries", registries_path %></li>
+      <li class="breadcrumb-item"><%= link_to @registry.name, registry_packages_path(@registry) %></li>
+      <li class="breadcrumb-item"><%= link_to "Maintainers", registry_maintainers_path(@registry) %></li>
+      <li class="breadcrumb-item active" aria-current="page"><%= @maintainer %></li>
+    </ol>
+  </nav>
 
-  <p class='lead'>
-    View the packages maintained by <%= @maintainer %> on the <%= @registry %> package registry, including their contributions and dependencies.
-  </p>
-
-  <ul class="nav nav-tabs my-3">
-    <li class="nav-item">
-      <a class="nav-link active" aria-current="page">
-        Packages
-        <span class="badge bg-secondary rounded-pill">
+  <div class="card mb-4">
+    <div class="card-header">
+      <h1 class="h4 mb-0">
+        <% if @maintainer.html_url.present? %>
+          <%= link_to @maintainer, @maintainer.html_url, target: :_blank, class: 'text-decoration-none' %>
+        <% else %>
+          <%= @maintainer %>
+        <% end %>
+      </h1>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-4 mb-2">
+          <strong>Registry</strong><br>
+          <%= link_to @registry.name, registry_packages_path(@registry) %>
+        </div>
+        <div class="col-md-4 mb-2">
+          <strong>Packages</strong><br>
           <%= number_with_delimiter @maintainer.packages_count %>
-        </span>
-      </a>
-    </li>
-    <% namespaces_count = @maintainer.namespaces.length %>
-    <% if namespaces_count > 0 %>
-      <li class="nav-item">
-        <a class="nav-link" href="<%= namespaces_registry_maintainer_path(@registry, @maintainer) %>">
-          Namespaces
-          <span class="badge bg-secondary rounded-pill">
-            <%= number_with_delimiter namespaces_count %>
-          </span>
-        </a>
-      </li>
-    <% end %>
-    <%= render 'packages/sort' %>
-  </ul>
+        </div>
+        <% if @maintainer.total_downloads && @maintainer.total_downloads > 0 %>
+          <div class="col-md-4 mb-2">
+            <strong>Total Downloads</strong><br>
+            <%= number_with_delimiter @maintainer.total_downloads %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
 
-  <%= render @packages %>
-  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>  
+  <div class="row">
+    <div class="col-lg-8">
+      <%= render 'maintainer_tabs' %>
+
+      <%= render @packages %>
+      <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h6 class="mb-0">Details</h6>
+        </div>
+        <div class="card-body">
+          <table class="table table-sm mb-0">
+            <% if @maintainer.login.present? %>
+              <tr>
+                <td><strong>Login</strong></td>
+                <td><%= @maintainer.login %></td>
+              </tr>
+            <% end %>
+            <% if @maintainer.name.present? && @maintainer.name != @maintainer.login %>
+              <tr>
+                <td><strong>Name</strong></td>
+                <td><%= @maintainer.name %></td>
+              </tr>
+            <% end %>
+            <% if @maintainer.email.present? %>
+              <tr>
+                <td><strong>Email</strong></td>
+                <td><%= @maintainer.email %></td>
+              </tr>
+            <% end %>
+            <% if @maintainer.url.present? %>
+              <tr>
+                <td><strong>URL</strong></td>
+                <td><%= link_to @maintainer.url, @maintainer.url, target: :_blank %></td>
+              </tr>
+            <% end %>
+            <% if @maintainer.html_url.present? %>
+              <tr>
+                <td><strong>Profile</strong></td>
+                <td><%= link_to 'View on ' + @registry.name, @maintainer.html_url, target: :_blank %></td>
+              </tr>
+            <% end %>
+            <% if @maintainer.organization? %>
+              <tr>
+                <td><strong>Type</strong></td>
+                <td>Organization</td>
+              </tr>
+            <% end %>
+          </table>
+        </div>
+      </div>
+
+      <% namespaces = @maintainer.namespaces %>
+      <% if namespaces.any? %>
+        <div class="card mb-4">
+          <div class="card-header">
+            <h6 class="mb-0">Namespaces</h6>
+          </div>
+          <div class="list-group list-group-flush">
+            <% namespaces.first(10).each do |namespace, count| %>
+              <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="<%= registry_namespace_path(@registry.name, namespace) %>">
+                <%= namespace %>
+                <span class="badge bg-primary rounded-pill"><%= count %></span>
+              </a>
+            <% end %>
+            <% if namespaces.length > 10 %>
+              <a class="list-group-item list-group-item-action text-center text-muted" href="<%= namespaces_registry_maintainer_path(@registry, @maintainer) %>">
+                View all <%= namespaces.length %> namespaces
+              </a>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
 </div>

@@ -1,0 +1,32 @@
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item">
+    <% if action_name == 'show' %>
+      <a class="nav-link active" aria-current="page">
+    <% else %>
+      <a class="nav-link" href="<%= registry_maintainer_path(@registry, @maintainer) %>">
+    <% end %>
+      Packages
+      <span class="badge bg-secondary rounded-pill">
+        <%= number_with_delimiter @maintainer.packages_count %>
+      </span>
+    </a>
+  </li>
+  <% namespaces_count = @maintainer.namespaces.length %>
+  <% if namespaces_count > 0 %>
+    <li class="nav-item">
+      <% if action_name == 'namespaces' %>
+        <a class="nav-link active" aria-current="page">
+      <% else %>
+        <a class="nav-link" href="<%= namespaces_registry_maintainer_path(@registry, @maintainer) %>">
+      <% end %>
+        Namespaces
+        <span class="badge bg-secondary rounded-pill">
+          <%= number_with_delimiter namespaces_count %>
+        </span>
+      </a>
+    </li>
+  <% end %>
+  <% if action_name == 'show' %>
+    <%= render 'packages/sort' %>
+  <% end %>
+</ul>

@@ -2,57 +2,58 @@
 <% @meta_description = "View the packages that depend on the #{@package} package on the #{@registry} package registry, including their kind and latest version." %>
 
 <div class="container-sm">
-
   <%= render 'details' %>
 
-  <%= render 'tabs' %>
+  <div class="row">
+    <div class="col-lg-8">
+      <%= render 'tabs' %>
 
-  <% if @dependent_packages.any? %>
-    <div class='row'>
-      <div class='col-md-9'>
+      <% if @dependent_packages.any? %>
         <%= render @dependent_packages %>
-        <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>  
-      </div>
-      <div class='col-md-3'>
-        <div class='card mb-3'>
-          <div class='card-header'>
-            Past Dependents
-          </div>
-          <div class='card-body'>
-            <% latest = params[:latest] == 'false' ? nil : 'false' %>
-            <%= link_to dependent_packages_registry_package_path(@registry, @package, latest: latest, kind: params[:kind]), class: 'text-decoration-none text-dark' do %>
-              <% if latest %>
-                <%= bootstrap_icon "square" %> Include Past Dependents
-              <% else %>
-                <%= bootstrap_icon "check-square-fill" %> Include Past Dependents
-              <% end %>
-            <% end %>
-            <p class="mt-2 mb-0 small text-muted">Check this option to include packages that no longer depend on this package in their latest version but previously did.</p>
-          </div>
+        <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>
+      <% else %>
+        <div class="alert alert-info" role="alert">
+          No dependent packages found.
         </div>
+      <% end %>
+    </div>
 
-        <div class='card'>
-          <div class='card-header'>
-            Filter by kind
-          </div>
-          <div class='list-group list-group-flush'>
-            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center text-break <%= 'active' if params[:kind].blank? %>" href="<%= dependent_packages_registry_package_path(@registry, @package, latest: params[:latest]) %>">
-              All kinds
+    <div class="col-lg-4">
+      <div class='card mb-4'>
+        <div class='card-header'>
+          <h6 class="mb-0">Past Dependents</h6>
+        </div>
+        <div class='card-body'>
+          <% latest = params[:latest] == 'false' ? nil : 'false' %>
+          <%= link_to dependent_packages_registry_package_path(@registry, @package, latest: latest, kind: params[:kind]), class: 'text-decoration-none text-dark' do %>
+            <% if latest %>
+              <%= bootstrap_icon "square" %> Include Past Dependents
+            <% else %>
+              <%= bootstrap_icon "check-square-fill" %> Include Past Dependents
+            <% end %>
+          <% end %>
+          <p class="mt-2 mb-0 small text-muted">Check this option to include packages that no longer depend on this package in their latest version but previously did.</p>
+        </div>
+      </div>
+
+      <div class='card mb-4'>
+        <div class='card-header'>
+          <h6 class="mb-0">Filter by Kind</h6>
+        </div>
+        <div class='list-group list-group-flush'>
+          <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center text-break <%= 'active' if params[:kind].blank? %>" href="<%= dependent_packages_registry_package_path(@registry, @package, latest: params[:latest]) %>">
+            All kinds
+          </a>
+          <% @kinds.sort_by(&:last).reverse.first(100).each do |kind, count| %>
+            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center text-break <%= 'active' if params[:kind] == kind %>" href="<%= dependent_packages_registry_package_path(@registry, @package, kind: kind, latest: params[:latest]) %>">
+              <%= kind %>
+              <span class='badge bg-primary rounded-pill'><%= number_with_delimiter count %></span>
             </a>
-            <% @kinds.sort_by(&:last).reverse.first(100).each do |kind, count| %>
-              <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center text-break <%= 'active' if params[:kind] == kind %>" href="<%= dependent_packages_registry_package_path(@registry, @package, kind: kind, latest: params[:latest]) %>">
-                <%= kind %>
-                <span class='badge bg-primary rounded-pill'><%= number_with_delimiter count %></span>
-              </a>
-            <% end %>
-          </div>
+          <% end %>
         </div>
       </div>
-    </div>
-  <% else %>
-    <div class="alert alert-info" role="alert">
-      No dependent packages found.
-    </div>
-  <% end %>
-</div>
 
+      <%= render 'sidebar' %>
+    </div>
+  </div>
+</div>

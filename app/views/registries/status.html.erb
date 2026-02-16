@@ -2,35 +2,63 @@
 <% @meta_description = "View the status of all registries, including the number of packages, active packages, and outdated packages." %>
 
 <div class="container-sm">
-  <h1 class='mb-3'>Registry Statuses</h1>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><%= link_to "Registries", registries_path %></li>
+      <li class="breadcrumb-item active" aria-current="page">Status</li>
+    </ol>
+  </nav>
 
-  <p class='lead'>
-    View the status of all registries, including the number of packages, active packages, and outdated packages.
-  </p>
+  <h1 class="h4 mb-4">Registry Statuses</h1>
 
-  Total registries: <%= number_with_delimiter @registries.length %><br/>
-  Total packages: <%= number_with_delimiter @registries.sum(&:packages_count) %><br/>
-  Total active packages: <%= number_with_delimiter @registries.sum(&:active_packages_count) %><br/>
-  Outdated registries: <%= number_with_delimiter @registries.length %> (<%= (@registries.length / @registries.length.to_f * 100).round(2) %>%)<br/>
-  Total outdated packages: <%= number_with_delimiter @registries.sum(&:outdated_packages_count) %> (<%= (@registries.sum(&:outdated_packages_count).to_f/@registries.sum(&:active_packages_count)*100).round(2) %>%)<br/>
-  <br/><br/>
+  <div class="row mb-4">
+    <div class="col-md-3 col-6 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h4 class="card-title text-primary mb-1"><%= number_with_delimiter @registries.length %></h4>
+          <p class="card-text small text-muted mb-0">Registries</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h4 class="card-title text-success mb-1"><%= number_with_delimiter @registries.sum(&:packages_count) %></h4>
+          <p class="card-text small text-muted mb-0">Total Packages</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h4 class="card-title text-info mb-1"><%= number_with_delimiter @registries.sum(&:active_packages_count) %></h4>
+          <p class="card-text small text-muted mb-0">Active Packages</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h4 class="card-title text-warning mb-1"><%= number_with_delimiter @registries.sum(&:outdated_packages_count) %> (<%= (@registries.sum(&:outdated_packages_count).to_f / @registries.sum(&:active_packages_count) * 100).round(1) %>%)</h4>
+          <p class="card-text small text-muted mb-0">Outdated Packages</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <% @registries.each do |registry|%>
+  <% @registries.each do |registry| %>
     <div class="card mb-3 d-flex" id="registry_<%= registry.id %>">
       <div class="card-body pb-1">
         <div class="d-flex">
-          
           <div class="flex-grow-1 ms-3 text-break">
             <h5 class='card-title'>
               <%= link_to registry, registry_packages_path(registry.name) %>
             </h5>
-          
             <p class="card-subtitle mb-2 text-muted">
               <%= number_with_delimiter registry.packages_count %> packages<br/>
               Active: <%= number_with_delimiter registry.active_packages_count %> packages<br/>
-              Outdated: <%= number_with_delimiter registry.outdated_packages_count %> packages (<%= registry.outdated_percentage.round(2) %>%) <br/>
+              Outdated: <%= number_with_delimiter registry.outdated_packages_count %> packages (<%= registry.outdated_percentage.round(2) %>%)
             </p>
-
             <% if registry.outdated_packages_count > 0 && registry.least_recently_synced_package.present? %>
               <p class="card-subtitle mb-2 text-muted">
                 Least recently synced package: <%= link_to registry.least_recently_synced_package.name, [registry, registry.least_recently_synced_package] %> <span title='<%= registry.least_recently_synced_package.last_synced_at %>'>(<%= time_ago_in_words(registry.least_recently_synced_package.last_synced_at) %> ago)</span>
@@ -39,10 +67,9 @@
           </div>
           <div class="flex-shrink-0">
             <img src="<%= registry.icon_url %>" class="rounded" height='40' width='40' onerror="this.style.display='none'">
-          </div>  
+          </div>
         </div>
       </div>
     </div>
-
   <% end %>
 </div>

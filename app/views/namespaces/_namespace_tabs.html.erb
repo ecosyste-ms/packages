@@ -1,0 +1,34 @@
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item">
+    <% if action_name == 'show' %>
+      <a class="nav-link active" aria-current="page">
+    <% else %>
+      <a class="nav-link" href="<%= registry_namespace_path(@registry, @namespace) %>">
+    <% end %>
+      Packages
+      <% if action_name == 'show' || action_name == 'maintainers' %>
+        <span class="badge bg-secondary rounded-pill">
+          <%= number_with_delimiter @registry.packages.namespace(@namespace).count %>
+        </span>
+      <% end %>
+    </a>
+  </li>
+  <% maintainers_count = @registry.namespace_maintainers(@namespace).length %>
+  <% if maintainers_count > 0 %>
+    <li class="nav-item">
+      <% if action_name == 'maintainers' %>
+        <a class="nav-link active" aria-current="page">
+      <% else %>
+        <a class="nav-link" href="<%= maintainers_registry_namespace_path(@registry, @namespace) %>">
+      <% end %>
+        Maintainers
+        <span class="badge bg-secondary rounded-pill">
+          <%= number_with_delimiter maintainers_count %>
+        </span>
+      </a>
+    </li>
+  <% end %>
+  <% if action_name == 'show' %>
+    <%= render 'packages/sort' %>
+  <% end %>
+</ul>
