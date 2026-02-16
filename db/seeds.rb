@@ -123,6 +123,16 @@ nixpkgs_registries.each do |data|
   r.save
 end
 
+r = Registry.find_or_initialize_by(url: 'https://guix.gnu.org')
+r.assign_attributes(
+  name: 'guix',
+  url: 'https://guix.gnu.org',
+  ecosystem: 'guix',
+  github: 'guix-mirror',
+  default: true
+)
+r.save
+
 ubuntu_registries = []
 # Ubuntu LTS and current releases - https://releases.ubuntu.com/
 ubuntu_releases = [
