@@ -2,41 +2,20 @@
 <% @meta_description = "View the namespaces maintained by #{@maintainer} on the #{@registry} package registry, including their packages and contributions." %>
 
 <div class="container-sm">
-  <h1 class='mb-3'>
-    <%= link_to @registry.name, registry_maintainers_path %> maintainers:
-    <% if @maintainer.html_url.present? %>
-      <%= link_to @maintainer, @maintainer.html_url, target: :_blank %>
-    <% else%>
-      <%= @maintainer %>
-    <% end %>
-  </h1>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><%= link_to "Registries", registries_path %></li>
+      <li class="breadcrumb-item"><%= link_to @registry.name, registry_packages_path(@registry) %></li>
+      <li class="breadcrumb-item"><%= link_to "Maintainers", registry_maintainers_path(@registry) %></li>
+      <li class="breadcrumb-item"><%= link_to @maintainer.to_s, registry_maintainer_path(@registry, @maintainer) %></li>
+      <li class="breadcrumb-item active" aria-current="page">Namespaces</li>
+    </ol>
+  </nav>
 
-  <p class='lead'>
-    View the namespaces maintained by <%= @maintainer %> on the <%= @registry %> package registry, including their packages and contributions.
-  </p>
+  <h1 class="h4 mb-3"><%= @maintainer %> namespaces</h1>
 
-  <ul class="nav nav-tabs my-3">
-    <li class="nav-item">
-      <a class="nav-link" href="<%= registry_maintainer_path(@registry, @maintainer) %>">
-        Packages
-        <span class="badge bg-secondary rounded-pill">
-          <%= number_with_delimiter @maintainer.packages_count %>
-        </span>
-      </a>
-    </li>
-    <% namespaces_count = @maintainer.namespaces.length %>
-    <% if namespaces_count > 0 %>
-      <li class="nav-item">
-        <a class="nav-link active" aria-current="page">
-          Namespaces
-          <span class="badge bg-secondary rounded-pill">
-            <%= number_with_delimiter namespaces_count %>
-          </span>
-        </a>
-      </li>
-    <% end %>
-  </ul>
+  <%= render 'maintainer_tabs' %>
 
   <%= render collection: @namespaces, partial: 'namespaces/namespace' %>
-  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>  
+  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>
 </div>

@@ -2,34 +2,19 @@
 <% @meta_description = "View the packages within the #{@namespace} namespace on the #{@registry} package registry, including their maintainers and dependencies." %>
 
 <div class="container-sm">
-  <h1 class='mb-3'>
-    <%= link_to @registry.name, registry_namespaces_path %> namespaces: <%= @namespace %>
-  </h1>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><%= link_to "Registries", registries_path %></li>
+      <li class="breadcrumb-item"><%= link_to @registry.name, registry_packages_path(@registry) %></li>
+      <li class="breadcrumb-item"><%= link_to "Namespaces", registry_namespaces_path(@registry) %></li>
+      <li class="breadcrumb-item active" aria-current="page"><%= @namespace %></li>
+    </ol>
+  </nav>
 
-  <p class='lead'>
-    View the packages within the <%= @namespace %> namespace on the <%= @registry %> package registry, including their maintainers and dependencies.
-  </p>
+  <h1 class="h4 mb-3"><%= @namespace %></h1>
 
-  <ul class="nav nav-tabs my-3">
-    <li class="nav-item">
-      <a class="nav-link active" aria-current="page">
-        Packages
-      </a>
-    </li>
-    <% maintainers_count = @registry.namespace_maintainers(@namespace).length %>
-    <% if maintainers_count > 0 %>
-      <li class="nav-item">
-        <a class="nav-link" href="<%= maintainers_registry_namespace_path(@registry, @namespace) %>">
-          Maintainers
-          <span class="badge bg-secondary rounded-pill">
-            <%= number_with_delimiter maintainers_count %>
-          </span>
-        </a>
-      </li>
-    <% end %>
-    <%= render 'packages/sort' %>
-  </ul>
+  <%= render 'namespace_tabs' %>
 
   <%= render @packages %>
-  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>  
+  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>
 </div>

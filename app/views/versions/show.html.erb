@@ -7,76 +7,172 @@
 <% end %>
 
 <div class="container-sm">
-  <h2><%= link_to @registry.name, registry_packages_path(@registry.name) %> : <%= link_to @package.name, registry_package_path(@registry.name, @package.name) %> : <%= @version.number %></h2>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><%= link_to "Registries", registries_path %></li>
+      <li class="breadcrumb-item"><%= link_to @registry.name, registry_packages_path(@registry.name) %></li>
+      <li class="breadcrumb-item"><%= link_to @package.name, registry_package_path(@registry.name, @package.name) %></li>
+      <li class="breadcrumb-item active" aria-current="page"><%= @version.number %></li>
+    </ol>
+  </nav>
 
-  <p>
-    <%= @package.description_with_fallback %>
-  </p>
-
-  <p>
-    <% if @version.registry_url.present? %>
-      <%= link_to 'Registry', @version.registry_url, target: :_blank %> - 
-    <% end %>
-    <% if @version.documentation_url.present? %>
-      <%= link_to 'Documentation', @version.documentation_url, target: :_blank %> - 
-    <% end %>
-    <% if @version.download_url.present? %>
-      <%= link_to 'Download', @version.download_url, target: :_blank %> -
-    <% end %>
-    <%= link_to 'JSON', api_v1_registry_package_version_url(@registry, @package, @version)%> -
-    <%= link_to 'codemeta.json', codemeta_api_v1_registry_package_version_url(@registry, @package, @version)%>
-    <% if @version.integrity.present? %>
-      <br>Integrity: <span title='<%= @version.integrity %>'><%= truncate(@version.integrity) %> -
-    <% end %>
-    <br>
-    <%= link_to 'purl', 'https://github.com/package-url/purl-spec', target: :_blank %>: <code><%= @version.purl %></code>
-    <br>Published: <time datetime="<%= @version.published_at %>"><%= time_ago_in_words @version.published_at %> ago</time>
-    <br>Indexed: <time datetime="<%= @version.created_at %>"><%= time_ago_in_words @version.created_at %> ago</time>
-    <% if @version.related_tag %>
-      <br>Related tag:
-      <% if @version.related_tag["html_url"] %>
-        <%= link_to @version.related_tag["name"], @version.related_tag["html_url"] %>
-      <% else %>
-        <%= @version.related_tag["name"] %>
+  <div class="card mb-4">
+    <div class="card-header">
+      <h1 class="h4 mb-0">
+        <code><%= @package.name %></code>
+        <span class="text-muted">@</span>
+        <code><%= @version.number %></code>
+      </h1>
+    </div>
+    <div class="card-body">
+      <% if @package.description_with_fallback.present? %>
+        <p class="mb-3"><%= @package.description_with_fallback %></p>
       <% end %>
-    <% end %>
-  </p>
 
-  <% if @version.download_url.present? %>
-    <div class='card' id="files" data-url="<%= @version.download_url %>" data-basename="Files" data-path="<%= params[:path] %>">
-      <div id='files-header' class="card-header"></div>
-      <ul id="files-list" class="list-group list-group-flush"></ul>
-      <div id="files-content" class="card-body">Loading...</div>
-    </div>
-  
-    <div class='card mt-3' id="readme" data-url="<%= @version.download_url %>">
-      <div id='readme-header' class="card-header">Readme</div>
-      <div id="readme-content" class="card-body">Loading...</div>
-    </div>
-  
-  <% end %>
-
-
-
-  <% if @version.dependencies.any? %>
-      <div class="card my-3">
-        <div class="card-header">Dependencies</div>
-        <ul class="list-group list-group-flush">
-          <% @version.dependencies.sort_by{|d| [d.kind.to_s, d.package_name.to_s]}.each do |dependency| %>
-            <li class="list-group-item">
-              <%= link_to dependency.package_name, registry_package_path(@registry.name, dependency.package_name) %>
-              <i><%= dependency.requirements %></i>
-              <small class='text-muted'>
-              <% if dependency.kind != 'runtime' %>
-                <%= dependency.kind %>
-              <% end %>
-              <% if dependency.optional %>
-                (optional)
-              <% end %>
-              </small>
-            </li>
-          <% end %>
-        </ul>
+      <div class="row">
+        <div class="col-md-4 mb-2">
+          <strong>Published</strong><br>
+          <time datetime="<%= @version.published_at %>" title="<%= @version.published_at %>"><%= time_ago_in_words @version.published_at %> ago</time>
+        </div>
+        <div class="col-md-4 mb-2">
+          <strong>Indexed</strong><br>
+          <time datetime="<%= @version.created_at %>" title="<%= @version.created_at %>"><%= time_ago_in_words @version.created_at %> ago</time>
+        </div>
+        <% if @version.dependencies.any? %>
+          <div class="col-md-4 mb-2">
+            <strong>Dependencies</strong><br>
+            <%= @version.dependencies.size %>
+          </div>
+        <% end %>
       </div>
-  <% end %>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <% if @version.download_url.present? %>
+        <div class='card' id="files" data-url="<%= @version.download_url %>" data-basename="Files" data-path="<%= params[:path] %>">
+          <div id='files-header' class="card-header"></div>
+          <ul id="files-list" class="list-group list-group-flush"></ul>
+          <div id="files-content" class="card-body">Loading...</div>
+        </div>
+
+        <div class='card mt-3' id="readme" data-url="<%= @version.download_url %>">
+          <div id='readme-header' class="card-header">Readme</div>
+          <div id="readme-content" class="card-body">Loading...</div>
+        </div>
+      <% end %>
+
+      <% if @version.dependencies.any? %>
+        <div class="card mt-3">
+          <div class="card-header">
+            <h6 class="mb-0">Dependencies</h6>
+          </div>
+          <ul class="list-group list-group-flush">
+            <% @version.dependencies.sort_by{ |d| [d.kind.to_s, d.package_name.to_s] }.each do |dependency| %>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <%= link_to dependency.package_name, registry_package_path(@registry.name, dependency.package_name) %>
+                  <code class="ms-1"><%= dependency.requirements %></code>
+                </div>
+                <div>
+                  <% if dependency.kind != 'runtime' %>
+                    <span class="badge bg-secondary"><%= dependency.kind %></span>
+                  <% end %>
+                  <% if dependency.optional %>
+                    <span class="badge bg-warning">optional</span>
+                  <% end %>
+                </div>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h6 class="mb-0">Links</h6>
+        </div>
+        <div class="card-body">
+          <table class="table table-sm mb-0">
+            <% if @version.registry_url.present? %>
+              <tr>
+                <td><strong>Registry</strong></td>
+                <td><%= link_to @registry.name, @version.registry_url, target: :_blank %></td>
+              </tr>
+            <% end %>
+            <% if @version.documentation_url.present? %>
+              <tr>
+                <td><strong>Docs</strong></td>
+                <td><%= link_to 'Documentation', @version.documentation_url, target: :_blank %></td>
+              </tr>
+            <% end %>
+            <% if @version.download_url.present? %>
+              <tr>
+                <td><strong>Download</strong></td>
+                <td><%= link_to 'Download', @version.download_url, target: :_blank %></td>
+              </tr>
+            <% end %>
+            <tr>
+              <td><strong>JSON API</strong></td>
+              <td><%= link_to 'View JSON', api_v1_registry_package_version_url(@registry, @package, @version), target: :_blank %></td>
+            </tr>
+            <tr>
+              <td><strong>CodeMeta</strong></td>
+              <td><%= link_to 'codemeta.json', codemeta_api_v1_registry_package_version_url(@registry, @package, @version), target: :_blank %></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <h6 class="mb-0">Version Details</h6>
+        </div>
+        <div class="card-body">
+          <table class="table table-sm mb-0">
+            <tr>
+              <td><strong>PURL</strong></td>
+              <td>
+                <code><%= @version.purl %></code>
+                <br><small><%= link_to 'spec', 'https://github.com/package-url/purl-spec', target: :_blank %></small>
+              </td>
+            </tr>
+            <% if @version.licenses.present? %>
+              <tr>
+                <td><strong>License</strong></td>
+                <td><%= @version.licenses %></td>
+              </tr>
+            <% end %>
+            <% if @version.integrity.present? %>
+              <tr>
+                <td><strong>Integrity</strong></td>
+                <td><code title="<%= @version.integrity %>"><%= truncate(@version.integrity, length: 30) %></code></td>
+              </tr>
+            <% end %>
+            <% if @version.related_tag %>
+              <tr>
+                <td><strong>Tag</strong></td>
+                <td>
+                  <% if @version.related_tag["html_url"] %>
+                    <%= link_to @version.related_tag["name"], @version.related_tag["html_url"], target: :_blank %>
+                  <% else %>
+                    <%= @version.related_tag["name"] %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+            <% if @version.status.present? %>
+              <tr>
+                <td><strong>Status</strong></td>
+                <td><%= @version.status %></td>
+              </tr>
+            <% end %>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

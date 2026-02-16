@@ -2,18 +2,24 @@
 <% @meta_description = "View the maintainers of the #{@package.name} package on the #{@registry.name} package registry, including their contact information and contributions." %>
 
 <div class="container-sm">
-
   <%= render 'details' %>
 
-  <%= render 'tabs' %>
+  <div class="row">
+    <div class="col-lg-8">
+      <%= render 'tabs' %>
 
-  <% if @maintainers.any? %>
-    <%= render @maintainers %>
-    <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>  
-  <% else %>
-    <div class="alert alert-info" role="alert">
-      No maintainers found.
+      <% if @maintainers.any? %>
+        <%= render @maintainers %>
+        <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>
+      <% else %>
+        <div class="alert alert-info" role="alert">
+          No maintainers found.
+        </div>
+      <% end %>
     </div>
-  <% end %>
 
+    <div class="col-lg-4">
+      <%= render 'sidebar' %>
+    </div>
+  </div>
 </div>

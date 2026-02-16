@@ -1,17 +1,28 @@
 <% @meta_title = "#{params[:id]} registries" %>
-<% @meta_description = "A list of package registries within the #{params[:id]} ecosystem, offering access to essential tools and libraries." %>
+<% @meta_description = "A list of package registries within the #{params[:id]} ecosystem." %>
 
 <div class="container-sm">
-  <h1 class='mb-3'>
-    <%= params[:id]%> registries
-  </h1>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><%= link_to "Registries", registries_path %></li>
+      <li class="breadcrumb-item"><%= link_to "Ecosystems", ecosystems_path %></li>
+      <li class="breadcrumb-item active" aria-current="page"><%= params[:id] %></li>
+    </ol>
+  </nav>
 
-  <p class='lead'>
-    A list of package registries within the <%= params[:id] %> ecosystem, offering access to essential tools and libraries.
-  </p>
+  <h1 class="h4 mb-3"><%= params[:id] %> registries</h1>
 
-  <h4 class='mb-3'>Total packages indexed: <%= number_with_delimiter @registries.sum(&:packages_count) %></h4>
-  
+  <div class="row mb-3">
+    <div class="col-md-4 col-6">
+      <div class="card text-center">
+        <div class="card-body">
+          <h4 class="card-title text-primary mb-1"><%= number_with_delimiter @registries.sum(&:packages_count) %></h4>
+          <p class="card-text small text-muted mb-0">Total Packages</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class='row'>
     <%= render @registries %>
   </div>

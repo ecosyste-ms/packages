@@ -1,0 +1,197 @@
+<div class="card mb-4">
+  <div class="card-header">
+    <h6 class="mb-0">Links</h6>
+  </div>
+  <div class="card-body">
+    <table class="table table-sm mb-0">
+      <% if @package.registry_url %>
+        <tr>
+          <td><strong>Registry</strong></td>
+          <td><%= link_to @registry.name, @package.registry_url, target: :_blank %></td>
+        </tr>
+      <% end %>
+      <% if sanitize_user_url(@package.repository_url).present? && @package.repository_url != @package.registry_url %>
+        <tr>
+          <td><strong>Source</strong></td>
+          <td><%= link_to 'Repository', sanitize_user_url(@package.repository_url), rel: 'nofollow', target: :_blank %></td>
+        </tr>
+      <% end %>
+      <% if sanitize_user_url(@package.homepage).present? && @package.repository_url != @package.homepage %>
+        <tr>
+          <td><strong>Homepage</strong></td>
+          <td><%= link_to 'Homepage', sanitize_user_url(@package.homepage), rel: 'nofollow', target: :_blank %></td>
+        </tr>
+      <% end %>
+      <% if link = @package.documentation_url %>
+        <tr>
+          <td><strong>Docs</strong></td>
+          <td><%= link_to 'Documentation', link, target: :_blank %></td>
+        </tr>
+      <% end %>
+      <tr>
+        <td><strong>JSON API</strong></td>
+        <td><%= link_to 'View JSON', api_v1_registry_package_url(@registry, @package), target: :_blank %></td>
+      </tr>
+      <tr>
+        <td><strong>CodeMeta</strong></td>
+        <td><%= link_to 'codemeta.json', codemeta_api_v1_registry_package_url(@registry, @package), target: :_blank %></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header">
+    <h6 class="mb-0">Package Details</h6>
+  </div>
+  <div class="card-body">
+    <table class="table table-sm mb-0">
+      <tr>
+        <td><strong>PURL</strong></td>
+        <td>
+          <code><%= @package.purl %></code>
+          <br><small><%= link_to 'spec', 'https://github.com/package-url/purl-spec', target: :_blank %></small>
+        </td>
+      </tr>
+      <% if @package.normalized_licenses %>
+        <tr>
+          <td><strong>License</strong></td>
+          <td><%= @package.normalized_licenses.join(', ') %></td>
+        </tr>
+      <% end %>
+      <% if @package.namespace.present? %>
+        <tr>
+          <td><strong>Namespace</strong></td>
+          <td><%= link_to @package.namespace, registry_namespace_path(@registry.name, @package.namespace) %></td>
+        </tr>
+      <% end %>
+      <% if @package.first_release_published_at %>
+        <tr>
+          <td><strong>First Release</strong></td>
+          <td><span title="<%= @package.first_release_published_at %>"><%= time_ago_in_words @package.first_release_published_at %> ago</span></td>
+        </tr>
+      <% end %>
+      <% if @package.last_synced_at %>
+        <tr>
+          <td><strong>Last Synced</strong></td>
+          <td><span title="<%= @package.last_synced_at %>"><%= time_ago_in_words @package.last_synced_at %> ago</span></td>
+        </tr>
+      <% end %>
+    </table>
+
+    <% if @package.keywords&.reject(&:blank?)&.any? %>
+      <div class="mt-3">
+        <strong>Keywords</strong><br>
+        <% @package.keywords.reject(&:blank?).uniq.each do |k| %>
+          <% k = k.first if k.is_a?(Array) %>
+          <%= link_to k, keyword_registry_path(@registry.name, k.squish), class: 'badge bg-secondary text-decoration-none me-1 mb-1' %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<% if @package.stars || @package.forks || (@package.docker_dependents_count && @package.docker_dependents_count > 0) %>
+  <div class="card mb-4">
+    <div class="card-header">
+      <h6 class="mb-0">Repository</h6>
+    </div>
+    <div class="card-body">
+      <table class="table table-sm mb-0">
+        <% if @package.stars %>
+          <tr>
+            <td><strong>Stars</strong></td>
+            <td><%= number_with_delimiter(@package.stars) %> on <%= @package.repo_metadata.fetch('host',{})['name'] %></td>
+          </tr>
+        <% end %>
+        <% if @package.forks %>
+          <tr>
+            <td><strong>Forks</strong></td>
+            <td><%= number_with_delimiter(@package.forks) %> on <%= @package.repo_metadata.fetch('host',{})['name'] %></td>
+          </tr>
+        <% end %>
+        <% if @package.docker_dependents_count && @package.docker_dependents_count > 0 %>
+          <tr>
+            <td><strong>Docker Dependents</strong></td>
+            <td><%= link_to number_with_delimiter(@package.docker_dependents_count), @package.docker_usage_url, target: :_blank %></td>
+          </tr>
+          <tr>
+            <td><strong>Docker Downloads</strong></td>
+            <td><%= link_to number_with_delimiter(@package.docker_downloads_count), @package.docker_usage_url, target: :_blank %></td>
+          </tr>
+        <% end %>
+        <% if @package.commit_stats.present? %>
+          <tr>
+            <td><strong>Commits</strong></td>
+            <td><%= @package.commit_stats['total_commits'] %></td>
+          </tr>
+          <tr>
+            <td><strong>Committers</strong></td>
+            <td><%= @package.commit_stats['total_committers'] %></td>
+          </tr>
+          <tr>
+            <td><strong>Avg per Author</strong></td>
+            <td><%= @package.commit_stats['mean_commits'].to_f.round(3) %></td>
+          </tr>
+          <tr>
+            <td><strong><%= link_to 'DDS', 'https://report.opensustain.tech/chapters/development-distribution-score.html', target: "_blank" %></strong></td>
+            <td><%= @package.commit_stats['dds'].to_f.round(3) %></td>
+          </tr>
+        <% end %>
+      </table>
+      <% if @package.commit_stats.present? %>
+        <div class="mt-2">
+          <%= link_to 'commits.ecosyste.ms', @package.commits_url, target: :_blank, class: 'small' %>
+        </div>
+      <% end %>
+      <% if @package.repos_url %>
+        <div class="mt-2">
+          <%= link_to 'repos.ecosyste.ms', @package.repos_url, target: :_blank, class: 'btn btn-outline-secondary btn-sm w-100' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<% if @package.rankings.present? %>
+  <%
+    ranking_items = []
+    ranking_items << { label: "Overall", value: [@package.rankings['average'].round(1), 0.1].max } if @package.rankings['average'] && @package.rankings['average'] < 10.05
+    ranking_items << { label: "Downloads", value: [@package.rankings['downloads'].round(1), 0.1].max } if @package.downloads && @package.downloads > 0 && @package.rankings['downloads'] && @package.rankings['downloads'] < 10.05
+    ranking_items << { label: "Dependent packages", value: [@package.rankings['dependent_packages_count'].round(1), 0.1].max } if @package.dependent_packages_count && @package.dependent_packages_count > 0 && @package.rankings['dependent_packages_count'] && @package.rankings['dependent_packages_count'] < 10.05
+    ranking_items << { label: "Dependent repos", value: [@package.rankings['dependent_repos_count'].round(1), 0.1].max } if @package.dependent_repos_count && @package.dependent_repos_count > 0 && @package.rankings['dependent_repos_count'] && @package.rankings['dependent_repos_count'] < 10.05
+    ranking_items << { label: "Stars", value: [@package.rankings['stars_count'].round(1), 0.1].max } if @package.rankings['stars_count'] && @package.stars && @package.stars > 0 && @package.rankings['stars_count'] < 10.05
+    ranking_items << { label: "Forks", value: [@package.rankings['forks_count'].round(1), 0.1].max } if @package.rankings['forks_count'] && @package.forks && @package.forks > 0 && @package.rankings['forks_count'] < 10.05
+    ranking_items << { label: "Docker downloads", value: [@package.rankings['docker_downloads_count'].round(1), 0.1].max } if @package.rankings['docker_downloads_count'] && @package.docker_downloads_count && @package.docker_downloads_count > 0 && @package.rankings['docker_downloads_count'] < 10.05
+  %>
+  <% if ranking_items.any? %>
+    <div class="card mb-4">
+      <div class="card-header">
+        <h6 class="mb-0">Rankings on <%= @package.registry %></h6>
+      </div>
+      <div class="card-body">
+        <% ranking_items.each do |item| %>
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span><%= item[:label] %></span>
+            <span class="badge bg-secondary">Top <%= item[:value] %>%</span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+<% end %>
+
+<% if @package.funding_links.any? %>
+  <div class="card mb-4">
+    <div class="card-header">
+      <h6 class="mb-0">Funding</h6>
+    </div>
+    <div class="card-body">
+      <% @package.funding_links.each do |url| %>
+        <div class="mb-1">
+          <%= link_to url, sanitize_user_url(url), target: :_blank, class: 'small text-break' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>

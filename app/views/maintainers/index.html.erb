@@ -2,56 +2,20 @@
 <% @meta_description = "View the maintainers of the #{@registry} package registry, including their contact information and contributions." %>
 
 <div class="container-sm">
-  <h1 class='mb-3'>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><%= link_to "Registries", registries_path %></li>
+      <li class="breadcrumb-item"><%= link_to @registry.name, registry_packages_path(@registry) %></li>
+      <li class="breadcrumb-item active" aria-current="page">Maintainers</li>
+    </ol>
+  </nav>
+
+  <h1 class='h4 mb-3'>
     <%= @registry %> maintainers
   </h1>
 
-  <p class='lead'>
-    View the maintainers of the <%= @registry %> package registry, including their contact information and contributions.
-  </p>
-
-    <ul class="nav nav-tabs my-3">
-    <li class="nav-item">
-      <a class="nav-link" href="<%= registry_packages_path(@registry) %>">
-        Packages
-        <span class="badge bg-secondary rounded-pill">
-          <%= number_with_delimiter @registry.packages_count %>
-        </span>
-      </a>
-    </li>
-    <% if @registry.maintainers_count > 0 %>
-      <li class="nav-item">
-        <a class="nav-link active" aria-current="page">
-          Maintainers
-          <span class="badge bg-secondary rounded-pill">
-            <%= number_with_delimiter @registry.maintainers_count %>
-          </span>
-        </a>
-      </li>
-    <% end %>
-    <% if @registry.namespaces_count > 0 %>
-      <li class="nav-item">
-        <a class="nav-link" href="<%= registry_namespaces_path(@registry) %>">
-          Namespaces
-          <span class="badge bg-secondary rounded-pill">
-            <%= number_with_delimiter @registry.namespaces_count %>
-          </span>
-        </a>
-      </li>
-    <% end %>
-    <% if @registry.keywords_count > 0 %>
-      <li class="nav-item">
-        <a class="nav-link" href="<%= keywords_registry_path(@registry) %>">
-          Keywords
-          <span class="badge bg-secondary rounded-pill">
-            <%= number_with_delimiter @registry.keywords_count %>
-          </span>
-        </a>
-      </li>
-    <% end %>
-    <%= render 'sort' %>
-  </ul>
+  <%= render 'registries/tabs' %>
 
   <%= render @maintainers %>
-  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>  
+  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>
 </div>

@@ -2,38 +2,43 @@
 <% @meta_description = "View the security advisories for the #{@package} package on the #{@registry} package registry, including their severity and publication date." %>
 
 <div class="container-sm">
-
   <%= render 'details' %>
 
-  <%= render 'tabs' %>
+  <div class="row">
+    <div class="col-lg-8">
+      <%= render 'tabs' %>
 
-  <% @package.advisories.each do |advisory| %>
+      <% @package.advisories.each do |advisory| %>
+        <div class="card mb-3">
+          <div class="card-body">
+            <% if advisory['severity'] %>
+              <small class='badge bg-<%= severity_class(advisory['severity']) %> float-end'>
+                <%= advisory['severity'].humanize %>
+              </small>
+            <% end %>
+            <h5 class="card-title">
+              <%= link_to advisory['uuid'], "https://advisories.ecosyste.ms/advisories/" + advisory['uuid'] %>
+            </h5>
 
-    <div class="card mb-3">
-      <div class="card-body">
-        <% if advisory['severity'] %>
-          <small class='badge bg-<%= severity_class(advisory['severity']) %> float-end'>
-            <%= advisory['severity'].humanize %>
-          </small>
-        <% end %>
-        <h5 class="card-title">
-          <%= link_to advisory['uuid'], "https://advisories.ecosyste.ms/advisories/" + advisory['uuid'] %>
-        </h5>
+            <%= advisory['title'] %><br>
 
-        <%= advisory['title'] %><br>
-
-        <small class='text-muted'>
-          Ecosystems: <%= advisory['packages'].map{|p| p['ecosystem'] }.uniq.join(', ') %><br>
-          Packages: <%= advisory['packages'].map{|p| p['package_name'] }.uniq.join(', ') %><br>
-          Source: <%= advisory['source_kind'] %><br>
-          <span title="<%= advisory['published_at'] %>">Published: <%= time_ago_in_words advisory['published_at'] %> ago</span>
-          <% if advisory['withdrawn_at'] %>
-            <br>
-            <span title="<%= advisory['withdrawn_at'] %>">Withdrawn: <%= time_ago_in_words advisory['withdrawn_at'] %> ago</span>
-          <% end %>
-        </small>
-      </div>
+            <small class='text-muted'>
+              Ecosystems: <%= advisory['packages'].map{|p| p['ecosystem'] }.uniq.join(', ') %><br>
+              Packages: <%= advisory['packages'].map{|p| p['package_name'] }.uniq.join(', ') %><br>
+              Source: <%= advisory['source_kind'] %><br>
+              <span title="<%= advisory['published_at'] %>">Published: <%= time_ago_in_words advisory['published_at'] %> ago</span>
+              <% if advisory['withdrawn_at'] %>
+                <br>
+                <span title="<%= advisory['withdrawn_at'] %>">Withdrawn: <%= time_ago_in_words advisory['withdrawn_at'] %> ago</span>
+              <% end %>
+            </small>
+          </div>
+        </div>
+      <% end %>
     </div>
-  <% end %>
 
+    <div class="col-lg-4">
+      <%= render 'sidebar' %>
+    </div>
+  </div>
 </div>

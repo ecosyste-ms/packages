@@ -1,14 +1,15 @@
 <% @meta_title = "Keywords" %>
-<% @meta_description = "Explore a comprehensive list of all keywords used to categorize and discover packages within the ecosystem." %>
+<% @meta_description = "Explore keywords used to categorize and discover packages across all registries." %>
 
 <div class="container-sm">
-  <h2>
-    Keywords
-  </h2>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><%= link_to "Registries", registries_path %></li>
+      <li class="breadcrumb-item active" aria-current="page">Keywords</li>
+    </ol>
+  </nav>
 
-  <p class='lead'>
-    Explore a comprehensive list of all keywords used to categorize and discover packages within the ecosystem.
-  </p>
+  <h1 class="h4 mb-3">Keywords</h1>
 
   <div class="row">
     <% @keywords.each do |keyword, count| %>
@@ -27,5 +28,5 @@
       </div>
     <% end %>
   </div>
-  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>  
+  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>
 </div>

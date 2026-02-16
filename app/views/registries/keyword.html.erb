@@ -2,80 +2,39 @@
 <% @meta_description = "View the packages on the #{@registry} package registry that are tagged with the #{@keyword} keyword." %>
 
 <div class="container-sm">
-  <h2>
-    <%= @registry %>
-    "<%= @keyword %>"
-    keyword
-  </h2>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><%= link_to "Registries", registries_path %></li>
+      <li class="breadcrumb-item"><%= link_to @registry.name, registry_packages_path(@registry) %></li>
+      <li class="breadcrumb-item"><%= link_to "Keywords", keywords_registry_path(@registry) %></li>
+      <li class="breadcrumb-item active" aria-current="page"><%= @keyword %></li>
+    </ol>
+  </nav>
 
-  <p class='lead'>
-    View the packages on the <%= @registry %> package registry that are tagged with the "<%= @keyword %>" keyword.
-  </p>
+  <h1 class="h4 mb-3"><%= @registry %> "<%= @keyword %>" keyword</h1>
 
-  <ul class="nav nav-tabs my-3">
-    <li class="nav-item">
-      <a class="nav-link" href="<%= registry_packages_path(@registry) %>">
-        Packages
-        <span class="badge bg-secondary rounded-pill">
-          <%= number_with_delimiter @registry.packages_count %>
-        </span>
-      </a>
-    </li>
-    <% if @registry.maintainers_count > 0 %>
-      <li class="nav-item">
-        <a class="nav-link" href="<%= registry_maintainers_path(@registry) %>">
-          Maintainers
-          <span class="badge bg-secondary rounded-pill">
-            <%= number_with_delimiter @registry.maintainers_count %>
-          </span>
-        </a>
-      </li>
-    <% end %>
-    <% if @registry.namespaces_count > 0 %>
-      <li class="nav-item">
-        <a class="nav-link" href="<%= registry_namespaces_path(@registry) %>">
-          Namespaces
-          <span class="badge bg-secondary rounded-pill">
-            <%= number_with_delimiter @registry.namespaces_count %>
-          </span>
-        </a>
-      </li>
-    <% end %>
-    <% if @registry.keywords_count > 0 %>
-      <li class="nav-item">
-        <a class="nav-link active" aria-current="page">
-          Keywords
-          <span class="badge bg-secondary rounded-pill">
-            <%= number_with_delimiter @registry.keywords_count %>
-          </span>
-        </a>
-      </li>
-    <% end %>
-    <%= render 'packages/sort' %>
-  </ul>
+  <%= render 'tabs' %>
 
   <div class='row'>
-    <div class='col-md-8'>
+    <div class='col-lg-8'>
       <%= render @packages %>
-      <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>  
-    </div>  
-    <div class='col-md-4'>
+      <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>
+    </div>
+    <div class='col-lg-4'>
       <div class="card">
         <div class="card-header">
-          Related Keywords
+          <h6 class="mb-0">Related Keywords</h6>
         </div>
         <div class="list-group list-group-flush">
           <% @related_keywords.each do |keyword, count| %>
             <% next if keyword.blank? %>
             <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="<%= keyword_registry_path(@registry.name, keyword.squish) rescue nil %>">
               <%= keyword %>
-              <span class="badge bg-primary rounded-pill"><%= number_with_delimiter count%></span>
+              <span class="badge bg-primary rounded-pill"><%= number_with_delimiter count %></span>
             </a>
           <% end %>
-        </ul>
+        </div>
       </div>
-
-
     </div>
   </div>
 </div>

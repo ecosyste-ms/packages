@@ -1,46 +1,83 @@
-
 <div class="container-sm">
-  <div class="card mb-3">
-    <div class="card-header">
-      Statistics
+  <div class="row mb-4">
+    <div class="col-md-3 col-6 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h4 class="card-title text-primary mb-1"><%= number_with_delimiter @registries.length %></h4>
+          <p class="card-text small text-muted mb-0">Registries</p>
+        </div>
+      </div>
     </div>
-    <div class="card-body">
-      <div class="row">
-        <div class='col-md-3'>
-          Registries: <%= number_with_delimiter @registries.length %><br/>
-          Ecosystems: <%= number_with_delimiter @registries.map(&:ecosystem).uniq.length %><br/>
+    <div class="col-md-3 col-6 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h4 class="card-title text-success mb-1"><%= number_with_delimiter @registries.map(&:ecosystem).uniq.length %></h4>
+          <p class="card-text small text-muted mb-0">Ecosystems</p>
         </div>
-        <div class='col-md-3'>
-          Packages: <%= number_with_delimiter @registries.sum(&:packages_count) %><br/>
-          Versions: <%= number_with_delimiter @registries.sum{|r| r.versions_count.to_i } %><br/>
+      </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h4 class="card-title text-warning mb-1"><%= number_with_delimiter @registries.sum(&:packages_count) %></h4>
+          <p class="card-text small text-muted mb-0">Packages</p>
         </div>
-        <div class='col-md-3'>
-          Maintainers: <%= number_with_delimiter @registries.sum(&:maintainers_count) %><br/>
-          Downloads: <%= number_with_delimiter @registries.sum(&:downloads) %><br/>
+      </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h4 class="card-title text-info mb-1"><%= number_with_delimiter @registries.sum{ |r| r.versions_count.to_i } %></h4>
+          <p class="card-text small text-muted mb-0">Versions</p>
         </div>
-        <div class='col-md-3'>  
-          Namespaces: <%= number_with_delimiter @registries.sum(&:namespaces_count) %><br/>
-          Keywords: <%= number_with_delimiter @registries.sum(&:keywords_count) %><br/>
+      </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h4 class="card-title text-secondary mb-1"><%= number_with_delimiter @registries.sum(&:maintainers_count) %></h4>
+          <p class="card-text small text-muted mb-0">Maintainers</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h4 class="card-title text-dark mb-1"><%= number_with_delimiter @registries.sum(&:downloads) %></h4>
+          <p class="card-text small text-muted mb-0">Downloads</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h4 class="card-title text-primary mb-1"><%= number_with_delimiter @registries.sum(&:namespaces_count) %></h4>
+          <p class="card-text small text-muted mb-0">Namespaces</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h4 class="card-title text-success mb-1"><%= number_with_delimiter @registries.sum(&:keywords_count) %></h4>
+          <p class="card-text small text-muted mb-0">Keywords</p>
         </div>
       </div>
     </div>
   </div>
 
   <div class='row'>
-
     <% @registries.group_by(&:github).each do |ecosystem, registries| %>
-      <% if registries.length > 1 && registries.all?{|r| r.version.present? } %>
+      <% if registries.length > 1 && registries.all?{ |r| r.version.present? } %>
         <% registry = registries.first %>
         <div class='col-lg-4'>
           <div class="card mb-3 registry d-flex" id="registry_<%= registry.id %>">
             <div class="card-body pb-1">
               <div class="d-flex">
-
                 <div class="flex-grow-1 ms-3 text-break">
                   <h5 class='card-title'>
                     <%= link_to ecosystem, ecosystem_path(registry.ecosystem) %>
                   </h5>
-
                   <p class="card-subtitle mb-2 text-muted">
                     <% registries.first(5).each do |reg| %>
                       <%= link_to reg.version, registry_packages_path(reg.name) %>: <%= number_with_delimiter reg.packages_count %> packages <br/>
@@ -52,7 +89,7 @@
                 </div>
                 <div class="flex-shrink-0">
                   <img src="<%= registry.icon_url %>" class="rounded" height='40' width='40' onerror="this.style.display='none'">
-                </div>  
+                </div>
               </div>
             </div>
           </div>

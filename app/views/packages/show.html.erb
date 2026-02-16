@@ -7,26 +7,31 @@
 <% end %>
 
 <div class="container-sm">
-
   <%= render 'details' %>
 
-  
-  <%= render 'tabs' %>
+  <div class="row">
+    <div class="col-lg-8">
+      <%= render 'tabs' %>
 
-  <% if @package.download_url.present? %>
-    <div class='card' id="files" data-url="<%= @package.download_url %>" data-basename="<%= @package.archive_basename %>" data-path="<%= params[:path] %>">
-      <div id='files-header' class="card-header"></div>
-      <ul id="files-list" class="list-group list-group-flush"></ul>
-      <div id="files-content" class="card-body">Loading...</div>
+      <% if @package.download_url.present? %>
+        <div class='card' id="files" data-url="<%= @package.download_url %>" data-basename="<%= @package.archive_basename %>" data-path="<%= params[:path] %>">
+          <div id='files-header' class="card-header"></div>
+          <ul id="files-list" class="list-group list-group-flush"></ul>
+          <div id="files-content" class="card-body">Loading...</div>
+        </div>
+
+        <div class='card mt-3' id="readme" data-url="<%= @package.download_url %>">
+          <div id='readme-header' class="card-header">Readme</div>
+          <div id="readme-content" class="card-body">Loading...</div>
+        </div>
+      <% elsif @versions.any? %>
+        <%= render @versions %>
+        <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>
+      <% end %>
     </div>
 
-    <div class='card mt-3' id="readme" data-url="<%= @package.download_url %>">
-      <div id='readme-header' class="card-header">Readme</div>
-      <div id="readme-content" class="card-body">Loading...</div>
+    <div class="col-lg-4">
+      <%= render 'sidebar' %>
     </div>
-  
-  <% elsif @versions.any? %>
-    <%= render @versions %>
-    <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>  
-  <% end %>
+  </div>
 </div>
