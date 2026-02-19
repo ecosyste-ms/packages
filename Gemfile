@@ -45,7 +45,6 @@ gem "chartkick"
 gem "groupdate"
 gem 'jquery-rails'
 gem 'addressable'
-gem 'rexml'
 gem 'appsignal'
 gem 'faraday-typhoeus'
 gem 'brotli'

@@ -1,0 +1,139 @@
+{
+  "info": {
+    "author": null,
+    "author_email": "Python Packaging Authority <distutils-sig@python.org>",
+    "bugtrack_url": null,
+    "classifiers": [
+      "Development Status :: 5 - Production/Stable",
+      "Intended Audience :: Developers",
+      "Programming Language :: Python :: 3",
+      "Programming Language :: Python :: 3 :: Only",
+      "Topic :: Software Development :: Libraries :: Python Modules"
+    ],
+    "description": "A trimmed fixture.",
+    "description_content_type": "text/x-rst",
+    "docs_url": null,
+    "download_url": "",
+    "downloads": {
+      "last_day": -1,
+      "last_month": -1,
+      "last_week": -1
+    },
+    "home_page": null,
+    "keywords": "CPAN PyPI distutils eggs package management",
+    "license": null,
+    "license_expression": "MIT",
+    "maintainer": null,
+    "maintainer_email": null,
+    "name": "setuptools",
+    "package_url": "https://pypi.org/project/setuptools/",
+    "platform": null,
+    "project_url": "https://pypi.org/project/setuptools/",
+    "project_urls": {
+      "Changelog": "https://setuptools.pypa.io/en/stable/history.html",
+      "Documentation": "https://setuptools.pypa.io/",
+      "Source": "https://github.com/pypa/setuptools"
+    },
+    "release_url": "https://pypi.org/project/setuptools/78.1.0/",
+    "requires_dist": [
+      "pytest!=8.1.*,>=6; extra == \"test\"",
+      "virtualenv>=13.0.0; extra == \"test\"",
+      "wheel>=0.44.0; extra == \"test\"",
+      "pip>=19.1; extra == \"test\"",
+      "packaging>=24.2; extra == \"test\"",
+      "jaraco.envs>=2.2; extra == \"test\"",
+      "pytest-xdist>=3; extra == \"test\"",
+      "jaraco.path>=3.7.2; extra == \"test\"",
+      "build[virtualenv]>=1.0.3; extra == \"test\"",
+      "filelock>=3.4.0; extra == \"test\"",
+      "ini2toml[lite]>=0.14; extra == \"test\"",
+      "tomli-w>=1.0.0; extra == \"test\"",
+      "pytest-timeout; extra == \"test\"",
+      "pytest-perf; sys_platform != \"cygwin\" and extra == \"test\"",
+      "jaraco.develop>=7.21; (python_version >= \"3.9\" and sys_platform != \"cygwin\") and extra == \"test\"",
+      "pytest-home>=0.5; extra == \"test\"",
+      "pytest-subprocess; extra == \"test\"",
+      "pyproject-hooks!=1.1; extra == \"test\"",
+      "jaraco.test>=5.5; extra == \"test\"",
+      "sphinx>=3.5; extra == \"doc\"",
+      "jaraco.packaging>=9.3; extra == \"doc\"",
+      "rst.linker>=1.9; extra == \"doc\"",
+      "furo; extra == \"doc\"",
+      "sphinx-lint; extra == \"doc\"",
+      "jaraco.tidelift>=1.4; extra == \"doc\"",
+      "pygments-github-lexers==0.0.5; extra == \"doc\"",
+      "sphinx-favicon; extra == \"doc\"",
+      "sphinx-inline-tabs; extra == \"doc\"",
+      "sphinx-reredirects; extra == \"doc\"",
+      "sphinxcontrib-towncrier; extra == \"doc\"",
+      "sphinx-notfound-page<2,>=1; extra == \"doc\"",
+      "pyproject-hooks!=1.1; extra == \"doc\"",
+      "towncrier<24.7; extra == \"doc\"",
+      "packaging>=24.2; extra == \"core\"",
+      "more_itertools>=8.8; extra == \"core\"",
+      "jaraco.text>=3.7; extra == \"core\"",
+      "importlib_metadata>=6; python_version < \"3.10\" and extra == \"core\"",
+      "tomli>=2.0.1; python_version < \"3.11\" and extra == \"core\"",
+      "wheel>=0.43.0; extra == \"core\"",
+      "platformdirs>=4.2.2; extra == \"core\"",
+      "jaraco.functools>=4; extra == \"core\"",
+      "more_itertools; extra == \"core\"",
+      "pytest-checkdocs>=2.4; extra == \"check\"",
+      "pytest-ruff>=0.2.1; sys_platform != \"cygwin\" and extra == \"check\"",
+      "ruff>=0.13.0; sys_platform != \"cygwin\" and extra == \"check\"",
+      "pytest-cov; extra == \"cover\"",
+      "pytest-enabler>=2.2; extra == \"enabler\"",
+      "pytest-mypy; extra == \"type\"",
+      "mypy==1.18.*; extra == \"type\"",
+      "importlib_metadata>=7.0.2; python_version < \"3.10\" and extra == \"type\"",
+      "jaraco.develop>=7.21; sys_platform != \"cygwin\" and extra == \"type\""
+    ],
+    "requires_python": ">=3.9",
+    "summary": "Easily download, build, install, upgrade, and uninstall Python packages",
+    "version": "78.1.0",
+    "yanked": false,
+    "yanked_reason": null
+  },
+  "ownership": {
+    "organization": null,
+    "roles": [
+      {
+        "role": "Owner",
+        "user": "jaraco"
+      },
+      {
+        "role": "Maintainer",
+        "user": "abravalheri"
+      },
+      {
+        "role": "Maintainer",
+        "user": "dstufft"
+      }
+    ]
+  },
+  "releases": {
+    "78.1.0": [
+      {
+        "comment_text": null,
+        "digests": {
+          "sha256": "abcdef1234567890"
+        },
+        "downloads": -1,
+        "filename": "setuptools-78.1.0-py3-none-any.whl",
+        "has_sig": false,
+        "md5_digest": "abc123",
+        "packagetype": "bdist_wheel",
+        "python_version": "py3",
+        "requires_python": ">=3.9",
+        "size": 1234567,
+        "upload_time": "2025-03-15T10:00:00",
+        "upload_time_iso_8601": "2025-03-15T10:00:00.000000Z",
+        "url": "https://files.pythonhosted.org/packages/setuptools-78.1.0-py3-none-any.whl",
+        "yanked": false,
+        "yanked_reason": null
+      }
+    ]
+  },
+  "urls": [],
+  "vulnerabilities": []
+}

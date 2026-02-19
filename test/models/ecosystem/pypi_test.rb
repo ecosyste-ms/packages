@@ -169,110 +169,61 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal @ecosystem.maintainer_url(@maintainer), 'https://pypi.org/user/foo/'
   end
 
-  test 'parse_xmlrpc_response parses package_roles response' do
-    xml_response = <<~XML
-      <?xml version='1.0'?>
-      <methodResponse>
-        <params>
-          <param>
-            <value>
-              <array>
-                <data>
-                  <value>
-                    <array>
-                      <data>
-                        <value><string>Owner</string></value>
-                        <value><string>alice</string></value>
-                      </data>
-                    </array>
-                  </value>
-                  <value>
-                    <array>
-                      <data>
-                        <value><string>Maintainer</string></value>
-                        <value><string>bob</string></value>
-                      </data>
-                    </array>
-                  </value>
-                </data>
-              </array>
-            </value>
-          </param>
-        </params>
-      </methodResponse>
-    XML
+  test 'maintainers_metadata with owner and maintainer roles' do
+    stub_request(:get, "https://pypi.org/pypi/setuptools/json")
+      .to_return({ status: 200, body: file_fixture('pypi/setuptools') })
 
-    result = @ecosystem.parse_xmlrpc_response(xml_response)
-    assert_equal [["Owner", "alice"], ["Maintainer", "bob"]], result
+    result = @ecosystem.maintainers_metadata('setuptools')
+    assert_equal [
+      { uuid: 'jaraco', login: 'jaraco', role: 'Owner' },
+      { uuid: 'abravalheri', login: 'abravalheri', role: 'Maintainer' },
+      { uuid: 'dstufft', login: 'dstufft', role: 'Maintainer' }
+    ], result
   end
 
-  test 'parse_xmlrpc_response raises on fault' do
-    xml_response = <<~XML
-      <?xml version='1.0'?>
-      <methodResponse>
-        <fault>
-          <value><string>Error</string></value>
-        </fault>
-      </methodResponse>
-    XML
+  test 'maintainers_metadata with single owner' do
+    stub_request(:get, "https://pypi.org/pypi/yiban/json")
+      .to_return({ status: 200, body: file_fixture('pypi/yiban') })
 
-    assert_raises(RuntimeError) { @ecosystem.parse_xmlrpc_response(xml_response) }
+    result = @ecosystem.maintainers_metadata('yiban')
+    assert_equal [{ uuid: 'DukeBode', login: 'DukeBode', role: 'Owner' }], result
   end
 
-  test 'maintainers_metadata with xmlrpc' do
-    xml_response = <<~XML
-      <?xml version='1.0'?>
-      <methodResponse>
-        <params>
-          <param>
-            <value>
-              <array>
-                <data>
-                  <value>
-                    <array>
-                      <data>
-                        <value><string>Owner</string></value>
-                        <value><string>testuser</string></value>
-                      </data>
-                    </array>
-                  </value>
-                </data>
-              </array>
-            </value>
-          </param>
-        </params>
-      </methodResponse>
-    XML
-
-    stub_request(:post, "https://pypi.org/pypi")
-      .to_return({ status: 200, body: xml_response, headers: { 'Content-Type' => 'text/xml' } })
+  test 'maintainers_metadata returns empty array when no ownership key' do
+    json = { "info" => { "name" => "somepackage" }, "releases" => {} }
+    stub_request(:get, "https://pypi.org/pypi/somepackage/json")
+      .to_return({ status: 200, body: json.to_json })
 
     result = @ecosystem.maintainers_metadata('somepackage')
-    assert_equal [{ uuid: 'testuser', login: 'testuser', role: 'Owner' }], result
+    assert_equal [], result
   end
 
-  test 'maintainers_metadata falls back on error' do
-    stub_request(:post, "https://pypi.org/pypi")
+  test 'maintainers_metadata returns empty array when roles is empty' do
+    json = { "info" => { "name" => "somepackage" }, "releases" => {}, "ownership" => { "organization" => "pypa", "roles" => [] } }
+    stub_request(:get, "https://pypi.org/pypi/somepackage/json")
+      .to_return({ status: 200, body: json.to_json })
+
+    result = @ecosystem.maintainers_metadata('somepackage')
+    assert_equal [], result
+  end
+
+  test 'maintainers_metadata returns empty array on http error' do
+    stub_request(:get, "https://pypi.org/pypi/somepackage/json")
       .to_return({ status: 500, body: 'error' })
-    stub_request(:get, "https://pypi.org/project/somepackage/")
-      .to_return({ status: 200, body: '<div class="sidebar-section__maintainer"><a>fallbackuser</a></div>' })
 
     result = @ecosystem.maintainers_metadata('somepackage')
-    assert_equal [{ uuid: 'fallbackuser', login: 'fallbackuser' }], result
+    assert_equal [], result
   end
 
-  test 'fallback_maintainers_metadata deduplicates maintainers' do
-    html = <<~HTML
-      <div class="sidebar-section__maintainer"><a>alice</a></div>
-      <div class="sidebar-section__maintainer"><a>bob</a></div>
-      <div class="sidebar-section__maintainer"><a>alice</a></div>
-      <div class="sidebar-section__maintainer"><a>bob</a></div>
-    HTML
-    stub_request(:get, "https://pypi.org/project/somepackage/")
-      .to_return({ status: 200, body: html })
+  test 'maintainers_metadata reuses cached package metadata' do
+    stub_request(:get, "https://pypi.org/pypi/setuptools/json")
+      .to_return({ status: 200, body: file_fixture('pypi/setuptools') })
 
-    result = @ecosystem.fallback_maintainers_metadata('somepackage')
-    assert_equal [{ uuid: 'alice', login: 'alice' }, { uuid: 'bob', login: 'bob' }], result
+    @ecosystem.fetch_package_metadata('setuptools')
+    result = @ecosystem.maintainers_metadata('setuptools')
+
+    assert_equal 3, result.length
+    assert_requested(:get, "https://pypi.org/pypi/setuptools/json", times: 1)
   end
 
   test 'parse_repository_url' do
