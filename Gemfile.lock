@@ -365,7 +365,6 @@ DEPENDENCIES
   rails-controller-testing
   railties (~> 8.1.1)
   redis
-  rexml
   rswag-api
   rswag-ui
   sanitize-url

@@ -87,9 +87,9 @@ class PypiTest < ActiveSupport::TestCase
 
   test 'package_metadata' do
     stub_request(:get, "https://pypi.org/pypi/yiban/json")
-      .to_return({ status: 200, body: file_fixture('pypi/yiban') })
+      .to_return({ status: 200, body: file_fixture('pypi/yiban.json') })
     stub_request(:get, "https://pypistats.org/api/packages/yiban/recent")
-      .to_return({ status: 200, body: file_fixture('pypi/recent') })
+      .to_return({ status: 200, body: file_fixture('pypi/recent.json') })
     package_metadata = @ecosystem.package_metadata('yiban')
     
     assert_equal package_metadata[:name], "yiban"
@@ -105,11 +105,11 @@ class PypiTest < ActiveSupport::TestCase
 
   test 'versions_metadata' do
     stub_request(:get, "https://pypi.org/pypi/yiban/json")
-      .to_return({ status: 200, body: file_fixture('pypi/yiban') })
+      .to_return({ status: 200, body: file_fixture('pypi/yiban.json') })
     stub_request(:get, "https://pypistats.org/api/packages/yiban/recent")
-      .to_return({ status: 200, body: file_fixture('pypi/recent') })
+      .to_return({ status: 200, body: file_fixture('pypi/recent.json') })
     stub_request(:get, "https://pypi.org/pypi/yiban/0.1.2.32/json")
-      .to_return({ status: 200, body: file_fixture('pypi/yiban-0.1.2.32-json') })
+      .to_return({ status: 200, body: file_fixture('pypi/yiban-0.1.2.32.json') })
     package_metadata = @ecosystem.package_metadata('yiban')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
@@ -135,7 +135,7 @@ class PypiTest < ActiveSupport::TestCase
 
   test 'dependencies_metadata' do
     stub_request(:get, "https://pypi.org/pypi/yiban/0.1.2.32/json")
-      .to_return({ status: 200, body: file_fixture('pypi/yiban-0.1.2.32-json') })
+      .to_return({ status: 200, body: file_fixture('pypi/yiban-0.1.2.32.json') })
     
     dependencies_metadata = @ecosystem.dependencies_metadata('yiban', '0.1.2.32', nil)
 
@@ -144,7 +144,7 @@ class PypiTest < ActiveSupport::TestCase
 
   test 'dependencies_metadata with kinds' do
     stub_request(:get, "https://pypi.org/pypi/siuba/0.3.0/json")
-      .to_return({ status: 200, body: file_fixture('pypi/siuba-0.3.0-json') })
+      .to_return({ status: 200, body: file_fixture('pypi/siuba-0.3.0.json') })
     
     dependencies_metadata = @ecosystem.dependencies_metadata('siuba', '0.3.0', nil)
 
@@ -169,127 +169,90 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal @ecosystem.maintainer_url(@maintainer), 'https://pypi.org/user/foo/'
   end
 
-  test 'parse_xmlrpc_response parses package_roles response' do
-    xml_response = <<~XML
-      <?xml version='1.0'?>
-      <methodResponse>
-        <params>
-          <param>
-            <value>
-              <array>
-                <data>
-                  <value>
-                    <array>
-                      <data>
-                        <value><string>Owner</string></value>
-                        <value><string>alice</string></value>
-                      </data>
-                    </array>
-                  </value>
-                  <value>
-                    <array>
-                      <data>
-                        <value><string>Maintainer</string></value>
-                        <value><string>bob</string></value>
-                      </data>
-                    </array>
-                  </value>
-                </data>
-              </array>
-            </value>
-          </param>
-        </params>
-      </methodResponse>
-    XML
+  test 'maintainers_metadata with owner and maintainer roles' do
+    stub_request(:get, "https://pypi.org/pypi/setuptools/json")
+      .to_return({ status: 200, body: file_fixture('pypi/setuptools.json') })
 
-    result = @ecosystem.parse_xmlrpc_response(xml_response)
-    assert_equal [["Owner", "alice"], ["Maintainer", "bob"]], result
+    result = @ecosystem.maintainers_metadata('setuptools')
+    assert_equal [
+      { uuid: 'jaraco', login: 'jaraco', role: 'Owner' },
+      { uuid: 'abravalheri', login: 'abravalheri', role: 'Maintainer' },
+      { uuid: 'dstufft', login: 'dstufft', role: 'Maintainer' }
+    ], result
   end
 
-  test 'parse_xmlrpc_response raises on fault' do
-    xml_response = <<~XML
-      <?xml version='1.0'?>
-      <methodResponse>
-        <fault>
-          <value><string>Error</string></value>
-        </fault>
-      </methodResponse>
-    XML
+  test 'maintainers_metadata with single owner' do
+    stub_request(:get, "https://pypi.org/pypi/yiban/json")
+      .to_return({ status: 200, body: file_fixture('pypi/yiban.json') })
 
-    assert_raises(RuntimeError) { @ecosystem.parse_xmlrpc_response(xml_response) }
+    result = @ecosystem.maintainers_metadata('yiban')
+    assert_equal [{ uuid: 'DukeBode', login: 'DukeBode', role: 'Owner' }], result
   end
 
-  test 'maintainers_metadata with xmlrpc' do
-    xml_response = <<~XML
-      <?xml version='1.0'?>
-      <methodResponse>
-        <params>
-          <param>
-            <value>
-              <array>
-                <data>
-                  <value>
-                    <array>
-                      <data>
-                        <value><string>Owner</string></value>
-                        <value><string>testuser</string></value>
-                      </data>
-                    </array>
-                  </value>
-                </data>
-              </array>
-            </value>
-          </param>
-        </params>
-      </methodResponse>
-    XML
-
-    stub_request(:post, "https://pypi.org/pypi")
-      .to_return({ status: 200, body: xml_response, headers: { 'Content-Type' => 'text/xml' } })
+  test 'maintainers_metadata returns empty array when no ownership key' do
+    json = { "info" => { "name" => "somepackage" }, "releases" => {} }
+    stub_request(:get, "https://pypi.org/pypi/somepackage/json")
+      .to_return({ status: 200, body: json.to_json })
 
     result = @ecosystem.maintainers_metadata('somepackage')
-    assert_equal [{ uuid: 'testuser', login: 'testuser', role: 'Owner' }], result
+    assert_equal [], result
   end
 
-  test 'maintainers_metadata falls back on error' do
-    stub_request(:post, "https://pypi.org/pypi")
+  test 'maintainers_metadata returns empty array when roles is empty' do
+    json = { "info" => { "name" => "somepackage" }, "releases" => {}, "ownership" => { "organization" => "pypa", "roles" => [] } }
+    stub_request(:get, "https://pypi.org/pypi/somepackage/json")
+      .to_return({ status: 200, body: json.to_json })
+
+    result = @ecosystem.maintainers_metadata('somepackage')
+    assert_equal [], result
+  end
+
+  test 'maintainers_metadata with organization' do
+    json = { "info" => { "name" => "somepackage" }, "releases" => {}, "ownership" => { "organization" => "pypa", "roles" => [{ "role" => "Owner", "user" => "theacodes" }, { "role" => "Maintainer", "user" => "pypa-bot" }] } }
+    stub_request(:get, "https://pypi.org/pypi/somepackage/json")
+      .to_return({ status: 200, body: json.to_json })
+
+    result = @ecosystem.maintainers_metadata('somepackage')
+    assert_equal [
+      { uuid: 'theacodes', login: 'theacodes', role: 'Owner' },
+      { uuid: 'pypa-bot', login: 'pypa-bot', role: 'Maintainer' }
+    ], result
+  end
+
+  test 'maintainers_metadata returns empty array on http error' do
+    stub_request(:get, "https://pypi.org/pypi/somepackage/json")
       .to_return({ status: 500, body: 'error' })
-    stub_request(:get, "https://pypi.org/project/somepackage/")
-      .to_return({ status: 200, body: '<div class="sidebar-section__maintainer"><a>fallbackuser</a></div>' })
 
     result = @ecosystem.maintainers_metadata('somepackage')
-    assert_equal [{ uuid: 'fallbackuser', login: 'fallbackuser' }], result
+    assert_equal [], result
   end
 
-  test 'fallback_maintainers_metadata deduplicates maintainers' do
-    html = <<~HTML
-      <div class="sidebar-section__maintainer"><a>alice</a></div>
-      <div class="sidebar-section__maintainer"><a>bob</a></div>
-      <div class="sidebar-section__maintainer"><a>alice</a></div>
-      <div class="sidebar-section__maintainer"><a>bob</a></div>
-    HTML
-    stub_request(:get, "https://pypi.org/project/somepackage/")
-      .to_return({ status: 200, body: html })
+  test 'maintainers_metadata reuses cached package metadata' do
+    stub_request(:get, "https://pypi.org/pypi/setuptools/json")
+      .to_return({ status: 200, body: file_fixture('pypi/setuptools.json') })
 
-    result = @ecosystem.fallback_maintainers_metadata('somepackage')
-    assert_equal [{ uuid: 'alice', login: 'alice' }, { uuid: 'bob', login: 'bob' }], result
+    @ecosystem.fetch_package_metadata('setuptools')
+    result = @ecosystem.maintainers_metadata('setuptools')
+
+    assert_equal 3, result.length
+    assert_requested(:get, "https://pypi.org/pypi/setuptools/json", times: 1)
   end
 
   test 'parse_repository_url' do
-    description = JSON.parse file_fixture('pypi/yiban').read
+    description = JSON.parse file_fixture('pypi/yiban.json').read
     assert_equal @ecosystem.parse_repository_url(description), 'https://github.com/DukeBode/Yiban'
   end
 
   test 'parse_repository_url prefer package name match' do
-    description = JSON.parse file_fixture('pypi/easybuild-easyconfigs-json').read
+    description = JSON.parse file_fixture('pypi/easybuild-easyconfigs.json').read
     assert_equal @ecosystem.parse_repository_url(description), 'https://github.com/easybuilders/easybuild-easyconfigs'
   end
 
   test 'versions_metadata skips existing version numbers' do
     stub_request(:get, "https://pypi.org/pypi/yiban/json")
-      .to_return({ status: 200, body: file_fixture('pypi/yiban') })
+      .to_return({ status: 200, body: file_fixture('pypi/yiban.json') })
     stub_request(:get, "https://pypistats.org/api/packages/yiban/recent")
-      .to_return({ status: 200, body: file_fixture('pypi/recent') })
+      .to_return({ status: 200, body: file_fixture('pypi/recent.json') })
     package_metadata = @ecosystem.package_metadata('yiban')
     versions_metadata = @ecosystem.versions_metadata(package_metadata, ['0.1.2.32'])
 
@@ -298,10 +261,10 @@ class PypiTest < ActiveSupport::TestCase
 
   test 'versions_metadata includes version licenses' do
     stub_request(:get, "https://pypi.org/pypi/yiban/json")
-      .to_return({ status: 200, body: file_fixture('pypi/yiban') })
+      .to_return({ status: 200, body: file_fixture('pypi/yiban.json') })
     stub_request(:get, "https://pypistats.org/api/packages/yiban/recent")
-      .to_return({ status: 200, body: file_fixture('pypi/recent') })
-    version_json = JSON.parse(file_fixture('pypi/yiban-0.1.2.32-json').read)
+      .to_return({ status: 200, body: file_fixture('pypi/recent.json') })
+    version_json = JSON.parse(file_fixture('pypi/yiban-0.1.2.32.json').read)
     version_json['info']['license'] = 'MIT'
     stub_request(:get, "https://pypi.org/pypi/yiban/0.1.2.32/json")
       .to_return({ status: 200, body: version_json.to_json })
@@ -313,11 +276,11 @@ class PypiTest < ActiveSupport::TestCase
 
   test 'versions_metadata includes python requirements and pypi specific fields' do
     stub_request(:get, "https://pypi.org/pypi/yiban/json")
-      .to_return({ status: 200, body: file_fixture('pypi/yiban') })
+      .to_return({ status: 200, body: file_fixture('pypi/yiban.json') })
     stub_request(:get, "https://pypistats.org/api/packages/yiban/recent")
-      .to_return({ status: 200, body: file_fixture('pypi/recent') })
+      .to_return({ status: 200, body: file_fixture('pypi/recent.json') })
     stub_request(:get, "https://pypi.org/pypi/yiban/0.1.2.32/json")
-      .to_return({ status: 200, body: file_fixture('pypi/yiban-0.1.2.32-json') })
+      .to_return({ status: 200, body: file_fixture('pypi/yiban-0.1.2.32.json') })
     package_metadata = @ecosystem.package_metadata('yiban')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
@@ -332,13 +295,13 @@ class PypiTest < ActiveSupport::TestCase
   end
 
   test 'package_metadata includes project status when available' do
-    package_json = JSON.parse(file_fixture('pypi/yiban').read)
+    package_json = JSON.parse(file_fixture('pypi/yiban.json').read)
     package_json['project-status'] = { 'status' => 'archived', 'reason' => 'No longer maintained' }
     
     stub_request(:get, "https://pypi.org/pypi/yiban/json")
       .to_return({ status: 200, body: package_json.to_json })
     stub_request(:get, "https://pypistats.org/api/packages/yiban/recent")
-      .to_return({ status: 200, body: file_fixture('pypi/recent') })
+      .to_return({ status: 200, body: file_fixture('pypi/recent.json') })
     
     package_metadata = @ecosystem.package_metadata('yiban')
     
@@ -346,7 +309,7 @@ class PypiTest < ActiveSupport::TestCase
   end
 
   test 'check_status returns project status from API' do
-    package_json = JSON.parse(file_fixture('pypi/yiban').read)
+    package_json = JSON.parse(file_fixture('pypi/yiban.json').read)
     package_json['project-status'] = { 'status' => 'archived' }
 
     stub_request(:get, "https://pypi.org/pypi/urllib3/json")
@@ -357,7 +320,7 @@ class PypiTest < ActiveSupport::TestCase
   end
 
   test 'check_status returns nil for active status' do
-    package_json = JSON.parse(file_fixture('pypi/yiban').read)
+    package_json = JSON.parse(file_fixture('pypi/yiban.json').read)
     package_json['project-status'] = { 'status' => 'active' }
 
     stub_request(:get, "https://pypi.org/pypi/urllib3/json")
@@ -379,7 +342,7 @@ class PypiTest < ActiveSupport::TestCase
 
   test 'check_status reuses memoized metadata without extra HTTP request' do
     stub_request(:get, "https://pypi.org/pypi/urllib3/json")
-      .to_return({ status: 200, body: file_fixture('pypi/yiban') })
+      .to_return({ status: 200, body: file_fixture('pypi/yiban.json') })
 
     # Fetch metadata first to populate the cache
     @ecosystem.fetch_package_metadata('urllib3')
@@ -515,9 +478,9 @@ class PypiTest < ActiveSupport::TestCase
 
   test 'pypi package_metadata funding_url flask' do
     stub_request(:get, "https://pypi.org/pypi/flask/json")
-      .to_return({ status: 200, body: file_fixture('pypi/flask/flask') })
+      .to_return({ status: 200, body: file_fixture('pypi/flask/flask.json') })
     stub_request(:get, "https://pypistats.org/api/packages/flask/recent")
-      .to_return({ status: 200, body: file_fixture('pypi/flask/recent') })
+      .to_return({ status: 200, body: file_fixture('pypi/flask/recent.json') })
     stub_request(:get, "https://palletsprojects.com/donate")
       .to_return({ status: 200, body: '' })
     package_metadata = @ecosystem.package_metadata('flask')

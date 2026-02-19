@@ -117,5 +117,14 @@
   "vulnerabilities": [],
   "project-status": {
     "status": "active"
+  },
+  "ownership": {
+    "organization": null,
+    "roles": [
+      {
+        "role": "Owner",
+        "user": "DukeBode"
+      }
+    ]
   }
 }
