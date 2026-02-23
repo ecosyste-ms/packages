@@ -78,7 +78,7 @@ GEM
       rexml
     crass (1.0.6)
     csv (3.3.5)
-    dalli (5.0.0)
+    dalli (5.0.1)
       logger
     date (3.5.1)
     dotenv (3.2.0)
@@ -253,7 +253,8 @@ GEM
       sprockets (> 3.0)
       sprockets-rails
       tilt
-    secure_headers (7.1.0)
+    secure_headers (7.2.0)
+      cgi (>= 0.1)
     securerandom (0.4.1)
     semantic (1.6.1)
     semantic_range (3.1.0)
@@ -410,7 +411,7 @@ CHECKSUMS
   crack (1.0.1) sha256=ff4a10390cd31d66440b7524eb1841874db86201d5b70032028553130b6d4c7e
   crass (1.0.6) sha256=dc516022a56e7b3b156099abc81b6d2b08ea1ed12676ac7a5657617f012bd45d
   csv (3.3.5) sha256=6e5134ac3383ef728b7f02725d9872934f523cb40b961479f69cf3afa6c8e73f
-  dalli (5.0.0) sha256=7d5ae821da3ef98cad68e77f09ae0e563244dc0f3995f5c8999c5a379fa3d468
+  dalli (5.0.1) sha256=ced5dcd5643cc67971432eee25f713720fc5e1d2cf6505e36695c33654e9f28d
   date (3.5.1) sha256=750d06384d7b9c15d562c76291407d89e368dda4d4fff957eb94962d325a0dc0
   dotenv (3.2.0) sha256=e375b83121ea7ca4ce20f214740076129ab8514cd81378161f11c03853fe619d
   dotenv-rails (3.2.0) sha256=657e25554ba622ffc95d8c4f1670286510f47f2edda9f68293c3f661b303beab
@@ -498,7 +499,7 @@ CHECKSUMS
   sanitize-url (0.1.4) sha256=2fbc735dfbc2ca8f6f111ac045e848b974a0de6767dde8e1202406be6a3eaf8a
   sassc (2.4.0) sha256=4c60a2b0a3b36685c83b80d5789401c2f678c1652e3288315a1551d811d9f83e
   sassc-rails (2.1.2) sha256=5f4fdf3881fc9bdc8e856ffbd9850d70a2878866feae8114aa45996179952db5
-  secure_headers (7.1.0) sha256=6b1f9d5f9507af2948f4636452c41c09371927836396c2185438ffdf0a731124
+  secure_headers (7.2.0) sha256=713b3d20af12b8c6633d97e276b286f1520e57be0d84b00f3bf43d22a1b70f83
   securerandom (0.4.1) sha256=cc5193d414a4341b6e225f0cb4446aceca8e50d5e1888743fac16987638ea0b1
   semantic (1.6.1) sha256=3cdbb48f59198ebb782a3fdfb87b559e0822a311610db153bae22777a7d0c163
   semantic_range (3.1.0) sha256=9fc01ee40f2e5f81042e95d421837f688177dd603753b5eab41ff9bba50a34a1
