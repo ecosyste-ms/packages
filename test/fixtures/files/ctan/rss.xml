@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+  <channel>
+    <title>ctan-ann</title>
+    <link>https://www.ctan.org/ctan-ann/rss</link>
+    <description>CTAN announcements mailing list - recent</description>
+    <pubDate>Mon, 23 Feb 2026 10:19:09 +0100</pubDate>
+    <language>en-US</language>
+    <item>
+      <title>New on CTAN: fariscovernew</title>
+      <link>https://www.ctan.org/ctan-ann/id/example1</link>
+      <pubDate>Sun, 22 Feb 2026 17:25:34 +0100</pubDate>
+    </item>
+    <item>
+      <title>CTAN update: prooftrees</title>
+      <link>https://www.ctan.org/ctan-ann/id/example2</link>
+      <pubDate>Sun, 22 Feb 2026 09:17:54 +0100</pubDate>
+    </item>
+    <item>
+      <title>New on CTAN: memoize-ext</title>
+      <link>https://www.ctan.org/ctan-ann/id/example3</link>
+      <pubDate>Sun, 22 Feb 2026 12:03:43 +0100</pubDate>
+    </item>
+    <item>
+      <title>CTAN update: tkz-elements</title>
+      <link>https://www.ctan.org/ctan-ann/id/example4</link>
+      <pubDate>Sat, 21 Feb 2026 15:31:28 +0100</pubDate>
+    </item>
+  </channel>
+</rss>
