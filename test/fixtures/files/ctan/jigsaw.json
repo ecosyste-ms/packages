@@ -1,0 +1,47 @@
+{
+  "id": "jigsaw",
+  "name": "jigsaw",
+  "aliases": [],
+  "caption": "Draw jigsaw pieces with TikZ",
+  "authors": [
+    {
+      "id": "samcarter",
+      "active": true
+    }
+  ],
+  "copyright": [],
+  "license": "lppl1.3c",
+  "version": {
+    "number": "0.5",
+    "date": "2024-04-25"
+  },
+  "descriptions": [
+    {
+      "language": null,
+      "text": "<p>\n      This is a small LaTeX package to draw jigsaw pieces with TikZ.\n      It is possible to draw individual pieces and adjust their shape,\n      create tile patterns or automatically generate complete jigsaws.\n    </p>"
+    }
+  ],
+  "documentation": [
+    {
+      "language": null,
+      "details": "Readme",
+      "href": "ctan:/graphics/pgf/contrib/jigsaw/README.md"
+    },
+    {
+      "language": null,
+      "details": "Package documentation",
+      "href": "ctan:/graphics/pgf/contrib/jigsaw/jigsaw-doc.pdf"
+    }
+  ],
+  "support": "https://github.com/samcarter/jigsaw/issues",
+  "repository": "https://github.com/samcarter/jigsaw",
+  "ctan": {
+    "path": "/graphics/pgf/contrib/jigsaw",
+    "file": true
+  },
+  "miktex": "jigsaw",
+  "texlive": "jigsaw",
+  "topics": [
+    "pgf-tikz"
+  ]
+}
