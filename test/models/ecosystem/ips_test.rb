@@ -94,6 +94,17 @@ class IpsTest < ActiveSupport::TestCase
     assert_equal 'ClamAV opensource antivirus toolkit', result[:description]
     assert_equal 'https://www.clamav.net/', result[:homepage]
     assert_equal '1.5.1', result[:metadata][:human_version]
+    assert_equal 'antivirus', result[:namespace]
+  end
+
+  test 'map_package_metadata namespace for bare package name' do
+    pkg_metadata = {
+      'name' => 'SUNWapch22',
+      'summary' => { 'pkg.summary' => 'Apache HTTP Server' },
+      'versions' => [],
+    }
+    result = @ecosystem.map_package_metadata(pkg_metadata)
+    assert_nil result[:namespace]
   end
 
   test 'versions_metadata' do

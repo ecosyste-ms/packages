@@ -132,12 +132,17 @@ module Ecosystem
       homepage = summary['info.upstream-url']
       source_url = summary['info.source-url']
 
+      name = pkg_metadata['name']
+      parts = name.split('/')
+      namespace = parts.length > 1 ? parts.first : nil
+
       {
-        name: pkg_metadata['name'],
+        name: name,
         description: summary['pkg.summary'],
         homepage: homepage,
         licenses: nil,
         repository_url: repo_fallback(source_url, homepage),
+        namespace: namespace,
         metadata: {
           classification: summary['info.classification'],
           consolidation: summary['org.opensolaris.consolidation'],
