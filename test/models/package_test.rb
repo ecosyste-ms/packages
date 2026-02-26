@@ -199,6 +199,39 @@ class PackageTest < ActiveSupport::TestCase
     assert @package.last_synced_at > 1.minute.ago
   end
 
+  test 'dependent_packages returns packages that depend on this package' do
+    dependent = @registry.packages.create(name: 'bar', ecosystem: @registry.ecosystem)
+    dep_version = dependent.versions.create(number: '1.0.0')
+    dep_version.dependencies.create(package_id: @package.id, package_name: 'foo', ecosystem: @registry.ecosystem, requirements: '>= 0', kind: 'runtime')
+
+    result = @package.dependent_packages
+    assert_includes result, dependent
+  end
+
+  test 'latest_dependent_packages only includes packages with latest version dependency' do
+    dependent = @registry.packages.create(name: 'bar', ecosystem: @registry.ecosystem)
+    old_version = dependent.versions.create(number: '1.0.0', latest: false)
+    old_version.dependencies.create(package_id: @package.id, package_name: 'foo', ecosystem: @registry.ecosystem, requirements: '>= 0', kind: 'runtime')
+
+    assert_empty @package.latest_dependent_packages
+
+    new_version = dependent.versions.create(number: '2.0.0', latest: true)
+    new_version.dependencies.create(package_id: @package.id, package_name: 'foo', ecosystem: @registry.ecosystem, requirements: '>= 0', kind: 'runtime')
+
+    assert_includes @package.latest_dependent_packages, dependent
+  end
+
+  test 'dependent_package_kinds groups by dependency kind' do
+    dependent = @registry.packages.create(name: 'bar', ecosystem: @registry.ecosystem)
+    dep_version = dependent.versions.create(number: '1.0.0')
+    dep_version.dependencies.create(package_id: @package.id, package_name: 'foo', ecosystem: @registry.ecosystem, requirements: '>= 0', kind: 'runtime')
+    dep_version.dependencies.create(package_id: @package.id, package_name: 'foo', ecosystem: @registry.ecosystem, requirements: '>= 0', kind: 'development')
+
+    kinds = @package.dependent_package_kinds
+    assert_equal 1, kinds['runtime']
+    assert_equal 1, kinds['development']
+  end
+
   test 'with_advisories scope' do
     package_with_advisories = @registry.packages.create(name: 'bar', ecosystem: @registry.ecosystem, advisories: [{ 'id' => 'CVE-2024-1234' }])
     package_without_advisories = @registry.packages.create(name: 'baz', ecosystem: @registry.ecosystem, advisories: [])
