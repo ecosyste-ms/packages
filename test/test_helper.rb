@@ -6,7 +6,6 @@ require 'webmock/minitest'
 require 'mocha/minitest'
 
 require 'sidekiq_unique_jobs/testing'
-require 'sidekiq/testing'
 Sidekiq::Testing.fake!
 
 class ActiveSupport::TestCase
