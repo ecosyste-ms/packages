@@ -14,9 +14,19 @@ class IpsTest < ActiveSupport::TestCase
     @version = @package.versions.build(number: '1.5.1')
   end
 
-  test 'registry_url' do
+  test 'registry_url without version' do
     registry_url = @ecosystem.registry_url(@package)
-    assert_equal 'https://pkg.openindiana.org/hipster/en/antivirus/clamav', registry_url
+    assert_equal 'https://pkg.openindiana.org/hipster/en/search.shtml?token=antivirus/clamav&action=Search', registry_url
+  end
+
+  test 'registry_url with version' do
+    registry_url = @ecosystem.registry_url(@package, @version)
+    assert_equal 'https://pkg.openindiana.org/hipster/en/info/0/antivirus/clamav@1.5.1', registry_url
+  end
+
+  test 'download_url' do
+    download_url = @ecosystem.download_url(@package)
+    assert_equal 'https://pkg.openindiana.org/hipster/p5i/0/antivirus%2Fclamav.p5i', download_url
   end
 
   test 'install_command' do

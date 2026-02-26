@@ -32,7 +32,16 @@ module Ecosystem
     end
 
     def registry_url(package, version = nil)
-      "#{@registry_url}/en/#{package.name}"
+      if version.present?
+        "#{@registry_url}/en/info/0/#{package.name}@#{version.number}"
+      else
+        "#{@registry_url}/en/search.shtml?token=#{package.name}&action=Search"
+      end
+    end
+
+    def download_url(package, version = nil)
+      encoded_name = ERB::Util.url_encode(package.name)
+      "#{@registry_url}/p5i/0/#{encoded_name}.p5i"
     end
 
     def install_command(package, version = nil)
@@ -136,17 +145,25 @@ module Ecosystem
       parts = name.split('/')
       namespace = parts.length > 1 ? parts.first : nil
 
+      git_remote = summary['userland.info.git-remote']
+      repo_url = find_repository_url([git_remote, source_url, homepage].compact)
+
       {
         name: name,
         description: summary['pkg.summary'],
         homepage: homepage,
         licenses: nil,
-        repository_url: repo_fallback(source_url, homepage),
+        repository_url: repo_url,
         namespace: namespace,
         metadata: {
+          description: summary['pkg.description'],
           classification: summary['info.classification'],
           consolidation: summary['org.opensolaris.consolidation'],
           human_version: summary['pkg.human-version'],
+          upstream_name: summary['com.oracle.info.name'],
+          source_url: source_url,
+          git_remote: git_remote,
+          git_rev: summary['userland.info.git-rev'],
         }.compact
       }
     end
