@@ -130,7 +130,7 @@ class Package < ApplicationRecord
   end
 
   def update_dependent_packages_count
-    update(dependent_packages_count: Dependency.where(package_id: id).joins(version: :package).count('distinct(packages.id)'))
+    update(dependent_packages_count: Dependency.where(package_id: id).joins(:version).count('distinct(versions.package_id)'))
   end
 
   def update_dependent_packages_count_async
@@ -146,32 +146,24 @@ class Package < ApplicationRecord
     update(maintainers_count: maintainerships.count)
   end
 
-  def dependent_package_ids(kind: nil)
-    scope = Dependency.where(package_id: id).joins(version: :package)
-    scope = scope.where('dependencies.kind = ?', kind) if kind.present?
-    scope.pluck('distinct(packages.id)')
-  end
-
-  def latest_dependent_package_ids(kind: nil)
-    scope = Dependency.where(package_id: id).joins(version: :package).where('versions.latest = true')
-    scope = scope.where('dependencies.kind = ?', kind) if kind.present?
-    scope.pluck('distinct(packages.id)')
-  end
-
   def dependent_packages(kind: nil)
-    Package.where(id: dependent_package_ids(kind: kind))
-  end
-
-  def dependent_package_kinds
-    Dependency.where(package_id: id).group(:kind).joins(version: :package).count('DISTINCT packages.id')
-  end
-
-  def latest_dependent_package_kinds
-    Dependency.where(package_id: id).group(:kind).joins(version: :package).where('versions.latest = true').count('DISTINCT packages.id')
+    sub = Dependency.where(package_id: id).joins(:version)
+    sub = sub.where(dependencies: { kind: kind }) if kind.present?
+    Package.where(id: sub.select('versions.package_id'))
   end
 
   def latest_dependent_packages(kind: nil)
-    Package.where(id: latest_dependent_package_ids(kind: kind))
+    sub = Dependency.where(package_id: id).joins(:version).where(versions: { latest: true })
+    sub = sub.where(dependencies: { kind: kind }) if kind.present?
+    Package.where(id: sub.select('versions.package_id'))
+  end
+
+  def dependent_package_kinds
+    Dependency.where(package_id: id).joins(:version).group(:kind).count('DISTINCT versions.package_id')
+  end
+
+  def latest_dependent_package_kinds
+    Dependency.where(package_id: id).joins(:version).where(versions: { latest: true }).group(:kind).count('DISTINCT versions.package_id')
   end
 
   def install_command

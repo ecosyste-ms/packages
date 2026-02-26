@@ -220,6 +220,8 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
 
     scope = scope.created_after(params[:created_after]) if params[:created_after].present?
     scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
+    scope = scope.where("(repo_metadata ->> 'stargazers_count')::int >= ?", params[:min_stars].to_i) if params[:min_stars].present?
+    scope = scope.where("downloads >= ?", params[:min_downloads].to_i) if params[:min_downloads].present?
 
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'
