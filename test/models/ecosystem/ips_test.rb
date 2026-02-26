@@ -118,6 +118,26 @@ class IpsTest < ActiveSupport::TestCase
   end
 
   test 'versions_metadata' do
+    @ecosystem.instance_variable_set(:@dependency_packages, {
+      'antivirus/clamav' => [
+        {
+          'version' => '1.4.3,5.11-2025.0.0.0:20250704T190629Z',
+          'actions' => [
+            'set name=variant.arch value=i386',
+            'set name=com.oracle.info.version value=1.4.3',
+            'set name=org.opensolaris.consolidation value=userland',
+          ]
+        },
+        {
+          'version' => '1.5.1,5.11-2025.0.0.0:20251029T172642Z',
+          'actions' => [
+            'set name=variant.arch value=i386',
+            'set name=com.oracle.info.version value=1.5.1',
+            'set name=org.opensolaris.consolidation value=userland',
+          ]
+        },
+      ]
+    })
     @ecosystem.stubs(:fetch_package_metadata).with('antivirus/clamav').returns({
       'name' => 'antivirus/clamav',
       'versions' => [
@@ -130,6 +150,9 @@ class IpsTest < ActiveSupport::TestCase
     assert_equal 2, result.length
     assert_equal '1.4.3', result[0][:number]
     assert_equal 'sha1-abc123', result[0][:integrity]
+    assert_equal 'i386', result[0][:metadata][:architecture]
+    assert_equal '1.4.3', result[0][:metadata][:upstream_version]
+    assert_equal 'userland', result[0][:metadata][:consolidation]
     assert_equal '1.5.1', result[1][:number]
   end
 

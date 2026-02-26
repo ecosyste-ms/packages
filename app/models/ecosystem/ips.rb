@@ -182,6 +182,14 @@ module Ecosystem
       nil
     end
 
+    def version_actions_for(name, version_string)
+      dep_versions = dependency_packages[name]
+      return {} if dep_versions.blank?
+      entry = dep_versions.find { |d| d['version'] == version_string }
+      return {} if entry.blank? || entry['actions'].blank?
+      parse_actions(entry['actions'])
+    end
+
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       raw = fetch_package_metadata(pkg_metadata[:name])
       return [] if raw.blank?
@@ -190,13 +198,21 @@ module Ecosystem
         version_string = v['version']
         number = human_version(version_string)
         next if number.blank?
+
+        actions = version_actions_for(raw['name'], version_string)
+
         {
           number: number,
           published_at: published_at(version_string),
           integrity: "sha1-#{v['signature-sha-1']}",
           metadata: {
             ips_version: version_string,
-          }
+            architecture: actions['variant.arch'],
+            upstream_version: actions['com.oracle.info.version'],
+            consolidation: actions['org.opensolaris.consolidation'],
+            obsolete: actions['pkg.obsolete'],
+            renamed: actions['pkg.renamed'],
+          }.compact
         }
       end.compact
     end
