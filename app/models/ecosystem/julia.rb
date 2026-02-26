@@ -87,53 +87,45 @@ module Ecosystem
       slug = 'stable'
       json = get_json("#{@registry_url}/docs/#{package_name}/#{slug}/pkg.json") rescue nil
       json = {} if json.nil?
-      {
+      uuid = json['uuid']
+      h = {
         name: package['name'],
         description: json['description'],
         homepage: json['homepage'],
         repository_url: repo_fallback(json['url'], json['homepage']),
         keywords_array: json['tags'],
         licenses: json['license'],
-        downloads: fetch_downloads(package['name']),
-        downloads_period: 'total',
+        downloads_period: 'last-month',
         metadata: {
-          uuid: json['uuid']
+          uuid: uuid
         }
       }
+
+      dl = fetch_downloads(uuid)
+      h[:downloads] = dl if dl.present?
+      h
     end
 
-    def fetch_downloads(package_name)
-      url = "https://juliahub.com/v1/graphql"
-      query = {
-        operationName: "PackageStats",
-        variables: { name: package_name },
-        query: <<~GRAPHQL
-          query PackageStats($name: String!) {
-            packageStats: packagestats(where: {package: {name: {_eq: $name}}}) {
-              downloads
-              users
-              uuid
-              package {
-                name
-              }
-            }
-          }
-        GRAPHQL
-      }
+    def fetch_downloads(uuid)
+      return nil if uuid.blank?
+      download_stats[uuid]
+    end
 
-      response = Faraday.post(url) do |req|
-        req.headers['Content-Type'] = 'application/json'
-        req.headers['Accept'] = '*/*'
-        req.headers['x-hasura-role'] = 'anonymous'
-        req.headers['x-juliahub-ensure-js'] = 'true'
-        req.body = query.to_json
+    def download_stats
+      @download_stats ||= begin
+        url = "https://julialang-logs.s3.amazonaws.com/public_outputs/current/package_requests_by_date.csv.gz"
+        response = Faraday.get(url)
+        csv_data = Zlib::GzipReader.new(StringIO.new(response.body)).read
+        stats = {}
+        CSV.parse(csv_data, headers: true) do |row|
+          uid = row['package_uuid']
+          stats[uid] ||= 0
+          stats[uid] += row['request_count'].to_i
+        end
+        stats
+      rescue
+        {}
       end
-    
-      json = JSON.parse(response.body) rescue {}
-
-      json.dig('data', 'packageStats')&.first&.fetch('users', nil)
-    rescue
-      nil
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])

@@ -83,17 +83,36 @@ class JuliaTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('julia/pkg.json') })
     stub_request(:get, "https://pkgs.genieframework.com/api/v1/badge/Inequality")
       .to_return({ status: 200, body: file_fixture('julia/Inequality') })
-    stub_request(:post, "https://juliahub.com/v1/graphql").
-      to_return(status: 200, body: "", headers: {})
+    stub_request(:get, "https://julialang-logs.s3.amazonaws.com/public_outputs/current/package_requests_by_date.csv.gz")
+      .to_return({ status: 200, body: file_fixture('julia/package_requests_by_date.csv.gz') })
 
     package_metadata = @ecosystem.package_metadata('Inequality')
-    
+
     assert_equal package_metadata[:name], "Inequality"
     assert_equal package_metadata[:description], "Julia package for computing inequality indicators"
     assert_equal package_metadata[:homepage], ""
     assert_equal package_metadata[:licenses], "MIT"
     assert_equal package_metadata[:repository_url], "https://github.com/JosepER/Inequality.jl"
     assert_equal package_metadata[:keywords_array], []
+    assert_equal package_metadata[:downloads], 33
+    assert_equal package_metadata[:downloads_period], "last-month"
+  end
+
+  test 'fetch_downloads' do
+    stub_request(:get, "https://julialang-logs.s3.amazonaws.com/public_outputs/current/package_requests_by_date.csv.gz")
+      .to_return({ status: 200, body: file_fixture('julia/package_requests_by_date.csv.gz') })
+    assert_equal @ecosystem.fetch_downloads('131cd6a8-f02b-4a66-8ce5-0a80ec47b73f'), 33
+  end
+
+  test 'fetch_downloads returns nil for unknown uuid' do
+    stub_request(:get, "https://julialang-logs.s3.amazonaws.com/public_outputs/current/package_requests_by_date.csv.gz")
+      .to_return({ status: 200, body: file_fixture('julia/package_requests_by_date.csv.gz') })
+    assert_nil @ecosystem.fetch_downloads('00000000-0000-0000-0000-000000000000')
+  end
+
+  test 'fetch_downloads returns nil for blank uuid' do
+    assert_nil @ecosystem.fetch_downloads(nil)
+    assert_nil @ecosystem.fetch_downloads('')
   end
 
   test 'versions_metadata' do
@@ -111,8 +130,8 @@ class JuliaTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('julia/versions.json') })
     stub_request(:get, "https://juliahub.com/docs/General/Inequality/0.0.4/pkg.json")
       .to_return({ status: 200, body: file_fixture('julia/0.0.4.pkg.json') })
-    stub_request(:post, "https://juliahub.com/v1/graphql").
-      to_return(status: 200, body: "", headers: {})
+    stub_request(:get, "https://julialang-logs.s3.amazonaws.com/public_outputs/current/package_requests_by_date.csv.gz")
+      .to_return({ status: 200, body: file_fixture('julia/package_requests_by_date.csv.gz') })
     package_metadata = @ecosystem.package_metadata('Inequality')
 
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
@@ -129,8 +148,8 @@ class JuliaTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('julia/pkg.json') })
     stub_request(:get, "https://juliahub.com/docs/General/Inequality/0.0.4/pkg.json")
       .to_return({ status: 200, body: file_fixture('julia/0.0.4.pkg.json') })
-    stub_request(:post, "https://juliahub.com/v1/graphql").
-      to_return(status: 200, body: "", headers: {})
+    stub_request(:get, "https://julialang-logs.s3.amazonaws.com/public_outputs/current/package_requests_by_date.csv.gz")
+      .to_return({ status: 200, body: file_fixture('julia/package_requests_by_date.csv.gz') })
     package_metadata = @ecosystem.package_metadata('Inequality')
     dependencies_metadata = @ecosystem.dependencies_metadata('Inequality', '0.0.4', package_metadata)
 
@@ -156,8 +175,8 @@ class JuliaTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('julia/pkg.json') })
     stub_request(:get, "https://juliahub.com/docs/General/Inequality/versions.json")
       .to_return({ status: 200, body: file_fixture('julia/versions.json') })
-    stub_request(:post, "https://juliahub.com/v1/graphql").
-      to_return(status: 200, body: "", headers: {})
+    stub_request(:get, "https://julialang-logs.s3.amazonaws.com/public_outputs/current/package_requests_by_date.csv.gz")
+      .to_return({ status: 200, body: file_fixture('julia/package_requests_by_date.csv.gz') })
     package_metadata = @ecosystem.package_metadata('Inequality')
 
     # Pass "0.0.4" as existing - should skip the per-version pkg.json fetch
