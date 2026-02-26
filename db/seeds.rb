@@ -180,3 +180,20 @@ debian_registries.each do |data|
   r.assign_attributes(data)
   r.save
 end
+
+ips_registries = [
+  {
+    name: 'openindiana-hipster',
+    url: 'https://pkg.openindiana.org/hipster',
+    ecosystem: 'ips',
+    github: 'OpenIndiana',
+    default: true,
+    metadata: { 'publisher' => 'openindiana.org' }
+  },
+]
+
+ips_registries.each do |data|
+  r = Registry.find_or_initialize_by(url: data[:url])
+  r.assign_attributes(data)
+  r.save
+end
