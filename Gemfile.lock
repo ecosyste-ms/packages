@@ -70,7 +70,7 @@ GEM
     citrus (3.0.2)
     concurrent-ruby (1.3.6)
     connection_pool (3.0.2)
-    counter_culture (3.12.1)
+    counter_culture (3.12.2)
       activerecord (>= 4.2)
       activesupport (>= 4.2)
     crack (1.0.1)
@@ -407,7 +407,7 @@ CHECKSUMS
   citrus (3.0.2) sha256=4ec2412fc389ad186735f4baee1460f7900a8e130ffe3f216b30d4f9c684f650
   concurrent-ruby (1.3.6) sha256=6b56837e1e7e5292f9864f34b69c5a2cbc75c0cf5338f1ce9903d10fa762d5ab
   connection_pool (3.0.2) sha256=33fff5ba71a12d2aa26cb72b1db8bba2a1a01823559fb01d29eb74c286e62e0a
-  counter_culture (3.12.1) sha256=8a880092321941732bfa639c449a133ff08c5197c29e853371cc03c486e43980
+  counter_culture (3.12.2) sha256=26358dbb15e2f1f7e60f2c11976e37517a74ffd34eb5ef8d7269862b9ff8aadd
   crack (1.0.1) sha256=ff4a10390cd31d66440b7524eb1841874db86201d5b70032028553130b6d4c7e
   crass (1.0.6) sha256=dc516022a56e7b3b156099abc81b6d2b08ea1ed12676ac7a5657617f012bd45d
   csv (3.3.5) sha256=6e5134ac3383ef728b7f02725d9872934f523cb40b961479f69cf3afa6c8e73f
