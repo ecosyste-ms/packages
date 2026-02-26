@@ -48,9 +48,12 @@ class PackagesController < ApplicationController
       scope = @package.latest_dependent_packages(kind: params[:kind]).includes(:registry)
     end
 
+    scope = scope.where("(repo_metadata ->> 'stargazers_count')::int >= ?", params[:min_stars].to_i) if params[:min_stars].present?
+    scope = scope.where("downloads >= ?", params[:min_downloads].to_i) if params[:min_downloads].present?
+
     if params[:sort].present? || params[:order].present?
       sort = params[:sort] || 'updated_at'
-      sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'      
+      sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'
       if params[:order] == 'asc'
         scope = scope.order(Arel.sql(sort).asc.nulls_last)
       else

@@ -25,7 +25,7 @@
         </div>
         <div class='card-body'>
           <% latest = params[:latest] == 'false' ? nil : 'false' %>
-          <%= link_to dependent_packages_registry_package_path(@registry, @package, latest: latest, kind: params[:kind]), class: 'text-decoration-none text-dark' do %>
+          <%= link_to dependent_packages_registry_package_path(@registry, @package, latest: latest, kind: params[:kind], min_stars: params[:min_stars], min_downloads: params[:min_downloads]), class: 'text-decoration-none text-dark' do %>
             <% if latest %>
               <%= bootstrap_icon "square" %> Include Past Dependents
             <% else %>
@@ -38,14 +38,37 @@
 
       <div class='card mb-4'>
         <div class='card-header'>
+          <h6 class="mb-0">Filter</h6>
+        </div>
+        <div class='card-body'>
+          <%= form_tag(dependent_packages_registry_package_path(@registry, @package), method: :get, class: 'mb-0') do %>
+            <%= hidden_field_tag :latest, params[:latest] if params[:latest].present? %>
+            <%= hidden_field_tag :kind, params[:kind] if params[:kind].present? %>
+            <%= hidden_field_tag :sort, params[:sort] if params[:sort].present? %>
+            <%= hidden_field_tag :order, params[:order] if params[:order].present? %>
+            <div class="mb-2">
+              <%= label_tag :min_stars, 'Min stars', class: 'form-label small mb-1' %>
+              <%= number_field_tag :min_stars, params[:min_stars], class: 'form-control form-control-sm', min: 0 %>
+            </div>
+            <div class="mb-2">
+              <%= label_tag :min_downloads, 'Min downloads', class: 'form-label small mb-1' %>
+              <%= number_field_tag :min_downloads, params[:min_downloads], class: 'form-control form-control-sm', min: 0 %>
+            </div>
+            <%= submit_tag 'Apply', class: 'btn btn-sm btn-primary' %>
+          <% end %>
+        </div>
+      </div>
+
+      <div class='card mb-4'>
+        <div class='card-header'>
           <h6 class="mb-0">Filter by Kind</h6>
         </div>
         <div class='list-group list-group-flush'>
-          <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center text-break <%= 'active' if params[:kind].blank? %>" href="<%= dependent_packages_registry_package_path(@registry, @package, latest: params[:latest]) %>">
+          <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center text-break <%= 'active' if params[:kind].blank? %>" href="<%= dependent_packages_registry_package_path(@registry, @package, latest: params[:latest], min_stars: params[:min_stars], min_downloads: params[:min_downloads]) %>">
             All kinds
           </a>
           <% @kinds.sort_by(&:last).reverse.first(100).each do |kind, count| %>
-            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center text-break <%= 'active' if params[:kind] == kind %>" href="<%= dependent_packages_registry_package_path(@registry, @package, kind: kind, latest: params[:latest]) %>">
+            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center text-break <%= 'active' if params[:kind] == kind %>" href="<%= dependent_packages_registry_package_path(@registry, @package, kind: kind, latest: params[:latest], min_stars: params[:min_stars], min_downloads: params[:min_downloads]) %>">
               <%= kind %>
               <span class='badge bg-primary rounded-pill'><%= number_with_delimiter count %></span>
             </a>
