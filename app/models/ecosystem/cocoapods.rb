@@ -65,7 +65,7 @@ module Ecosystem
     def fetch_package_metadata_uncached(name)
       digest = Digest::MD5.hexdigest(name)
       chars = digest[0..2].split('')
-      versions_lists = get_raw("https://cdn.cocoapods.org/all_pods_versions_#{chars.join('_')}.txt").force_encoding('UTF-8')
+      versions_lists = get_raw("https://cdn.cocoapods.org/all_pods_versions_#{chars.join('_')}.txt").encode('UTF-8')
       lines = versions_lists.split("\n")
 
       pkg = lines.find do |line|
