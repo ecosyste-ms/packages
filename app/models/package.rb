@@ -12,6 +12,24 @@ class Package < ApplicationRecord
   has_many :maintainerships, dependent: :delete_all
   has_many :maintainers, through: :maintainerships
 
+  def self.sortable_columns
+    {
+      'updated_at' => 'updated_at',
+      'created_at' => 'created_at',
+      'name' => 'name',
+      'downloads' => 'downloads',
+      'dependent_repos_count' => 'dependent_repos_count',
+      'dependent_packages_count' => 'dependent_packages_count',
+      'latest_release_published_at' => 'latest_release_published_at',
+      'versions_count' => 'versions_count',
+      'maintainers_count' => 'maintainers_count',
+      'docker_downloads_count' => 'docker_downloads_count',
+      'docker_dependents_count' => 'docker_dependents_count',
+      'stargazers_count' => "(repo_metadata ->> 'stargazers_count')::text::integer",
+      'forks_count' => "(repo_metadata ->> 'forks_count')::text::integer",
+    }
+  end
+
   scope :ecosystem, ->(ecosystem) { where(ecosystem: ecosystem.downcase) }
   scope :namespace, ->(namespace) { where(namespace: namespace) }
   scope :created_after, ->(created_at) { where('created_at > ?', created_at) }

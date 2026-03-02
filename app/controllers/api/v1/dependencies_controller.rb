@@ -11,11 +11,11 @@ class Api::V1::DependenciesController < Api::V1::ApplicationController
     scope = scope.where('dependencies.id > ?', params[:after]) if params[:after].present?
 
     if params[:sort].present?
-      sort = params[:sort].presence || 'id'
+      sort = sanitize_sort(Dependency.sortable_columns, default: 'id')
       if params[:order] == 'asc'
-        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+        scope = scope.order(sort.asc.nulls_last)
       else
-        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+        scope = scope.order(sort.desc.nulls_last)
       end
     end
 

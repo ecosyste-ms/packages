@@ -47,6 +47,20 @@ paths:
           required: false
           schema:
             type: string
+            enum:
+              - updated_at
+              - created_at
+              - name
+              - downloads
+              - dependent_repos_count
+              - dependent_packages_count
+              - latest_release_published_at
+              - versions_count
+              - maintainers_count
+              - docker_downloads_count
+              - docker_dependents_count
+              - stargazers_count
+              - forks_count
         - name: order
           in: query
           description: direction to sort results by (asc or desc)
@@ -93,6 +107,20 @@ paths:
           required: false
           schema:
             type: string
+            enum:
+              - updated_at
+              - created_at
+              - name
+              - downloads
+              - dependent_repos_count
+              - dependent_packages_count
+              - latest_release_published_at
+              - versions_count
+              - maintainers_count
+              - docker_downloads_count
+              - docker_dependents_count
+              - stargazers_count
+              - forks_count
         - name: order
           in: query
           description: direction to sort results by (asc or desc)
@@ -139,6 +167,9 @@ paths:
           required: false
           schema:
             type: string
+            enum:
+              - login
+              - packages_count
         - name: order
           in: query
           description: direction to sort results by (asc or desc)
@@ -205,6 +236,20 @@ paths:
           required: false
           schema:
             type: string
+            enum:
+              - updated_at
+              - created_at
+              - name
+              - downloads
+              - dependent_repos_count
+              - dependent_packages_count
+              - latest_release_published_at
+              - versions_count
+              - maintainers_count
+              - docker_downloads_count
+              - docker_dependents_count
+              - stargazers_count
+              - forks_count
         - name: order
           in: query
           description: direction to sort results by
@@ -279,6 +324,20 @@ paths:
           required: false
           schema:
             type: string
+            enum:
+              - updated_at
+              - created_at
+              - name
+              - downloads
+              - dependent_repos_count
+              - dependent_packages_count
+              - latest_release_published_at
+              - versions_count
+              - maintainers_count
+              - docker_downloads_count
+              - docker_dependents_count
+              - stargazers_count
+              - forks_count
         - name: order
           in: query
           description: direction to sort results by (asc or desc)
@@ -514,6 +573,20 @@ paths:
           required: false
           schema:
             type: string
+            enum:
+              - updated_at
+              - created_at
+              - name
+              - downloads
+              - dependent_repos_count
+              - dependent_packages_count
+              - latest_release_published_at
+              - versions_count
+              - maintainers_count
+              - docker_downloads_count
+              - docker_dependents_count
+              - stargazers_count
+              - forks_count
         - name: order
           in: query
           description: direction to sort results by
@@ -574,6 +647,13 @@ paths:
           required: false
           schema:
             type: string
+            enum:
+              - login
+              - packages_count
+              - updated_at
+              - created_at
+              - name
+              - uuid
         - name: order
           in: query
           description: direction to order results by
@@ -820,6 +900,20 @@ paths:
           required: false
           schema:
             type: string
+            enum:
+              - updated_at
+              - created_at
+              - name
+              - downloads
+              - dependent_repos_count
+              - dependent_packages_count
+              - latest_release_published_at
+              - versions_count
+              - maintainers_count
+              - docker_downloads_count
+              - docker_dependents_count
+              - stargazers_count
+              - forks_count
         - name: order
           in: query
           description: direction to order results by
@@ -894,6 +988,20 @@ paths:
           required: false
           schema:
             type: string
+            enum:
+              - updated_at
+              - created_at
+              - name
+              - downloads
+              - dependent_repos_count
+              - dependent_packages_count
+              - latest_release_published_at
+              - versions_count
+              - maintainers_count
+              - docker_downloads_count
+              - docker_dependents_count
+              - stargazers_count
+              - forks_count
         - name: order
           in: query
           description: direction to order results by
@@ -1004,8 +1112,13 @@ paths:
           in: query
           description: field to order results by
           required: false
-          schema: 
+          schema:
             type: string
+            enum:
+              - published_at
+              - created_at
+              - updated_at
+              - number
         - name: order
           in: query
           description: direction to order results by
@@ -1098,6 +1211,20 @@ paths:
           required: false
           schema:
             type: string
+            enum:
+              - updated_at
+              - created_at
+              - name
+              - downloads
+              - dependent_repos_count
+              - dependent_packages_count
+              - latest_release_published_at
+              - versions_count
+              - maintainers_count
+              - docker_downloads_count
+              - docker_dependents_count
+              - stargazers_count
+              - forks_count
         - name: order
           in: query
           description: direction to order results by
@@ -1236,6 +1363,20 @@ paths:
           required: false
           schema:
             type: string
+            enum:
+              - updated_at
+              - created_at
+              - name
+              - downloads
+              - dependent_repos_count
+              - dependent_packages_count
+              - latest_release_published_at
+              - versions_count
+              - maintainers_count
+              - docker_downloads_count
+              - docker_dependents_count
+              - stargazers_count
+              - forks_count
         - name: order
           in: query
           description: direction to order results by
@@ -1358,6 +1499,11 @@ paths:
           required: false
           schema:
             type: string
+            enum:
+              - published_at
+              - created_at
+              - updated_at
+              - number
         - name: order
           in: query
           description: direction to order results by
@@ -1504,6 +1650,13 @@ paths:
           required: false
           schema:
             type: string
+            enum:
+              - id
+              - created_at
+              - updated_at
+              - package_name
+              - ecosystem
+              - kind
         - name: order
           in: query
           description: direction to order results by

@@ -4,6 +4,17 @@ class Maintainer < ApplicationRecord
   has_many :maintainerships, dependent: :delete_all
   has_many :packages, through: :maintainerships
 
+  def self.sortable_columns
+    {
+      'packages_count' => 'packages_count',
+      'login' => 'login',
+      'name' => 'name',
+      'uuid' => 'uuid',
+      'updated_at' => 'updated_at',
+      'created_at' => 'created_at',
+    }
+  end
+
   validates :uuid, presence: true, uniqueness: {scope: :registry_id}
 
   scope :created_after, ->(created_at) { where('created_at > ?', created_at) }

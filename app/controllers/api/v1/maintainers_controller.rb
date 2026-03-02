@@ -6,9 +6,13 @@ class Api::V1::MaintainersController < Api::V1::ApplicationController
     scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
 
     if params[:sort].present? || params[:order].present?
-      sort = params[:sort] || 'updated_at'
-      order = params[:order] || 'desc'
-      sort_options = sort.split(',').zip(order.split(',')).to_h
+      sort_keys = (params[:sort] || 'updated_at').split(',')
+      order_vals = (params[:order] || 'desc').split(',')
+      sort_options = sort_keys.zip(order_vals).each_with_object({}) do |(col, dir), hash|
+        next unless Maintainer.sortable_columns.key?(col)
+        hash[col] = (dir == 'asc' ? :asc : :desc)
+      end
+      sort_options = { 'updated_at' => :desc } if sort_options.empty?
       scope = scope.order(sort_options)
     else
       scope = scope.order('updated_at DESC')

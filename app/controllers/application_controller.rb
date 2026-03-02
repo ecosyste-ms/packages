@@ -67,4 +67,10 @@ class ApplicationController < ActionController::Base
     return nil if url.nil?
     url.to_s.downcase.sub(/\/+$/, '')
   end
+
+  def sanitize_sort(allowed_columns, default: 'updated_at')
+    sort_param = params[:sort].presence || default
+    sql = allowed_columns[sort_param] || allowed_columns[default] || default
+    Arel.sql(sql)
+  end
 end

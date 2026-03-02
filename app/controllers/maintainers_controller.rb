@@ -5,11 +5,11 @@ class MaintainersController < ApplicationController
     scope = @registry.maintainers
 
     if params[:sort].present? || params[:order].present?
-      sort = params[:sort].presence || 'packages_count'
+      sort = sanitize_sort(Maintainer.sortable_columns, default: 'packages_count')
       if params[:order] == 'asc'
-        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+        scope = scope.order(sort.asc.nulls_last)
       else
-        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+        scope = scope.order(sort.desc.nulls_last)
       end
     else
       scope = scope.order('packages_count desc')
@@ -27,12 +27,11 @@ class MaintainersController < ApplicationController
     scope = @maintainer.packages.includes(:registry)
 
     if params[:sort].present? || params[:order].present?
-      sort = params[:sort].presence || 'updated_at'
-      sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'
+      sort = sanitize_sort(Package.sortable_columns)
       if params[:order] == 'asc'
-        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+        scope = scope.order(sort.asc.nulls_last)
       else
-        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+        scope = scope.order(sort.desc.nulls_last)
       end
     else
       scope = scope.order('updated_at desc')

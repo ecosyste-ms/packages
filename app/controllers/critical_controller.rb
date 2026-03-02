@@ -9,20 +9,18 @@ class CriticalController < ApplicationController
     scope = scope.where(registry_id: @registry.id) if params[:registry]
 
     if params[:sort].present? || params[:order].present?
-      sort = params[:sort].presence || 'downloads'
-      
-      sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'
+      sort = sanitize_sort(Package.sortable_columns, default: 'downloads')
       if params[:order] == 'asc'
-        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+        scope = scope.order(sort.asc.nulls_last)
       else
-        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+        scope = scope.order(sort.desc.nulls_last)
       end
     else
       scope = scope.order('downloads DESC nulls last')
     end
 
     @pagy, @packages = pagy(scope)
-    
+
     @registries = Package.critical.group(:registry).count.sort_by{|r, c| c}
   end
 
@@ -36,14 +34,11 @@ class CriticalController < ApplicationController
     scope = scope.where(registry_id: @registry.id) if params[:registry]
 
     if params[:sort].present? || params[:order].present?
-      sort = params[:sort].presence || 'downloads'
-      
-      sort = "(repo_metadata ->> 'stargazers_count')::text::integer" if params[:sort] == 'stargazers_count'
-      sort = "(repo_metadata ->> 'forks_count')::text::integer" if params[:sort] == 'forks_count'
+      sort = sanitize_sort(Package.sortable_columns, default: 'downloads')
       if params[:order] == 'asc'
-        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+        scope = scope.order(sort.asc.nulls_last)
       else
-        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+        scope = scope.order(sort.desc.nulls_last)
       end
     else
       scope = scope.order('packages.downloads DESC nulls last')
@@ -85,34 +80,11 @@ class CriticalController < ApplicationController
     scope = scope.where(registry_id: @registry.id) if params[:registry]
 
     if params[:sort].present? || params[:order].present?
-      sort = params[:sort].presence || 'downloads'
-
-      # Handle special sort fields that need SQL casting
-      case params[:sort]
-      when 'stargazers_count'
-        sort = "(repo_metadata ->> 'stargazers_count')::text::integer"
-      when 'name'
-        sort = 'name'
-      when 'versions_count'
-        sort = 'versions_count'
-      when 'latest_release_published_at'
-        sort = 'latest_release_published_at'
-      when 'dependent_packages_count'
-        sort = 'dependent_packages_count'
-      when 'dependent_repos_count'
-        sort = 'dependent_repos_count'
-      when 'downloads'
-        sort = 'downloads'
-      when 'maintainers_count'
-        sort = 'maintainers_count'
-      else
-        sort = 'downloads' # fallback to safe default
-      end
-
+      sort = sanitize_sort(Package.sortable_columns, default: 'downloads')
       if params[:order] == 'asc'
-        scope = scope.order(Arel.sql(sort).asc.nulls_last)
+        scope = scope.order(sort.asc.nulls_last)
       else
-        scope = scope.order(Arel.sql(sort).desc.nulls_last)
+        scope = scope.order(sort.desc.nulls_last)
       end
     else
       scope = scope.order_by_maintainer_count_asc.order('downloads DESC nulls last')

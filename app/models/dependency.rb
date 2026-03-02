@@ -2,6 +2,17 @@ class Dependency < ApplicationRecord
   belongs_to :version
   belongs_to :package, optional: true
 
+  def self.sortable_columns
+    {
+      'id' => 'id',
+      'created_at' => 'created_at',
+      'updated_at' => 'updated_at',
+      'package_name' => 'package_name',
+      'ecosystem' => 'ecosystem',
+      'kind' => 'kind',
+    }
+  end
+
   validates_presence_of :package_name, :version_id, :requirements, :ecosystem
 
   scope :ecosystem, ->(ecosystem) { where(ecosystem: ecosystem.downcase) }
