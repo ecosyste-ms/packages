@@ -54,14 +54,25 @@ module Ecosystem
 
     def map_package_metadata(pkg_metadata)
       return false if pkg_metadata.blank? || pkg_metadata["name"].blank?
-      {
+      h = {
         name: pkg_metadata["name"],
         description: pkg_metadata["description"],
         homepage: pkg_metadata["homepage"],
         licenses: pkg_metadata["licenses"],
         repository_url: repo_fallback(pkg_metadata["repository_url"], pkg_metadata["homepage"]),
-        versions: pkg_metadata['versions']
+        versions: pkg_metadata['versions'],
+        downloads_period: 'total'
       }
+
+      dl = downloads(pkg_metadata["name"])
+      h[:downloads] = dl if dl.present?
+      h
+    end
+
+    def downloads(name)
+      get_json("https://api.anaconda.org/package/#{@registry.metadata['kind']}/#{name}")["ndownloads"]
+    rescue
+      nil
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])

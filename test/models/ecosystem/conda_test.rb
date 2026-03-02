@@ -75,6 +75,8 @@ class CondaTest < ActiveSupport::TestCase
   test 'package_metadata' do
     stub_request(:get, "https://conda.ecosyste.ms/Main/")
       .to_return({ status: 200, body: file_fixture('conda/index.html') })
+    stub_request(:get, "https://api.anaconda.org/package/anaconda/aiofiles")
+      .to_return({ status: 200, body: file_fixture('conda/aiofiles.json') })
     package_metadata = @ecosystem.package_metadata('aiofiles')
 
     assert_equal package_metadata[:name], "aiofiles"
@@ -82,11 +84,33 @@ class CondaTest < ActiveSupport::TestCase
     assert_equal package_metadata[:homepage], "https://github.com/Tinche/aiofiles"
     assert_equal package_metadata[:licenses], "Apache 2.0"
     assert_equal package_metadata[:repository_url], "https://github.com/Tinche/aiofiles"
+    assert_equal package_metadata[:downloads], 42567
+    assert_equal package_metadata[:downloads_period], "total"
+  end
+
+  test 'downloads' do
+    stub_request(:get, "https://api.anaconda.org/package/anaconda/aiofiles")
+      .to_return({ status: 200, body: file_fixture('conda/aiofiles.json') })
+    assert_equal @ecosystem.downloads('aiofiles'), 42567
+  end
+
+  test 'downloads returns nil on error' do
+    stub_request(:get, "https://api.anaconda.org/package/anaconda/nonexistent")
+      .to_return({ status: 404, body: '{"error": "not found"}' })
+    assert_nil @ecosystem.downloads('nonexistent')
+  end
+
+  test 'conda-forge downloads' do
+    stub_request(:get, "https://api.anaconda.org/package/conda-forge/aiofiles")
+      .to_return({ status: 200, body: '{"ndownloads": 99999}' })
+    assert_equal @ecosystem2.downloads('aiofiles'), 99999
   end
 
   test 'versions_metadata' do
     stub_request(:get, "https://conda.ecosyste.ms/Main/")
       .to_return({ status: 200, body: file_fixture('conda/index.html') })
+    stub_request(:get, "https://api.anaconda.org/package/anaconda/aiofiles")
+      .to_return({ status: 200, body: file_fixture('conda/aiofiles.json') })
     package_metadata = @ecosystem.package_metadata('aiofiles')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
@@ -97,6 +121,8 @@ class CondaTest < ActiveSupport::TestCase
   test 'dependencies_metadata' do
     stub_request(:get, "https://conda.ecosyste.ms/Main/")
       .to_return({ status: 200, body: file_fixture('conda/index.html') })
+    stub_request(:get, "https://api.anaconda.org/package/anaconda/aiofiles")
+      .to_return({ status: 200, body: file_fixture('conda/aiofiles.json') })
     package_metadata = @ecosystem.package_metadata('aiofiles')
     dependencies_metadata = @ecosystem.dependencies_metadata('aiofiles', '0.4.0', package_metadata)
     
@@ -146,6 +172,8 @@ class CondaTest < ActiveSupport::TestCase
   test 'check_status reuses memoized metadata without extra HTTP request' do
     stub_request(:get, "https://conda.ecosyste.ms/Main/")
       .to_return({ status: 200, body: file_fixture('conda/index.html') })
+    stub_request(:get, "https://api.anaconda.org/package/anaconda/aiofiles")
+      .to_return({ status: 200, body: file_fixture('conda/aiofiles.json') })
 
     # Fetch metadata first to populate the cache
     @ecosystem.package_metadata('aiofiles')
