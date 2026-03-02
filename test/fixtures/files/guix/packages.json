@@ -1,0 +1,78 @@
+[
+  {
+    "name": "zile",
+    "version": "2.6.2",
+    "variable_name": "zile",
+    "source": [
+      {
+        "type": "url",
+        "urls": [
+          "https://ftp.gnu.org/gnu/zile/zile-2.6.2.tar.gz",
+          "https://ftpmirror.gnu.org/zile/zile-2.6.2.tar.gz"
+        ],
+        "integrity": "sha256-abc123def456",
+        "outputHashAlgo": "sha256",
+        "outputHashMode": "flat"
+      }
+    ],
+    "synopsis": "Lightweight Emacs clone",
+    "homepage": "https://www.gnu.org/software/zile/",
+    "location": "gnu/packages/zile.scm:48"
+  },
+  {
+    "name": "hello",
+    "version": "2.12.1",
+    "variable_name": "hello",
+    "source": [
+      {
+        "type": "url",
+        "urls": [
+          "https://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz"
+        ],
+        "integrity": "sha256-jZkUKv2SV28wsM18tCqNxoCZmLnighAfahT6AFlSML0=",
+        "outputHashAlgo": "sha256",
+        "outputHashMode": "flat"
+      }
+    ],
+    "synopsis": "Hello, GNU world: An example GNU package",
+    "homepage": "https://www.gnu.org/software/hello/",
+    "location": "gnu/packages/base.scm:92"
+  },
+  {
+    "name": "hello",
+    "version": "2.10",
+    "variable_name": "hello-2.10",
+    "source": [
+      {
+        "type": "url",
+        "urls": [
+          "https://ftp.gnu.org/gnu/hello/hello-2.10.tar.gz"
+        ],
+        "integrity": "sha256-MeBmE3qWJnbon2nRtlOC3pWn732RS4y5VvQepy4PUWo=",
+        "outputHashAlgo": "sha256",
+        "outputHashMode": "flat"
+      }
+    ],
+    "synopsis": "Hello, GNU world: An example GNU package",
+    "homepage": "https://www.gnu.org/software/hello/",
+    "location": "gnu/packages/base.scm:72"
+  },
+  {
+    "name": "guile",
+    "version": "3.0.10",
+    "variable_name": "guile-3.0",
+    "source": [
+      {
+        "type": "git",
+        "git_url": "https://git.savannah.gnu.org/git/guile.git",
+        "integrity": "sha256-xyz789",
+        "outputHashAlgo": "sha256",
+        "outputHashMode": "recursive",
+        "git_ref": "v3.0.10"
+      }
+    ],
+    "synopsis": "GNU's programming and extension language",
+    "homepage": "https://www.gnu.org/software/guile/",
+    "location": "gnu/packages/guile.scm:205"
+  }
+]
