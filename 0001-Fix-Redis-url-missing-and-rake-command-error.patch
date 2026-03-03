@@ -1,0 +1,43 @@
+From e123eee8ba6c7a2ab775ab23f0ca09a3ade9fad3 Mon Sep 17 00:00:00 2001
+From: root <1936067623@qq.com>
+Date: Wed, 14 May 2025 17:41:31 +0800
+Subject: [PATCH] Fix Redis url missing and rake command error
+
+---
+ DEVELOPMENT.md     | 2 +-
+ docker-compose.yml | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/DEVELOPMENT.md b/DEVELOPMENT.md
+index 2323684b..cb20efdd 100644
+--- a/DEVELOPMENT.md
++++ b/DEVELOPMENT.md
+@@ -50,7 +50,7 @@ The default set of supported registries are listed in [db/seeds.rb](db/seeds.rb)
+ 
+ You can then start syncing package data for each registry with the following command, this will take a very long time:
+ 
+-`rake packages:sync_all_packages`
++`rake packages:sync_all`
+ 
+ To quickly load some data you can just load recent packages:
+ 
+diff --git a/docker-compose.yml b/docker-compose.yml
+index 8ca34589..7eb4c10e 100644
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -13,10 +13,12 @@ services:
+       - POSTGRES_USER=postgres
+       - POSTGRES_PASSWORD=development
+       - POSTGRES_HOST=database.service.packages.internal
++      - REDIS_URL=redis://redis.service.packages.internal:6379/0
+     networks:
+       - internal
+     depends_on:
+       - database.service.packages.internal
++      - redis.service.packages.internal
+ 
+   database.service.packages.internal:
+     image: postgres:14.1-alpine
+-- 
+2.45.2
+
