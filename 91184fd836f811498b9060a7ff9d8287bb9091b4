@@ -1,0 +1,23 @@
+config/initializers/content_security_policy.rb
+  477336e906d34278 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.8",
+  "base_commit_sha": "91184fd836f811498b9060a7ff9d8287bb9091b4",
+  "prompts": {
+    "477336e906d34278": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9390b30c-2229-4c05-a7de-b55467c07057",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Andrew Nesbitt <andrewnez@gmail.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
