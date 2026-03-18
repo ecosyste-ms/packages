@@ -1,0 +1,27 @@
+app/models/ecosystem/fdroid.rb
+  28f8edd1964d2f65 1-128
+db/seeds.rb
+  28f8edd1964d2f65 18
+test/models/ecosystem/fdroid_test.rb
+  28f8edd1964d2f65 1-94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.15",
+  "base_commit_sha": "38b636c7e03898ac8297ad09b7a1f6841f201943",
+  "prompts": {
+    "28f8edd1964d2f65": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2710588d-a237-4868-9dc1-8b02b502278f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Andrew Nesbitt <andrewnez@gmail.com>",
+      "messages": [],
+      "total_additions": 232,
+      "total_deletions": 9,
+      "accepted_lines": 223,
+      "overriden_lines": 0
+    }
+  }
+}
