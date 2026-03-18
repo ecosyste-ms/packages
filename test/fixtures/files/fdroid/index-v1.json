@@ -1,0 +1,389 @@
+{
+  "repo": {
+    "name": {
+      "en-US": "F-Droid"
+    },
+    "timestamp": 1773828555406
+  },
+  "apps": [
+    {
+      "authorEmail": "niccokunzmann@rambler.ru",
+      "authorName": "Nicco Kunzmann",
+      "categories": [
+        "Games",
+        "Science & Education"
+      ],
+      "suggestedVersionName": "1.3",
+      "suggestedVersionCode": "3",
+      "issueTracker": "https://gitlab.com/niccokunzmann/12345/-/issues",
+      "license": "AGPL-3.0-or-later",
+      "sourceCode": "https://gitlab.com/niccokunzmann/12345",
+      "translation": "https://www.transifex.com/mundraub-android/12345-learn-counting/",
+      "webSite": "https://niccokunzmann.gitlab.io/12345/",
+      "added": 1646179200000,
+      "icon": "eu.quelltext.counting.3.png",
+      "packageName": "eu.quelltext.counting",
+      "lastUpdated": 1646352000000,
+      "localized": {
+        "en-US": {
+          "description": "Count objects on images and choose their number.\nThis game features multiple levels with over 50 images to count.\nThe app speaks in Welsh (Cymraig), English and German(Deutsch).\n\nEach of the levels add new, higher numbers to count.\n\nIf you and your child like to play an additional game mode, please do not hesitate to contact us.\nIf you are a developer or want to become one, you can extend the game with the modes you would like to see in it.\nIf you like to create a new level, it is quite easy to take a few pictures for it and get in contact.\nThe game is an open-source software under AGPL so that you are allowed to copy, distribute and modify it.\n\nCode of honor: This game is child and privacy friendly:\n- no advertisement\n- no communication over the Internet\n- source is open and publicly disclosed\n- no in-app puchases\n",
+          "icon": "icon_30ymRTCTMZiTzSNXPRLEOukBSubDfmp1CV_cpbGudKw=.png",
+          "name": "12345 - Learn Counting",
+          "phoneScreenshots": [
+            "index.png",
+            "level-1-complete.png",
+            "level-1.png",
+            "play.png"
+          ],
+          "summary": "Learn counting in different languages with pictures",
+          "whatsNew": "- save the state of the game in the link hash\n"
+        }
+      }
+    },
+    {
+      "authorEmail": "pfa@secuso.org",
+      "authorName": "SECUSO - Security Usability Society",
+      "authorWebSite": "https://secuso.aifb.kit.edu/english/105.php",
+      "categories": [
+        "Games"
+      ],
+      "changelog": "https://github.com/SecUSo/privacy-friendly-2048/blob/HEAD/CHANGELOG.md",
+      "suggestedVersionName": "1.4.2",
+      "suggestedVersionCode": "100",
+      "issueTracker": "https://github.com/SecUSo/privacy-friendly-2048/issues",
+      "license": "GPL-3.0-or-later",
+      "sourceCode": "https://github.com/SecUSo/privacy-friendly-2048",
+      "webSite": "https://secuso.aifb.kit.edu/english/653.php",
+      "added": 1549152000000,
+      "packageName": "org.secuso.privacyfriendly2048",
+      "lastUpdated": 1753701498000,
+      "localized": {
+        "ar": {
+          "summary": "لعبة لغز للفوز عليك الوصول الى 2048"
+        },
+        "de": {
+          "description": "Die Android-Applikation Privacy Friendly 2048 ist ein spannendes Puzzlespiel. Das Spiel gilt als gewonnen, wenn man durch Zusammenschieben gleicher Zahlen die Zahl 2048 erreicht.\n\nEbenfalls Teil der App ist die Statistik-Funktion. Diese Funktion ermöglicht es, Informationen beispielsweise über die benötigte Wischanzahl oder maximal erreichte Punktzahl zu erhalten.\n\nDabei hat die Privacy Friendly 2048 vier verschiedene Spielmodi:\n\nKlassisch: 4x4-Spielfeld\nGroß: 5x5-Spielfeld\nGrößer: 6x6-Spielfeld\nRiesig: 7x7-Spielfeld\n\nEin Generator sorgt im Hintergrund für das zufällige Erscheinen einer Zahl pro Runde (2 oder 4). Mithilfe dieser Zahlen kann nach und nach die Zahl 2048 oder auch höhere Zweierpotenzen erreicht werden. Für Hilfestellungen und Tipps können Sie gerne einen Blick auf diese Website werfen.\nDabei bietet diese App auch die Möglichkeit, in dem jeweiligen Modus ein Spiel zu speichern, wodurch das Speichern von insgesamt bis zu vier gespeicherten Spiele möglich ist. Auch das Zurücknehmen eines Zuges ist in dieser App implementiert worden. Zusätzlich ist eine Zusammenfassung Ihrer Leistung in den verschiedenen Modi mithilfe der Statistik-Funktion zu finden.\n\nUnsere Privacy-Friendy-2048-App unterscheidet sich in den folgenden zwei Punkten von anderen, ähnlichen Apps:\n\n1. Keine Berechtigungen:\nDie Privacy Friendly 2048-App benötigt keinerlei Berechtigungen.\n2. Keine störende Werbung:\nViele andere kostenlose Apps im Google-Play-Store blenden störende Werbung ein, die unter anderem auch die Akkulaufzeit verkürzt und Datenvolumen verbrauchen kann.\n\n\nKontaktieren Sie uns gerne über:\nBluesky - @secusoresearch.bsky.social https://bsky.app/profile/secusoresearch.bsky.social\nMastodon - @SECUSO_Research@bawü.social https://xn--baw-joa.social/@SECUSO_Research/\nOffene Stellen - https://secuso.aifb.kit.edu/83.php\n",
+          "icon": "icon__EtkwPp725lQQYnzjkzDUiOqD2X5nnY1CiZSIYN9TVU=.png",
+          "name": "2048 (Privacy Friendly)",
+          "phoneScreenshots": [
+            "1.jpg",
+            "2.jpg",
+            "3.jpg"
+          ],
+          "summary": "(SECUSO) Bei diesem Denkspiel versuchen Sie, 2048 zu erreichen"
+        },
+        "en-US": {
+          "description": "The Android application Privacy Friendly 2048 is an exciting puzzle game. The game is considered to be won if you reach the number 2048 by sliding the same numbers together.\n\nThe statistic function is also part of the app. This makes it possible to get information about for example the required number of swipes and the highest achieved number of points.\n\nThe Privacy Friendly 2048 has four different game modes:\n\nclassic: 4x4\nlarge: 5x5\nbigger: 6x6\nhuge: 7x7\n\nA generator in the background randomly displays one number per round (2 or 4). With the help of these numbers, the number 2048 and even higher powers of two can be gradually reached. For help and tips, please take a look at this website.\n\nThis app also offers the possibility to save a game in the respective mode, which allows a total of up to four saved games. Undoing a move has also been implemented in this app. Additionally, a summary of their performance in the different modes can be found in the statistic function.\n\nOur Privacy Friendly App differs from other, similar applications with respect to two aspects:\n\n1. No permissions:\nThe Privacy Friendly 2048 does not use any permissions\n2. No adertisement:\nMany other free apps in the Google Play Store dazzle annoying advertising which also shortens battery life.\n\n\nFeel free to contact us via:\nBluesky - @secusoresearch.bsky.social https://bsky.app/profile/secusoresearch.bsky.social\nMastodon - @SECUSO_Research@bawü.social https://xn--baw-joa.social/@SECUSO_Research/\nJob opening - https://secuso.aifb.kit.edu/english/Job_Offers.php",
+          "icon": "icon__EtkwPp725lQQYnzjkzDUiOqD2X5nnY1CiZSIYN9TVU=.png",
+          "name": "2048 (Privacy Friendly)",
+          "phoneScreenshots": [
+            "1.png",
+            "2.png",
+            "3.png"
+          ],
+          "summary": "(SECUSO) Try to reach 2048 in this puzzle game"
+        },
+        "eo": {
+          "summary": "Akiru (almenaŭ) 2048 poentojn en tiu ĉi logika ludo"
+        },
+        "es": {
+          "description": "La aplicación para Android Privacy Friendly 2048 es un emocionante juego de rompecabezas. Se considera que el juego está ganado si se llega al número 2048 deslizando los mismos números juntos.\n\nLa aplicación también incluye una función de estadísticas que permite obtener información, por ejemplo, sobre el número de pasadas necesarias y el mayor número de puntos obtenidos.\n\nPrivacy Friendly 2048 tiene cuatro modos de juego diferentes:\n\nclásico: 4x4\ngrande: 5x5\nmás grande: 6x6\nenorme: 7x7\n\nUn generador en segundo plano muestra aleatoriamente un número por ronda (2 o 4). Con la ayuda de estos números, se puede llegar gradualmente al número 2048 e incluso a potencias superiores de dos. Para obtener ayuda y consejos, visite este sitio web.\n\nEsta aplicación también ofrece la posibilidad de guardar una partida en el modo correspondiente, lo que permite guardar hasta cuatro partidas en total. También se ha implementado la posibilidad de deshacer una jugada en esta aplicación. Además, en la función de estadísticas se puede encontrar un resumen de su rendimiento en los diferentes modos.\n\nNuestra aplicación Privacy Friendly se diferencia de otras aplicaciones similares en dos aspectos:\n\n1. Sin permisos:\nEl Privacy Friendly 2048 no utiliza ningún permiso\n2. Sin publicidad:\nMuchas otras aplicaciones gratuitas en Google Play Store muestran publicidad molesta que también acorta la vida de la batería.\n\n\nNo dude en ponerse en contacto con nosotros a través de:\nTwitter: @SECUSOResearch https://twitter.com/secusoresearch\nMastodonte - @SECUSO_Research@bawü.social https://xn--baw-joa.social/@SECUSO_Research/\nOferta de empleo: https://secuso.aifb.kit.edu/english/Job_Offers.php\n",
+          "name": "2048 (Privacy Friendly)",
+          "summary": "(SECUSO) Intenta llegar a 2048 en este juego de rompecabezas"
+        },
+        "fr": {
+          "summary": "Essayez d'atteindre 2048 dans ce jeu de réflexion"
+        },
+        "he": {
+          "name": "2048 (מכבד פרטיות)",
+          "summary": "משחק חשיבה שמאתגר אותך להגיע ל־2048"
+        },
+        "hu": {
+          "summary": "Próbálja meg elérni a 2048-at ebben a logikai játékban"
+        },
+        "it": {
+          "summary": "Prova a raggiungere 2048 con questo puzzle game"
+        },
+        "ja": {
+          "summary": "このパズルゲームで2048まで到達を挑戦しよう"
+        },
+        "nb": {
+          "summary": "Prøv å nå 2048 i dette tenkespillet"
+        },
+        "nn": {
+          "summary": "Prøv å nå 2048 i dette tenkjespelet"
+        },
+        "pl": {
+          "summary": "Spróbuj osiągnąć 2048 punktów tej grze logicznej"
+        },
+        "pt": {
+          "description": "O aplicativo Android Privacy Friendly 2048 é um emocionante jogo de quebra-cabeça. O jogo é considerado ganho se você atingir o número 2.048 deslizando os mesmos números juntos.\n\nA função estatística também faz parte do aplicativo. Isto permite obter informações sobre, por exemplo, o número necessário de furtos e o maior número de pontos alcançados.\n\nO Privacy Friendly 2048 possui quatro modos de jogo diferentes:\n\nclássico: 4x4\ngrande: 5x5\nmaior: 6x6\nenorme: 7x7\n\nUm gerador em segundo plano exibe aleatoriamente um número por rodada (2 ou 4). Com a ajuda desses números, o número 2.048 e potências ainda maiores de dois podem ser gradualmente alcançadas. Para obter ajuda e dicas, dê uma olhada neste site.\n\nEsta aplicação oferece ainda a possibilidade de guardar um jogo no respetivo modo, o que permite um total de até quatro jogos guardados. Desfazer um movimento também foi implementado neste aplicativo. Além disso, um resumo do seu desempenho nos diferentes modos pode ser encontrado na função estatística.\n\nNosso aplicativo de privacidade difere de outros aplicativos semelhantes em dois aspectos:\n\n1. Sem permissões:\nO Privacy Friendly 2048 não usa nenhuma permissão\n2. Sem anúncio:\nMuitos outros aplicativos gratuitos na Google Play Store deslumbram com publicidade irritante, o que também reduz a vida útil da bateria.\n\n\nNão hesite em contactar-nos através de:\nTwitter - @SECUSOResearch https://twitter.com/secusoresearch\nMastodonte - @SECUSO_Research@bawü.social https://xn--baw-joa.social/@SECUSO_Research/\nVaga de emprego - https://secuso.aifb.kit.edu/english/Job_Offers_1557.php\n",
+          "name": "2048 (amigo da privacidade)",
+          "summary": "(SECUSO) Tente chegar a 2048 neste jogo de quebra-cabeça"
+        },
+        "pt-BR": {
+          "summary": "Tente alcançar 2048 neste jogo de quebra-cabeça"
+        },
+        "pt-PT": {
+          "summary": "Tente chegar a 2048 neste puzzle"
+        },
+        "ro": {
+          "summary": "Încercați să ajungeți la 2048 în acest joc de puzzle"
+        },
+        "ru": {
+          "description": "2048 без слежки - это захватывающая игра-головоломка. Выиграйте, достигнув числа 2048 путём сдвигания чисел вместе.\n\nВ игре имеется статический анализатор ходов. Он позволяет получать информацию о том, сколько сдвигов необходимо сделать и какое количество очков можно достигнуть.\n\n2048 без слежки включает четыре основных игровых режима:\n\nклассический: 4x4\nувеличенный: 5x5\nбольшой: 6x6\nогромный: 7x7\n\nГенератор иногда отображает одну цифру на раунд (2 или 4). С помощью этих цифр можно постепенно достичь числа 2048 и даже более высоких чисел. Для получения помощи и подсказок, пожалуйста, посетите наш вебсайт.\n\nВ игре имеется возможность сохранения игр, по одному сохранению в каждом режиме, в общей сложности давая 4 слота сохранений. Также имеется отмена действий и статический анализ успешности ходов.\n\nНаша игра отличается от других похожих игр следующим:\n\n1. Никаких разрешений:\n2048 без слежки не требует никаких разрешений для работы\n2. Никакой рекламы:\nМногие другие бесплатные игры в магазине Google Play вставляют куда попало навязчивую рекламу, съедающую драгоценный заряд батареи вашего устройства.\n\n\nЕсли у вас есть вопросы или пожелания, свяжитесь с нами по ссылкам ниже:\nTwitter - @SECUSOResearch https://twitter.com/secusoresearch\nMastodon - @SECUSO_Research@bawü.social https://xn--baw-joa.social/@SECUSO_Research/\nПредложения работы - https://secuso.aifb.kit.edu/english/Job_Offers_1557.php\n",
+          "name": "2048 (без слежки)",
+          "summary": "(SECUSO) Попытайтесь достигнуть числа 2048 в этой игре-головоломке"
+        },
+        "tr": {
+          "summary": "Bu çözmece oyununda 2048'e ulaşmaya çalışın"
+        },
+        "uk": {
+          "summary": "Спробуй набрати 2048 в цій грі головоломці"
+        },
+        "zh-CN": {
+          "description": "隐私友好的2048是一款令人兴奋的益智游戏。通过滑动相同的数字合并，达到2048时即为获胜。\n\n该应用还具有统计功能。通过该功能，用户可以获取游戏信息，例如所需滑动次数和最高得分等。\n\n隐私友好的2048提供四种不同的游戏模式：\n\n经典模式：4x4\n大型模式：5x5\n超大模式：6x6\n巨大模式：7x7\n\n游戏中，后台生成器每轮随机显示一个数字（2或4）。利用这些数字，玩家可以逐步达到2048，甚至更高的2的幂次。\n有关帮助和提示，请访问此网站。\n\n该应用还提供了在各个模式下保存游戏的功能，总共可以保存多达四个游戏。应用也实现了撤销上一步操作的功能。\n此外，用户可以在统计功能中查看自己在不同模式下的表现总结。\n\n我们的隐私友好应用在以下两个方面与其他类似应用不同：\n\n1. 无权限要求：\n隐私友好的2048不使用任何权限。\n2. 无广告：\n许多其他Google Play商店中免费应用有令人眼花缭乱的烦人广告，这些广告也缩短了电池寿命。\n\n\n欢迎通过以下方式联系我们：\nTwitter - @SECUSOResearch https://twitter.com/secusoresearch\nMastodon - @SECUSO_Research@bawü.social https://xn--baw-joa.social/@SECUSO_Research/\n职位招聘 - https://secuso.aifb.kit.edu/english/Job_Offers_1557.php\n",
+          "name": "2048 （隐私友好）",
+          "summary": "（SECUSO）尝试在这款益智游戏中达到 2048"
+        },
+        "zh-TW": {
+          "name": "2048（隱私友好）",
+          "summary": "(SECUSO) 嘗試在這款益智遊戲中達到 2048"
+        }
+      }
+    },
+    {
+      "authorEmail": "andstatus@gmail.com",
+      "authorName": "AndStatus",
+      "categories": [
+        "Games"
+      ],
+      "changelog": "https://github.com/andstatus/game2048/blob/HEAD/README.md#changelog",
+      "suggestedVersionName": "1.15.1",
+      "suggestedVersionCode": "44",
+      "donate": "https://andstatus.org/donate.html",
+      "issueTracker": "https://github.com/andstatus/game2048/issues",
+      "liberapay": "Andstatus",
+      "license": "Apache-2.0",
+      "sourceCode": "https://github.com/andstatus/game2048",
+      "translation": "https://crowdin.com/project/2048-open-fun-game",
+      "webSite": "https://github.com/andstatus/game2048/blob/HEAD/README.md",
+      "added": 1614988800000,
+      "packageName": "org.andstatus.game2048",
+      "lastUpdated": 1735470408000,
+      "localized": {
+        "en-US": {
+          "description": "\"2048 Open Fun Game\" is 2048 game with AI, Bookmarks, Auto Replay, History and other fun features,\nOpen Source, no ads.\n\nHow to play.\nSwipe the game board to move all tiles left, right, up, or down.\nWhen two tiles with the same number touch, they merge into one with a double number,\ni.e. 2+2 merge into 4, 4+4 merge into 8 and so on.\nThe goal is to create a tile with the highest number.\nNumber 2048 is a good first win…\n\nFeatures of \"2048 Open Fun Game\" that are not present in the original game:\n\n* Unlimited and animated Undo and Redo.\n* Retries counter. When you make a move after Undo (no matter if it is the same move as before or another move),\n  number of Retries increases. The counter shows total number of retries done during the game\n  and allows comparing different results more fairly.\n* Select theme for the app: Device default (for Android 9+), Dark or Light.\n  Dark theme for Android 9+ is turned on by default when system-wide \"Dark theme\" is turned on in device settings.\n* Different portrait and landscape screen layouts. Portrait layout is more or less classic for the 2048 game,\n  and landscape layout allows using screen space better and have larger board.\n* Turn on AI (Artificial Intelligence) mode and let the AI play for you.\n  Increase or decrease AI player speed. Stop it and continue playing yourself.\n  Choose one of several AI algorithms, see how they play and compare them.\n* Bookmarks at the interesting game positions. Return to a bookmark and play again from that place.\n* Move number and game duration shown. The time starts when you make a move.\n  It stops when you tap Undo or Pause button.\n* \"Watch\" mode. Auto replay current game forward and backwards at any speed,\n  stop at any position.\n  Switch to \"Play\" mode from that place and continue playing, overriding history.\n* Recent games with all their moves, bookmarks and scores are stored in a history and can be watched.\n  Or you can play them again from any position / bookmark.\n* Game menu allows you to delete current game from history, to restart a game (\"Try again\")\n  or to open recent game from a list.\n* When you tap \"Try again\" button or open recent game, current game is automatically saved to the history,\n  so you can review or continue to play it later.\n* Share a game as a file, so it can be loaded, watched and even played on any other device.\n* The app is multilingual. Please add new translations at https://crowdin.com/project/2048-open-fun-game\n\nFor Android v.7.0+ devices.\n",
+          "featureGraphic": "featureGraphic_DS2UUg0qTi3q-48FPviIqTbD9GK7VvdcFQ6iekIsCko=.png",
+          "icon": "icon_ROdCNp8h4h-a6RUftcVBVybdLCVX0yPsdXq0dAO-s_s=.png",
+          "name": "2048 Open Fun Game",
+          "phoneScreenshots": [
+            "1.png",
+            "2.png",
+            "3.png",
+            "4.png",
+            "5.png",
+            "6.png",
+            "7.png",
+            "8.png"
+          ],
+          "summary": "2048 game with AI, Replay, History and other fun features, Open Source, no ads",
+          "tenInchScreenshots": [
+            "2.png"
+          ],
+          "whatsNew": "v.1.13.2. * Select board size from 3x3 up to 8x8, and not 4x4 default classic size only.\n"
+        },
+        "pl-PL": {
+          "description": "\"2048 Open Fun Game\" to 2048 z zakładkami, automatycznym wznawianiem gry, Historią i innymi zabawnymi funkcjami,\nOpen Source, brak reklam.\n\nJak grać.\nPrzesuń płytkę gry, aby poruszać wszystkie kafelki w lewo, w prawo, w górę lub w dół.\nGdy dwie płytki o tej samej liczbie się dotykają, łączą się one w jeden z podwojoną liczbą,\nna przykład 2+2 w 4, 4+4 łączą się w 8 i tak dalej.\nCelem jest stworzenie kafelka o jak największej liczbie.\nLiczba 2048 to pierwsza dobra wygrana…\n\nFunkcje \"2048 Open Fun Game\", które nie są obecne w oryginalnej grze:\n\n* Nieograniczone i animowane cofanie i ponawianie ruchów.\n* Wybierz motyw dla aplikacji: Domyślny motyw systemu (dla Androida 9+), Ciemny lub Jasny.\n  Ciemny motyw dla Androida 9+ jest domyślnie włączony, gdy \"Ciemny motyw\" jest włączony w ustawieniach urządzenia.\n* Zakładki w interesujących momentach gry. Wróć do zakładki i graj ponownie z tego miejsca.\n* Pokaż numer i czas trwania gry. Czas zaczyna się po wykonaniu ruchu.\n  Zatrzymuje się po naciśnięciu przycisku Cofnij lub Wstrzymaj.\n* Tryb \"Obserwatora\". Automatyczne odtwarzanie bieżącej gry do przodu i do tyłu z dowolną prędkością,\n  zatrzymywanie w dowolnym momencie.\n  Przełącz się na tryb \"Gracz\" z tego miejsca i kontynuuj odtwarzanie, nadpisywanie historii.\n* Najnowsze gry ze wszystkimi swoimi ruchami, zakładkami i wynikami są przechowywane w historii i mogą być oglądane.\n  Lub możesz zagrać w nie ponownie.\n* Menu gry pozwala na usunięcie bieżącej gry z historii, aby zrestartować grę (\"Spróbuj ponownie\")\n  lub przywrócić istniejącą grę z listy.\n* Po naciśnięciu przycisku \"Spróbuj ponownie\" lub przywróceniu istniejącej gry, obecna gra jest automatycznie zapisywana w historii,\n  więc możesz przejrzeć lub kontynuować grę później.\n* Udostępnij grę jako plik, aby można było ją załadować, obejrzeć, a nawet grać w nią na każdym innym urządzeniu.\n* Aplikacja jest wielojęzyczna. Dodaj nowe tłumaczenia na https://crowdin.com/project/2048-open-fun-game\n\nDla urządzeń z systemem Android 7.0 lub nowszym.\n",
+          "name": "2048 Otwarta Gra",
+          "phoneScreenshots": [
+            "1.png",
+            "2.png",
+            "3.png",
+            "4.png",
+            "5.png"
+          ],
+          "summary": "2048 z automatycznym wzowieniem gry, historią i innymi przydatnymi funkcjami"
+        },
+        "ru-RU": {
+          "description": "\"2048 Открытая Забавная Игра\" (2048 Open Fun Game) это игра 2048 с Искусственным интеллектом, закладками, проигрыванием, историей игр и другими забавными функциями,\nоткрытым исходным кодом и без рекламы.\n\nКак играть.\nПроведите по игровому полю так, чтобы сдвинуть все плитки влево, вправо, вверх или вниз.\nКогда две плитки с одинаковым числом соприкасаются, то они сливаются в одну с удвоенным числом,\nт.е. 2 + 2 сливаются в 4, 4 + 4 сливаются в 8, и так далее.\nЦель игры - создать плитку с наибольшим числом.\nЧисло 2048 - хорошая первая победа…\n\nОсобенности «2048 Open Fun Game», которых нет в оригинальной игре:\n\n* Неограниченное количество анимированных шагов Назад (для того, чтобы \"переходить\") и Вперёд по ходам игры.\n* Счётчик попыток. Когда вы делаете ход после движения назад (не важно, тот же ход или другой),\n  то число попыток увеличивается на единицу. Этот счётчик показывает суммарное количество попыток (повторных ходов)\n  сделанных в ходе игры, и позволяет лучше сравнить разные результаты.\n* Выбор темы приложения: По умолчанию (для Android 9+), Тёмная или Светлая.\n  Тёмная тема для Андроид 9+ устанавливается по умолчанию, когда \"Тёмная тема\" включена в настройках устройства.\n* Различные раскладки для портретной и ландшафтной ориентаций экрана. Портретная раскадка более-менее похожа\n  на классическую для игры 2048, а вот ландшафтная раскладка позволяет лучше использовать экран\n  и получить больший размер игрового поля.\n* Включите режим ИИ (Искусственный Интеллект) и позвольте ИИ играть за вас.\n  Ускорьте или замедлите ИИ игрока. Остановите его и продолжайте играть самостоятельно.\n  Выберите один из нескольких ИИ алгоритмов, посмотрите, как они играют, и сравните их.\n* Закладки в интересных позициях игры. Вернитесь к закладке и переиграйте с этого места.\n* Видны количество ходов и длительность игры. Время начинается, когда Вы делаете ход.\n  Время останавливается, когда Вы нажимаете кнопку \"Назад\" или \"Пауза\".\n* Режим \"Просмотр\". Автоматическое воспроизведение текущей игры вперёд и назад с любой скоростью,\n  остановка в любой позиции.\n  Переключайтесь на режим \"Игра\" и продолжайте играть с выбранного места, переписывая историю.\n* Недавние игры со всеми их ходами, закладками и счётом сохраняются в истории и могут быть повторно воспроизведены\n  или переиграны заново.\n* Меню игры позволяет: удалить текущую игру из истории, начать новую игру (\"Попробуйте ещё раз\")\n  или восстановить существующую игру из списка.\n* Когда Вы нажимаете кнопку «Попробуйте ещё раз» или восстанавливаете существующую игру, текущая игра автоматически сохраняется в истории,\n  так что Вы можете просмотреть или продолжить играть позже.\n* Поделитесь игрой в виде файла. Теперь её можно загрузить, воспроизвести и даже продолжить игру на любом устройстве.\n* Многоязычность. Пожалуйста, добавляйте новые переводы на https://crowdin.com/project/2048-open-fun-game\n\nДля устройств с Android 7.0 и выше.\n",
+          "name": "2048 Открытая Забавная Игра",
+          "phoneScreenshots": [
+            "1.png",
+            "2.png",
+            "3.png",
+            "4.png",
+            "5.png",
+            "6.png",
+            "7.png",
+            "8.png"
+          ],
+          "sevenInchScreenshots": [
+            "9.png"
+          ],
+          "summary": "Игра 2048 с интеллектом, историей, открытым исходным кодом и без рекламы",
+          "whatsNew": "v.1.13.2. * Можно выбрать размер поля от 3х3 до 8х8, а не только обычный 4х4.\n"
+        },
+        "zh-CN": {
+          "description": "“2048 开放趣味游戏”是带有自动回放、历史记录和其他有趣功能的 2048 游戏，开放源码，没有广告\n开放源码，没有广告\n\n游戏指南\n在游戏区域上下左右滑动，移动所有的方块。\n当两个数字相同的方块碰撞时，它们会合并为一个数字为两倍的方块，\n也就是说，2+2 合并成 4，4+4 合并成 8，以此类推。\n游戏目标是合并出一个数字尽可能大的方块。\n合并出 2048 是胜利的第一步。\n\n\"2048 开放趣味游戏\" 包含原始游戏中没有的特色功能：\n\n* 动画形式的无限制撤销与重做\n* 为应用程序选择主题：系统配色（用于 Android 9+），深色或浅色主题。\n  当系统全局“深色主题”在设置中开启时，Android 9+的深色主题会默认开启。\n* 在有趣的游戏局面插入书签。 回到书签位置，并从那里重新开始\n* 显示操作次数和游戏时间。 当您进行一次操作时，计时将开始。\n  当您点击撤销或暂停按钮时，计时将停止。\n* “观赏”模式。 任意速度自动向前和向后回放当前游戏，\n  在任何位置停止。\n  从停止地点切换到“游戏”模式并继续游戏，覆盖历史记录。\n* 最近一次游戏的所有操作、书签和分数都存储在历史记录中，可以观看。\n  您也可以重玩。\n* 在游戏菜单中，您可以从历史中删除当前游戏，重启游戏（“再玩一局”）\n  或从列表中恢复现有的游戏。\n* 当您点击“再玩一局”按钮或恢复现有游戏时，当前游戏将自动保存到历史记录中。\n  您可以稍后查看或继续游戏。\n* 以文件形式共享游戏，可以在任何其他设备上加载、观看甚至继续游戏。\n* 此应用程序是多语言的。 您可以在 https://crowdin.com/project/2048-open-fun-game 添加新翻译\n\n适用于 Android 7.0+ 的设备。\n",
+          "name": "2048 开放趣味游戏",
+          "phoneScreenshots": [
+            "1.png",
+            "2.png",
+            "3.png",
+            "4.png",
+            "5.png",
+            "6.png"
+          ],
+          "summary": "带有自动回放、历史记录和其他有趣功能的 2048 游戏，开放源码，没有广告"
+        }
+      }
+    }
+  ],
+  "packages": {
+    "eu.quelltext.counting": [
+      {
+        "added": 1646352000000,
+        "apkName": "eu.quelltext.counting_3.apk",
+        "hash": "98fe65f21ff8e51918b94e80d25d99d52f5527d24a69dcd8dd9ca1a5da9b7a02",
+        "hashType": "sha256",
+        "minSdkVersion": 1,
+        "packageName": "eu.quelltext.counting",
+        "sig": "e73cf4fb1d1e23129beac1fc389e559c",
+        "signer": "814508121ffb0de1cd835672b8b6548d430725ebfc9874fd80d0f9b06c017735",
+        "size": 2413060,
+        "srcname": "eu.quelltext.counting_3_src.tar.gz",
+        "targetSdkVersion": 29,
+        "versionCode": 3,
+        "versionName": "1.3"
+      },
+      {
+        "added": 1646179200000,
+        "apkName": "eu.quelltext.counting_2.apk",
+        "hash": "06e1df50d2a6fe55db0d480ac9ce625cbfd0aa65f7bda98b0d4bc23640a44a44",
+        "hashType": "sha256",
+        "minSdkVersion": 1,
+        "packageName": "eu.quelltext.counting",
+        "sig": "e73cf4fb1d1e23129beac1fc389e559c",
+        "signer": "814508121ffb0de1cd835672b8b6548d430725ebfc9874fd80d0f9b06c017735",
+        "size": 2347308,
+        "srcname": "eu.quelltext.counting_2_src.tar.gz",
+        "targetSdkVersion": 29,
+        "versionCode": 2,
+        "versionName": "1.2"
+      }
+    ],
+    "org.andstatus.game2048": [
+      {
+        "added": 1735470408000,
+        "apkName": "org.andstatus.game2048_44.apk",
+        "hash": "97f74ab6beafc63f8d9d7aa15291983b0f2969b1c44645bdf37af295c377dde5",
+        "hashType": "sha256",
+        "minSdkVersion": 24,
+        "packageName": "org.andstatus.game2048",
+        "sig": "550bd77fce7a5d3b900c0f48f57e610a",
+        "signer": "71d6c438cf63f3515407aa5b36f9c6e859a25ce8b981a01f879290cf5f412113",
+        "size": 5572811,
+        "srcname": "org.andstatus.game2048_44_src.tar.gz",
+        "targetSdkVersion": 35,
+        "versionCode": 44,
+        "versionName": "1.15.1"
+      },
+      {
+        "added": 1734797823000,
+        "apkName": "org.andstatus.game2048_43.apk",
+        "hash": "c83852ffe003cf1d534c3a9ed1916b82abe36131c05aadc0dcd14c83ad862a92",
+        "hashType": "sha256",
+        "minSdkVersion": 24,
+        "packageName": "org.andstatus.game2048",
+        "sig": "550bd77fce7a5d3b900c0f48f57e610a",
+        "signer": "71d6c438cf63f3515407aa5b36f9c6e859a25ce8b981a01f879290cf5f412113",
+        "size": 5572811,
+        "srcname": "org.andstatus.game2048_43_src.tar.gz",
+        "targetSdkVersion": 35,
+        "versionCode": 43,
+        "versionName": "1.15.0"
+      },
+      {
+        "added": 1699457607000,
+        "apkName": "org.andstatus.game2048_41.apk",
+        "hash": "9132fdee94244195451a7dfa13954b78a86bcced8a805a6bf80a0c7a507559fa",
+        "hashType": "sha256",
+        "minSdkVersion": 24,
+        "packageName": "org.andstatus.game2048",
+        "sig": "550bd77fce7a5d3b900c0f48f57e610a",
+        "signer": "71d6c438cf63f3515407aa5b36f9c6e859a25ce8b981a01f879290cf5f412113",
+        "size": 5494902,
+        "srcname": "org.andstatus.game2048_41_src.tar.gz",
+        "targetSdkVersion": 33,
+        "versionCode": 41,
+        "versionName": "1.14.3"
+      }
+    ],
+    "org.secuso.privacyfriendly2048": [
+      {
+        "added": 1753701498000,
+        "apkName": "org.secuso.privacyfriendly2048_100.apk",
+        "hash": "02c799d3d582669daf2acf920093c68d2933f60aa937bb72fa2a805557233fe8",
+        "hashType": "sha256",
+        "minSdkVersion": 21,
+        "packageName": "org.secuso.privacyfriendly2048",
+        "sig": "6870e7434f1754dc159504cbeb66a328",
+        "signer": "917ce5bf72c61e0777513a6b18fbda957fa7712ac250e99854d598419b699585",
+        "size": 9294779,
+        "srcname": "org.secuso.privacyfriendly2048_100_src.tar.gz",
+        "targetSdkVersion": 34,
+        "uses-permission": [
+          [
+            "org.secuso.privacyfriendly2048.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+            null
+          ]
+        ],
+        "versionCode": 100,
+        "versionName": "1.4.2"
+      },
+      {
+        "added": 1727009022000,
+        "apkName": "org.secuso.privacyfriendly2048_8.apk",
+        "hash": "078951f59188117f2c59baf69b7ff4e770054baaaa20d329ad1f3c2d63f41fce",
+        "hashType": "sha256",
+        "minSdkVersion": 21,
+        "packageName": "org.secuso.privacyfriendly2048",
+        "sig": "6870e7434f1754dc159504cbeb66a328",
+        "signer": "917ce5bf72c61e0777513a6b18fbda957fa7712ac250e99854d598419b699585",
+        "size": 7454806,
+        "srcname": "org.secuso.privacyfriendly2048_8_src.tar.gz",
+        "targetSdkVersion": 34,
+        "uses-permission": [
+          [
+            "org.secuso.privacyfriendly2048.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+            null
+          ]
+        ],
+        "versionCode": 8,
+        "versionName": "1.4.0"
+      },
+      {
+        "added": 1712396687000,
+        "apkName": "org.secuso.privacyfriendly2048_7.apk",
+        "hash": "90ec38f3c0eaa60cbf8ba712ddb327701afff76aebaf8bcfcc07188e1cad4547",
+        "hashType": "sha256",
+        "minSdkVersion": 21,
+        "packageName": "org.secuso.privacyfriendly2048",
+        "sig": "6870e7434f1754dc159504cbeb66a328",
+        "signer": "917ce5bf72c61e0777513a6b18fbda957fa7712ac250e99854d598419b699585",
+        "size": 7089863,
+        "srcname": "org.secuso.privacyfriendly2048_7_src.tar.gz",
+        "targetSdkVersion": 34,
+        "uses-permission": [
+          [
+            "org.secuso.privacyfriendly2048.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+            null
+          ]
+        ],
+        "versionCode": 7,
+        "versionName": "1.3.1"
+      }
+    ]
+  }
+}
