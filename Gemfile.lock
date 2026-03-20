@@ -304,7 +304,7 @@ GEM
       concurrent-ruby (~> 1.0)
     uri (1.1.1)
     useragent (0.16.11)
-    vers (1.2.0)
+    vers (1.2.1)
     web-console (4.3.0)
       actionview (>= 8.0.0)
       bindex (>= 0.4.0)
@@ -383,7 +383,7 @@ DEPENDENCIES
   spdx (= 2.0.12)
   sprockets-rails
   toml-rb
-  vers (~> 1.0)
+  vers (~> 1.2)
   web-console
   webmock
 
@@ -525,7 +525,7 @@ CHECKSUMS
   tzinfo (2.0.6) sha256=8daf828cc77bcf7d63b0e3bdb6caa47e2272dcfaf4fbfe46f8c3a9df087a829b
   uri (1.1.1) sha256=379fa58d27ffb1387eaada68c749d1426738bd0f654d812fcc07e7568f5c57c6
   useragent (0.16.11) sha256=700e6413ad4bb954bb63547fa098dddf7b0ebe75b40cc6f93b8d54255b173844
-  vers (1.2.0) sha256=c24524dd3933f9fd8530008b6b303b216ff542cae097fcfddc4779f8fa6f5137
+  vers (1.2.1) sha256=43af19b3d4f0c1bc990e2d22a51edeae63e13116b622b404d5be7d9ad39ef37c
   web-console (4.3.0) sha256=e13b71301cdfc2093f155b5aa3a622db80b4672d1f2f713119cc7ec7ac6a6da4
   webmock (3.26.2) sha256=774556f2ea6371846cca68c01769b2eac0d134492d21f6d0ab5dd643965a4c90
   zeitwerk (2.7.5) sha256=d8da92128c09ea6ec62c949011b00ed4a20242b255293dd66bf41545398f73dd
