@@ -15,4 +15,4 @@ production:
     - Pagy::OverflowError 
     - ActiveRecord::StatementInvalid
     - ActionDispatch::Http::MimeNegotiation::InvalidType 
-    
+    - ActionController::BadRequest
