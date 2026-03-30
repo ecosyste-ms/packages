@@ -273,7 +273,7 @@ GEM
       concurrent-ruby (~> 1.0, >= 1.0.5)
       sidekiq (>= 7.0.0, < 9.0.0)
       thor (>= 1.0, < 3.0)
-    simple-rss (2.1.0)
+    simple-rss (2.2.0)
     sitemap_generator (6.3.0)
       builder (~> 3.0)
     spdx (2.0.12)
@@ -508,7 +508,7 @@ CHECKSUMS
   shoulda-matchers (7.0.1) sha256=b4bfd8744c10e0a36c8ac1a687f921ee7e25ed529e50488d61b79a8688749c77
   sidekiq (8.1.2) sha256=4a1266f22bb1dad675d77bf32e8d4c04e990640e3b271650f47ea7299c38fceb
   sidekiq-unique-jobs (8.1.0) sha256=6a7eaa61ac408197a542350df905687b506acae2f485da03b11d28b1c367dc35
-  simple-rss (2.1.0) sha256=38d5ee19a98df1cf0f152545de1dbc40f0a581b9fa2842da569a3ef0f2348640
+  simple-rss (2.2.0) sha256=77e09f7275cc27912dff58cbdfd6a56d87ab0dae30fad7d86f43cf834855c0c4
   sitemap_generator (6.3.0) sha256=1d803cbf03c44736bea05b9e3363d3523fec4e24f3abedad294d9c57cab994f3
   spdx (2.0.12) sha256=c44ad4b9fbfa8138bfc1e8065fc7cf531207b63dccd2b63b0b61df7c5bdf80a6
   sprockets (4.2.2) sha256=761e5a49f1c288704763f73139763564c845a8f856d52fba013458f8af1b59b1
