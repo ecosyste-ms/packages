@@ -296,11 +296,7 @@ class Registry < ApplicationRecord
   end
 
   def fetch_funded_packages_count
-    count = 0
-    packages.active.with_funding.select('packages.id').find_in_batches(batch_size: 1000) do |batch|
-      count += batch.length
-    end
-    count
+    packages.active.with_funding.count
   end
 
   def funded_packages_count
@@ -393,7 +389,7 @@ class Registry < ApplicationRecord
   end
 
   def count_keywords
-    Package.connection.select_rows("SELECT COUNT(DISTINCT keywords) AS keywords_count FROM (SELECT id, registry_id, unnest(keywords) AS keywords FROM packages WHERE registry_id = #{id} AND status IS NULL) AS foo;").first.first.to_i
+    Package.connection.select_rows("SELECT COUNT(DISTINCT keywords) AS keywords_count FROM (SELECT unnest(keywords) AS keywords FROM packages WHERE registry_id = #{id} AND status = 'active') AS foo;").first.first.to_i
   end
 
   def icon_url
