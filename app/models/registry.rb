@@ -91,7 +91,8 @@ class Registry < ApplicationRecord
   def missing_package_names
     all_names = all_package_names
     all_names = all_names.keys if all_names.is_a?(Hash)
-    Array(all_names) - existing_package_names
+    existing = existing_package_names.to_set
+    Array(all_names).reject { |name| existing.include?(name) }
   rescue => e
     Rails.logger.error("Error in missing_package_names for registry #{id} (#{ecosystem}): #{e.message}")
     []
