@@ -941,22 +941,20 @@ class Package < ApplicationRecord
 
   def self.funding_domains
     Rails.cache.fetch("funding:domains", expires_in: 1.week) do
-      funding_domains = []
-      Package.with_funding.active.each_instance do |package| 
-        funding_domains << package.funding_domains
+      counts = Hash.new(0)
+      Package.with_funding.active.select(:id, :metadata, :repo_metadata).each_instance do |package|
+        package.funding_domains.each { |domain| counts[domain] += 1 }
       end
-      
-      funding_domains.flatten.group_by(&:itself).map{|k, v| [k, v.count]}.to_h.sort_by{|k, v| v}.reverse.to_h
+      counts.sort_by { |_k, v| -v }.to_h
     end
   end
 
   def self.critical_funding_domains
-    funding_domains = []
-    Package.critical.with_funding.active.each_instance do |package| 
-      funding_domains << package.funding_domains
+    counts = Hash.new(0)
+    Package.critical.with_funding.active.select(:id, :metadata, :repo_metadata).each_instance do |package|
+      package.funding_domains.each { |domain| counts[domain] += 1 }
     end
-    
-    funding_domains.flatten.group_by(&:itself).map{|k, v| [k, v.count]}.to_h.sort_by{|k, v| v}.reverse.to_h
+    counts.sort_by { |_k, v| -v }.to_h
   end
 
   def clean_up_duplicate_maintainerships
