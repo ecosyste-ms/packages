@@ -817,32 +817,35 @@ class Package < ApplicationRecord
   def self.update_docker_usages
     ecosystems = ecosystems_api_get('https://docker.ecosyste.ms/api/v1/usage/')
     return if ecosystems.nil?
-    
+
     ecosystems.each do |ecosystem|
       ecosystem_name = Ecosystem::Base.purl_type_to_ecosystem ecosystem['name']
       next if ecosystem_name.nil?
       puts "Updating #{ecosystem_name} docker usages"
+      registry_ids = Registry.where(ecosystem: ecosystem_name).pluck(:id)
+      next if registry_ids.empty?
+
       next_url = ecosystem['ecosystem_url']+'?per_page=1000'
       while next_url.present?
         puts next_url
         response = Faraday.get(next_url) do |req|
           req.headers['User-Agent'] = 'packages.ecosyste.ms'
         end
-        next unless response.success?
+        break unless response.success?
         pkgs = JSON.parse response.body
-        pkgs.each do |pkg|
-          Registry.where(ecosystem: ecosystem_name).each do |registry|
-            registry.packages.where(name: pkg['name']).each do |package|
-              package.update(docker_dependents_count: pkg['dependents_count'], docker_downloads_count: pkg['downloads_count'])
-            end
-          end
+
+        updates = pkgs.each_with_object({}) do |pkg, hash|
+          hash[pkg['name']] = { docker_dependents_count: pkg['dependents_count'], docker_downloads_count: pkg['downloads_count'] }
         end
-        
-        next_url = response.headers['link'].split(',').find{|l| l.include?('rel="next"')}.try(:split, ';').try(:first).try(:gsub, /<|>/, '').try(:strip)
+
+        Package.where(registry_id: registry_ids, name: updates.keys).find_each do |package|
+          data = updates[package.name]
+          package.update(data) if data
+        end
+
+        next_url = response.headers['link']&.split(',')&.find{|l| l.include?('rel="next"')}&.split(';')&.first&.gsub(/<|>/, '')&.strip
       end
     end
-  rescue
-    nil
   end
 
   def fetch_readme
