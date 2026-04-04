@@ -33,7 +33,10 @@ class Registry < ApplicationRecord
   end
 
   def self.sync_all_missing_packages_async
-    frequently_synced.each(&:sync_missing_packages_async)
+    frequently_synced.each do |registry|
+      registry.sync_missing_packages_async
+      GC.start
+    end
   end
 
   def sync_in_batches?
@@ -91,8 +94,15 @@ class Registry < ApplicationRecord
   def missing_package_names
     all_names = all_package_names
     all_names = all_names.keys if all_names.is_a?(Hash)
-    existing = existing_package_names.to_set
-    Array(all_names).reject { |name| existing.include?(name) }
+    all_names = Array(all_names)
+    return [] if all_names.empty?
+
+    missing = []
+    all_names.each_slice(10_000) do |batch|
+      existing_in_batch = packages.where(name: batch).pluck(:name).to_set
+      missing.concat(batch.reject { |name| existing_in_batch.include?(name) })
+    end
+    missing
   rescue => e
     Rails.logger.error("Error in missing_package_names for registry #{id} (#{ecosystem}): #{e.message}")
     []
@@ -141,7 +151,9 @@ class Registry < ApplicationRecord
   end
 
   def sync_packages_async(package_names)
-    SyncPackageWorker.perform_bulk(package_names.map{|name| [id, name]})
+    package_names.each_slice(1_000) do |batch|
+      SyncPackageWorker.perform_bulk(batch.map{|name| [id, name]})
+    end
   end
 
   def sync_package(name, force: false)
