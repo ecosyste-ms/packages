@@ -178,7 +178,7 @@ GEM
       activerecord (>= 7.1)
     polyglot (0.3.5)
     popper_js (2.11.8)
-    postgresql_cursor (0.6.9)
+    postgresql_cursor (0.6.10)
       activerecord (>= 6.0)
     pp (0.6.3)
       prettyprint
@@ -468,7 +468,7 @@ CHECKSUMS
   pghero (3.7.0) sha256=a8d8497095dbe168bb03fe50a11309ab068cd1c1ef4c88d9bbeb97be4809f522
   polyglot (0.3.5) sha256=59d66ef5e3c166431c39cb8b7c1d02af419051352f27912f6a43981b3def16af
   popper_js (2.11.8) sha256=f4b0be717fc0d50bdb3dbbc55788525a9e0e8f640b76c9971fc34ee609eadbd2
-  postgresql_cursor (0.6.9) sha256=359e68a7bd67742b67ea0ff9388b4607c063158bc44258dd5be8602c3b480ea5
+  postgresql_cursor (0.6.10) sha256=9b3990f95f3e89f4391920d5edecde0a70e0f0e9e75421edfc14a0b583549ba3
   pp (0.6.3) sha256=2951d514450b93ccfeb1df7d021cae0da16e0a7f95ee1e2273719669d0ab9df6
   prettyprint (0.2.0) sha256=2bc9e15581a94742064a3cc8b0fb9d45aae3d03a1baa6ef80922627a0766f193
   prism (1.9.0) sha256=7b530c6a9f92c24300014919c9dcbc055bf4cdf51ec30aed099b06cd6674ef85
