@@ -141,7 +141,7 @@ GEM
       nokogiri (>= 1.12.0)
     matrix (0.4.3)
     mini_portile2 (2.8.9)
-    minitest (6.0.3)
+    minitest (6.0.4)
       drb (~> 2.0)
       prism (~> 1.5)
     mocha (3.1.0)
@@ -174,8 +174,8 @@ GEM
     pg (1.6.3-aarch64-linux-musl)
     pg (1.6.3-arm64-darwin)
     pg (1.6.3-x86_64-linux)
-    pghero (3.7.0)
-      activerecord (>= 7.1)
+    pghero (3.8.0)
+      activerecord (>= 7.2)
     polyglot (0.3.5)
     popper_js (2.11.8)
     postgresql_cursor (0.6.10)
@@ -446,7 +446,7 @@ CHECKSUMS
   loofah (2.25.1) sha256=d436c73dbd0c1147b16c4a41db097942d217303e1f7728704b37e4df9f6d2e04
   matrix (0.4.3) sha256=a0d5ab7ddcc1973ff690ab361b67f359acbb16958d1dc072b8b956a286564c5b
   mini_portile2 (2.8.9) sha256=0cd7c7f824e010c072e33f68bc02d85a00aeb6fce05bb4819c03dfd3c140c289
-  minitest (6.0.3) sha256=88ac8a1de36c00692420e7cb3cc11a0773bbcb126aee1c249f320160a7d11411
+  minitest (6.0.4) sha256=df1304664589d40f46089247fdc451f866b0ce0d7cae1457a15fc1eb7d48dca1
   mocha (3.1.0) sha256=75f42d69ebfb1f10b32489dff8f8431d37a418120ecdfc07afe3bc183d4e1d56
   msgpack (1.8.0) sha256=e64ce0212000d016809f5048b48eb3a65ffb169db22238fb4b72472fecb2d732
   net-http (0.9.1) sha256=25ba0b67c63e89df626ed8fac771d0ad24ad151a858af2cc8e6a716ca4336996
@@ -465,7 +465,7 @@ CHECKSUMS
   pg (1.6.3-aarch64-linux-musl) sha256=06a75f4ea04b05140146f2a10550b8e0d9f006a79cdaf8b5b130cde40e3ecc2c
   pg (1.6.3-arm64-darwin) sha256=7240330b572e6355d7c75a7de535edb5dfcbd6295d9c7777df4d9dddfb8c0e5f
   pg (1.6.3-x86_64-linux) sha256=5d9e188c8f7a0295d162b7b88a768d8452a899977d44f3274d1946d67920ae8d
-  pghero (3.7.0) sha256=a8d8497095dbe168bb03fe50a11309ab068cd1c1ef4c88d9bbeb97be4809f522
+  pghero (3.8.0) sha256=f6fda87a095c2bd153954cb895366a3ffc4c8f7785b2b9234a5dbd1cbcabb360
   polyglot (0.3.5) sha256=59d66ef5e3c166431c39cb8b7c1d02af419051352f27912f6a43981b3def16af
   popper_js (2.11.8) sha256=f4b0be717fc0d50bdb3dbbc55788525a9e0e8f640b76c9971fc34ee609eadbd2
   postgresql_cursor (0.6.10) sha256=9b3990f95f3e89f4391920d5edecde0a70e0f0e9e75421edfc14a0b583549ba3
