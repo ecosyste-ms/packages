@@ -67,6 +67,30 @@ class PackageTest < ActiveSupport::TestCase
     assert_equal ["Apache-2.0", "BSD-3-Clause"], package.normalized_licenses
   end
 
+  test 'normalize_licenses parses valid SPDX expressions directly' do
+    package = @registry.packages.create(name: 'test_spdx', ecosystem: @registry.ecosystem, licenses: 'EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0')
+    package.normalize_licenses
+    assert_equal ["EPL-2.0", "GPL-2.0"], package.normalized_licenses
+  end
+
+  test 'normalize_licenses handles license names containing commas' do
+    package = @registry.packages.create(name: 'test_comma', ecosystem: @registry.ecosystem, licenses: 'GNU General Public License, version 2 with the GNU Classpath Exception')
+    package.normalize_licenses
+    assert_equal ["GPL-2.0-with-classpath-exception"], package.normalized_licenses
+  end
+
+  test 'normalize_licenses ignores orphaned version fragments' do
+    package = @registry.packages.create(name: 'test_ver', ecosystem: @registry.ecosystem, licenses: 'Some License, Version 2.0')
+    package.normalize_licenses
+    assert_not_includes package.normalized_licenses, "libpng-2.0"
+  end
+
+  test 'normalize_licenses still handles Apache License, Version 2.0' do
+    package = @registry.packages.create(name: 'test_apache', ecosystem: @registry.ecosystem, licenses: 'Apache License, Version 2.0')
+    package.normalize_licenses
+    assert_equal ["Apache-2.0"], package.normalized_licenses
+  end
+
   test 'set_latest_release_published_at' do
     @package.set_latest_release_published_at
     assert_equal @package.latest_release_published_at, @version2.published_at
