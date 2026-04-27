@@ -421,87 +421,20 @@ module Ecosystem
     def generate_effective_pom(xml_body)
       return xml_body unless ENV['ENABLE_MAVEN_EFFECTIVE_POM'] == 'true'
 
-      Tempfile.create(%w[pom_ .xml]) do |input_file|
-        File.write(input_file.path, xml_body)
-        input_file.flush
+      stdout, stderr, status = Open3.capture3(
+        "pom", "-f", "-", "-xml", "-repo", @registry_url, "-timeout", "30s",
+        stdin_data: xml_body
+      )
 
-        # Run Maven to generate effective POM
-        Tempfile.create(%w[effective_pom_ .xml]) do |output_file|
-          # Throttle based on concurrent Maven processes
-          wait_for_maven_capacity
-
-          begin
-            # Build command - use timeout/nice in production (Docker has coreutils)
-            # Fallback to plain mvn on dev machines
-            if File.exist?("/usr/bin/timeout") || File.exist?("/bin/timeout")
-              cmd = ["timeout", "180s", "nice", "-n", "10", "mvn", "help:effective-pom", "-B", "-q", "-f", input_file.path, "-Doutput=#{output_file.path}"]
-            else
-              cmd = ["mvn", "help:effective-pom", "-B", "-q", "-f", input_file.path, "-Doutput=#{output_file.path}"]
-            end
-
-            env = {
-              "MAVEN_OPTS" => "-Xmx128m -Xms64m -XX:+UseSerialGC -XX:MaxMetaspaceSize=64m -XX:ActiveProcessorCount=1"
-            }
-
-            stdout, stderr, status = Open3.capture3(env, *cmd)
-
-            unless status.success?
-              return xml_body
-            end
-
-            # Parse the effective POM
-            File.read(output_file.path)
-          ensure
-            release_maven_capacity
-          end
-        end
+      unless status.success?
+        Rails.logger.warn("pom: effective-pom failed: #{stderr.strip}")
+        return xml_body
       end
 
+      stdout
     rescue => e
+      Rails.logger.warn("pom: #{e.class}: #{e.message}")
       xml_body
-    end
-
-    def wait_for_maven_capacity
-      max_concurrent = ENV.fetch('MAX_CONCURRENT_MAVEN', '10').to_i
-      redis_key = 'maven:running_processes'
-      max_wait = 300
-
-      started_at = Time.now
-
-      lua_script = <<-LUA
-        local key = KEYS[1]
-        local max = tonumber(ARGV[1])
-        local current = tonumber(redis.call('get', key) or 0)
-        if current < max then
-          redis.call('incr', key)
-          redis.call('expire', key, 300)
-          return 1
-        else
-          return 0
-        end
-      LUA
-
-      loop do
-        result = REDIS.eval(lua_script, keys: [redis_key], argv: [max_concurrent])
-        break if result == 1
-
-        if Time.now - started_at > max_wait
-          Rails.logger.error("Timed out waiting for Maven capacity after #{max_wait}s")
-          raise "Maven capacity timeout"
-        end
-
-        sleep(0.5)
-      end
-    rescue => e
-      Rails.logger.error("Failed to acquire Maven capacity: #{e.message}")
-      raise
-    end
-
-    def release_maven_capacity
-      redis_key = 'maven:running_processes'
-      REDIS.decr(redis_key)
-    rescue => e
-      Rails.logger.error("Failed to release Maven capacity: #{e.message}")
     end
 
     def download_pom(group_id, artifact_id, version)
