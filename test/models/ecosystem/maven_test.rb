@@ -505,6 +505,86 @@ class MavenTest < ActiveSupport::TestCase
     assert_nil versions_metadata[1][:published_at]
   end
 
+  def with_environment(name, value)
+    old = ENV[name]
+    value.nil? ? ENV.delete(name) : ENV[name] = value
+    yield
+  ensure
+    old.nil? ? ENV.delete(name) : ENV[name] = old
+  end
+
+  def with_effective_pom_enabled(&block)
+    with_environment('ENABLE_MAVEN_EFFECTIVE_POM', 'true', &block)
+  end
+
+  test 'dependencies_metadata uses pom binary' do
+    skip 'pom binary not on PATH' unless system('which pom > /dev/null 2>&1')
+
+    raw = file_fixture('maven/zio-aws-autoscaling_3-5.17.225.2.pom').read
+    stub_request(:get, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/5.17.225.2/zio-aws-autoscaling_3-5.17.225.2.pom")
+      .to_return(status: 200, body: raw)
+    @ecosystem.stubs(:wait_for_pom_capacity).returns(true)
+    @ecosystem.expects(:release_pom_capacity).once
+
+    dependencies = with_effective_pom_enabled do
+      @ecosystem.dependencies_metadata('dev.zio:zio-aws-autoscaling_3', '5.17.225.2', nil)
+    end
+
+    assert_equal 6, dependencies.length
+    core = dependencies.find { |dependency| dependency[:package_name] == 'dev.zio:zio-aws-core_3' }
+    assert_equal '5.17.225.2', core[:requirements]
+    assert_equal 'compile', core[:kind]
+  end
+
+  test 'generate_effective_pom falls back to input on failure' do
+    @ecosystem.stubs(:wait_for_pom_capacity).returns(true)
+    @ecosystem.expects(:release_pom_capacity).once
+    out = with_effective_pom_enabled { @ecosystem.generate_effective_pom('not xml') }
+    assert_equal 'not xml', out
+  end
+
+  test 'generate_effective_pom is a no-op when disabled' do
+    raw = file_fixture('maven/zio-aws-autoscaling_3-5.17.225.2.pom').read
+    assert_equal raw, @ecosystem.generate_effective_pom(raw)
+  end
+
+  test 'wait_for_pom_capacity defaults to five processes' do
+    REDIS.expects(:eval)
+      .with(kind_of(String), keys: ['pom:running_processes'], argv: [5, 60])
+      .returns(1)
+
+    acquired = with_environment('MAX_CONCURRENT_POM', nil) { @ecosystem.wait_for_pom_capacity }
+    assert acquired
+  end
+
+  test 'wait_for_pom_capacity uses the configured process limit' do
+    REDIS.expects(:eval)
+      .with(kind_of(String), keys: ['pom:running_processes'], argv: [2, 60])
+      .returns(1)
+
+    acquired = with_environment('MAX_CONCURRENT_POM', '2') { @ecosystem.wait_for_pom_capacity }
+    assert acquired
+  end
+
+  test 'generate_effective_pom falls back when pom capacity is unavailable' do
+    REDIS.expects(:eval).returns(0)
+    Open3.expects(:capture3).never
+
+    out = with_environment('POM_CAPACITY_WAIT_TIMEOUT', '0') do
+      with_effective_pom_enabled { @ecosystem.generate_effective_pom('raw pom') }
+    end
+
+    assert_equal 'raw pom', out
+  end
+
+  test 'release_pom_capacity decrements the shared counter' do
+    REDIS.expects(:eval)
+      .with(kind_of(String), keys: ['pom:running_processes'])
+      .returns(0)
+
+    assert_equal 0, @ecosystem.release_pom_capacity
+  end
+
   test 'dependencies_metadata netty-nio-client' do # skip: requires ENABLE_MAVEN_EFFECTIVE_POM
     skip unless ENV['ENABLE_MAVEN_EFFECTIVE_POM'] == 'true'
     stub_request(:get, "https://repo1.maven.org/maven2/software/amazon/awssdk/netty-nio-client/2.5.6/netty-nio-client-2.5.6.pom")
