@@ -540,6 +540,45 @@ class MavenTest < ActiveSupport::TestCase
 
   end
 
+  test 'licenses extracts SPDX-License-Identifier from POM comments' do
+    xml = Ox.parse(file_fixture('maven/tyrus-bundles-2.2.2.pom').read)
+    assert_equal ["EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0"], @ecosystem.licenses(xml)
+  end
+
+  test 'licenses prefers license element over SPDX-License-Identifier comment' do
+    pom = <<~XML
+      <?xml version="1.0"?>
+      <!-- SPDX-License-Identifier: MIT -->
+      <project>
+        <licenses><license><name>Apache-2.0</name></license></licenses>
+      </project>
+    XML
+    xml = Ox.parse(pom)
+    assert_equal ["Apache-2.0"], @ecosystem.licenses(xml)
+  end
+
+  test 'licenses_from_comments emits SPDX ids without commas' do
+    pom = <<~XML
+      <?xml version="1.0"?>
+      <!-- See http://www.eclipse.org/legal/epl-2.0 for terms -->
+      <project><artifactId>x</artifactId></project>
+    XML
+    xml = Ox.parse(pom)
+    result = @ecosystem.licenses_from_comments(xml)
+    assert_equal ["EPL-2.0"], result
+    assert result.none? { |l| l.include?(",") }
+  end
+
+  test 'licenses_from_comments does not greedily match GPL substring' do
+    pom = <<~XML
+      <?xml version="1.0"?>
+      <!-- This software is LGPL licensed -->
+      <project><artifactId>x</artifactId></project>
+    XML
+    xml = Ox.parse(pom)
+    assert_equal [], @ecosystem.licenses_from_comments(xml)
+  end
+
   test 'download_pom is memoized within an instance' do
     pom_stub = stub_request(:get, "https://repo1.maven.org/maven2/com/example/test-package/1.0.0/test-package-1.0.0.pom")
       .to_return({ status: 200, body: file_fixture('maven/zio-aws-autoscaling_3-5.17.225.2.pom'), headers: { 'last-modified' => 'Tue, 12 Jul 2022 12:10:25 GMT' } })

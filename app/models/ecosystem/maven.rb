@@ -556,25 +556,31 @@ module Ecosystem
         .flat_map(&:nodes).map{|s| s.encode('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '') }
       return xml_licenses if xml_licenses.any?
 
-      # Enhanced license detection from comments and URLs
+      spdx_expression = licenses_from_spdx_identifier(xml)
+      return spdx_expression if spdx_expression.any?
+
       licenses_from_comments(xml) + licenses_from_urls(xml)
+    end
+
+    def licenses_from_spdx_identifier(xml)
+      xml.locate("*/^Comment").flat_map do |c|
+        c.value.scan(/SPDX-License-Identifier:\s*(.+?)\s*$/).flatten
+      end.reject(&:blank?)
     end
 
     def licenses_from_comments(xml)
       comments = xml.locate("*/^Comment")
       license_comment_map = {
         "http://www.apache.org/licenses/LICENSE-2.0" => "Apache-2.0",
-        "http://www.eclipse.org/legal/epl-v10" => "Eclipse Public License (EPL), Version 1.0",
-        "http://www.eclipse.org/legal/epl-2.0" => "Eclipse Public License (EPL), Version 2.0",
-        "http://www.eclipse.org/org/documents/edl-v10" => "Eclipse Distribution License (EDL), Version 1.0",
+        "http://www.eclipse.org/legal/epl-v10" => "EPL-1.0",
+        "http://www.eclipse.org/legal/epl-2.0" => "EPL-2.0",
+        "http://www.eclipse.org/org/documents/edl-v10" => "BSD-3-Clause",
         "Apache License" => "Apache-2.0",
         "MIT License" => "MIT",
-        "GPL" => "GPL",
-        "BSD" => "BSD"
       }
-      
-      license_comment_map.select { |string, _| 
-        comments.any? { |c| c.value.include?(string) } 
+
+      license_comment_map.select { |string, _|
+        comments.any? { |c| c.value.include?(string) }
       }.map(&:last)
     end
 
@@ -585,10 +591,10 @@ module Ecosystem
         "https://www.apache.org/licenses/LICENSE-2.0" => "Apache-2.0",
         "http://opensource.org/licenses/MIT" => "MIT",
         "https://opensource.org/licenses/MIT" => "MIT",
-        "http://www.eclipse.org/legal/epl-v10.html" => "Eclipse Public License (EPL), Version 1.0",
-        "http://www.eclipse.org/legal/epl-v20.html" => "Eclipse Public License (EPL), Version 2.0"
+        "http://www.eclipse.org/legal/epl-v10.html" => "EPL-1.0",
+        "http://www.eclipse.org/legal/epl-v20.html" => "EPL-2.0"
       }
-      
+
       license_urls.map { |url| url_license_map[url.strip] }.compact
     end
 

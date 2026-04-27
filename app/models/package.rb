@@ -289,6 +289,8 @@ class Package < ApplicationRecord
   NON_SPDX_LICENSE_VALUES = %w[other unknown none noassertion proprietary custom see\ license].freeze
 
   def spdx_license
+    return Spdx.parse_spdx(licenses).licenses if Spdx.valid_spdx?(licenses)
+
     licenses
       .downcase
       .sub(/^\(/, "")
@@ -297,16 +299,18 @@ class Package < ApplicationRecord
       .flat_map { |l| l.split(" and ") }
       .map { |l| manual_license_format(l) }
       .flat_map { |l| l.split(/[,\/]/) }
-      .map { |l| NON_SPDX_LICENSE_VALUES.include?(l.strip) ? nil : Spdx.find(l) }
+      .map(&:strip)
+      .reject { |l| l.blank? || l.match?(/\A(version\s+)?[\d.]+\z/) }
+      .map { |l| NON_SPDX_LICENSE_VALUES.include?(l) ? nil : Spdx.find(l) }
       .compact
       .map(&:id)
   end
 
   def manual_license_format(license)
-    # fixes "Apache License, Version 2.0" being incorrectly split on the comma
+    # fixes "Apache License, Version 2.0" etc being incorrectly split on the comma
     license
-      .gsub("apache license, version", "apache license version")
-      .gsub("apache software license, version", "apache software license version")
+      .gsub(/\b(license|licence)( \([a-z]+\))?, version\b/, 'license\2 version')
+      .gsub(/\b(license|licence)( \([a-z]+\))?, v(\d)/, 'license\2 v\3')
   end
 
   def sync
