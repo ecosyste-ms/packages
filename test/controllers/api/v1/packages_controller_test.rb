@@ -129,6 +129,44 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.first['name'], @package.name
   end
 
+  test 'lookup by versioned purl includes version published_at' do
+    published_at = Time.zone.parse('2024-02-07 12:34:56')
+    @package.versions.create!(registry: @registry, number: '0.8.0', published_at: published_at)
+
+    get lookup_api_v1_packages_path(purl: 'pkg:cargo/rand@0.8.0')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal @package.name, actual_response.first['name']
+    assert_equal published_at.as_json, actual_response.first['published_at']
+  end
+
+  test 'lookup by versionless purl does not include published_at' do
+    @package.versions.create!(registry: @registry, number: '0.8.0', published_at: Time.zone.parse('2024-02-07 12:34:56'))
+
+    get lookup_api_v1_packages_path(purl: 'pkg:cargo/rand')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    refute actual_response.first.key?('published_at')
+  end
+
+  test 'lookup by versioned purl without matching version does not include published_at' do
+    @package.versions.create!(registry: @registry, number: '0.8.0', published_at: Time.zone.parse('2024-02-07 12:34:56'))
+
+    get lookup_api_v1_packages_path(purl: 'pkg:cargo/rand@0.8.1')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    refute actual_response.first.key?('published_at')
+  end
+
   test 'lookup by purl with missing type' do
     invalid_purl = 'pkg:/software.amazon.awssdk%3Ametrics-spi'
   
