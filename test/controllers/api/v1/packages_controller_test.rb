@@ -127,6 +127,18 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal actual_response.length, 1
     assert_equal actual_response.first['name'], @package.name
+    assert_equal '0.8.0', actual_response.first['version']
+  end
+
+  test 'lookup by purl without version omits version field' do
+    get lookup_api_v1_packages_path(purl: 'pkg:cargo/rand')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal actual_response.length, 1
+    assert_equal actual_response.first['name'], @package.name
+    assert_not actual_response.first.key?('version')
   end
 
   test 'lookup by purl with missing type' do
