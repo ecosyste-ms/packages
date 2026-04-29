@@ -18,6 +18,41 @@ class PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_template 'packages/show', file: 'packages/show.html.erb'
   end
 
+
+  test 'package list provides RSS and Atom discovery links' do
+    get registry_packages_path(registry_id: @registry.name)
+
+    assert_response :success
+    assert_select 'link[rel="alternate"][type="application/rss+xml"]'
+    assert_select 'link[rel="alternate"][type="application/atom+xml"]'
+  end
+
+  test 'renders package list RSS feed' do
+    get registry_packages_path(registry_id: @registry.name, format: :rss)
+
+    assert_response :success
+    assert_equal 'application/rss+xml', response.media_type
+    assert_includes response.body, '<rss'
+    assert_includes response.body, @package.name
+  end
+
+  test 'renders package list Atom feed' do
+    get registry_packages_path(registry_id: @registry.name, format: :atom)
+
+    assert_response :success
+    assert_equal 'application/atom+xml', response.media_type
+    assert_includes response.body, '<feed'
+    assert_includes response.body, @package.name
+  end
+
+  test 'package page provides RSS and Atom discovery links' do
+    get registry_package_path(registry_id: @registry.name, id: @package.name)
+
+    assert_response :success
+    assert_select 'link[rel="alternate"][type="application/rss+xml"]'
+    assert_select 'link[rel="alternate"][type="application/atom+xml"]'
+  end
+
   test 'list packages for a nixpkgs registry' do
     nix_registry = Registry.create(name: 'nixpkgs-23.05', url: 'https://channels.nixos.org/nixos-23.05', ecosystem: 'nixpkgs', version: '23.05')
     nix_registry.packages.create(ecosystem: 'nixpkgs', name: 'python313Packages.numpy', metadata: { 'position' => 'pkgs/development/python-modules/numpy/2.nix:205' })
