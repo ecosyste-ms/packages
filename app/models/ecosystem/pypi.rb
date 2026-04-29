@@ -156,31 +156,38 @@ module Ecosystem
       pkg_metadata[:releases].filter_map do |k, v|
         next if existing_version_numbers.include?(k)
 
-        if v == []
+        release_file = v.first
+        version_info = fetch_version(name, k)["info"] || {}
+
+        if release_file.nil?
           {
             number: k,
             published_at: nil,
             integrity: nil,
-            licenses: nil,
+            licenses: version_licenses(name, k),
             metadata: {
-              download_url: nil
+              download_url: nil,
+              requires_python: version_info["requires_python"],
+              yanked: version_info["yanked"],
+              yanked_reason: version_info["yanked_reason"],
+              no_release_files: true
             }
           }
         else
           {
             number: k,
-            published_at: v[0]["upload_time"],
-            integrity: 'sha256-' + v[0]['digests']['sha256'],
+            published_at: release_file["upload_time"],
+            integrity: 'sha256-' + release_file['digests']['sha256'],
             licenses: version_licenses(name, k),
             metadata: {
-              download_url: v[0]['url'],
-              requires_python: v[0]['requires_python'],
-              yanked: v[0]['yanked'],
-              yanked_reason: v[0]['yanked_reason'],
-              packagetype: v[0]['packagetype'],
-              python_version: v[0]['python_version'],
-              size: v[0]['size'],
-              has_sig: v[0]['has_sig']
+              download_url: release_file['url'],
+              requires_python: release_file['requires_python'],
+              yanked: release_file['yanked'],
+              yanked_reason: release_file['yanked_reason'],
+              packagetype: release_file['packagetype'],
+              python_version: release_file['python_version'],
+              size: release_file['size'],
+              has_sig: release_file['has_sig']
             }
           }
         end
