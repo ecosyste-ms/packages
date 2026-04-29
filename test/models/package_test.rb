@@ -266,4 +266,52 @@ class PackageTest < ActiveSupport::TestCase
     refute_includes results, package_without_advisories
     refute_includes results, @package
   end
+
+  test 'update_repo_metadata drops invalid owner website urls' do
+    @package.update(repository_url: 'https://github.com/snyk/parlay')
+    repo = {
+      'host' => { 'name' => 'GitHub' },
+      'full_name' => 'snyk/parlay',
+      'owner' => 'snyk'
+    }
+    owner = {
+      'login' => 'snyk',
+      'website' => 'JavaScript Testing utilities for React'
+    }
+
+    @package.expects(:fetch_repo_metadata).returns(repo)
+    @package.expects(:fetch_tags).returns([])
+    @package.expects(:fetch_owner).returns(owner)
+    @package.expects(:ping_issues)
+    @package.expects(:ping_commits)
+    @package.expects(:update_issue_metadata)
+
+    @package.update_repo_metadata
+
+    assert_nil @package.reload.repo_metadata['owner_record']['website']
+  end
+
+  test 'update_repo_metadata keeps valid owner website urls' do
+    @package.update(repository_url: 'https://github.com/snyk/parlay')
+    repo = {
+      'host' => { 'name' => 'GitHub' },
+      'full_name' => 'snyk/parlay',
+      'owner' => 'snyk'
+    }
+    owner = {
+      'login' => 'snyk',
+      'website' => 'https://snyk.io'
+    }
+
+    @package.expects(:fetch_repo_metadata).returns(repo)
+    @package.expects(:fetch_tags).returns([])
+    @package.expects(:fetch_owner).returns(owner)
+    @package.expects(:ping_issues)
+    @package.expects(:ping_commits)
+    @package.expects(:update_issue_metadata)
+
+    @package.update_repo_metadata
+
+    assert_equal 'https://snyk.io', @package.reload.repo_metadata['owner_record']['website']
+  end
 end

@@ -398,7 +398,7 @@ class Package < ApplicationRecord
     repo_metadata = fetch_repo_metadata
     if repo_metadata.present?
       tags = fetch_tags
-      owner = fetch_owner
+      owner = sanitize_owner_record(fetch_owner)
       repo_metadata.merge!({'owner_record' => owner}) if owner
       repo_metadata.merge!({'tags' => tags}) if tags
       update(repo_metadata: repo_metadata)
@@ -986,5 +986,22 @@ class Package < ApplicationRecord
   def scorecard_url
     return unless scorecard_slug.present?
     "https://scorecard.dev/viewer/?uri=#{scorecard_slug}"
+  end
+
+  def sanitize_owner_record(owner)
+    return owner unless owner.is_a?(Hash)
+
+    owner = owner.deep_dup
+    owner['website'] = sanitized_http_url(owner['website']) if owner.key?('website')
+    owner
+  end
+
+  def sanitized_http_url(url)
+    return nil if url.blank?
+
+    uri = URI.parse(url.to_s)
+    return url if uri.is_a?(URI::HTTP) && uri.host.present?
+  rescue URI::InvalidURIError
+    nil
   end
 end
