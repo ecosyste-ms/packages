@@ -8,6 +8,7 @@ default_registries = [
   {name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm', github: 'npm', default: true},
   {name: 'nuget.org', url: 'https://www.nuget.org', ecosystem: 'nuget', github: 'nuget', default: true},
   {name: 'packagist.org', url: 'https://packagist.org', ecosystem: 'packagist', github: 'packagist', default: true},
+  {name: 'pecl.php.net', url: 'https://pecl.php.net', ecosystem: 'pecl', github: 'php', default: true},
   {name: 'pub.dev', url: 'https://pub.dev', ecosystem: 'pub', github: 'dart-lang', default: true},
   {name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi', github: 'pypi', default: true},
   {name: 'rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems', github: 'rubygems', default: true},
