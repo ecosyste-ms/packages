@@ -176,6 +176,7 @@ module Ecosystem
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       # npm license fields are supposed to be SPDX expressions now https://docs.npmjs.com/files/package.json#license
       pkg_metadata[:versions].reject{|k,v| existing_version_numbers.include?(k) }.map do |k, v|
+        dist = v.fetch("dist", {})
         license = v.fetch("license", nil)
         license = licenses(v) unless license.is_a?(String)
         {
@@ -186,7 +187,8 @@ module Ecosystem
           metadata: {
             deprecated: v["deprecated"],
             "_npmUser" => v["_npmUser"],
-            "dist" => v["dist"],
+            "dist" => dist,
+            "provenance" => provenance_metadata(v, dist),
             "gitHead" => v["gitHead"],
             "main" => v["main"],
             "scripts" => v["scripts"],
@@ -200,6 +202,18 @@ module Ecosystem
           }
         }
       end
+    end
+
+    def provenance_metadata(version, dist = nil)
+      dist ||= version.fetch("dist", {})
+      provenance = {
+        "attestations" => dist["attestations"],
+        "provenance" => dist["provenance"],
+        "signatures" => dist["signatures"],
+        "npm-signature" => dist["npm-signature"],
+      }.compact
+
+      provenance.presence
     end
 
     def integrity(version)
