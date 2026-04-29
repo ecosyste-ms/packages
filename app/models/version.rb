@@ -4,6 +4,8 @@ class Version < ApplicationRecord
   validates_presence_of :package_id, :number
   validates_uniqueness_of :number, scope: :package_id, case_sensitive: false
 
+  before_validation :generate_swhid
+
   belongs_to :package
   belongs_to :registry, optional: true
   counter_culture :package
@@ -16,6 +18,7 @@ class Version < ApplicationRecord
       'created_at' => 'created_at',
       'updated_at' => 'updated_at',
       'number' => 'number',
+      'swhid' => 'swhid',
     }
   end
 
@@ -25,6 +28,7 @@ class Version < ApplicationRecord
   scope :updated_after, ->(updated_at) { where('updated_at > ?', updated_at) }
   scope :created_before, ->(created_at) { where('created_at < ?', created_at) }
   scope :updated_before, ->(updated_at) { where('updated_at < ?', updated_at) }
+  scope :with_swhid, ->(swhid) { where(swhid: swhid) }
 
   scope :active, -> { where(status: nil) }
 
@@ -212,6 +216,19 @@ class Version < ApplicationRecord
         false
       end
     end
+  end
+
+  def generate_swhid
+    return if swhid.present?
+
+    sha1 = metadata_sha1
+    self.swhid = "swh:1:rev:#{sha1}" if sha1.present?
+  end
+
+  def metadata_sha1
+    candidate = metadata&.dig('sha') || metadata&.dig(:sha) || metadata&.dig('commit') || metadata&.dig(:commit)
+    candidate = candidate.to_s
+    candidate.match?(/\A[0-9a-f]{40}\z/i) ? candidate.downcase : nil
   end
 
   def transitive_dependencies(max_depth: TransitiveDependencyResolver::DEFAULT_MAX_DEPTH, max_dependencies: TransitiveDependencyResolver::DEFAULT_MAX_DEPENDENCIES, include_optional: false, kind: nil)
