@@ -224,6 +224,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_180158) do
     t.json "metadata", default: {}
     t.string "number"
     t.integer "package_id"
+    t.bigint "size"
     t.datetime "published_at"
     t.integer "registry_id"
     t.string "status"
@@ -232,6 +233,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_180158) do
     t.index ["published_at"], name: "index_versions_on_published_at"
     t.index ["registry_id", "created_at"], name: "index_versions_on_registry_id_and_created_at"
     t.index ["registry_id", "published_at"], name: "index_versions_on_registry_id_and_published_at"
+    t.index ["size"], name: "index_versions_on_size"
   end
 
   add_foreign_key "advisories", "sources"
