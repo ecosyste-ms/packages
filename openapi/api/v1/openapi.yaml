@@ -1392,6 +1392,34 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Package'
+  /registries/{registryName}/packages/{packageName}/latest_version:
+    get:
+      summary: get the latest version of a package
+      operationId: getRegistryPackageLatestVersion
+      tags:
+        - packages
+      parameters:
+        - in: path
+          name: registryName
+          schema:
+            type: string
+          required: true
+          description: name of registry
+        - in: path
+          name: packageName
+          schema:
+            type: string
+          required: true
+          description: name of package
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionWithDependencies'
+        404:
+          description: package not found or no versions available
   /registries/{registryName}/packages/{packageName}/version_numbers:
     get:
       summary: get a list of version numbers for a package from a registry
@@ -1774,6 +1802,7 @@ components:
         - purl
         - advisories
         - versions_url
+        - latest_version_url
         - dependent_packages_url
         - related_packages_url
         - codemeta_url
@@ -1878,6 +1907,8 @@ components:
           items:
             $ref: '#/components/schemas/Advisory'
         versions_url:
+          type: string
+        latest_version_url:
           type: string
         version_numbers_url:
           type: string

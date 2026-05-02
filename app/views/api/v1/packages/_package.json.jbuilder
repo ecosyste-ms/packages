@@ -2,6 +2,7 @@ json.extract! package, :id, :name, :ecosystem, :description, :homepage, :license
 
 json.versions_url api_v1_registry_package_versions_url(registry_id: package.registry.name, package_id: package.name)
 json.version_numbers_url version_numbers_api_v1_registry_package_url(registry_id: package.registry.name, id: package.name)
+json.latest_version_url latest_version_api_v1_registry_package_url(registry_id: package.registry.name, id: package.name)
 json.dependent_packages_url dependent_packages_api_v1_registry_package_url(registry_id: package.registry.name, id: package.name)
 json.related_packages_url related_packages_api_v1_registry_package_url(registry_id: package.registry.name, id: package.name)
 json.codemeta_url codemeta_api_v1_registry_package_url(registry_id: package.registry.name, id: package.name)

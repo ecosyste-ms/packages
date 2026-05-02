@@ -62,6 +62,7 @@ Rails.application.routes.draw do
             get :ping, to: 'packages#ping'
             get :version_numbers, to: 'versions#version_numbers'
             get :codemeta, to: 'packages#codemeta'
+            get :latest_version, to: 'packages#latest_version'
           end
         end
 

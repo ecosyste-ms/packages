@@ -273,6 +273,14 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     render json: { message: 'pong' }
   end
 
+  def latest_version
+    @registry = Registry.find_by_name!(params[:registry_id])
+    @package = find_package_with_normalization!(@registry, params[:id])
+    @version = @package.latest_version
+    raise ActiveRecord::RecordNotFound, "No versions found" unless @version
+    fresh_when @version, public: true
+  end
+
   def codemeta
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = find_package_with_normalization!(@registry, params[:id])

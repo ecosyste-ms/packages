@@ -670,6 +670,63 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal 'removed', actual_response['status']
   end
 
+  test 'get latest version for a package' do
+    version = @package.versions.create(number: '1.0.0', published_at: 1.day.ago)
+    get latest_version_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal '1.0.0', actual_response['number']
+    assert_equal version.id, actual_response['id']
+  end
+
+  test 'get latest version returns latest stable version when pre-releases exist' do
+    stable = @package.versions.create(number: '1.0.0', published_at: 2.days.ago, status: nil)
+    prerelease = @package.versions.create(number: '2.0.0-beta.1', published_at: 1.day.ago, status: nil)
+    get latest_version_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal '1.0.0', actual_response['number']
+  end
+
+  test 'get latest version returns 404 when package has no versions' do
+    get latest_version_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :not_found
+  end
+
+  test 'get latest version for nonexistent package' do
+    get latest_version_api_v1_registry_package_path(registry_id: @registry.name, id: 'nonexistent')
+    assert_response :not_found
+  end
+
+  test 'get latest version includes dependencies' do
+    version = @package.versions.create(number: '1.0.0', published_at: 1.day.ago)
+    version.dependencies.create(ecosystem: 'cargo', package_name: 'serde', requirements: '^1.0', kind: 'runtime')
+    get latest_version_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal 1, actual_response['dependencies'].length
+    assert_equal 'serde', actual_response['dependencies'].first['package_name']
+  end
+
+  test 'get latest version for pypi package with underscore in name' do
+    pypi_registry = Registry.create(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    pypi_package = pypi_registry.packages.create(
+      ecosystem: 'pypi',
+      name: 'tomli-w',
+      metadata: { 'normalized_name' => 'tomli-w' }
+    )
+    pypi_package.versions.create(number: '1.0.0', published_at: 1.day.ago)
+
+    get latest_version_api_v1_registry_package_path(registry_id: pypi_registry.name, id: 'tomli_w')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal '1.0.0', actual_response['number']
+  end
+
   test 'get codemeta for a package' do
     get codemeta_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
     assert_response :success
