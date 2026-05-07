@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 module Ecosystem
   class Ubuntu < Deb
+    def self.purl_type
+      'deb'
+    end
+
     def default_mirror_url
       "http://archive.ubuntu.com/ubuntu"
     end

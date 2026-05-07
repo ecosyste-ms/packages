@@ -41,6 +41,8 @@ default_registries = [
   {name: "carthage", url: "https://github.com/Carthage/Carthage", ecosystem: "carthage", github: "Carthage", default: true},
   {name: 'github actions', url: 'https://github.com/marketplace/actions/', ecosystem: 'actions', github: 'actions', default: true},
   {name: 'pkg.adelielinux.org', url: "https://pkg.adelielinux.org/current", ecosystem: "adelie", github: "AdelieLinux", default: true, metadata: {repos: ['system', 'user']}},
+  {name: 'archlinux.org', url: 'https://archlinux.org', ecosystem: 'arch', github: 'archlinux', default: true, metadata: {'kind' => 'official'}},
+  {name: 'aur.archlinux.org', url: 'https://aur.archlinux.org', ecosystem: 'arch', github: 'archlinux', default: false, metadata: {'kind' => 'aur'}},
   {name: 'bioconductor.org', url: 'https://bioconductor.org', ecosystem: 'bioconductor', github: 'Bioconductor', default: true},
   {name: 'open-vsx.org', url: 'https://open-vsx.org', ecosystem: 'openvsx', default: true, github: 'open-vsx'},
   {name: 'build.shibboleth.net', url: 'https://build.shibboleth.net/nexus/content/repositories/releases', ecosystem: 'maven', github: 'shibboleth', default: false},
