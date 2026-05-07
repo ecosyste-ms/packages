@@ -208,3 +208,22 @@ ips_registries.each do |data|
   r.assign_attributes(data)
   r.save
 end
+
+gentoo_registries = [
+  {
+    name: 'gentoo-portage',
+    url: 'https://packages.gentoo.org/',
+    ecosystem: 'gentoo',
+    github: 'gentoo',
+    default: true,
+    metadata: {
+      'snapshot_url' => 'https://distfiles.gentoo.org/snapshots/portage-latest.tar.xz',
+    }
+  },
+]
+
+gentoo_registries.each do |data|
+  r = Registry.find_or_initialize_by(url: data[:url])
+  r.assign_attributes(data)
+  r.save
+end
