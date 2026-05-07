@@ -208,3 +208,19 @@ ips_registries.each do |data|
   r.assign_attributes(data)
   r.save
 end
+
+pkgsrc_registries = [
+  {
+    name: 'pkgsrc-netbsd-x86_64-10.1-all',
+    url: 'https://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.1/All',
+    ecosystem: 'pkgsrc',
+    github: 'pkgsrc',
+    default: true,
+  },
+]
+
+pkgsrc_registries.each do |data|
+  r = Registry.find_or_initialize_by(url: data[:url])
+  r.assign_attributes(data)
+  r.save
+end
