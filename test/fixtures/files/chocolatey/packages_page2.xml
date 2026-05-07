@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<feed xml:base="http://community.chocolatey.org/api/v2/" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns="http://www.w3.org/2005/Atom">
+  <title type="text">Packages</title>
+  <id>http://community.chocolatey.org/api/v2/Packages</id>
+  <link rel="self" title="Packages" href="Packages" />
+  <entry>
+    <id>http://community.chocolatey.org/api/v2/Packages(Id='zoom',Version='6.1.0')</id>
+    <title type="text">zoom</title>
+    <summary type="text">Video conferencing</summary>
+    <author><name>Zoom</name></author>
+    <content type="application/zip" src="https://community.chocolatey.org/api/v2/package/zoom/6.1.0" />
+  </entry>
+</feed>

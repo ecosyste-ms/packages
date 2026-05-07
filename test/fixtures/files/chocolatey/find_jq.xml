@@ -1,0 +1,713 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<feed xml:base="http://community.chocolatey.org/api/v2/" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns="http://www.w3.org/2005/Atom">
+  <title type="text">FindPackagesById</title>
+  <id>http://community.chocolatey.org/api/v2/FindPackagesById</id>
+  <updated>2026-05-07T16:27:52Z</updated>
+  <link rel="self" title="FindPackagesById" href="FindPackagesById" />
+  <entry>
+    <id>http://community.chocolatey.org/api/v2/Packages(Id='jq',Version='1.8.1')</id>
+    <title type="text">jq</title>
+    <summary type="text">Command-line JSON processor</summary>
+    <updated>2025-11-10T08:50:28Z</updated>
+    <author>
+      <name>https://github.com/jqlang/jq/blob/master/AUTHORS</name>
+    </author>
+    <link rel="edit-media" title="V2FeedPackage" href="Packages(Id='jq',Version='1.8.1')/$value" />
+    <link rel="edit" title="V2FeedPackage" href="Packages(Id='jq',Version='1.8.1')" />
+    <category term="CCR.Website.V2FeedPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <content type="application/zip" src="https://community.chocolatey.org/api/v2/package/jq/1.8.1" />
+    <m:properties xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices">
+      <d:Version>1.8.1</d:Version>
+      <d:Title>jq</d:Title>
+      <d:Description>`jq` is a lightweight and flexible command-line JSON processor.</d:Description>
+      <d:Tags>jq json</d:Tags>
+      <d:Copyright>2012 Stephen Dolan</d:Copyright>
+      <d:Created m:type="Edm.DateTime">2025-07-13T01:33:47.413</d:Created>
+      <d:Dependencies></d:Dependencies>
+      <d:DownloadCount m:type="Edm.Int32">4751368</d:DownloadCount>
+      <d:VersionDownloadCount m:type="Edm.Int32">110232</d:VersionDownloadCount>
+      <d:GalleryDetailsUrl>https://community.chocolatey.org/packages/jq/1.8.1</d:GalleryDetailsUrl>
+      <d:ReportAbuseUrl>https://community.chocolatey.org/package/ReportAbuse/jq/1.8.1</d:ReportAbuseUrl>
+      <d:IconUrl>https://cdn.statically.io/gh/jqlang/jq/jq-1.8.1/docs/public/icon.png</d:IconUrl>
+      <d:IsLatestVersion m:type="Edm.Boolean">true</d:IsLatestVersion>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">true</d:IsAbsoluteLatestVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Language></d:Language>
+      <d:Published m:type="Edm.DateTime">2025-07-13T01:33:47.413</d:Published>
+      <d:LicenseUrl>https://github.com/jqlang/jq/blob/master/COPYING</d:LicenseUrl>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:PackageHash>SngHXVvMBqJHbSubxLCTYECviHAxfAtQs3p83mreohXQF+UGroM6l3SW7h9puPgGZ3K7y3iWaWeYVRFlZ6YWYg==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">2603</d:PackageSize>
+      <d:ProjectUrl>https://jqlang.github.io/jq/</d:ProjectUrl>
+      <d:ReleaseNotes></d:ReleaseNotes>
+      <d:ProjectSourceUrl>https://github.com/jqlang/jq</d:ProjectSourceUrl>
+      <d:PackageSourceUrl>https://github.com/mjarosie/jq-chocolatey-package</d:PackageSourceUrl>
+      <d:DocsUrl>https://jqlang.github.io/jq/manual/</d:DocsUrl>
+      <d:MailingListUrl></d:MailingListUrl>
+      <d:BugTrackerUrl>https://github.com/jqlang/jq/issues</d:BugTrackerUrl>
+      <d:IsApproved m:type="Edm.Boolean">true</d:IsApproved>
+      <d:PackageStatus>Approved</d:PackageStatus>
+      <d:PackageSubmittedStatus>Waiting</d:PackageSubmittedStatus>
+      <d:PackageTestResultUrl>https://gist.github.com/choco-bot/170989837102ffd9dab4677d35dc442e</d:PackageTestResultUrl>
+      <d:PackageTestResultStatus>Failing</d:PackageTestResultStatus>
+      <d:PackageTestResultStatusDate m:type="Edm.DateTime">2025-11-10T09:01:57.1748438Z</d:PackageTestResultStatusDate>
+      <d:PackageValidationResultStatus>Passing</d:PackageValidationResultStatus>
+      <d:PackageValidationResultDate m:type="Edm.DateTime">2025-07-13T02:07:16.92</d:PackageValidationResultDate>
+      <d:PackageCleanupResultDate m:type="Edm.DateTime" m:null="true"></d:PackageCleanupResultDate>
+      <d:PackageReviewedDate m:type="Edm.DateTime">2025-07-21T06:42:59.097</d:PackageReviewedDate>
+      <d:PackageApprovedDate m:type="Edm.DateTime">2025-07-21T06:42:59.097</d:PackageApprovedDate>
+      <d:PackageReviewer>gep13</d:PackageReviewer>
+      <d:IsDownloadCacheAvailable m:type="Edm.Boolean">true</d:IsDownloadCacheAvailable>
+      <d:DownloadCacheStatus>Available</d:DownloadCacheStatus>
+      <d:DownloadCacheDate m:type="Edm.DateTime">2025-07-21T07:43:11.797</d:DownloadCacheDate>
+      <d:DownloadCache>https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-windows-amd64.exe^x64/jq-windows-amd64.exe^B9BE6385EE293B81C06891B003127FAA8384B31C6AE4060E4A9D553AD6ADDCB81EB97460C22E28E7571BA3DCA4ABE41A97501B6237B8B5522C2B1D1052CBD7EA|https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-windows-i386.exe^x86/jq-windows-i386.exe^41A5682528C8DFB680896DE34C8A44315322427A6C0F470FFF30DB52FC43004C6EC609C261F4CFCF517EDBD1AE17156C32755E58652836DAA747D40C92F1B74C</d:DownloadCache>
+      <d:PackageScanStatus>Flagged</d:PackageScanStatus>
+      <d:PackageScanResultDate m:type="Edm.DateTime">2025-07-13T03:18:58.587</d:PackageScanResultDate>
+      <d:PackageScanFlagResult>Note</d:PackageScanFlagResult>
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://community.chocolatey.org/api/v2/Packages(Id='jq',Version='1.7.1')</id>
+    <title type="text">jq</title>
+    <summary type="text">Command-line JSON processor</summary>
+    <updated>2025-09-28T20:04:44Z</updated>
+    <author>
+      <name>https://github.com/jqlang/jq/blob/master/AUTHORS</name>
+    </author>
+    <link rel="edit-media" title="V2FeedPackage" href="Packages(Id='jq',Version='1.7.1')/$value" />
+    <link rel="edit" title="V2FeedPackage" href="Packages(Id='jq',Version='1.7.1')" />
+    <category term="CCR.Website.V2FeedPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <content type="application/zip" src="https://community.chocolatey.org/api/v2/package/jq/1.7.1" />
+    <m:properties xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices">
+      <d:Version>1.7.1</d:Version>
+      <d:Title>jq</d:Title>
+      <d:Description>`jq` is a lightweight and flexible command-line JSON processor.</d:Description>
+      <d:Tags>jq json</d:Tags>
+      <d:Copyright>2012 Stephen Dolan</d:Copyright>
+      <d:Created m:type="Edm.DateTime">2024-01-20T15:23:32.683</d:Created>
+      <d:Dependencies></d:Dependencies>
+      <d:DownloadCount m:type="Edm.Int32">4751368</d:DownloadCount>
+      <d:VersionDownloadCount m:type="Edm.Int32">1532346</d:VersionDownloadCount>
+      <d:GalleryDetailsUrl>https://community.chocolatey.org/packages/jq/1.7.1</d:GalleryDetailsUrl>
+      <d:ReportAbuseUrl>https://community.chocolatey.org/package/ReportAbuse/jq/1.7.1</d:ReportAbuseUrl>
+      <d:IconUrl>https://cdn.statically.io/gh/jqlang/jq/jq-1.7.1/docs/public/icon.png</d:IconUrl>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Language></d:Language>
+      <d:Published m:type="Edm.DateTime">2024-01-20T15:23:32.683</d:Published>
+      <d:LicenseUrl>https://github.com/jqlang/jq/blob/master/COPYING</d:LicenseUrl>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:PackageHash>MO6d4dLjfHCwcp7qyldXDsKsJDVgWn519sTmq+JlA6ujB9VEE+CWV15VGC9iqosF/jPzt+0rnf9Nd2pRl58e5Q==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">2602</d:PackageSize>
+      <d:ProjectUrl>https://jqlang.github.io/jq/</d:ProjectUrl>
+      <d:ReleaseNotes></d:ReleaseNotes>
+      <d:ProjectSourceUrl>https://github.com/jqlang/jq</d:ProjectSourceUrl>
+      <d:PackageSourceUrl>https://github.com/mjarosie/jq-chocolatey-package</d:PackageSourceUrl>
+      <d:DocsUrl>https://jqlang.github.io/jq/manual/</d:DocsUrl>
+      <d:MailingListUrl></d:MailingListUrl>
+      <d:BugTrackerUrl>https://github.com/jqlang/jq/issues</d:BugTrackerUrl>
+      <d:IsApproved m:type="Edm.Boolean">true</d:IsApproved>
+      <d:PackageStatus>Approved</d:PackageStatus>
+      <d:PackageSubmittedStatus>Waiting</d:PackageSubmittedStatus>
+      <d:PackageTestResultUrl>https://gist.github.com/choco-bot/0155c4e1188b6da4fca8997b200ee591</d:PackageTestResultUrl>
+      <d:PackageTestResultStatus>Passing</d:PackageTestResultStatus>
+      <d:PackageTestResultStatusDate m:type="Edm.DateTime">2025-06-03T16:40:50.42</d:PackageTestResultStatusDate>
+      <d:PackageValidationResultStatus>Passing</d:PackageValidationResultStatus>
+      <d:PackageValidationResultDate m:type="Edm.DateTime">2024-01-20T15:58:02.5</d:PackageValidationResultDate>
+      <d:PackageCleanupResultDate m:type="Edm.DateTime" m:null="true"></d:PackageCleanupResultDate>
+      <d:PackageReviewedDate m:type="Edm.DateTime">2024-01-26T06:08:49.093</d:PackageReviewedDate>
+      <d:PackageApprovedDate m:type="Edm.DateTime">2024-01-26T06:08:49.093</d:PackageApprovedDate>
+      <d:PackageReviewer>flcdrg</d:PackageReviewer>
+      <d:IsDownloadCacheAvailable m:type="Edm.Boolean">true</d:IsDownloadCacheAvailable>
+      <d:DownloadCacheStatus>Available</d:DownloadCacheStatus>
+      <d:DownloadCacheDate m:type="Edm.DateTime">2024-01-26T07:10:10.05</d:DownloadCacheDate>
+      <d:DownloadCache>https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-windows-amd64.exe^x64/jq-windows-amd64.exe^59AD24955FD7ECFEDC5B1A690501E91DEE55FBE8B5E7B3EC01979A8569D1900F89EFCCA93C0CF4BD57C86E6DE13D26F9DF4762B83A37A8172B0D5C09DB9753A8|https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-windows-i386.exe^x86/jq-windows-i386.exe^480A07C4E30B857A211F61A22F4FBC61A623043ED260660ADA8D51429E8F4E17188F2E32D1CB7ED3EC580F406D3D2F2EFB8E47EE2B7D6B9B07013BDACC3F798A</d:DownloadCache>
+      <d:PackageScanStatus>Flagged</d:PackageScanStatus>
+      <d:PackageScanResultDate m:type="Edm.DateTime">2024-01-20T16:20:10.217</d:PackageScanResultDate>
+      <d:PackageScanFlagResult>Note</d:PackageScanFlagResult>
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://community.chocolatey.org/api/v2/Packages(Id='jq',Version='1.5')</id>
+    <title type="text">jq</title>
+    <summary type="text"></summary>
+    <updated>2025-09-28T19:19:50Z</updated>
+    <author>
+      <name>Stephen Dolan</name>
+    </author>
+    <link rel="edit-media" title="V2FeedPackage" href="Packages(Id='jq',Version='1.5')/$value" />
+    <link rel="edit" title="V2FeedPackage" href="Packages(Id='jq',Version='1.5')" />
+    <category term="CCR.Website.V2FeedPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <content type="application/zip" src="https://community.chocolatey.org/api/v2/package/jq/1.5" />
+    <m:properties xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices">
+      <d:Version>1.5</d:Version>
+      <d:Title>jq</d:Title>
+      <d:Description>jq is like sed for JSON data – you can use it to slice and
+    filter and map and transform structured data with the same ease that sed,
+    awk, grep and friends let you play with text.
+    http://github.com/svnpenn/p/tree/master/jq</d:Description>
+      <d:Tags>jq json</d:Tags>
+      <d:Copyright></d:Copyright>
+      <d:Created m:type="Edm.DateTime">2015-08-22T18:24:50.037</d:Created>
+      <d:Dependencies></d:Dependencies>
+      <d:DownloadCount m:type="Edm.Int32">4751368</d:DownloadCount>
+      <d:VersionDownloadCount m:type="Edm.Int32">377503</d:VersionDownloadCount>
+      <d:GalleryDetailsUrl>https://community.chocolatey.org/packages/jq/1.5</d:GalleryDetailsUrl>
+      <d:ReportAbuseUrl>https://community.chocolatey.org/package/ReportAbuse/jq/1.5</d:ReportAbuseUrl>
+      <d:IconUrl>http://stedolan.github.io/jq/jq.png</d:IconUrl>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Language></d:Language>
+      <d:Published m:type="Edm.DateTime">2015-08-22T18:24:50.037</d:Published>
+      <d:LicenseUrl>http://creativecommons.org/licenses/by/3.0</d:LicenseUrl>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:PackageHash>zvgEpYL+FLZlqSrMyfwT7xP7T767BQMKUQrRM9UO7XOj+yKpRsH22GQJV8ROfR9BFvfJP0ZPu/PT1ZFjMftgGA==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">3652</d:PackageSize>
+      <d:ProjectUrl>http://stedolan.github.io/jq</d:ProjectUrl>
+      <d:ReleaseNotes></d:ReleaseNotes>
+      <d:ProjectSourceUrl></d:ProjectSourceUrl>
+      <d:PackageSourceUrl></d:PackageSourceUrl>
+      <d:DocsUrl></d:DocsUrl>
+      <d:MailingListUrl></d:MailingListUrl>
+      <d:BugTrackerUrl></d:BugTrackerUrl>
+      <d:IsApproved m:type="Edm.Boolean">true</d:IsApproved>
+      <d:PackageStatus>Approved</d:PackageStatus>
+      <d:PackageSubmittedStatus>Waiting</d:PackageSubmittedStatus>
+      <d:PackageTestResultUrl>https://gist.github.com/1d7d40691a0b0476bc0d66313977bab8</d:PackageTestResultUrl>
+      <d:PackageTestResultStatus>Passing</d:PackageTestResultStatus>
+      <d:PackageTestResultStatusDate m:type="Edm.DateTime">2019-08-30T06:32:44.607</d:PackageTestResultStatusDate>
+      <d:PackageValidationResultStatus>Unknown</d:PackageValidationResultStatus>
+      <d:PackageValidationResultDate m:type="Edm.DateTime" m:null="true"></d:PackageValidationResultDate>
+      <d:PackageCleanupResultDate m:type="Edm.DateTime" m:null="true"></d:PackageCleanupResultDate>
+      <d:PackageReviewedDate m:type="Edm.DateTime">2015-10-02T20:41:28.52</d:PackageReviewedDate>
+      <d:PackageApprovedDate m:type="Edm.DateTime">2015-10-02T20:41:28.52</d:PackageApprovedDate>
+      <d:PackageReviewer>ferventcoder</d:PackageReviewer>
+      <d:IsDownloadCacheAvailable m:type="Edm.Boolean">true</d:IsDownloadCacheAvailable>
+      <d:DownloadCacheStatus>Available</d:DownloadCacheStatus>
+      <d:DownloadCacheDate m:type="Edm.DateTime">2016-02-01T11:57:02.96</d:DownloadCacheDate>
+      <d:DownloadCache>http://github.com/stedolan/jq/releases/download/jq-1.5/jq-win64.exe^x64/jq-win64.exe^492EEA8BBF91A21C4ABE25459039221463F533FAEAC7A9B48BC4D8347F44E58A19A7E9FAB1334A607EB893ED422DE4C2AD4D801444BF5DAC8835AECE472C059F|http://github.com/stedolan/jq/releases/download/jq-1.5/jq-win32.exe^x86/jq-win32.exe^0FC326228B61FDC64B88B9CD3B976BC4F3DE542A1AE1818CB6ACBC7B146B0A20EBBD935E07F1B2179E2A2DED614B309259EA944B5E217D3A137458CB5D165CCC</d:DownloadCache>
+      <d:PackageScanStatus>NotFlagged</d:PackageScanStatus>
+      <d:PackageScanResultDate m:type="Edm.DateTime">2016-03-06T22:55:18.357</d:PackageScanResultDate>
+      <d:PackageScanFlagResult>Unknown</d:PackageScanFlagResult>
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://community.chocolatey.org/api/v2/Packages(Id='jq',Version='1.6')</id>
+    <title type="text">jq</title>
+    <summary type="text">Command-line JSON processor</summary>
+    <updated>2025-09-28T15:49:49Z</updated>
+    <author>
+      <name>https://github.com/stedolan/jq/blob/master/AUTHORS</name>
+    </author>
+    <link rel="edit-media" title="V2FeedPackage" href="Packages(Id='jq',Version='1.6')/$value" />
+    <link rel="edit" title="V2FeedPackage" href="Packages(Id='jq',Version='1.6')" />
+    <category term="CCR.Website.V2FeedPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <content type="application/zip" src="https://community.chocolatey.org/api/v2/package/jq/1.6" />
+    <m:properties xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices">
+      <d:Version>1.6</d:Version>
+      <d:Title>jq</d:Title>
+      <d:Description>`jq` is a lightweight and flexible command-line JSON processor.</d:Description>
+      <d:Tags>jq json</d:Tags>
+      <d:Copyright>2012 Stephen Dolan</d:Copyright>
+      <d:Created m:type="Edm.DateTime">2019-09-18T18:06:27.74</d:Created>
+      <d:Dependencies></d:Dependencies>
+      <d:DownloadCount m:type="Edm.Int32">4751368</d:DownloadCount>
+      <d:VersionDownloadCount m:type="Edm.Int32">2166883</d:VersionDownloadCount>
+      <d:GalleryDetailsUrl>https://community.chocolatey.org/packages/jq/1.6</d:GalleryDetailsUrl>
+      <d:ReportAbuseUrl>https://community.chocolatey.org/package/ReportAbuse/jq/1.6</d:ReportAbuseUrl>
+      <d:IconUrl>https://cdn.statically.io/gh/stedolan/jq/37b2d212/docs/public/jq.png</d:IconUrl>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Language></d:Language>
+      <d:Published m:type="Edm.DateTime">2019-09-18T18:06:27.74</d:Published>
+      <d:LicenseUrl>https://github.com/stedolan/jq/blob/master/COPYING</d:LicenseUrl>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:PackageHash>O09exC8Wgnk7JQCVkKCsp+wmt2CmfBDY3HqSBCh18+Up3xZedHBg9wq/QG1dBJXjJlru1RnkcSqXmeCVg8yzSA==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">3548</d:PackageSize>
+      <d:ProjectUrl>https://stedolan.github.io/jq/</d:ProjectUrl>
+      <d:ReleaseNotes></d:ReleaseNotes>
+      <d:ProjectSourceUrl>https://github.com/stedolan/jq</d:ProjectSourceUrl>
+      <d:PackageSourceUrl>https://github.com/mjarosie/jq-chocolatey-package</d:PackageSourceUrl>
+      <d:DocsUrl>https://stedolan.github.io/jq/manual/</d:DocsUrl>
+      <d:MailingListUrl></d:MailingListUrl>
+      <d:BugTrackerUrl>https://github.com/stedolan/jq/issues</d:BugTrackerUrl>
+      <d:IsApproved m:type="Edm.Boolean">true</d:IsApproved>
+      <d:PackageStatus>Approved</d:PackageStatus>
+      <d:PackageSubmittedStatus>Waiting</d:PackageSubmittedStatus>
+      <d:PackageTestResultUrl>https://gist.github.com/aa57465e0d1a87dbcd0d5a51af06c9df</d:PackageTestResultUrl>
+      <d:PackageTestResultStatus>Passing</d:PackageTestResultStatus>
+      <d:PackageTestResultStatusDate m:type="Edm.DateTime">2020-08-25T09:38:45.327</d:PackageTestResultStatusDate>
+      <d:PackageValidationResultStatus>Passing</d:PackageValidationResultStatus>
+      <d:PackageValidationResultDate m:type="Edm.DateTime">2019-09-18T18:40:13.96</d:PackageValidationResultDate>
+      <d:PackageCleanupResultDate m:type="Edm.DateTime" m:null="true"></d:PackageCleanupResultDate>
+      <d:PackageReviewedDate m:type="Edm.DateTime">2019-09-19T09:30:49.317</d:PackageReviewedDate>
+      <d:PackageApprovedDate m:type="Edm.DateTime">2019-09-19T09:30:49.317</d:PackageApprovedDate>
+      <d:PackageReviewer>Pauby</d:PackageReviewer>
+      <d:IsDownloadCacheAvailable m:type="Edm.Boolean">true</d:IsDownloadCacheAvailable>
+      <d:DownloadCacheStatus>Available</d:DownloadCacheStatus>
+      <d:DownloadCacheDate m:type="Edm.DateTime">2019-09-19T10:32:19.407</d:DownloadCacheDate>
+      <d:DownloadCache>https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win64.exe^x64/jq-win64.exe^58127BAE7B27D963CB4EC19779E5AB0938DB69190EC66985694320AF787E696A8ACD490B967255A7FED4C28EC6A2C2BFCD6EFBB5B85EC2A950B3E318113D5CDE|https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win32.exe^x86/jq-win32.exe^CF4766BACA9CF5F072AE15E2E3D91E974403AB933B892B8D506DC1C3235CA70271971BE1AF13896A4EF1C79F57518ACB9497F0BFEE1CB1D9AC10E97422C30F96</d:DownloadCache>
+      <d:PackageScanStatus>NotFlagged</d:PackageScanStatus>
+      <d:PackageScanResultDate m:type="Edm.DateTime">2019-09-18T20:33:48.477</d:PackageScanResultDate>
+      <d:PackageScanFlagResult>Unknown</d:PackageScanFlagResult>
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://community.chocolatey.org/api/v2/Packages(Id='jq',Version='1.0.2')</id>
+    <title type="text">jq</title>
+    <summary type="text">jq is like sed for JSON data.</summary>
+    <updated>2025-09-28T09:04:49Z</updated>
+    <author>
+      <name>Stephen Dolan</name>
+    </author>
+    <link rel="edit-media" title="V2FeedPackage" href="Packages(Id='jq',Version='1.0.2')/$value" />
+    <link rel="edit" title="V2FeedPackage" href="Packages(Id='jq',Version='1.0.2')" />
+    <category term="CCR.Website.V2FeedPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <content type="application/zip" src="https://community.chocolatey.org/api/v2/package/jq/1.0.2" />
+    <m:properties xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices">
+      <d:Version>1.0.2</d:Version>
+      <d:Title>jq</d:Title>
+      <d:Description>jq is like sed for JSON data – you can use it to slice and filter and map and transform structured data with the same ease that sed, awk, grep and friends let you play with text.</d:Description>
+      <d:Tags>jq json</d:Tags>
+      <d:Copyright></d:Copyright>
+      <d:Created m:type="Edm.DateTime">2014-02-22T20:39:39</d:Created>
+      <d:Dependencies></d:Dependencies>
+      <d:DownloadCount m:type="Edm.Int32">4751368</d:DownloadCount>
+      <d:VersionDownloadCount m:type="Edm.Int32">607</d:VersionDownloadCount>
+      <d:GalleryDetailsUrl>https://community.chocolatey.org/packages/jq/1.0.2</d:GalleryDetailsUrl>
+      <d:ReportAbuseUrl>https://community.chocolatey.org/package/ReportAbuse/jq/1.0.2</d:ReportAbuseUrl>
+      <d:IconUrl></d:IconUrl>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Language></d:Language>
+      <d:Published m:type="Edm.DateTime">2014-02-22T20:39:39</d:Published>
+      <d:LicenseUrl>http://stedolan.github.io/jq/</d:LicenseUrl>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:PackageHash>6VOFQ0m5u+80ZpA2DsCEkSgY0JdJ7tOUD/Av6NsyfDjcjodS7iYqzq8cqQ3sjtm9saHfMg2q8292iRakqHrpcA==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">3440</d:PackageSize>
+      <d:ProjectUrl>http://stedolan.github.io/jq/</d:ProjectUrl>
+      <d:ReleaseNotes>1.0.2 Fix downloading of x64 binary.
+      1.0.1 Add to PATH of current shell after install.</d:ReleaseNotes>
+      <d:ProjectSourceUrl></d:ProjectSourceUrl>
+      <d:PackageSourceUrl></d:PackageSourceUrl>
+      <d:DocsUrl></d:DocsUrl>
+      <d:MailingListUrl></d:MailingListUrl>
+      <d:BugTrackerUrl></d:BugTrackerUrl>
+      <d:IsApproved m:type="Edm.Boolean">true</d:IsApproved>
+      <d:PackageStatus>Approved</d:PackageStatus>
+      <d:PackageSubmittedStatus>Ready</d:PackageSubmittedStatus>
+      <d:PackageTestResultUrl></d:PackageTestResultUrl>
+      <d:PackageTestResultStatus>Unknown</d:PackageTestResultStatus>
+      <d:PackageTestResultStatusDate m:type="Edm.DateTime" m:null="true"></d:PackageTestResultStatusDate>
+      <d:PackageValidationResultStatus>Unknown</d:PackageValidationResultStatus>
+      <d:PackageValidationResultDate m:type="Edm.DateTime" m:null="true"></d:PackageValidationResultDate>
+      <d:PackageCleanupResultDate m:type="Edm.DateTime" m:null="true"></d:PackageCleanupResultDate>
+      <d:PackageReviewedDate m:type="Edm.DateTime">2025-07-21T06:42:59.52</d:PackageReviewedDate>
+      <d:PackageApprovedDate m:type="Edm.DateTime">2025-07-21T06:42:59.52</d:PackageApprovedDate>
+      <d:PackageReviewer></d:PackageReviewer>
+      <d:IsDownloadCacheAvailable m:type="Edm.Boolean">false</d:IsDownloadCacheAvailable>
+      <d:DownloadCacheStatus>Unknown</d:DownloadCacheStatus>
+      <d:DownloadCacheDate m:type="Edm.DateTime" m:null="true"></d:DownloadCacheDate>
+      <d:DownloadCache></d:DownloadCache>
+      <d:PackageScanStatus>NotFlagged</d:PackageScanStatus>
+      <d:PackageScanResultDate m:type="Edm.DateTime">2016-04-02T04:20:50.043</d:PackageScanResultDate>
+      <d:PackageScanFlagResult>Unknown</d:PackageScanFlagResult>
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://community.chocolatey.org/api/v2/Packages(Id='jq',Version='1.7.0')</id>
+    <title type="text">jq</title>
+    <summary type="text">Command-line JSON processor</summary>
+    <updated>2025-09-27T03:19:44Z</updated>
+    <author>
+      <name>https://github.com/jqlang/jq/blob/master/AUTHORS</name>
+    </author>
+    <link rel="edit-media" title="V2FeedPackage" href="Packages(Id='jq',Version='1.7.0')/$value" />
+    <link rel="edit" title="V2FeedPackage" href="Packages(Id='jq',Version='1.7.0')" />
+    <category term="CCR.Website.V2FeedPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <content type="application/zip" src="https://community.chocolatey.org/api/v2/package/jq/1.7.0" />
+    <m:properties xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices">
+      <d:Version>1.7.0</d:Version>
+      <d:Title>jq</d:Title>
+      <d:Description>`jq` is a lightweight and flexible command-line JSON processor.</d:Description>
+      <d:Tags>jq json</d:Tags>
+      <d:Copyright>2012 Stephen Dolan</d:Copyright>
+      <d:Created m:type="Edm.DateTime">2023-09-12T20:37:22.487</d:Created>
+      <d:Dependencies></d:Dependencies>
+      <d:DownloadCount m:type="Edm.Int32">4751368</d:DownloadCount>
+      <d:VersionDownloadCount m:type="Edm.Int32">599854</d:VersionDownloadCount>
+      <d:GalleryDetailsUrl>https://community.chocolatey.org/packages/jq/1.7.0</d:GalleryDetailsUrl>
+      <d:ReportAbuseUrl>https://community.chocolatey.org/package/ReportAbuse/jq/1.7.0</d:ReportAbuseUrl>
+      <d:IconUrl>https://cdn.statically.io/gh/jqlang/jq/jq-1.7/docs/public/icon.png</d:IconUrl>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Language></d:Language>
+      <d:Published m:type="Edm.DateTime">2023-09-12T20:37:22.487</d:Published>
+      <d:LicenseUrl>https://github.com/jqlang/jq/blob/master/COPYING</d:LicenseUrl>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:PackageHash>oSvUucVAMxfYvC7/QAAONtztTXoubnGD24QJ1iTes2W+rS2855+vK2hlGWX0gZtL28LQrT7pS9LiudCEeRhjtA==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">2600</d:PackageSize>
+      <d:ProjectUrl>https://jqlang.github.io/jq/</d:ProjectUrl>
+      <d:ReleaseNotes></d:ReleaseNotes>
+      <d:ProjectSourceUrl>https://github.com/jqlang/jq</d:ProjectSourceUrl>
+      <d:PackageSourceUrl>https://github.com/mjarosie/jq-chocolatey-package</d:PackageSourceUrl>
+      <d:DocsUrl>https://jqlang.github.io/jq/manual/v1.7/</d:DocsUrl>
+      <d:MailingListUrl></d:MailingListUrl>
+      <d:BugTrackerUrl>https://github.com/jqlang/jq/issues</d:BugTrackerUrl>
+      <d:IsApproved m:type="Edm.Boolean">true</d:IsApproved>
+      <d:PackageStatus>Approved</d:PackageStatus>
+      <d:PackageSubmittedStatus>Waiting</d:PackageSubmittedStatus>
+      <d:PackageTestResultUrl>https://gist.github.com/choco-bot/1a9ac67b78e7b8ab9d0e0966f4bcac4d</d:PackageTestResultUrl>
+      <d:PackageTestResultStatus>Passing</d:PackageTestResultStatus>
+      <d:PackageTestResultStatusDate m:type="Edm.DateTime">2023-09-13T01:56:30.663</d:PackageTestResultStatusDate>
+      <d:PackageValidationResultStatus>Passing</d:PackageValidationResultStatus>
+      <d:PackageValidationResultDate m:type="Edm.DateTime">2023-09-12T21:13:05.087</d:PackageValidationResultDate>
+      <d:PackageCleanupResultDate m:type="Edm.DateTime" m:null="true"></d:PackageCleanupResultDate>
+      <d:PackageReviewedDate m:type="Edm.DateTime">2023-09-17T00:27:05.107</d:PackageReviewedDate>
+      <d:PackageApprovedDate m:type="Edm.DateTime">2023-09-17T00:27:05.107</d:PackageApprovedDate>
+      <d:PackageReviewer>Windos</d:PackageReviewer>
+      <d:IsDownloadCacheAvailable m:type="Edm.Boolean">true</d:IsDownloadCacheAvailable>
+      <d:DownloadCacheStatus>Available</d:DownloadCacheStatus>
+      <d:DownloadCacheDate m:type="Edm.DateTime">2023-09-17T01:32:32.177</d:DownloadCacheDate>
+      <d:DownloadCache>https://github.com/jqlang/jq/releases/download/jq-1.7/jq-windows-amd64.exe^x64/jq-windows-amd64.exe^3C633ACBFA141B0299F7EFF874300B2A06FD717AE279311030DBF4D6E4308E0AE9E45B5705CDA4D4211E48CF77FAFDFD7E0FE58239A28208BB4D135060A4495B|https://github.com/jqlang/jq/releases/download/jq-1.7/jq-windows-i386.exe^x86/jq-windows-i386.exe^3F22E980AF31C587D33F20E746CFABCC05439E503A9497259D65072DEA3B411E06BA297176F01BA4316EA5AB94F8C4148805A04AC2055EBDCA93694559B15F7F</d:DownloadCache>
+      <d:PackageScanStatus>NotFlagged</d:PackageScanStatus>
+      <d:PackageScanResultDate m:type="Edm.DateTime">2023-09-13T08:41:23.867</d:PackageScanResultDate>
+      <d:PackageScanFlagResult>None</d:PackageScanFlagResult>
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://community.chocolatey.org/api/v2/Packages(Id='jq',Version='1.4.0.1')</id>
+    <title type="text">jq</title>
+    <summary type="text"></summary>
+    <updated>2025-09-26T15:04:58Z</updated>
+    <author>
+      <name>Stephen Dolan</name>
+    </author>
+    <link rel="edit-media" title="V2FeedPackage" href="Packages(Id='jq',Version='1.4.0.1')/$value" />
+    <link rel="edit" title="V2FeedPackage" href="Packages(Id='jq',Version='1.4.0.1')" />
+    <category term="CCR.Website.V2FeedPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <content type="application/zip" src="https://community.chocolatey.org/api/v2/package/jq/1.4.0.1" />
+    <m:properties xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices">
+      <d:Version>1.4.0.1</d:Version>
+      <d:Title>jq</d:Title>
+      <d:Description>jq is like sed for JSON data – you can use it to slice and
+    filter and map and transform structured data with the same ease that sed,
+    awk, grep and friends let you play with text.
+    http://github.com/svnpenn/p/tree/master/jq</d:Description>
+      <d:Tags>jq json</d:Tags>
+      <d:Copyright></d:Copyright>
+      <d:Created m:type="Edm.DateTime">2014-10-27T08:09:19.453</d:Created>
+      <d:Dependencies></d:Dependencies>
+      <d:DownloadCount m:type="Edm.Int32">4751368</d:DownloadCount>
+      <d:VersionDownloadCount m:type="Edm.Int32">1280</d:VersionDownloadCount>
+      <d:GalleryDetailsUrl>https://community.chocolatey.org/packages/jq/1.4.0.1</d:GalleryDetailsUrl>
+      <d:ReportAbuseUrl>https://community.chocolatey.org/package/ReportAbuse/jq/1.4.0.1</d:ReportAbuseUrl>
+      <d:IconUrl>http://stedolan.github.io/jq/jq.png</d:IconUrl>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Language></d:Language>
+      <d:Published m:type="Edm.DateTime">2014-10-27T08:09:19.453</d:Published>
+      <d:LicenseUrl>http://creativecommons.org/licenses/by/3.0</d:LicenseUrl>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:PackageHash>2hFVpggHfiI+e16wh7UtO5y7ajMOFukaVkMyhEaKcW51J6PEgyuKDM3scFJ8ds/qrJpvMtxd9eXUWFbASdJWJw==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">3579</d:PackageSize>
+      <d:ProjectUrl>http://stedolan.github.io/jq</d:ProjectUrl>
+      <d:ReleaseNotes></d:ReleaseNotes>
+      <d:ProjectSourceUrl></d:ProjectSourceUrl>
+      <d:PackageSourceUrl></d:PackageSourceUrl>
+      <d:DocsUrl></d:DocsUrl>
+      <d:MailingListUrl></d:MailingListUrl>
+      <d:BugTrackerUrl></d:BugTrackerUrl>
+      <d:IsApproved m:type="Edm.Boolean">true</d:IsApproved>
+      <d:PackageStatus>Approved</d:PackageStatus>
+      <d:PackageSubmittedStatus>Ready</d:PackageSubmittedStatus>
+      <d:PackageTestResultUrl></d:PackageTestResultUrl>
+      <d:PackageTestResultStatus>Unknown</d:PackageTestResultStatus>
+      <d:PackageTestResultStatusDate m:type="Edm.DateTime" m:null="true"></d:PackageTestResultStatusDate>
+      <d:PackageValidationResultStatus>Unknown</d:PackageValidationResultStatus>
+      <d:PackageValidationResultDate m:type="Edm.DateTime" m:null="true"></d:PackageValidationResultDate>
+      <d:PackageCleanupResultDate m:type="Edm.DateTime" m:null="true"></d:PackageCleanupResultDate>
+      <d:PackageReviewedDate m:type="Edm.DateTime">2014-10-27T14:24:11.437</d:PackageReviewedDate>
+      <d:PackageApprovedDate m:type="Edm.DateTime">2014-10-27T14:24:11.437</d:PackageApprovedDate>
+      <d:PackageReviewer>ferventcoder</d:PackageReviewer>
+      <d:IsDownloadCacheAvailable m:type="Edm.Boolean">false</d:IsDownloadCacheAvailable>
+      <d:DownloadCacheStatus>Unknown</d:DownloadCacheStatus>
+      <d:DownloadCacheDate m:type="Edm.DateTime" m:null="true"></d:DownloadCacheDate>
+      <d:DownloadCache></d:DownloadCache>
+      <d:PackageScanStatus>NotFlagged</d:PackageScanStatus>
+      <d:PackageScanResultDate m:type="Edm.DateTime">2016-04-23T00:01:06.423</d:PackageScanResultDate>
+      <d:PackageScanFlagResult>Unknown</d:PackageScanFlagResult>
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://community.chocolatey.org/api/v2/Packages(Id='jq',Version='1.0.0')</id>
+    <title type="text">jq</title>
+    <summary type="text">jq is like sed for JSON data.</summary>
+    <updated>2025-09-24T12:20:08Z</updated>
+    <author>
+      <name>Stephen Dolan</name>
+    </author>
+    <link rel="edit-media" title="V2FeedPackage" href="Packages(Id='jq',Version='1.0.0')/$value" />
+    <link rel="edit" title="V2FeedPackage" href="Packages(Id='jq',Version='1.0.0')" />
+    <category term="CCR.Website.V2FeedPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <content type="application/zip" src="https://community.chocolatey.org/api/v2/package/jq/1.0.0" />
+    <m:properties xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices">
+      <d:Version>1.0.0</d:Version>
+      <d:Title>jq</d:Title>
+      <d:Description>jq is like sed for JSON data – you can use it to slice and filter and map and transform structured data with the same ease that sed, awk, grep and friends let you play with text.</d:Description>
+      <d:Tags>jq json</d:Tags>
+      <d:Copyright></d:Copyright>
+      <d:Created m:type="Edm.DateTime">2013-12-07T05:50:42.027</d:Created>
+      <d:Dependencies></d:Dependencies>
+      <d:DownloadCount m:type="Edm.Int32">4751368</d:DownloadCount>
+      <d:VersionDownloadCount m:type="Edm.Int32">621</d:VersionDownloadCount>
+      <d:GalleryDetailsUrl>https://community.chocolatey.org/packages/jq/1.0.0</d:GalleryDetailsUrl>
+      <d:ReportAbuseUrl>https://community.chocolatey.org/package/ReportAbuse/jq/1.0.0</d:ReportAbuseUrl>
+      <d:IconUrl></d:IconUrl>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Language></d:Language>
+      <d:Published m:type="Edm.DateTime">2013-12-07T05:50:42.027</d:Published>
+      <d:LicenseUrl>http://stedolan.github.io/jq/</d:LicenseUrl>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:PackageHash>AFjQPhgJN5nVGsMTuvrdbNYfJTRHfK26bxi1PmhEggeV0TaYF2JcsdY/NEhzhS7F4ZL14Ebg4dXjEBUA97pS+A==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">3360</d:PackageSize>
+      <d:ProjectUrl>http://stedolan.github.io/jq/</d:ProjectUrl>
+      <d:ReleaseNotes></d:ReleaseNotes>
+      <d:ProjectSourceUrl></d:ProjectSourceUrl>
+      <d:PackageSourceUrl></d:PackageSourceUrl>
+      <d:DocsUrl></d:DocsUrl>
+      <d:MailingListUrl></d:MailingListUrl>
+      <d:BugTrackerUrl></d:BugTrackerUrl>
+      <d:IsApproved m:type="Edm.Boolean">true</d:IsApproved>
+      <d:PackageStatus>Approved</d:PackageStatus>
+      <d:PackageSubmittedStatus>Ready</d:PackageSubmittedStatus>
+      <d:PackageTestResultUrl></d:PackageTestResultUrl>
+      <d:PackageTestResultStatus>Unknown</d:PackageTestResultStatus>
+      <d:PackageTestResultStatusDate m:type="Edm.DateTime" m:null="true"></d:PackageTestResultStatusDate>
+      <d:PackageValidationResultStatus>Unknown</d:PackageValidationResultStatus>
+      <d:PackageValidationResultDate m:type="Edm.DateTime" m:null="true"></d:PackageValidationResultDate>
+      <d:PackageCleanupResultDate m:type="Edm.DateTime" m:null="true"></d:PackageCleanupResultDate>
+      <d:PackageReviewedDate m:type="Edm.DateTime">2025-07-21T06:42:59.52</d:PackageReviewedDate>
+      <d:PackageApprovedDate m:type="Edm.DateTime">2025-07-21T06:42:59.52</d:PackageApprovedDate>
+      <d:PackageReviewer></d:PackageReviewer>
+      <d:IsDownloadCacheAvailable m:type="Edm.Boolean">false</d:IsDownloadCacheAvailable>
+      <d:DownloadCacheStatus>Unknown</d:DownloadCacheStatus>
+      <d:DownloadCacheDate m:type="Edm.DateTime" m:null="true"></d:DownloadCacheDate>
+      <d:DownloadCache></d:DownloadCache>
+      <d:PackageScanStatus>NotFlagged</d:PackageScanStatus>
+      <d:PackageScanResultDate m:type="Edm.DateTime">2016-03-30T00:34:23.743</d:PackageScanResultDate>
+      <d:PackageScanFlagResult>Unknown</d:PackageScanFlagResult>
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://community.chocolatey.org/api/v2/Packages(Id='jq',Version='1.0.1')</id>
+    <title type="text">jq</title>
+    <summary type="text">jq is like sed for JSON data.</summary>
+    <updated>2025-09-24T08:19:51Z</updated>
+    <author>
+      <name>Stephen Dolan</name>
+    </author>
+    <link rel="edit-media" title="V2FeedPackage" href="Packages(Id='jq',Version='1.0.1')/$value" />
+    <link rel="edit" title="V2FeedPackage" href="Packages(Id='jq',Version='1.0.1')" />
+    <category term="CCR.Website.V2FeedPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <content type="application/zip" src="https://community.chocolatey.org/api/v2/package/jq/1.0.1" />
+    <m:properties xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices">
+      <d:Version>1.0.1</d:Version>
+      <d:Title>jq</d:Title>
+      <d:Description>jq is like sed for JSON data – you can use it to slice and filter and map and transform structured data with the same ease that sed, awk, grep and friends let you play with text.</d:Description>
+      <d:Tags>jq json</d:Tags>
+      <d:Copyright></d:Copyright>
+      <d:Created m:type="Edm.DateTime">2013-12-07T13:13:36.68</d:Created>
+      <d:Dependencies></d:Dependencies>
+      <d:DownloadCount m:type="Edm.Int32">4751368</d:DownloadCount>
+      <d:VersionDownloadCount m:type="Edm.Int32">636</d:VersionDownloadCount>
+      <d:GalleryDetailsUrl>https://community.chocolatey.org/packages/jq/1.0.1</d:GalleryDetailsUrl>
+      <d:ReportAbuseUrl>https://community.chocolatey.org/package/ReportAbuse/jq/1.0.1</d:ReportAbuseUrl>
+      <d:IconUrl></d:IconUrl>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Language></d:Language>
+      <d:Published m:type="Edm.DateTime">2013-12-07T13:13:36.68</d:Published>
+      <d:LicenseUrl>http://stedolan.github.io/jq/</d:LicenseUrl>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:PackageHash>sBuIj5qRum0/XXnI1/2NlvtECA+UR7GkQ8jMlKQ6PgF1gfmamDFC/rCk3tU3AmBLnkzRcJTg2+9Ql92xnzdI9Q==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">3413</d:PackageSize>
+      <d:ProjectUrl>http://stedolan.github.io/jq/</d:ProjectUrl>
+      <d:ReleaseNotes>1.0.1 Add to PATH of current shell after install.</d:ReleaseNotes>
+      <d:ProjectSourceUrl></d:ProjectSourceUrl>
+      <d:PackageSourceUrl></d:PackageSourceUrl>
+      <d:DocsUrl></d:DocsUrl>
+      <d:MailingListUrl></d:MailingListUrl>
+      <d:BugTrackerUrl></d:BugTrackerUrl>
+      <d:IsApproved m:type="Edm.Boolean">true</d:IsApproved>
+      <d:PackageStatus>Approved</d:PackageStatus>
+      <d:PackageSubmittedStatus>Ready</d:PackageSubmittedStatus>
+      <d:PackageTestResultUrl></d:PackageTestResultUrl>
+      <d:PackageTestResultStatus>Unknown</d:PackageTestResultStatus>
+      <d:PackageTestResultStatusDate m:type="Edm.DateTime" m:null="true"></d:PackageTestResultStatusDate>
+      <d:PackageValidationResultStatus>Unknown</d:PackageValidationResultStatus>
+      <d:PackageValidationResultDate m:type="Edm.DateTime" m:null="true"></d:PackageValidationResultDate>
+      <d:PackageCleanupResultDate m:type="Edm.DateTime" m:null="true"></d:PackageCleanupResultDate>
+      <d:PackageReviewedDate m:type="Edm.DateTime">2025-07-21T06:42:59.52</d:PackageReviewedDate>
+      <d:PackageApprovedDate m:type="Edm.DateTime">2025-07-21T06:42:59.52</d:PackageApprovedDate>
+      <d:PackageReviewer></d:PackageReviewer>
+      <d:IsDownloadCacheAvailable m:type="Edm.Boolean">false</d:IsDownloadCacheAvailable>
+      <d:DownloadCacheStatus>Unknown</d:DownloadCacheStatus>
+      <d:DownloadCacheDate m:type="Edm.DateTime" m:null="true"></d:DownloadCacheDate>
+      <d:DownloadCache></d:DownloadCache>
+      <d:PackageScanStatus>NotFlagged</d:PackageScanStatus>
+      <d:PackageScanResultDate m:type="Edm.DateTime">2016-03-30T02:43:36.437</d:PackageScanResultDate>
+      <d:PackageScanFlagResult>Unknown</d:PackageScanFlagResult>
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://community.chocolatey.org/api/v2/Packages(Id='jq',Version='1.4')</id>
+    <title type="text">jq</title>
+    <summary type="text"></summary>
+    <updated>2025-09-23T19:04:45Z</updated>
+    <author>
+      <name>Stephen Dolan</name>
+    </author>
+    <link rel="edit-media" title="V2FeedPackage" href="Packages(Id='jq',Version='1.4')/$value" />
+    <link rel="edit" title="V2FeedPackage" href="Packages(Id='jq',Version='1.4')" />
+    <category term="CCR.Website.V2FeedPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <content type="application/zip" src="https://community.chocolatey.org/api/v2/package/jq/1.4" />
+    <m:properties xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices">
+      <d:Version>1.4</d:Version>
+      <d:Title>jq</d:Title>
+      <d:Description>jq is like sed for JSON data – you can use it to slice and filter and map
+    and transform structured data with the same ease that sed, awk, grep and
+    friends let you play with text.
+    http://github.com/rjocoleman/chocolatey-jq</d:Description>
+      <d:Tags>jq json</d:Tags>
+      <d:Copyright></d:Copyright>
+      <d:Created m:type="Edm.DateTime">2014-10-27T06:30:59.643</d:Created>
+      <d:Dependencies></d:Dependencies>
+      <d:DownloadCount m:type="Edm.Int32">4751368</d:DownloadCount>
+      <d:VersionDownloadCount m:type="Edm.Int32">725</d:VersionDownloadCount>
+      <d:GalleryDetailsUrl>https://community.chocolatey.org/packages/jq/1.4</d:GalleryDetailsUrl>
+      <d:ReportAbuseUrl>https://community.chocolatey.org/package/ReportAbuse/jq/1.4</d:ReportAbuseUrl>
+      <d:IconUrl>http://stedolan.github.io/jq/jq.png</d:IconUrl>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Language></d:Language>
+      <d:Published m:type="Edm.DateTime">2014-10-27T06:30:59.643</d:Published>
+      <d:LicenseUrl>http://stedolan.github.io/jq/</d:LicenseUrl>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:PackageHash>3pCPgR45en1u2ikyrcZmqfgq1Kqacx25uRm9Pl2pHinmFCG8kSh97liLzUMgVsjmHh6w3h9pGMn07ff44se7Xw==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">3348</d:PackageSize>
+      <d:ProjectUrl>http://stedolan.github.io/jq/</d:ProjectUrl>
+      <d:ReleaseNotes></d:ReleaseNotes>
+      <d:ProjectSourceUrl></d:ProjectSourceUrl>
+      <d:PackageSourceUrl></d:PackageSourceUrl>
+      <d:DocsUrl></d:DocsUrl>
+      <d:MailingListUrl></d:MailingListUrl>
+      <d:BugTrackerUrl></d:BugTrackerUrl>
+      <d:IsApproved m:type="Edm.Boolean">true</d:IsApproved>
+      <d:PackageStatus>Approved</d:PackageStatus>
+      <d:PackageSubmittedStatus>Ready</d:PackageSubmittedStatus>
+      <d:PackageTestResultUrl></d:PackageTestResultUrl>
+      <d:PackageTestResultStatus>Unknown</d:PackageTestResultStatus>
+      <d:PackageTestResultStatusDate m:type="Edm.DateTime" m:null="true"></d:PackageTestResultStatusDate>
+      <d:PackageValidationResultStatus>Unknown</d:PackageValidationResultStatus>
+      <d:PackageValidationResultDate m:type="Edm.DateTime" m:null="true"></d:PackageValidationResultDate>
+      <d:PackageCleanupResultDate m:type="Edm.DateTime" m:null="true"></d:PackageCleanupResultDate>
+      <d:PackageReviewedDate m:type="Edm.DateTime">2014-10-27T06:36:24.107</d:PackageReviewedDate>
+      <d:PackageApprovedDate m:type="Edm.DateTime">2014-10-27T06:36:24.107</d:PackageApprovedDate>
+      <d:PackageReviewer>ferventcoder</d:PackageReviewer>
+      <d:IsDownloadCacheAvailable m:type="Edm.Boolean">false</d:IsDownloadCacheAvailable>
+      <d:DownloadCacheStatus>Unknown</d:DownloadCacheStatus>
+      <d:DownloadCacheDate m:type="Edm.DateTime" m:null="true"></d:DownloadCacheDate>
+      <d:DownloadCache></d:DownloadCache>
+      <d:PackageScanStatus>NotFlagged</d:PackageScanStatus>
+      <d:PackageScanResultDate m:type="Edm.DateTime">2016-04-23T00:01:05.19</d:PackageScanResultDate>
+      <d:PackageScanFlagResult>Unknown</d:PackageScanFlagResult>
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://community.chocolatey.org/api/v2/Packages(Id='jq',Version='1.0.3')</id>
+    <title type="text">jq</title>
+    <summary type="text">jq is like sed for JSON data.</summary>
+    <updated>2025-09-15T23:49:59Z</updated>
+    <author>
+      <name>Stephen Dolan</name>
+    </author>
+    <link rel="edit-media" title="V2FeedPackage" href="Packages(Id='jq',Version='1.0.3')/$value" />
+    <link rel="edit" title="V2FeedPackage" href="Packages(Id='jq',Version='1.0.3')" />
+    <category term="CCR.Website.V2FeedPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <content type="application/zip" src="https://community.chocolatey.org/api/v2/package/jq/1.0.3" />
+    <m:properties xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices">
+      <d:Version>1.0.3</d:Version>
+      <d:Title>jq</d:Title>
+      <d:Description>jq is like sed for JSON data – you can use it to slice and filter and map and transform structured data with the same ease that sed, awk, grep and friends let you play with text. Package Source and Issues: https://github.com/rjocoleman/chocolatey-jq</d:Description>
+      <d:Tags>jq json</d:Tags>
+      <d:Copyright></d:Copyright>
+      <d:Created m:type="Edm.DateTime">2014-02-22T21:01:37.133</d:Created>
+      <d:Dependencies></d:Dependencies>
+      <d:DownloadCount m:type="Edm.Int32">4751368</d:DownloadCount>
+      <d:VersionDownloadCount m:type="Edm.Int32">767</d:VersionDownloadCount>
+      <d:GalleryDetailsUrl>https://community.chocolatey.org/packages/jq/1.0.3</d:GalleryDetailsUrl>
+      <d:ReportAbuseUrl>https://community.chocolatey.org/package/ReportAbuse/jq/1.0.3</d:ReportAbuseUrl>
+      <d:IconUrl></d:IconUrl>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Language></d:Language>
+      <d:Published m:type="Edm.DateTime">2014-02-22T21:01:37.133</d:Published>
+      <d:LicenseUrl>http://stedolan.github.io/jq/</d:LicenseUrl>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:PackageHash>SQyyr7LNsl1ysZ8BzCqv47mx18jSStg1W9tNzlWDp0r+Z+/NB6ZTH+hXBO67QjuoeVgGrb7YHgMK+gmoHFqMgw==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">3568</d:PackageSize>
+      <d:ProjectUrl>http://stedolan.github.io/jq/</d:ProjectUrl>
+      <d:ReleaseNotes>1.0.3 Updated description (only).
+      1.0.2 Fix downloading of x64 binary.
+      1.0.1 Add to PATH of current shell after install.</d:ReleaseNotes>
+      <d:ProjectSourceUrl></d:ProjectSourceUrl>
+      <d:PackageSourceUrl></d:PackageSourceUrl>
+      <d:DocsUrl></d:DocsUrl>
+      <d:MailingListUrl></d:MailingListUrl>
+      <d:BugTrackerUrl></d:BugTrackerUrl>
+      <d:IsApproved m:type="Edm.Boolean">true</d:IsApproved>
+      <d:PackageStatus>Approved</d:PackageStatus>
+      <d:PackageSubmittedStatus>Ready</d:PackageSubmittedStatus>
+      <d:PackageTestResultUrl></d:PackageTestResultUrl>
+      <d:PackageTestResultStatus>Unknown</d:PackageTestResultStatus>
+      <d:PackageTestResultStatusDate m:type="Edm.DateTime" m:null="true"></d:PackageTestResultStatusDate>
+      <d:PackageValidationResultStatus>Unknown</d:PackageValidationResultStatus>
+      <d:PackageValidationResultDate m:type="Edm.DateTime" m:null="true"></d:PackageValidationResultDate>
+      <d:PackageCleanupResultDate m:type="Edm.DateTime" m:null="true"></d:PackageCleanupResultDate>
+      <d:PackageReviewedDate m:type="Edm.DateTime">2025-07-21T06:42:59.52</d:PackageReviewedDate>
+      <d:PackageApprovedDate m:type="Edm.DateTime">2025-07-21T06:42:59.52</d:PackageApprovedDate>
+      <d:PackageReviewer></d:PackageReviewer>
+      <d:IsDownloadCacheAvailable m:type="Edm.Boolean">false</d:IsDownloadCacheAvailable>
+      <d:DownloadCacheStatus>Unknown</d:DownloadCacheStatus>
+      <d:DownloadCacheDate m:type="Edm.DateTime" m:null="true"></d:DownloadCacheDate>
+      <d:DownloadCache></d:DownloadCache>
+      <d:PackageScanStatus>NotFlagged</d:PackageScanStatus>
+      <d:PackageScanResultDate m:type="Edm.DateTime">2016-04-02T04:21:08.683</d:PackageScanResultDate>
+      <d:PackageScanFlagResult>Unknown</d:PackageScanFlagResult>
+    </m:properties>
+  </entry>
+  <link rel="next" href="http://community.chocolatey.org/api/v2/FindPackagesById?id='jq'&amp;$skiptoken='1757980199550','1.0.3','jq'" />
+</feed>
