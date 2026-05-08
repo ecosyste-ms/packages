@@ -1,0 +1,10 @@
+DESCRIPTION=Demo one
+HOMEPAGE=https://example.com/demo
+LICENSE=MIT
+KEYWORDS=amd64 ~x86
+SLOT=0
+EAPI=8
+SRC_URI=https://downloads.example.com/demo-1.0.tar.xz
+RDEPEND=>=dev-libs/baselayout-1.0 virtual/libc
+BDEPEND=sys-devel/gcc
+_md5_=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
