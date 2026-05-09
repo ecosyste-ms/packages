@@ -1,0 +1,44 @@
+PKGNAME=hello-kitty-2.5
+COMMENT=Sweet demo
+HOMEPAGE=https://example.test/hello-kitty
+LICENSE=mit
+CATEGORIES=games misc
+DEPENDS=zlib>=1.2
+BUILD_DATE=2025-01-01 00:00:00 +0000
+PKGPATH=games/hello-kitty
+MACHINE_ARCH=x86_64
+OPSYS=NetBSD
+PKGTOOLS_VERSION=x
+DESCRIPTION=Say Hi
+DESCRIPTION=Meow world
+FILE_NAME=hello-kitty-2.5.tgz
+FILE_SIZE=100
+
+PKGNAME=hello-kitty-2.6
+COMMENT=Newer kitty
+HOMEPAGE=https://example.test/hello-kitty
+LICENSE=mit
+CATEGORIES=games misc
+DEPENDS=zlib>=1.2 ruby>=30
+BUILD_DATE=2026-02-02 02:02:02 +0000
+PKGPATH=games/hello-kitty
+MACHINE_ARCH=x86_64
+OPSYS=NetBSD
+PKGTOOLS_VERSION=x
+DESCRIPTION=Better meow.
+FILE_NAME=hello-kitty-2.6.tgz
+FILE_SIZE=110
+
+PKGNAME=minizip-10
+COMMENT=Tiny lib
+HOMEPAGE=
+LICENSE=
+CATEGORIES=devel
+DEPENDS=
+BUILD_DATE=2024-12-31 01:02:03 +0000
+PKGPATH=devel/minizip
+MACHINE_ARCH=x86_64
+OPSYS=NetBSD
+PKGTOOLS_VERSION=x
+DESCRIPTION=Minimal
+FILE_NAME=minizip-10.tgz
