@@ -125,6 +125,14 @@ nixpkgs_registries.each do |data|
   r.save
 end
 
+r = Registry.find_or_initialize_by(url: 'https://buildkite.com/resources/plugins')
+r.assign_attributes(
+  name: 'Buildkite Plugins',
+  ecosystem: 'buildkite',
+  default: true
+)
+r.save
+
 r = Registry.find_or_initialize_by(url: 'https://guix.gnu.org')
 r.assign_attributes(
   name: 'guix',
