@@ -91,6 +91,23 @@ class PackageTest < ActiveSupport::TestCase
     assert_equal ["Apache-2.0"], package.normalized_licenses
   end
 
+  test 'normalize_licenses preserves EDL in compound SPDX expression' do
+    package = @registry.packages.create(name: 'test_edl', ecosystem: @registry.ecosystem, licenses: '(EDL-1.0 OR EPL-1.0)')
+    package.normalize_licenses
+    assert_equal ["EDL-1.0", "EPL-1.0"], package.normalized_licenses
+  end
+
+  test 'normalize_licenses recognizes long MIT license text' do
+    license_text = <<~LICENSE
+      MIT License Copyright (c) 2023 Thomas Montaigu Permission is hereby granted, free of charge, to any person obtaining a copy
+      of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including
+      without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software.
+    LICENSE
+    package = @registry.packages.create(name: 'test_mit_text', ecosystem: @registry.ecosystem, licenses: license_text)
+    package.normalize_licenses
+    assert_equal ["MIT"], package.normalized_licenses
+  end
+
   test 'set_latest_release_published_at' do
     @package.set_latest_release_published_at
     assert_equal @package.latest_release_published_at, @version2.published_at

@@ -270,8 +270,6 @@ class Package < ApplicationRecord
     self.normalized_licenses =
       if licenses.blank?
         []
-      elsif licenses.length > 150
-        ["Other"]
       else
         spdx = spdx_license
         if spdx.empty?
@@ -287,9 +285,13 @@ class Package < ApplicationRecord
   end
 
   NON_SPDX_LICENSE_VALUES = %w[other unknown none noassertion proprietary custom see\ license].freeze
+  SPDX_EXACT_LICENSE_IDS = {
+    'edl-1.0' => 'EDL-1.0'
+  }.freeze
 
   def spdx_license
     return Spdx.parse_spdx(licenses).licenses if Spdx.valid_spdx?(licenses)
+    return ["MIT"] if licenses.match?(/mit license.*permission is hereby granted/im)
 
     licenses
       .downcase
@@ -301,9 +303,15 @@ class Package < ApplicationRecord
       .flat_map { |l| l.split(/[,\/]/) }
       .map(&:strip)
       .reject { |l| l.blank? || l.match?(/\A(version\s+)?[\d.]+\z/) }
-      .map { |l| NON_SPDX_LICENSE_VALUES.include?(l) ? nil : Spdx.find(l) }
+      .map { |l| license_id_for(l) }
       .compact
-      .map(&:id)
+  end
+
+  def license_id_for(license)
+    return nil if NON_SPDX_LICENSE_VALUES.include?(license)
+    return SPDX_EXACT_LICENSE_IDS[license] if SPDX_EXACT_LICENSE_IDS.key?(license)
+
+    Spdx.find(license)&.id
   end
 
   def manual_license_format(license)
