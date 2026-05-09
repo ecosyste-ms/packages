@@ -49,6 +49,7 @@ default_registries = [
   {name: 'registry.terraform.io', url: 'https://registry.terraform.io', ecosystem: 'terraform', github: 'hashicorp', default: true},
   {name: 'artifacthub.io', url: 'https://artifacthub.io', ecosystem: 'helm', github: 'artifacthub', default: true},
   {name: 'ctan.org', url: 'https://ctan.org', ecosystem: 'ctan', github: 'TeX-82', default: true},
+  {name: 'reservoir.lean-lang.org', url: 'https://reservoir.lean-lang.org', ecosystem: 'lean', github: 'leanprover', default: true},
 ]
 
 default_registries.each do |data|
