@@ -224,6 +224,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_180158) do
     t.json "metadata", default: {}
     t.string "number"
     t.integer "package_id"
+    t.bigint "size"
     t.datetime "published_at"
     t.integer "registry_id"
     t.string "status"
