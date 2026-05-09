@@ -5,6 +5,7 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     @registry = Registry.create(name: 'crates.io', url: 'https://crates.io', ecosystem: 'cargo')
     @package = @registry.packages.create(ecosystem: 'cargo', name: 'rand')
     @version = @package.versions.create(number: '1.0.0', metadata: {foo: 'bar'}, registry_id: @registry.id)
+    @omnibor_version = @package.versions.create(number: '2.0.0', integrity: 'sha256-2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824', metadata: { length: 5 }, registry_id: @registry.id)
 
     @pypi_registry = Registry.create(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
     @pypi_package = @pypi_registry.packages.create(
@@ -22,7 +23,19 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     
     actual_response = Oj.load(@response.body)
 
-    assert_equal actual_response.length, 1
+    assert_equal actual_response.length, 2
+  end
+
+  test 'filter versions by OmniBOR artifact ID' do
+    artifact_id = 'gitoid:blob:sha256:2c0eb59d2f7fb34d4326d83952c8425731a200dde6b6f93c465c6e315a4cbd33'
+    get api_v1_registry_package_versions_path(registry_id: @registry.name, package_id: @package.name, omnibor_artifact_id: artifact_id)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal '2.0.0', actual_response.first['number']
+    assert_equal artifact_id, actual_response.first['omnibor_artifact_id']
   end
 
   test 'get version of a package' do
@@ -179,7 +192,7 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     actual_response = Oj.load(@response.body)
-    assert_equal actual_response.length, 1
+    assert_equal actual_response.length, 2
     assert_equal actual_response.first['number'], '1.0.0'
   end
 
