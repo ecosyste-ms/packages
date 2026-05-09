@@ -50,6 +50,7 @@ class AdelieTest < ActiveSupport::TestCase
     assert_equal 1, maintainers.length
     assert_equal 'awilfox@adelielinux.org', maintainers.first[:uuid]
     assert_equal 'A. Wilcox', maintainers.first[:name]
+    assert_equal 'awilfox@adelielinux.org', maintainers.first[:email]
   end
 
   test 'dependencies_metadata returns empty array when package not found' do

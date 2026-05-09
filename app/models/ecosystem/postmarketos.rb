@@ -133,6 +133,7 @@ module Ecosystem
       [{
         uuid: email,
         name: name,
+        email: email,
         url: "https://pkgs.postmarketoslinux.org/packages?maintainer=#{name}",
       }]
     end

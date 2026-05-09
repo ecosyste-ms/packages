@@ -166,6 +166,7 @@ module Ecosystem
       [{
         uuid: email,
         name: name,
+        email: email,
         url: "https://pkgs.alpinelinux.org/packages?maintainer=#{name}",
       }]
     end
