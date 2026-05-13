@@ -718,4 +718,54 @@ class NixpkgsTest < ActiveSupport::TestCase
 
     FileUtils.rm_f(cache_file)
   end
+
+  test 'download_and_cache_packages survives concurrent calls in the same process' do
+    json_content = '{"packages":{"test":{"pname":"test","version":"1.0"}}}'
+    compressed = Brotli.deflate(json_content)
+
+    stub_request(:get, "https://channels.nixos.org/nixos-unstable/packages.json.br")
+      .to_return(status: 200, body: compressed)
+
+    cache_dir = Rails.root.join('tmp', 'cache', 'ecosystems', 'nixpkgs')
+    cache_file = cache_dir.join('packages-unstable.json')
+    FileUtils.rm_f(cache_file)
+    FileUtils.rm_f(Dir.glob(cache_dir.join('packages-unstable.json.tmp.*')))
+
+    errors = []
+    threads = 10.times.map do
+      Thread.new do
+        Ecosystem::Nixpkgs.new(@registry).download_and_cache_packages(ttl: 0.seconds)
+      rescue => e
+        errors << e
+      end
+    end
+    threads.each(&:join)
+
+    assert_empty errors, "Concurrent downloads raised: #{errors.map(&:message).uniq.join(', ')}"
+    assert File.exist?(cache_file)
+    assert_equal json_content, File.read(cache_file)
+    assert_empty Dir.glob(cache_dir.join('packages-unstable.json.tmp.*'))
+  ensure
+    FileUtils.rm_f(cache_file)
+  end
+
+  test 'download_and_cache_packages cleans up temp file when rename fails' do
+    json_content = '{"packages":{"test":{"pname":"test","version":"1.0"}}}'
+    compressed = Brotli.deflate(json_content)
+
+    stub_request(:get, "https://channels.nixos.org/nixos-unstable/packages.json.br")
+      .to_return(status: 200, body: compressed)
+
+    cache_dir = Rails.root.join('tmp', 'cache', 'ecosystems', 'nixpkgs')
+    FileUtils.rm_f(Dir.glob(cache_dir.join('packages-unstable.json.tmp.*')))
+    File.stubs(:rename).raises(Errno::ENOENT)
+
+    assert_raises(Errno::ENOENT) do
+      @ecosystem.download_and_cache_packages(ttl: 0.seconds)
+    end
+
+    assert_empty Dir.glob(cache_dir.join('packages-unstable.json.tmp.*'))
+  ensure
+    FileUtils.rm_f(Dir.glob(cache_dir.join('packages-unstable.json.tmp.*')))
+  end
 end
