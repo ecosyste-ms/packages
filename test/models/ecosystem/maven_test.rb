@@ -504,6 +504,43 @@ class MavenTest < ActiveSupport::TestCase
     assert_nil versions_metadata[1][:published_at]
   end
 
+  def with_effective_pom_enabled
+    old = ENV['ENABLE_MAVEN_EFFECTIVE_POM']
+    ENV['ENABLE_MAVEN_EFFECTIVE_POM'] = 'true'
+    yield
+  ensure
+    old.nil? ? ENV.delete('ENABLE_MAVEN_EFFECTIVE_POM') : ENV['ENABLE_MAVEN_EFFECTIVE_POM'] = old
+  end
+
+  test 'generate_effective_pom uses pom binary' do
+    skip 'pom binary not on PATH' unless system('which pom > /dev/null 2>&1')
+
+    raw = file_fixture('maven/zio-aws-autoscaling_3-5.17.225.2.pom').read
+    out = with_effective_pom_enabled { @ecosystem.generate_effective_pom(raw) }
+
+    refute_equal raw, out
+    xml = Ox.parse(out)
+    assert_equal 'dev.zio', xml.locate('project/groupId/?[0]').first
+    assert_equal 'zio-aws-autoscaling_3', xml.locate('project/artifactId/?[0]').first
+    assert_equal '5.17.225.2', xml.locate('project/version/?[0]').first
+    assert_equal 'APL2', xml.locate('project/licenses/license/name/?[0]').first
+
+    deps = xml.locate('project/dependencies/dependency')
+    assert_equal 6, deps.length
+    core = deps.find { |d| d.locate('artifactId/?[0]').first == 'zio-aws-core_3' }
+    assert_equal '5.17.225.2', core.locate('version/?[0]').first
+  end
+
+  test 'generate_effective_pom falls back to input on failure' do
+    out = with_effective_pom_enabled { @ecosystem.generate_effective_pom('not xml') }
+    assert_equal 'not xml', out
+  end
+
+  test 'generate_effective_pom is a no-op when disabled' do
+    raw = file_fixture('maven/zio-aws-autoscaling_3-5.17.225.2.pom').read
+    assert_equal raw, @ecosystem.generate_effective_pom(raw)
+  end
+
   test 'dependencies_metadata netty-nio-client' do # skip: requires ENABLE_MAVEN_EFFECTIVE_POM
     skip unless ENV['ENABLE_MAVEN_EFFECTIVE_POM'] == 'true'
     stub_request(:get, "https://repo1.maven.org/maven2/software/amazon/awssdk/netty-nio-client/2.5.6/netty-nio-client-2.5.6.pom")
