@@ -208,3 +208,24 @@ ips_registries.each do |data|
   r.assign_attributes(data)
   r.save
 end
+
+openbsd_registries = [
+  {
+    name: "openbsd-7.9-amd64",
+    url: "https://cdn.openbsd.org/pub/OpenBSD/7.9/packages/amd64",
+    ecosystem: "openbsd",
+    github: "openbsd",
+    default: false,
+    version: "7.9",
+    metadata: {
+      "arch" => "amd64",
+      "sqlports_version" => "7.54",
+    },
+  },
+]
+
+openbsd_registries.each do |data|
+  r = Registry.find_or_initialize_by(url: data[:url])
+  r.assign_attributes(data)
+  r.save
+end
