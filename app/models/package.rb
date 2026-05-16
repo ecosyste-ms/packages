@@ -832,10 +832,10 @@ class Package < ApplicationRecord
     return if ecosystems.nil?
 
     ecosystems.each do |ecosystem|
-      ecosystem_name = Ecosystem::Base.purl_type_to_ecosystem ecosystem['name']
-      next if ecosystem_name.nil?
-      puts "Updating #{ecosystem_name} docker usages"
-      registry_ids = Registry.where(ecosystem: ecosystem_name).pluck(:id)
+      ecosystem_names = Ecosystem::Base.purl_type_to_ecosystems ecosystem['name']
+      next if ecosystem_names.empty?
+      puts "Updating #{ecosystem_names.join(', ')} docker usages"
+      registry_ids = Registry.where(ecosystem: ecosystem_names).pluck(:id)
       next if registry_ids.empty?
 
       next_url = ecosystem['ecosystem_url']+'?per_page=1000'
@@ -935,19 +935,13 @@ class Package < ApplicationRecord
     purl_param = purl_string.gsub('npm/@', 'npm/%40')
     purl = Purl.parse(purl_param)
 
-    if purl.type == 'docker' && purl.namespace.nil?
-      namespace = 'library'
-    else
-      namespace = purl.namespace
-    end
-
     if purl.type == 'github'
       repository_url = "https://github.com/#{purl.namespace}/#{purl.name}"
       where("lower(repository_url) = ?", repository_url.downcase)
     else
-      name = [namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
-      ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type)
-      registry_ids = registry_ids_cache[ecosystem] ||= Registry.where(ecosystem: ecosystem).pluck(:id)
+      name = Ecosystem::Base.name_from_purl(purl)
+      ecosystems = Ecosystem::Base.purl_type_to_ecosystems(purl.type)
+      registry_ids = registry_ids_cache[purl.type] ||= Registry.where(ecosystem: ecosystems).pluck(:id)
       where(name: name, registry_id: registry_ids)
     end
   rescue => e

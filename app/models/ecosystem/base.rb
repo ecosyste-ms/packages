@@ -221,12 +221,31 @@ module Ecosystem
       '/'
     end
 
+    def self.purl_namespace_in_name?
+      true
+    end
+
     def self.purl_type_to_ecosystem(purl_type)
-      list.find { |p| p.purl_type == purl_type }.try(:lowercase_name)
+      purl_type_to_ecosystems(purl_type).first
+    end
+
+    def self.purl_type_to_ecosystems(purl_type)
+      list.select { |p| p.purl_type == purl_type }.map(&:lowercase_name)
     end
 
     def self.purl_type_to_namespace_separator(purl_type)
       list.find { |p| p.purl_type == purl_type }.try(:namespace_separator)
+    end
+
+    def self.purl_type_namespace_in_name?(purl_type)
+      list.find { |p| p.purl_type == purl_type }&.purl_namespace_in_name? != false
+    end
+
+    def self.name_from_purl(purl)
+      namespace = purl.namespace
+      namespace = 'library' if purl.type == 'docker' && namespace.nil?
+      namespace = nil unless purl_type_namespace_in_name?(purl.type)
+      [namespace, purl.name].compact.join(purl_type_to_namespace_separator(purl.type))
     end
 
     def namespace_package_names(namespace)
