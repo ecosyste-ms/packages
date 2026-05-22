@@ -135,7 +135,8 @@ module Ecosystem
       email = d[1].gsub('>','').strip
       [{
         uuid: email,
-        name: name
+        name: name,
+        email: email
       }]
     end
 

@@ -108,6 +108,7 @@ class UbuntuTest < ActiveSupport::TestCase
     assert_equal 1, maintainers.length
     assert_equal 'Jonathan Carter', maintainers[0][:name]
     assert_equal 'jcc@debian.org', maintainers[0][:uuid]
+    assert_equal 'jcc@debian.org', maintainers[0][:email]
   end
 
   test 'map_package_metadata returns expected format' do
