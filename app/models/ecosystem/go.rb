@@ -1,5 +1,6 @@
 module Ecosystem
   class Go < Base
+    PKGSITE_API = "https://pkg.go.dev/v1beta"
 
     def self.purl_type
       'golang'
@@ -71,11 +72,11 @@ module Ecosystem
     end
 
     def fetch_package_metadata_uncached(name)
-      resp = request("https://pkg.go.dev/#{name}")
+      resp = request("#{PKGSITE_API}/module/#{name}?licenses=true")
 
       if resp.success?
-        doc_html = Nokogiri::HTML(resp.body)
-        { name: name, html: doc_html, overview_html: doc_html }
+        mod = Oj.load(resp.body)
+        { name: name, module: mod, synopsis: fetch_synopsis(name) }
       else
         resp = request("#{@registry_url}/#{encode_for_proxy(name)}/@v/list")
         if resp.success? && resp.body.length > 0
@@ -88,15 +89,25 @@ module Ecosystem
       false
     end
 
+    def fetch_synopsis(name)
+      resp = request("#{PKGSITE_API}/package/#{name}")
+      return nil unless resp.success?
+      Oj.load(resp.body)['synopsis']
+    rescue
+      nil
+    end
+
     def map_package_metadata(package)
       return false unless package
-      if package[:html]
-        url = package[:overview_html]&.css(".UnitMeta-repo a")&.first&.attribute("href")&.value
+      if package[:module]
+        mod = package[:module]
+        url = mod['repoUrl']
+        licenses = Array(mod['licenses']).flat_map { |l| l['types'] }.compact.uniq.join(',')
 
         {
           name: package[:name],
-          description: package[:html].css(".Documentation-overview p").map(&:text).join("\n").strip,
-          licenses: package[:html].css('*[data-test-id="UnitHeader-license"]').map(&:text).join(","),
+          description: package[:synopsis],
+          licenses: licenses,
           repository_url: url,
           homepage: url,
           namespace: package[:name].split('/')[0..-2].join('/')
@@ -107,59 +118,60 @@ module Ecosystem
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
-      resp = request("#{@registry_url}/#{encode_for_proxy(pkg_metadata[:name])}/@v/list")
-      html_resp = get_html("https://pkg.go.dev/#{pkg_metadata[:name]}?tab=versions")
+      name = pkg_metadata[:name]
+      items = fetch_all_versions(name)
+      return versions_from_proxy(name, existing_version_numbers) if items.empty?
 
-      retracted_version_numbers = fetch_all_retracted_version_numbers(existing_version_numbers, html_resp)
-      existing_version_numbers = existing_version_numbers - retracted_version_numbers
+      items.filter_map do |item|
+        next unless item['modulePath'] == name
+        status = version_status(item)
+        next if existing_version_numbers.include?(item['version']) && status.nil?
 
-      if resp.success?
-        text = resp.body
-        versions = text.split("\n").map(&:strip).reject(&:empty?)
-      else
-        versions = []
+        {
+          number: item['version'],
+          published_at: item['commitTime'],
+          status: status
+        }
       end
-
-      if versions.any?
-        versions.reject{|v| existing_version_numbers.include?(v)}.sort.reverse.first(50).map do |v|
-          {
-            number: v,
-            published_at: get_version(pkg_metadata[:name], v).fetch('Time',nil),
-            status: fetch_version_status(html_resp, v)
-          }
-        end
-      else
-        versions_fallback(pkg_metadata, existing_version_numbers, html_resp)
-      end
-
     rescue StandardError
       []
     end
 
-    def versions_fallback(package, existing_version_numbers = [], html_resp = nil)
-      html_resp ||= get_html("https://pkg.go.dev/#{package[:name]}?tab=versions")
-
-      html_resp.css(".Version-tag a").first(50).map do |link|
-        next if existing_version_numbers.include?(link.text)
-        {
-          number: link.text,
-          published_at: get_version(package[:name], link.text).fetch('Time',nil),
-          status: fetch_version_status(html_resp, link.text)
-        }
-      end.compact
+    def fetch_all_versions(name)
+      items = []
+      token = nil
+      loop do
+        url = "#{PKGSITE_API}/versions/#{name}?limit=1000"
+        url += "&token=#{token}" if token
+        resp = request(url)
+        return items unless resp.success?
+        page = Oj.load(resp.body)
+        items.concat(Array(page['items']))
+        token = page['nextPageToken']
+        break if token.blank?
+      end
+      items
     end
 
-    def fetch_version_status(html_resp, version_number)
-      html_resp.css(".Version-tag a").each do |link|
-        return link.parent.css('~ .Version-commitTime').first&.css('.go-Chip')&.text&.presence if link.text == version_number
-      end
+    def version_status(item)
+      return 'retracted' if item['retracted']
+      return 'deprecated' if item['deprecated']
       nil
     end
 
-    def fetch_all_retracted_version_numbers(existing_version_numbers, html_resp)
-      existing_version_numbers.select do |version_number|
-        fetch_version_status(html_resp, version_number) == "retracted"
-      end
+    def versions_from_proxy(name, existing_version_numbers)
+      resp = request("#{@registry_url}/#{encode_for_proxy(name)}/@v/list")
+      return [] unless resp.success?
+
+      resp.body.split("\n").map(&:strip).reject(&:empty?)
+        .reject { |v| existing_version_numbers.include?(v) }
+        .sort.reverse.first(50).map do |v|
+          {
+            number: v,
+            published_at: get_version(name, v).fetch('Time', nil),
+            status: nil
+          }
+        end
     end
 
     def dependencies_metadata(name, version, _package)
