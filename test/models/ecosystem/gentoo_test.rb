@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "tmpdir"
 
 class GentooTest < ActiveSupport::TestCase
   setup do
@@ -13,15 +14,24 @@ class GentooTest < ActiveSupport::TestCase
       metadata: { "snapshot_url" => "https://distfiles.gentoo.org/snapshots/portage-latest.tar.xz" }
     )
     @ecosystem = Ecosystem::Gentoo.new(@registry)
-    @fixture_root = Rails.root.join("test/fixtures/files/gentoo/md5-cache")
+    @fixture_tmpdir = Dir.mktmpdir("gentoo-md5-cache-test")
+    FileUtils.cp_r(Rails.root.join("test/fixtures/files/gentoo/md5-cache"), @fixture_tmpdir)
+
+    @fixture_root = Pathname.new(File.join(@fixture_tmpdir, "md5-cache"))
     @ecosystem.stubs(:md5_cache_root).returns(@fixture_root)
 
     f1 = @fixture_root.join("app-misc", "demo-1.0-r1")
     f2 = @fixture_root.join("app-misc", "demo-2.0")
     fb = @fixture_root.join("dev-libs", "baselayout-1.0")
+    ff = @fixture_root.join("media-fonts", "font-adobe-100dpi-1.0.4")
     FileUtils.touch([fb], mtime: Time.zone.parse("2020-06-01").to_time)
+    FileUtils.touch([ff], mtime: Time.zone.parse("2024-01-01").to_time)
     FileUtils.touch([f1], mtime: Time.zone.parse("2025-01-01").to_time)
     FileUtils.touch([f2], mtime: Time.zone.parse("2026-01-01").to_time)
+  end
+
+  teardown do
+    FileUtils.rm_rf(@fixture_tmpdir) if @fixture_tmpdir.present?
   end
 
   test "registry_url points at packages.gentoo.org" do
@@ -38,6 +48,7 @@ class GentooTest < ActiveSupport::TestCase
 
     assert_includes names, "app-misc/demo"
     assert_includes names, "dev-libs/baselayout"
+    assert_includes names, "media-fonts/font-adobe-100dpi"
   end
 
   test "install_command with and without version" do
@@ -77,10 +88,14 @@ class GentooTest < ActiveSupport::TestCase
     nums = versions.map { |v| v[:number] }.sort
 
     assert_equal ["1.0-r1", "2.0"], nums
-    assert_predicate versions.first[:integrity], :present?
+    assert versions.none? { |v| v.key?(:integrity) }
+    assert_equal(
+      ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+      versions.map { |v| v.dig(:metadata, :ebuild_md5) }.sort
+    )
   end
 
-  test "dependencies_metadata splits runtime and build atoms" do
+  test "dependencies_metadata splits runtime and build atoms and skips blockers" do
     deps = @ecosystem.dependencies_metadata("app-misc/demo", "1.0-r1", nil)
 
     run_names = deps.select { |d| d[:kind] == "runtime" }.map { |d| d[:package_name] }.sort
@@ -88,7 +103,9 @@ class GentooTest < ActiveSupport::TestCase
 
     assert_includes run_names, "dev-libs/baselayout"
     assert_includes run_names, "virtual/libc"
-    assert_equal ["sys-devel/gcc"], build_names
+    assert_not_includes run_names, "sys-libs/zlib"
+    assert_not_includes run_names, "dev-libs/blocked"
+    assert_equal ["sys-devel/gcc", "sys-libs/zlib"], build_names
     assert(deps.all? { |d| d[:ecosystem] == "gentoo" })
   end
 
@@ -115,6 +132,7 @@ class GentooTest < ActiveSupport::TestCase
 
   test "hyphenated PN splits with valid_pv" do
     assert_equal %w[foo-bar 1.0], @ecosystem.send(:split_package_version, "foo-bar-1.0")
+    assert_equal %w[font-adobe-100dpi 1.0.4], @ecosystem.send(:split_package_version, "font-adobe-100dpi-1.0.4")
   end
 
   test "check_status removed for unknown atom" do

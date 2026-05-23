@@ -194,11 +194,11 @@ module Ecosystem
         acc << {
           number: pv,
           published_at: File.mtime(path),
-          integrity: sum.present? ? "md5-#{sum}" : nil,
           metadata: {
             slot: rec["SLOT"],
             keywords: rec["KEYWORDS"],
             eapi: rec["EAPI"],
+            ebuild_md5: sum,
           }.compact,
         }.compact
       end
@@ -208,24 +208,22 @@ module Ecosystem
       raw = fetch_package_metadata(name)
       return [] if raw.blank?
 
-      pf_path = raw["paths"].zip(raw["records"]).find do |path, rec|
+      rec = raw["paths"].zip(raw["records"]).find do |path, _rec|
         rec_path_pv(path) == version.to_s
-      end&.first
+      end&.last
 
-      return [] if pf_path.blank?
+      return [] if rec.blank?
 
-      rec = parse_md5_cache_file(pf_path)
       deps = []
 
       deps += deps_from_field(rec["RDEPEND"], "runtime")
       deps += deps_from_field(rec["PDEPEND"], "runtime")
       deps += deps_from_field(rec["BDEPEND"], "build")
+      deps += deps_from_field(rec["DEPEND"], "build")
       deps += deps_from_field(rec["IDEPEND"], "install") if rec["IDEPEND"].present?
 
       deps.uniq { |d| [d[:package_name], d[:kind], d[:requirements]] }
     end
-
-    protected
 
     def rec_path_pv(path)
       pf = path.split("/").last
@@ -290,15 +288,18 @@ module Ecosystem
     def valid_pv?(pv)
       return false if pv.blank?
 
-      return true if pv == "9999"
-
-      !!(pv =~ /\A\d/)
+      !!(pv =~ /\A\d+(\.\d+)*[a-z]?(_(alpha|beta|pre|rc|p)\d*)*(-r\d+)?\z/)
     end
 
     def dep_atoms_from_field(str)
       return [] if str.blank?
 
-      str.scan(ATOM_RE).flatten.map { |atom| normalize_dep_atom(atom) }.compact.uniq
+      str.to_enum(:scan, ATOM_RE).filter_map do
+        atom = Regexp.last_match(1)
+        next if blocked_atom?(str, Regexp.last_match.begin(1))
+
+        normalize_dep_atom(atom)
+      end.uniq
     end
 
     def normalize_dep_atom(atom)
@@ -317,6 +318,10 @@ module Ecosystem
           ecosystem: self.class.name.demodulize.downcase,
         }
       end
+    end
+
+    def blocked_atom?(field, atom_start)
+      field[0...atom_start].to_s.match?(/!{1,2}[<>=~]*\z/)
     end
   end
 end

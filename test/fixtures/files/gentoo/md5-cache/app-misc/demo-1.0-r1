@@ -5,6 +5,7 @@ KEYWORDS=amd64 ~x86
 SLOT=0
 EAPI=8
 SRC_URI=https://downloads.example.com/demo-1.0.tar.xz
-RDEPEND=>=dev-libs/baselayout-1.0 virtual/libc
+RDEPEND=>=dev-libs/baselayout-1.0 virtual/libc !sys-libs/zlib !!dev-libs/blocked
 BDEPEND=sys-devel/gcc
+DEPEND=sys-libs/zlib
 _md5_=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
