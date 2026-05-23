@@ -212,6 +212,7 @@ end
 pkgsrc_registries = [
   {
     name: 'pkgsrc-netbsd-x86_64-10.1-all',
+    # Bump this URL when pkgsrc publishes packages for newer NetBSD releases.
     url: 'https://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.1/All',
     ecosystem: 'pkgsrc',
     github: 'pkgsrc',

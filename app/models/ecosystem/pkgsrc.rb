@@ -74,14 +74,24 @@ module Ecosystem
     end
 
     def install_command(package, version = nil)
-      slug = pkg_slug(package.name.to_s)
+      version_number = version.respond_to?(:number) ? version.number : version
 
-      return "pkg_add #{slug}" if version.blank?
+      rec = if version_number.present?
+        record_matching_version(package.name, version_number)
+      else
+        raw = fetch_package_metadata(package.name)
+        primary_record(raw["records"]) if raw.present?
+      end
 
-      rec = record_matching_version(package.name, version.number)
-      pname = rec&.fetch("PKGNAME", nil)
+      pkgbase = pkgbase_from_record(rec) ||
+        package.metadata&.dig("pkgbase") ||
+        package.metadata&.dig(:pkgbase) ||
+        pkg_slug(package.name.to_s)
 
-      pname.present? ? "pkg_add #{pname}" : "pkg_add #{slug}-#{version.number}"
+      return "pkg_add #{pkgbase}" if version_number.blank?
+
+      pkgname = rec&.fetch("PKGNAME", nil)
+      pkgname.present? ? "pkg_add #{pkgname}" : "pkg_add #{pkgbase}-#{version_number}"
     end
 
     def check_status(package)
@@ -151,6 +161,7 @@ module Ecosystem
         namespace: pkgpath.partition("/").first,
         metadata: {
           pkg_slug: pkg_slug(pkgpath),
+          pkgbase: pkgbase_from_record(primary),
           machine_arch: primary["MACHINE_ARCH"],
           opsys: primary["OPSYS"],
           pkgname_latest: primary["PKGNAME"],
@@ -162,11 +173,13 @@ module Ecosystem
       raw = fetch_package_metadata(pkg_metadata[:name] || pkg_metadata["name"])
       return [] if raw.blank?
 
+      seen = existing_version_numbers.map(&:to_s)
+
       raw["records"].each_with_object([]) do |rec, acc|
         ver = version_string_for(rec)
-        next if ver.blank? || existing_version_numbers.include?(ver)
+        next if ver.blank? || seen.include?(ver)
 
-        row = {
+        acc << {
           number: ver,
           published_at: parsed_build_date(rec["BUILD_DATE"]),
           metadata: {
@@ -174,12 +187,9 @@ module Ecosystem
             file_name: rec["FILE_NAME"],
             machine_arch: rec["MACHINE_ARCH"],
           }.compact,
-        }
+        }.compact
 
-        integrity = integrity_from_digest(rec["DIGEST"])
-        row[:integrity] = integrity if integrity.present?
-
-        acc << row.compact
+        seen << ver
       end
     end
 
@@ -202,8 +212,6 @@ module Ecosystem
         }]
       end
     end
-
-    protected
 
     def open_summary_lines(path)
       if path.end_with?(".gz")
@@ -283,16 +291,19 @@ module Ecosystem
     end
 
     def version_string_for(record)
-      slug = pkg_slug(record["PKGPATH"].to_s)
       pkgname = record["PKGNAME"].to_s
-      return nil if slug.blank? || pkgname.blank?
 
-      pref = "#{slug}-"
-      if pkgname.start_with?(pref)
-        pkgname.delete_prefix(pref)
-      else
-        pkgname.partition("-")[2].presence || pkgname
-      end
+      match = pkgname.match(/\A(.+)-(\d.*)\z/)
+      match && match[2]
+    end
+
+    def pkgbase_from_record(record)
+      pkgbase_from_pkgname(record&.fetch("PKGNAME", nil))
+    end
+
+    def pkgbase_from_pkgname(pkgname)
+      match = pkgname.to_s.match(/\A(.+)-(\d.*)\z/)
+      match && match[1]
     end
 
     def pkg_slug(pkgpath)
@@ -329,19 +340,10 @@ module Ecosystem
     end
 
     def strip_dep_wrappers(token)
-      t = token.strip.sub(/\A\{[^}]+\}(\s*|:\S+)?/, "")
-      t.strip
-    end
-
-    def integrity_from_digest(value)
-      return nil if value.blank?
-
-      raw = value.to_s.strip.downcase
-
-      case raw
-      when /\Asha512\s*[:(]\s*([0-9a-f]{128}|[0-9a-f]{64})\z/i then "sha512-#{Regexp.last_match(1)}"
-      when /\Asha256\s*[:(]\s*([0-9a-f]{64}|[0-9a-f]{32})\z/i then "sha256-#{Regexp.last_match(1)}"
+      t = token.strip.sub(/\A\{([^,}:]+)(?:,[^}:]+)*\}(:\S+)?/) do
+        "#{Regexp.last_match(1)}#{Regexp.last_match(2)}"
       end
+      t.strip
     end
   end
 end

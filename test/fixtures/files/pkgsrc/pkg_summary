@@ -19,7 +19,9 @@ COMMENT=Newer kitty
 HOMEPAGE=https://example.test/hello-kitty
 LICENSE=mit
 CATEGORIES=games misc
-DEPENDS=zlib>=1.2 ruby>=30
+DEPENDS=zlib>=1.2
+DEPENDS=ruby>=30
+DEPENDS={cdrtools,cdrtools-ossdvd}>=1.10
 BUILD_DATE=2026-02-02 02:02:02 +0000
 PKGPATH=games/hello-kitty
 MACHINE_ARCH=x86_64
@@ -42,3 +44,45 @@ OPSYS=NetBSD
 PKGTOOLS_VERSION=x
 DESCRIPTION=Minimal
 FILE_NAME=minizip-10.tgz
+
+PKGNAME=Apache-Gallery-1.0.2nb8
+COMMENT=Perl Apache gallery
+HOMEPAGE=https://example.test/apache-gallery
+LICENSE=apache-2.0
+CATEGORIES=www perl5
+DEPENDS=
+BUILD_DATE=2025-03-03 03:03:03 +0000
+PKGPATH=www/p5-Apache-Gallery
+MACHINE_ARCH=x86_64
+OPSYS=NetBSD
+PKGTOOLS_VERSION=x
+DESCRIPTION=Gallery handler
+FILE_NAME=Apache-Gallery-1.0.2nb8.tgz
+
+PKGNAME=ap24-py311-python-3.5.0.1
+COMMENT=Apache Python module
+HOMEPAGE=https://example.test/apache-python
+LICENSE=apache-2.0
+CATEGORIES=www python
+DEPENDS=
+BUILD_DATE=2025-04-04 04:04:04 +0000
+PKGPATH=www/ap2-python
+MACHINE_ARCH=x86_64
+OPSYS=NetBSD
+PKGTOOLS_VERSION=x
+DESCRIPTION=Apache Python module
+FILE_NAME=ap24-py311-python-3.5.0.1.tgz
+
+PKGNAME=ap24-py312-python-3.5.0.1
+COMMENT=Apache Python module
+HOMEPAGE=https://example.test/apache-python
+LICENSE=apache-2.0
+CATEGORIES=www python
+DEPENDS=
+BUILD_DATE=2025-04-05 05:05:05 +0000
+PKGPATH=www/ap2-python
+MACHINE_ARCH=x86_64
+OPSYS=NetBSD
+PKGTOOLS_VERSION=x
+DESCRIPTION=Apache Python module
+FILE_NAME=ap24-py312-python-3.5.0.1.tgz

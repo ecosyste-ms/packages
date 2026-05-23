@@ -26,10 +26,17 @@ class PkgsrcTest < ActiveSupport::TestCase
 
   test "install_command with and without version" do
     pkg = Package.new(ecosystem: "pkgsrc", name: "games/hello-kitty")
-    ver = pkg.versions.build(number: "2.6")
 
     assert_equal "pkg_add hello-kitty", @ecosystem.install_command(pkg)
-    assert_equal "pkg_add hello-kitty-2.6", @ecosystem.install_command(pkg, ver)
+    assert_equal "pkg_add hello-kitty-2.6", @ecosystem.install_command(pkg, "2.6")
+  end
+
+  test "install_command uses PKGNAME base when it differs from PKGPATH slug" do
+    pkg = Package.new(ecosystem: "pkgsrc", name: "www/p5-Apache-Gallery")
+    ver = pkg.versions.build(number: "1.0.2nb8")
+
+    assert_equal "pkg_add Apache-Gallery", @ecosystem.install_command(pkg)
+    assert_equal "pkg_add Apache-Gallery-1.0.2nb8", @ecosystem.install_command(pkg, ver)
   end
 
   test "download_url builds All URL from FILE_NAME" do
@@ -49,6 +56,7 @@ class PkgsrcTest < ActiveSupport::TestCase
     assert_equal "https://example.test/hello-kitty", mapped[:homepage]
     assert_equal "games", mapped[:namespace]
     assert_equal "hello-kitty", mapped.dig(:metadata, :pkg_slug)
+    assert_equal "hello-kitty", mapped.dig(:metadata, :pkgbase)
     assert_equal "hello-kitty-2.6", mapped.dig(:metadata, :pkgname_latest)
   end
 
@@ -61,6 +69,14 @@ class PkgsrcTest < ActiveSupport::TestCase
     assert_predicate(@ecosystem.versions_metadata(raw, []).first[:published_at], :present?)
   end
 
+  test "versions_metadata dedupes records with the same PKGBASE version" do
+    raw = @ecosystem.fetch_package_metadata_uncached("www/ap2-python")
+
+    nums = @ecosystem.versions_metadata(raw, []).map { |row| row[:number] }
+
+    assert_equal ["3.5.0.1"], nums
+  end
+
   test "dependencies_metadata parses DEPENDS comparisons" do
     deps = @ecosystem.dependencies_metadata("games/hello-kitty", "2.6", nil)
 
@@ -71,6 +87,11 @@ class PkgsrcTest < ActiveSupport::TestCase
     ruby = deps.find { |d| d[:package_name] == "ruby" }
 
     assert_equal ">=30", ruby[:requirements]
+
+    cdrtools = deps.find { |d| d[:package_name] == "cdrtools" }
+
+    assert_equal ">=1.10", cdrtools[:requirements]
+    assert_nil deps.find { |d| d[:package_name] == ">=1.10" }
     assert deps.all? { |d| d[:ecosystem] == "pkgsrc" }
   end
 
@@ -94,7 +115,6 @@ class PkgsrcTest < ActiveSupport::TestCase
 
   test "hyphen PKGPATH splits version suffix from PKGNAME" do
     rec = {
-
       "PKGPATH" => "games/hello-kitty",
       "PKGNAME" => "hello-kitty-2.6",
     }
@@ -102,9 +122,19 @@ class PkgsrcTest < ActiveSupport::TestCase
     assert_equal "2.6", @ecosystem.send(:version_string_for, rec)
   end
 
+  test "version suffix is derived from PKGNAME when PKGPATH base differs" do
+    rec = {
+      "PKGPATH" => "www/p5-Apache-Gallery",
+      "PKGNAME" => "Apache-Gallery-1.0.2nb8",
+    }
+
+    assert_equal "1.0.2nb8", @ecosystem.send(:version_string_for, rec)
+  end
+
   test "all_package_names includes indexed PKGPATH" do
     assert_includes @ecosystem.all_package_names, "games/hello-kitty"
     assert_includes @ecosystem.all_package_names, "devel/minizip"
+    assert_includes @ecosystem.all_package_names, "www/p5-Apache-Gallery"
   end
 
   test "check_status removed when missing" do
