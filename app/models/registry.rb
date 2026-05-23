@@ -197,12 +197,33 @@ class Registry < ApplicationRecord
     package.update_repo_metadata_async if update_repo_metadata_after_save
 
     new_versions = []
+    versions_to_refresh = []
     existing_version_numbers = package.versions.pluck('number')
 
-    versions_metadata = ecosystem_instance.versions_metadata(package_metadata, existing_version_numbers)
+    versions_metadata = versions_metadata_for_sync(package_metadata, existing_version_numbers, force: force)
 
     versions_metadata.each do |version|
-      new_versions << version.merge(package_id: package.id, registry_id: id, created_at: Time.now, updated_at: Time.now) unless existing_version_numbers.find { |v| v == version.with_indifferent_access[:number].to_s && version.with_indifferent_access[:status].nil? }
+      version_attrs = version.with_indifferent_access
+      number = version_attrs[:number].to_s
+      base_attrs = { package_id: package.id, registry_id: id, updated_at: Time.zone.now }
+
+      if existing_version_numbers.include?(number) && version_attrs[:status].nil?
+        versions_to_refresh << version.merge(base_attrs)
+      else
+        new_versions << version.merge(base_attrs.merge(created_at: Time.zone.now))
+      end
+    end
+
+    if force && versions_to_refresh.any?
+      versions_to_refresh.uniq! { |v| v.with_indifferent_access[:number].to_s }
+
+      versions_to_refresh.each_slice(100) do |s|
+        Version.upsert_all(
+          s,
+          unique_by: [:package_id, :number],
+          update_only: [:published_at, :licenses, :metadata, :status, :integrity, :registry_id, :updated_at]
+        )
+      end
     end
 
     if new_versions.any?
@@ -263,6 +284,12 @@ class Registry < ApplicationRecord
 
   def sync_package_async(name)
     SyncPackageWorker.perform_async(id, name)
+  end
+
+  def versions_metadata_for_sync(package_metadata, existing_version_numbers, force:)
+    ecosystem_instance.versions_metadata(package_metadata, existing_version_numbers, force: force)
+  rescue ArgumentError
+    ecosystem_instance.versions_metadata(package_metadata, existing_version_numbers)
   end
 
   def ecosystem_instance
