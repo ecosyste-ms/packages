@@ -212,14 +212,14 @@ end
 freebsd_registries = [
   {
     name: 'freebsd-14-amd64',
-    url: 'https://pkg.freebsd.org/FreeBSD%3A14%3Aamd64/latest',
+    url: 'https://pkg.freebsd.org/FreeBSD:14:amd64/latest',
     ecosystem: 'freebsd',
     github: 'freebsd',
     default: true
   },
   {
     name: 'freebsd-15-amd64',
-    url: 'https://pkg.freebsd.org/FreeBSD%3A15%3Aamd64/latest',
+    url: 'https://pkg.freebsd.org/FreeBSD:15:amd64/latest',
     ecosystem: 'freebsd',
     github: 'freebsd',
     default: false

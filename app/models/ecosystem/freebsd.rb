@@ -36,7 +36,7 @@ module Ecosystem
 
     def registry_url(package, _version = nil)
       origin = package.metadata&.dig('origin').presence ||
-               packages_by_name[package.name]&.first&.dig('origin')
+               packages_by_name[package.name]&.dig('origin')
 
       if origin.blank?
         return "https://ports.freebsd.org/cgi/ports.cgi?query=#{ERB::Util.url_encode(package.name)}&stype=name"
@@ -60,12 +60,6 @@ module Ecosystem
 
     def install_command(package, _version = nil)
       "pkg install #{package.name}"
-    end
-
-    def maintainer_url(maintainer)
-      return nil if maintainer.uuid.blank?
-
-      "https://www.freshports.org/search.php?q=maintainer%3A#{ERB::Util.url_encode(maintainer.uuid)}&num=50&stype=all&deleted=included"
     end
 
     def check_status(package)
@@ -124,16 +118,24 @@ module Ecosystem
         line = line.strip
         next if line.blank?
 
-        rec = Oj.load(line)
+        begin
+          rec = Oj.load(line)
+        rescue Oj::ParseError => e
+          Rails.logger.warn("FreeBSD packagesite JSON parse error: #{e.message}")
+          next
+        end
+
+        next unless rec.is_a?(Hash)
+
         name = rec['name']
         next if name.blank?
 
-        (idx[name] ||= []) << rec
+        idx[name] = rec
       end
 
       @packages_by_name = idx
-    rescue Oj::ParseError => e
-      Rails.logger.error("FreeBSD packagesite JSON parse error: #{e.message}")
+    rescue StandardError => e
+      Rails.logger.error("FreeBSD packagesite load error: #{e.message}")
       @packages_by_name = {}
     end
 
@@ -151,7 +153,7 @@ module Ecosystem
     def recently_updated_package_names
       latest_ts_by_name = {}
 
-      packages_by_name.values.flatten.each do |rec|
+      packages_by_name.values.each do |rec|
         ts = parse_build_timestamp(rec.dig('annotations', 'build_timestamp'))
         next unless ts && rec['name'].present?
 
@@ -165,70 +167,57 @@ module Ecosystem
     end
 
     def fetch_package_metadata_uncached(name)
-      recs = packages_by_name[name]
-      return nil if recs.blank?
-
-      { 'name' => name, 'records' => recs }
+      packages_by_name[name]
     end
 
     def map_package_metadata(pkg_metadata)
       return false if pkg_metadata.blank?
 
-      recs = pkg_metadata['records']
-      return false if recs.blank?
-
-      primary = primary_record(recs)
-      origin = primary['origin']
+      origin = pkg_metadata['origin']
       category = origin.to_s.include?('/') ? origin.to_s.partition('/').first : nil
 
       {
         name: pkg_metadata['name'],
-        description: primary['comment'].presence || primary['desc'].to_s.truncate(500),
-        homepage: primary['www'],
-        licenses: Array(primary['licenses']).presence&.join(', '),
-        repository_url: find_repository_url([primary['www']]),
-        keywords_array: primary['categories'] || [],
+        description: pkg_metadata['comment'].presence || pkg_metadata['desc'].to_s.truncate(500),
+        homepage: pkg_metadata['www'],
+        licenses: Array(pkg_metadata['licenses']).presence&.join(', '),
+        repository_url: find_repository_url([pkg_metadata['www']]),
+        keywords_array: pkg_metadata['categories'] || [],
         namespace: category,
         metadata: {
           origin: origin,
-          maintainer: primary['maintainer'],
-          abi: primary['abi'],
-          arch: primary['arch'],
-          categories: primary['categories'],
-          licenses: primary['licenses'],
+          maintainer: pkg_metadata['maintainer'],
+          abi: pkg_metadata['abi'],
+          arch: pkg_metadata['arch'],
+          categories: pkg_metadata['categories'],
+          licenses: pkg_metadata['licenses'],
         }.compact
       }
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
-      raw = fetch_package_metadata(pkg_metadata[:name] || pkg_metadata['name'])
-      return [] if raw.blank? || raw['records'].blank?
+      record = fetch_package_metadata(pkg_metadata[:name] || pkg_metadata['name'])
+      return [] if record.blank?
 
-      raw['records'].each_with_object([]) do |rec, acc|
-        number = rec['version']
-        next if number.blank? || existing_version_numbers.include?(number.to_s)
+      number = record['version']
+      return [] if number.blank? || existing_version_numbers.include?(number.to_s)
 
-        acc << version_hash_for_record(rec)
-      end
+      [version_hash_for_record(record)]
     end
 
     def dependencies_metadata(name, version, _pkg_metadata)
-      raw = fetch_package_metadata(name)
-      return [] if raw.blank? || raw['records'].blank?
+      record = fetch_package_metadata(name)
+      return [] if record.blank? || record['version'].to_s != version.to_s
 
-      record = raw['records'].find { |r| r['version'].to_s == version.to_s }
       deps = record&.dig('deps')
       return [] if deps.blank? || deps.is_a?(String)
 
-      deps.map do |pkg_name, meta|
+      deps.map do |pkg_name, _meta|
         next if pkg_name.blank?
-
-        meta ||= {}
-        version_req = meta['version']
 
         {
           package_name: pkg_name,
-          requirements: version_req.present? ? "=#{version_req}" : '*',
+          requirements: '*',
           kind: 'runtime',
           ecosystem: self.class.name.demodulize.downcase,
         }
@@ -236,23 +225,17 @@ module Ecosystem
     end
 
     def maintainers_metadata(name)
-      raw = fetch_package_metadata(name)
-      return [] unless raw&.dig('records')&.first
+      record = fetch_package_metadata(name)
+      return [] if record.blank?
 
-      parsed_maintainer(raw['records'].first['maintainer'])
-    end
-
-    protected
-
-    def primary_record(recs)
-      recs.max_by do |rec|
-        parse_build_timestamp(rec.dig('annotations', 'build_timestamp')) || Time.zone.at(0)
-      end || recs.last
+      parsed_maintainer(record['maintainer'])
     end
 
     def record_for(pkg_name, version_number)
-      records = packages_by_name[pkg_name]
-      records&.find { |r| r['version'].to_s == version_number.to_s }
+      record = packages_by_name[pkg_name]
+      return nil if record.blank?
+
+      record['version'].to_s == version_number.to_s ? record : nil
     end
 
     def parse_build_timestamp(value)
@@ -280,15 +263,8 @@ module Ecosystem
     def parsed_maintainer(raw)
       return [] if raw.blank?
 
-      if raw.strip =~ /\A"?([^"<]+?)"?\s+<([^>\s]+)>\s*\z/
-        [{ uuid: Regexp.last_match(2).strip, name: Regexp.last_match(1).strip }]
-      elsif raw.include?('@')
-        em = raw.strip
-        [{ uuid: em, name: em }]
-      else
-        val = raw.strip
-        [{ uuid: val, name: val }]
-      end
+      email = raw.strip
+      [{ uuid: email, name: email, email: email }]
     end
   end
 end

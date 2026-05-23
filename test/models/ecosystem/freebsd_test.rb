@@ -7,7 +7,7 @@ class FreebsdTest < ActiveSupport::TestCase
     @registry = Registry.new(
       default: true,
       name: 'freebsd-14-amd64-latest',
-      url: 'https://pkg.freebsd.org/FreeBSD%3A14%3Aamd64/latest',
+      url: 'https://pkg.freebsd.org/FreeBSD:14:amd64/latest',
       ecosystem: 'freebsd',
       github: 'freebsd'
     )
@@ -47,7 +47,7 @@ class FreebsdTest < ActiveSupport::TestCase
     )
     version = pkg.versions.build(number: '1.10.0')
 
-    expected = 'https://pkg.freebsd.org/FreeBSD%3A14%3Aamd64/latest/All/Hashed/zsh.pkg'
+    expected = 'https://pkg.freebsd.org/FreeBSD:14:amd64/latest/All/Hashed/zsh.pkg'
 
     assert_equal expected, @ecosystem.download_url(pkg, version)
   end
@@ -78,22 +78,17 @@ class FreebsdTest < ActiveSupport::TestCase
   test 'map_package_metadata' do
     raw = {
       'name' => 'wget',
-      'records' => [
-        {
-          'name' => 'wget',
-          'origin' => 'ftp/wget',
-          'version' => '1.25.0',
-          'comment' => 'retrieve files',
-          'maintainer' => 'Fred <fred@example.com>',
-          'www' => 'https://www.gnu.org/s/wget/',
-          'categories' => ['ftp'],
-          'licenses' => ['GPLv3'],
-          'abi' => 'FreeBSD:14:amd64',
-          'desc' => 'Long text',
-          'annotations' => { 'build_timestamp' => '2026-04-09T07:53:54+0000' },
-          'deps' => {}
-        }
-      ]
+      'origin' => 'ftp/wget',
+      'version' => '1.25.0',
+      'comment' => 'retrieve files',
+      'maintainer' => 'fred@example.com',
+      'www' => 'https://www.gnu.org/s/wget/',
+      'categories' => ['ftp'],
+      'licenses' => ['GPLv3'],
+      'abi' => 'FreeBSD:14:amd64',
+      'desc' => 'Long text',
+      'annotations' => { 'build_timestamp' => '2026-04-09T07:53:54+0000' },
+      'deps' => {}
     }
 
     mapped = @ecosystem.map_package_metadata(raw)
@@ -112,8 +107,7 @@ class FreebsdTest < ActiveSupport::TestCase
 
     versions = @ecosystem.versions_metadata(mapped, [])
 
-    assert_equal(%w[0.1.0 0.2.0].sort,
-                 versions.map { |v| v[:number] }.sort)
+    assert_equal ['0.1.0'], versions.map { |v| v[:number] }
 
     assert versions.all? { |v| v[:integrity].start_with?('sha256-') }
   end
@@ -123,34 +117,23 @@ class FreebsdTest < ActiveSupport::TestCase
 
     assert_equal 1, deps.length
     assert_equal 'zsh', deps.first[:package_name]
-    assert_equal '=5.9_5', deps.first[:requirements]
+    assert_equal '*', deps.first[:requirements]
     assert_equal 'runtime', deps.first[:kind]
     assert_equal 'freebsd', deps.first[:ecosystem]
-  end
-
-  test 'maintainers_metadata parses Maintainer <email>' do
-    fb = Ecosystem::Freebsd.new(@registry)
-    fb.stubs(:fetch_package_metadata).with('wget').returns(
-      'name' => 'wget',
-      'records' => [{ 'maintainer' => 'Ada Lovelace <ada@example.com>' }]
-    )
-
-    rows = fb.maintainers_metadata('wget')
-
-    assert_equal 'ada@example.com', rows.first[:uuid]
-    assert_equal 'Ada Lovelace', rows.first[:name]
   end
 
   test 'maintainers_metadata handles bare email' do
     fb = Ecosystem::Freebsd.new(@registry)
     fb.stubs(:fetch_package_metadata).with('curl').returns(
       'name' => 'curl',
-      'records' => [{ 'maintainer' => 'dev@example.com' }]
+      'maintainer' => 'dev@example.com'
     )
 
     rows = fb.maintainers_metadata('curl')
 
     assert_equal 'dev@example.com', rows.first[:uuid]
+    assert_equal 'dev@example.com', rows.first[:name]
+    assert_equal 'dev@example.com', rows.first[:email]
   end
 
   test 'purl' do
@@ -185,15 +168,6 @@ class FreebsdTest < ActiveSupport::TestCase
     assert_match(%r{@1\.10\.0}, purl_str)
     assert_match(%r{/shells/zsh-you-should-use}, purl_str)
     assert Purl.parse(purl_str), "invalid purl #{purl_str}"
-  end
-
-  test 'maintainer_url escapes query' do
-    m = Maintainer.new(uuid: 'ada@example.com', name: 'Ada')
-
-    url = @ecosystem.maintainer_url(m)
-
-    assert_nil @ecosystem.maintainer_url(Maintainer.new(uuid: '', name: 'none'))
-    assert_includes(url, '%40example.com')
   end
 
   test 'check_status removed when unknown package' do
