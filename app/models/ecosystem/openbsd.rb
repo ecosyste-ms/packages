@@ -1,15 +1,12 @@
 # frozen_string_literal: true
 
-require "digest/sha2"
-require "erb"
-require "json"
-require "open3"
-require "rubygems/package"
-require "zlib"
-
 module Ecosystem
   class Openbsd < Base
-    RUN_DEPENDS_TYPE = 0
+    DEPENDENCY_KINDS_BY_TYPE = {
+      0 => "runtime",
+      1 => "runtime",
+      2 => "build",
+    }.freeze
 
     def sync_in_batches?
       true
@@ -132,14 +129,14 @@ module Ecosystem
       row = synced_port_for_name(name)
       return [] if row.blank?
 
-      deps = sqlite3_json_dependency_paths(row["PathId"])
-      deps.filter_map do |dep_path|
+      dependency_rows_by_path_id[row["PathId"].to_i].filter_map do |dep|
+        dep_path = dep[:path]
         next unless synced_port_present?(dep_path)
 
         {
           package_name: dep_path,
           requirements: "*",
-          kind: "install",
+          kind: dep[:kind],
           ecosystem: self.class.lowercase_name,
         }
       end
@@ -154,16 +151,14 @@ module Ecosystem
       segments = maint.split("<", 2)
       display = segments.first.to_s.strip
       email = segments[1].to_s.gsub(">", "").strip
-      email = "#{display.gsub(/\s+/, '-').downcase}@unknown" if email.blank?
+      return [] if email.blank?
 
       [{
         uuid: email,
         name: display.presence || email,
-        url: "#{packages_base_url}/",
+        email: email,
       }]
     end
-
-    protected
 
     def packages_base_url
       @packages_base_url ||= @registry_url.sub(%r{/+\z}, "")
@@ -175,6 +170,10 @@ module Ecosystem
 
     def ports_by_path
       @ports_by_path ||= synced_ports.index_by { |row| row["FullPkgPath"] }
+    end
+
+    def dependency_rows_by_path_id
+      @dependency_rows_by_path_id ||= {}
     end
 
     def synced_port_for_name(path)
@@ -251,11 +250,13 @@ module Ecosystem
       return [] unless @sqlports_database_path.exist? && @sqlports_database_path.size.positive?
 
       ports = sqlite3_exec_json(select_ports_sql)
-      dedupe_port_rows(ports).select do |row|
+      synced = dedupe_port_rows(ports).select do |row|
         next false if row["FULLPKGNAME"].blank?
 
         tarball_set.include?("#{row["FULLPKGNAME"]}.tgz")
       end
+      @dependency_rows_by_path_id = build_dependency_index(synced)
+      synced
     end
 
     def extract_share_sqlports(tgz_file)
@@ -265,26 +266,18 @@ module Ecosystem
       FileUtils.mkdir_p(sqlite_path.dirname)
       return sqlite_path if sqlite_path.exist? && sqlite_path.size.positive?
 
-      found = nil
-      Zlib::GzipReader.open(tgz_file) do |gzip|
-        Gem::Package::TarReader.new(gzip) do |reader|
-          reader.each do |entry|
-            next unless entry.file?
+      Dir.mktmpdir("openbsd-sqlports") do |dir|
+        ok = system("tar", "-xzf", tgz_file.to_s, "-C", dir, "share/sqlports")
+        extracted = File.join(dir, "share", "sqlports")
 
-            next unless entry.full_name.delete_prefix("./") == "share/sqlports"
-
-            found = entry.read
-            break
-          end
+        unless ok && File.exist?(extracted)
+          File.delete(sqlite_path) if sqlite_path.exist?
+          return sqlite_path
         end
+
+        FileUtils.cp(extracted, sqlite_path)
       end
 
-      if found.blank?
-        File.delete(sqlite_path) if sqlite_path.exist?
-        return sqlite_path
-      end
-
-      File.binwrite(sqlite_path, found)
       sqlite_path
     rescue StandardError => e
       Rails.logger.error("Unable to unpack OpenBSD sqlports database from #{tgz_file}: #{e.message}")
@@ -322,46 +315,49 @@ module Ecosystem
       end
     end
 
-    def sqlite3_dependency_sql(path_id)
+    def select_dependencies_sql
       <<~SQL.squish
-        SELECT DISTINCT dp.FullPkgPath AS dep_path
-        FROM _Depends d
-        JOIN _Paths p ON p.Id = d.FullPkgPath
-        JOIN _Paths dp ON dp.Id = d.DependsPath
-        WHERE p.Id = #{Integer(path_id)} AND CAST(d.Type AS INTEGER) = #{RUN_DEPENDS_TYPE}
-        ORDER BY dp.FullPkgPath ASC
+        SELECT FullPkgPath AS full_pkg_path,
+               DependsPath AS dep_path,
+               CAST(Type AS INTEGER) AS type
+        FROM Depends
+        WHERE CAST(Type AS INTEGER) IN (#{DEPENDENCY_KINDS_BY_TYPE.keys.join(',')})
+        ORDER BY full_pkg_path ASC, dep_path ASC
       SQL
     end
 
-    def sqlite3_json_dependency_paths(path_id)
-      return [] if @sqlports_database_path.nil? || !@sqlports_database_path.exist? || @sqlports_database_path.size.zero?
+    def build_dependency_index(ports)
+      path_ids_by_full_path = ports.each_with_object({}) do |row, memo|
+        memo[row["FullPkgPath"].to_s] = row["PathId"].to_i
+      end
 
-      sqlite3_exec_json(sqlite3_dependency_sql(path_id), database: @sqlports_database_path).map do |entry|
-        entry.fetch("dep_path", nil).presence || entry.fetch(:dep_path, nil)&.presence
-      end.compact.uniq.map(&:to_s).reject(&:blank?)
+      sqlite3_exec_json(select_dependencies_sql).each_with_object(Hash.new { |h, k| h[k] = [] }) do |row, memo|
+        path_id = path_ids_by_full_path[row["full_pkg_path"].to_s]
+        next if path_id.blank?
+
+        kind = DEPENDENCY_KINDS_BY_TYPE[row["type"].to_i]
+        dep_path = row["dep_path"].to_s
+        next if kind.blank? || dep_path.blank?
+
+        memo[path_id] << { path: dep_path, kind: kind }
+      end.transform_values { |deps| deps.uniq }
     end
 
     def sqlite3_exec_json(sql, database: @sqlports_database_path)
       return [] if database.nil? || !database.exist? || database.size.zero?
 
-      out, status =
-        Open3.capture2(
-          "sqlite3",
-          "-readonly",
-          database.to_path,
-          "-json",
-          sql,
-          err: File::NULL
-        )
-      return [] unless status.success?
-
-      out = out.to_s.strip
-      return [] if out.blank?
-
-      JSON.parse(out, symbolize_names: false)
-    rescue JSON::ParserError => e
-      Rails.logger.warn("OpenBSD sqlite3 JSON parse failure: #{e.message}")
+      db = SQLite3::Database.new(database.to_s, readonly: true)
+      db.results_as_hash = true
+      db.execute(sql).map do |row|
+        row.each_with_object({}) do |(key, value), memo|
+          memo[key] = value if key.is_a?(String)
+        end
+      end
+    rescue SQLite3::Exception => e
+      Rails.logger.warn("OpenBSD sqlite failure: #{e.message}")
       []
+    ensure
+      db&.close
     end
 
     def resolved_sqlports_tgz_filename
@@ -395,13 +391,8 @@ module Ecosystem
 
     def pkg_version_number(row)
       full = row["FULLPKGNAME"].to_s
-      stem = row["PKGSTEM"].to_s
-      return full if stem.blank?
-
-      prefix = "#{stem}-"
-      return full.delete_prefix(prefix) if full.start_with?(prefix)
-
-      full
+      match = full.match(/\A(.+)-(\d.*)\z/)
+      match && match[2]
     end
 
     def inferred_architecture
