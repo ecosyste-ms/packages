@@ -4,6 +4,8 @@ class Version < ApplicationRecord
   validates_presence_of :package_id, :number
   validates_uniqueness_of :number, scope: :package_id, case_sensitive: false
 
+  before_validation :generate_omnibor_artifact_id
+
   belongs_to :package
   belongs_to :registry, optional: true
   counter_culture :package
@@ -16,6 +18,7 @@ class Version < ApplicationRecord
       'created_at' => 'created_at',
       'updated_at' => 'updated_at',
       'number' => 'number',
+      'omnibor_artifact_id' => 'omnibor_artifact_id',
     }
   end
 
@@ -25,6 +28,7 @@ class Version < ApplicationRecord
   scope :updated_after, ->(updated_at) { where('updated_at > ?', updated_at) }
   scope :created_before, ->(created_at) { where('created_at < ?', created_at) }
   scope :updated_before, ->(updated_at) { where('updated_at < ?', updated_at) }
+  scope :with_omnibor_artifact_id, ->(artifact_id) { where(omnibor_artifact_id: artifact_id) }
 
   scope :active, -> { where(status: nil) }
 
@@ -211,6 +215,34 @@ class Version < ApplicationRecord
       else
         false
       end
+    end
+  end
+
+  def generate_omnibor_artifact_id
+    return if omnibor_artifact_id.present?
+
+    self.omnibor_artifact_id = calculated_omnibor_artifact_id
+  end
+
+  def calculated_omnibor_artifact_id
+    length = metadata_artifact_length
+    sha256 = integrity_sha256
+    return if length.blank? || sha256.blank?
+
+    digest = Digest::SHA256.hexdigest("blob #{length}\0" + [sha256].pack('H*'))
+    "gitoid:blob:sha256:#{digest}"
+  end
+
+  def metadata_artifact_length
+    value = metadata&.dig('length') || metadata&.dig(:length) || metadata&.dig('size') || metadata&.dig(:size) || metadata&.dig('archive_length') || metadata&.dig(:archive_length)
+    value.to_i if value.present? && value.to_i.positive?
+  end
+
+  def integrity_sha256
+    return unless integrity.present?
+
+    integrity.to_s.delete_prefix('sha256-').then do |value|
+      value.match?(/\A[0-9a-f]{64}\z/i) ? value.downcase : nil
     end
   end
 

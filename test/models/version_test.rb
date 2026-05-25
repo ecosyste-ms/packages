@@ -57,6 +57,27 @@ class VersionTest < ActiveSupport::TestCase
     assert Purl.parse(@version.purl)
   end
 
+
+
+  test 'generate_omnibor_artifact_id from sha256 integrity and length metadata' do
+    version = @package.versions.create(
+      number: '3.0.0',
+      integrity: 'sha256-2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824',
+      metadata: { length: 5 }
+    )
+
+    assert_equal 'gitoid:blob:sha256:2c0eb59d2f7fb34d4326d83952c8425731a200dde6b6f93c465c6e315a4cbd33', version.omnibor_artifact_id
+  end
+
+  test 'generate_omnibor_artifact_id ignores missing length metadata' do
+    version = @package.versions.create(
+      number: '4.0.0',
+      integrity: 'sha256-2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824'
+    )
+
+    assert_nil version.omnibor_artifact_id
+  end
+
   test "transitive_dependencies delegates to resolver" do
     TransitiveDependencyResolver.any_instance.expects(:resolve).returns([])
     
