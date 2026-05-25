@@ -1,3 +1,8 @@
+<% content_for :head do %>
+  <%= auto_discovery_link_tag(:rss, registry_packages_url(@registry, request.query_parameters.merge(format: :rss)), title: "Package List RSS") %>
+  <%= auto_discovery_link_tag(:atom, registry_packages_url(@registry, request.query_parameters.merge(format: :atom)), title: "Package List Atom") %>
+<% end %>
+
 <% @meta_title = "#{@registry} packages" %>
 <% @meta_description = "View the packages on the #{@registry} package registry, including their maintainers, namespaces, and keywords." %>
 

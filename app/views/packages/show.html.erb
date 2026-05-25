@@ -1,3 +1,8 @@
+<% content_for :head do %>
+  <%= auto_discovery_link_tag(:rss, registry_package_url(@registry, @package, format: :rss), title: "Package Versions RSS") %>
+  <%= auto_discovery_link_tag(:atom, registry_package_url(@registry, @package, format: :atom), title: "Package Versions Atom") %>
+<% end %>
+
 <% @meta_description = @package.description_with_fallback %>
 <% @meta_title = "#{@package.name} | #{@registry.name}" %>
 

@@ -20,6 +20,12 @@ class PackagesController < ApplicationController
 
     @pagy, @packages = pagy_countless(scope)
     fresh_when(@packages, public: true)
+
+    respond_to do |format|
+      format.html
+      format.rss
+      format.atom
+    end
   end
 
   def recent_versions_data
@@ -35,6 +41,12 @@ class PackagesController < ApplicationController
     @package = find_package_with_normalization!(@registry, params[:id])
     @pagy, @versions = pagy_countless(@package.versions.order('published_at DESC, created_at DESC'))
     fresh_when(@package, public: true)
+
+    respond_to do |format|
+      format.html
+      format.rss
+      format.atom
+    end
   end
 
   def dependent_packages
