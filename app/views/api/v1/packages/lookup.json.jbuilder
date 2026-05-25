@@ -1,5 +1,6 @@
 json.array! @packages do |package|
   json.partial! 'api/v1/packages/package', package: package
+  json.version @purl_version if @purl_version.present?
 
   json.registry do
     json.extract!package.registry, :name, :url, :ecosystem, :default, :packages_count, :maintainers_count, :namespaces_count, :keywords_count, :github, :metadata, :icon_url, :created_at, :updated_at
