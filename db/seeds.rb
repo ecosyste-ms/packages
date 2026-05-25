@@ -13,6 +13,7 @@ default_registries = [
   {name: 'rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems', github: 'rubygems', default: true},
   {name: 'gem.coop', url: 'https://gem.coop', ecosystem: 'rubygems', github: 'gem-coop', default: false},
   {name: 'spack.io', url: 'https://packages.spack.io', ecosystem: 'spack', github: 'spack', default: true},
+  {name: 'docs.easybuild.io', url: 'https://docs.easybuild.io', ecosystem: 'easybuild', github: 'easybuilders', default: true},
   {name: 'hackage.haskell.org', url: 'https://hackage.haskell.org', ecosystem: 'hackage', github: 'haskell-infra', default: true},
   {name: 'cran.r-project.org', url: 'https://cran.r-project.org', ecosystem: 'cran', github: 'r-project-org', metadata: {'icon_url' => 'https://cran.r-project.org/CRANlogo.png'}, default: true},
   {name: 'f-droid.org', url: 'https://f-droid.org', ecosystem: 'fdroid', github: 'f-droid', default: true},
