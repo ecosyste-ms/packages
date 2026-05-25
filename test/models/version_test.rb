@@ -57,6 +57,21 @@ class VersionTest < ActiveSupport::TestCase
     assert Purl.parse(@version.purl)
   end
 
+
+
+  test 'generate_swhid from sha metadata' do
+    sha = '86b5e0934494bd15c9632b12f734a8a67f723594'
+    version = @package.versions.create(number: '3.0.0', metadata: { sha: sha })
+
+    assert_equal "swh:1:rev:#{sha}", version.swhid
+  end
+
+  test 'generate_swhid ignores non sha metadata' do
+    version = @package.versions.create(number: '4.0.0', metadata: { sha: 'not-a-sha' })
+
+    assert_nil version.swhid
+  end
+
   test "transitive_dependencies delegates to resolver" do
     TransitiveDependencyResolver.any_instance.expects(:resolve).returns([])
     

@@ -5,6 +5,7 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     @registry = Registry.create(name: 'crates.io', url: 'https://crates.io', ecosystem: 'cargo')
     @package = @registry.packages.create(ecosystem: 'cargo', name: 'rand')
     @version = @package.versions.create(number: '1.0.0', metadata: {foo: 'bar'}, registry_id: @registry.id)
+    @swhid_version = @package.versions.create(number: '2.0.0', metadata: { sha: '86b5e0934494bd15c9632b12f734a8a67f723594' }, registry_id: @registry.id)
 
     @pypi_registry = Registry.create(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
     @pypi_package = @pypi_registry.packages.create(
@@ -22,7 +23,18 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     
     actual_response = Oj.load(@response.body)
 
-    assert_equal actual_response.length, 1
+    assert_equal actual_response.length, 2
+  end
+
+  test 'filter versions by SWHID' do
+    get api_v1_registry_package_versions_path(registry_id: @registry.name, package_id: @package.name, swhid: 'swh:1:rev:86b5e0934494bd15c9632b12f734a8a67f723594')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal '2.0.0', actual_response.first['number']
+    assert_equal 'swh:1:rev:86b5e0934494bd15c9632b12f734a8a67f723594', actual_response.first['swhid']
   end
 
   test 'get version of a package' do
@@ -179,7 +191,7 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     actual_response = Oj.load(@response.body)
-    assert_equal actual_response.length, 1
+    assert_equal actual_response.length, 2
     assert_equal actual_response.first['number'], '1.0.0'
   end
 

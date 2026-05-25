@@ -3,6 +3,7 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = find_package_with_normalization!(@registry, params[:package_id])
     scope = @package.versions#.includes(:dependencies)
+    scope = scope.with_swhid(params[:swhid]) if params[:swhid].present?
 
     scope = scope.created_after(params[:created_after]) if params[:created_after].present?
     scope = scope.published_after(params[:published_after]) if params[:published_after].present?
