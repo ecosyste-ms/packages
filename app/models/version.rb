@@ -16,6 +16,7 @@ class Version < ApplicationRecord
       'created_at' => 'created_at',
       'updated_at' => 'updated_at',
       'number' => 'number',
+      'size' => 'size',
     }
   end
 
