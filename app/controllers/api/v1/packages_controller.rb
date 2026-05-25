@@ -86,6 +86,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       scope = scope.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
     elsif params[:purl].present?
       scope = lookup_by_purl(params[:purl])
+      @purl_version = parsed_purl_version(params[:purl])
     else
       params[:name] = "library/#{params[:name]}" if params[:ecosystem] == 'docker' && !params[:name].include?('/')
       scope = scope.where(name: params[:name])
@@ -102,6 +103,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     end
 
     @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
+    @lookup_versions_by_package_id = lookup_versions_by_package_id(@packages, @purl_version) if @purl_version.present?
 
     # if packages are not found, try to sync them
     if @packages.empty?
@@ -131,6 +133,18 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     end
 
     fresh_when @packages, public: true
+  end
+
+  def parsed_purl_version(purl_string)
+    Purl.parse(purl_string.gsub('npm/@', 'npm/%40')).version.presence
+  rescue
+    nil
+  end
+
+  def lookup_versions_by_package_id(packages, version_number)
+    Version.where(package_id: packages.map(&:id))
+           .where('lower(number) = ?', version_number.downcase)
+           .index_by(&:package_id)
   end
 
   def bulk_lookup
