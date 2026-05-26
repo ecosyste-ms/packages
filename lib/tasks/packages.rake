@@ -28,6 +28,14 @@ namespace :packages do
     end
   end
 
+  desc 'sync recently updated pypi packages'
+  task sync_recent_pypi: :environment do
+    with_rake_lock('packages:sync_recent_pypi') do
+      r = Registry.find_by(ecosystem: 'pypi')
+      r.sync_recently_updated_packages_async
+    end
+  end
+
   desc 'sync_worst_one_percent'
   task sync_worst_one_percent: :environment do
     with_rake_lock('packages:sync_worst_one_percent') do

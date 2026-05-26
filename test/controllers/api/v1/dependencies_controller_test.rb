@@ -11,6 +11,19 @@ class ApiV1DependenciesControllerTest < ActionDispatch::IntegrationTest
   test 'list dependencies for a package' do
     get api_v1_dependencies_url(package_name: 'rand')
     assert_response :success
-    assert_equal 1, JSON.parse(@response.body).size  
+    assert_equal 1, JSON.parse(@response.body).size
+  end
+
+  test 'list dependencies when version has no package' do
+    @package.delete
+
+    get api_v1_dependencies_url(package_name: 'rand')
+    assert_response :success
+
+    body = JSON.parse(@response.body)
+    assert_equal 1, body.size
+    assert_nil body.first['package']
+    assert_nil body.first['version']
+    assert_equal 'rand', body.first['package_name']
   end
 end

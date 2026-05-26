@@ -84,13 +84,14 @@ class GoTest < ActiveSupport::TestCase
   end
 
   test 'package_metadata' do
-    stub_request(:get, "https://pkg.go.dev/github.com/aws/smithy-go")
-      .to_return({ status: 200, body: file_fixture('go/rand') })
+    stub_request(:get, "https://pkg.go.dev/v1beta/module/github.com/aws/smithy-go?licenses=true")
+      .to_return({ status: 200, body: file_fixture('go/api_module_smithy-go.json') })
+    stub_request(:get, "https://pkg.go.dev/v1beta/package/github.com/aws/smithy-go")
+      .to_return({ status: 200, body: file_fixture('go/api_package_smithy-go.json') })
     package_metadata = @ecosystem.package_metadata('github.com/aws/smithy-go')
-    
+
     assert_equal package_metadata[:name], "github.com/aws/smithy-go"
-    assert_equal package_metadata[:description], "Package rand provides utilities for creating and working with random value
-generators."
+    assert_equal package_metadata[:description], "Package smithy provides the core components for a Smithy SDK."
     assert_equal package_metadata[:homepage], "https://github.com/aws/smithy-go"
     assert_equal package_metadata[:licenses], "Apache-2.0"
     assert_equal package_metadata[:repository_url], "https://github.com/aws/smithy-go"
@@ -98,20 +99,41 @@ generators."
     assert_equal package_metadata[:namespace], "github.com/aws"
   end
 
-  test 'versions_metadata' do
-    stub_request(:get, "https://pkg.go.dev/github.com/aws/smithy-go")
-      .to_return({ status: 200, body: file_fixture('go/rand') })
-    stub_request(:get, "https://pkg.go.dev/github.com/aws/smithy-go?tab=versions")
-      .to_return({ status: 200, body: file_fixture('go/smithy-go?tab=versions') })
+  test 'package_metadata falls back to proxy when API misses' do
+    stub_request(:get, "https://pkg.go.dev/v1beta/module/github.com/aws/smithy-go?licenses=true")
+      .to_return({ status: 404, body: '{"code":404,"message":"not found"}' })
     stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/list")
       .to_return({ status: 200, body: file_fixture('go/list') })
-    stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/v1.9.0.info")
-      .to_return({ status: 200, body: file_fixture('go/v1.9.0.info') })
-
     package_metadata = @ecosystem.package_metadata('github.com/aws/smithy-go')
-    versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
-    assert_equal versions_metadata, [{:number=>"v1.9.0", :published_at=>"2021-11-05T22:57:36Z", :status=>nil}]
+    assert_equal package_metadata[:name], "github.com/aws/smithy-go"
+    assert_equal package_metadata[:repository_url], "https://github.com/aws/smithy-go"
+  end
+
+  test 'versions_metadata' do
+    stub_request(:get, "https://pkg.go.dev/v1beta/versions/github.com/aws/smithy-go?limit=1000")
+      .to_return({ status: 200, body: file_fixture('go/api_versions_smithy-go.json') })
+
+    versions_metadata = @ecosystem.versions_metadata({ name: 'github.com/aws/smithy-go' })
+
+    assert_equal versions_metadata.length, 57
+    assert_equal versions_metadata.first, { number: "v1.25.1", published_at: "2026-04-23T17:02:33Z", status: nil }
+  end
+
+  test 'versions_metadata skips existing versions but re-emits retracted ones' do
+    body = Oj.dump({
+      'items' => [
+        { 'modulePath' => 'github.com/aws/smithy-go', 'version' => 'v1.0.0', 'commitTime' => '2021-01-01T00:00:00Z', 'retracted' => false, 'deprecated' => false },
+        { 'modulePath' => 'github.com/aws/smithy-go', 'version' => 'v0.9.0', 'commitTime' => '2020-12-01T00:00:00Z', 'retracted' => true, 'deprecated' => false },
+        { 'modulePath' => 'github.com/aws/smithy-go/v2', 'version' => 'v2.0.0', 'commitTime' => '2022-01-01T00:00:00Z', 'retracted' => false, 'deprecated' => false }
+      ]
+    })
+    stub_request(:get, "https://pkg.go.dev/v1beta/versions/github.com/aws/smithy-go?limit=1000")
+      .to_return({ status: 200, body: body })
+
+    versions_metadata = @ecosystem.versions_metadata({ name: 'github.com/aws/smithy-go' }, ['v1.0.0', 'v0.9.0'])
+
+    assert_equal versions_metadata, [{ number: "v0.9.0", published_at: "2020-12-01T00:00:00Z", status: "retracted" }]
   end
 
   test 'dependencies_metadata' do
@@ -122,21 +144,16 @@ generators."
     assert_equal dependencies_metadata, [{:package_name=>"github.com/google/go-cmp", :requirements=>"v0.5.4", :kind=>"runtime", :ecosystem=>"go"}]
   end
 
-  test 'versions_metadata falls back to HTML scraping when proxy list is empty' do
-    stub_request(:get, "https://pkg.go.dev/github.com/aws/smithy-go")
-      .to_return({ status: 200, body: file_fixture('go/rand') })
-    # Proxy list returns empty
+  test 'versions_metadata falls back to proxy when API misses' do
+    stub_request(:get, "https://pkg.go.dev/v1beta/versions/github.com/aws/smithy-go?limit=1000")
+      .to_return({ status: 404, body: '{"code":404,"message":"not found"}' })
     stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/list")
-      .to_return({ status: 200, body: "" })
-    stub_request(:get, "https://pkg.go.dev/github.com/aws/smithy-go?tab=versions")
-      .to_return({ status: 200, body: file_fixture('go/smithy-go?tab=versions') })
-    # Stub all version info requests from the HTML fixture
-    stub_request(:get, /proxy\.golang\.org\/github\.com\/aws\/smithy-go\/@v\/v.*\.info/)
-      .to_return({ status: 200, body: '{"Version":"v1.19.0","Time":"2023-11-15T20:00:00Z"}' })
+      .to_return({ status: 200, body: file_fixture('go/list') })
+    stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/v1.9.0.info")
+      .to_return({ status: 200, body: file_fixture('go/v1.9.0.info') })
 
-    package_metadata = @ecosystem.package_metadata('github.com/aws/smithy-go')
-    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+    versions_metadata = @ecosystem.versions_metadata({ name: 'github.com/aws/smithy-go' })
 
-    assert versions_metadata.length > 0, "Expected versions from fallback but got: #{versions_metadata.inspect}"
+    assert_equal versions_metadata, [{ number: "v1.9.0", published_at: "2021-11-05T22:57:36Z", status: nil }]
   end
 end

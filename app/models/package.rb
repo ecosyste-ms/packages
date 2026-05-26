@@ -77,6 +77,7 @@ class Package < ApplicationRecord
   scope :with_advisories, -> { where("json_array_length(advisories) > 0") }
 
   after_create :update_rankings_async
+  after_update :mark_versions_removed, if: :saved_change_to_removed_status?
 
   def self.find_by_normalized_name(name)
     normalized_name = name.downcase.gsub('_', '-').gsub('.', '-')
@@ -366,6 +367,14 @@ class Package < ApplicationRecord
   def status
     val = read_attribute(:status)
     val == 'active' ? nil : val
+  end
+
+  def saved_change_to_removed_status?
+    saved_change_to_attribute?(:status) && read_attribute(:status) == 'removed'
+  end
+
+  def mark_versions_removed
+    versions.update_all(status: 'removed', updated_at: Time.current)
   end
 
   def check_status
