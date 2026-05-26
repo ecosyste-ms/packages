@@ -26,4 +26,4 @@ jobs:
           persist-credentials: false
       - uses: zizmorcore/zizmor-action@b1d7e1fb5de872772f31590499237e7cce841e8e
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
