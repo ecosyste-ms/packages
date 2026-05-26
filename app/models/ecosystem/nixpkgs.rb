@@ -104,10 +104,15 @@ module Ecosystem
       end
 
       # Write to a temp file and atomically rename to avoid race conditions
-      # where another worker reads a partially-written cache file
-      tmp_file = cache_dir.join("packages-#{channel}.json.tmp.#{Process.pid}")
-      File.binwrite(tmp_file, decompressed)
-      FileUtils.mv(tmp_file, cached_file)
+      # where another worker reads a partially-written cache file.
+      # Sidekiq threads share Process.pid so the suffix must be unique per call.
+      tmp_file = cache_dir.join("packages-#{channel}.json.tmp.#{SecureRandom.hex(8)}")
+      begin
+        File.binwrite(tmp_file, decompressed)
+        File.rename(tmp_file, cached_file)
+      ensure
+        FileUtils.rm_f(tmp_file)
+      end
       Rails.logger.info "[Nixpkgs] Cached packages.json for #{channel} (#{(decompressed.bytesize / 1024.0 / 1024.0).round(1)}MB)"
 
       cached_file

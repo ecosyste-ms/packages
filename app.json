@@ -5,6 +5,10 @@
       "schedule": "*/5 * * * *"
     },
     {
+      "command": "bundle exec rake packages:sync_recent_pypi",
+      "schedule": "*/2 * * * *"
+    },
+    {
       "command": "bundle exec rake packages:sync_recent",
       "schedule": "*/15 * * * *"
     },

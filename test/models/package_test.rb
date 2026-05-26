@@ -201,6 +201,20 @@ class PackageTest < ActiveSupport::TestCase
     assert_equal 'removed', @package.reload.status
   end
 
+  test 'updating package status to removed marks versions removed' do
+    @package.update!(status: 'removed')
+
+    assert_equal ['removed'], @package.versions.reload.pluck(:status).uniq
+  end
+
+  test 'updating package status to another inactive status does not mark versions removed' do
+    @version.update!(status: 'yanked')
+
+    @package.update!(status: 'unpublished')
+
+    assert_equal ['yanked', nil], @package.versions.order(:number).pluck(:status)
+  end
+
   test 'check_status sets active when ecosystem returns nil' do
     @package.registry.ecosystem_instance.expects(:check_status).with(@package).returns(nil)
     @package.check_status

@@ -49,6 +49,7 @@ default_registries = [
   {name: 'registry.terraform.io', url: 'https://registry.terraform.io', ecosystem: 'terraform', github: 'hashicorp', default: true},
   {name: 'artifacthub.io', url: 'https://artifacthub.io', ecosystem: 'helm', github: 'artifacthub', default: true},
   {name: 'ctan.org', url: 'https://ctan.org', ecosystem: 'ctan', github: 'TeX-82', default: true},
+  {name: 'reservoir.lean-lang.org', url: 'https://reservoir.lean-lang.org', ecosystem: 'lean', github: 'leanprover', default: true},
 ]
 
 default_registries.each do |data|
@@ -223,6 +224,29 @@ gentoo_registries = [
 ]
 
 gentoo_registries.each do |data|
+  r = Registry.find_or_initialize_by(url: data[:url])
+  r.assign_attributes(data)
+  r.save
+end
+
+freebsd_registries = [
+  {
+    name: 'freebsd-14-amd64',
+    url: 'https://pkg.freebsd.org/FreeBSD:14:amd64/latest',
+    ecosystem: 'freebsd',
+    github: 'freebsd',
+    default: true
+  },
+  {
+    name: 'freebsd-15-amd64',
+    url: 'https://pkg.freebsd.org/FreeBSD:15:amd64/latest',
+    ecosystem: 'freebsd',
+    github: 'freebsd',
+    default: false
+  },
+]
+
+freebsd_registries.each do |data|
   r = Registry.find_or_initialize_by(url: data[:url])
   r.assign_attributes(data)
   r.save
