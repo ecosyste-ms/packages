@@ -14,6 +14,7 @@ gem "railties", "~> 8.1.1"
 gem "secure_headers"
 gem "sprockets-rails"
 gem "pg"
+gem "sqlite3"
 gem "puma"
 gem "jbuilder"
 gem "bootsnap", require: false
