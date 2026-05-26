@@ -209,3 +209,26 @@ ips_registries.each do |data|
   r.assign_attributes(data)
   r.save
 end
+
+freebsd_registries = [
+  {
+    name: 'freebsd-14-amd64',
+    url: 'https://pkg.freebsd.org/FreeBSD:14:amd64/latest',
+    ecosystem: 'freebsd',
+    github: 'freebsd',
+    default: true
+  },
+  {
+    name: 'freebsd-15-amd64',
+    url: 'https://pkg.freebsd.org/FreeBSD:15:amd64/latest',
+    ecosystem: 'freebsd',
+    github: 'freebsd',
+    default: false
+  },
+]
+
+freebsd_registries.each do |data|
+  r = Registry.find_or_initialize_by(url: data[:url])
+  r.assign_attributes(data)
+  r.save
+end
