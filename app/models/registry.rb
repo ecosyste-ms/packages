@@ -215,13 +215,10 @@ class Registry < ApplicationRecord
     end
 
     if force && versions_to_refresh.any?
-      versions_to_refresh.uniq! { |v| v.with_indifferent_access[:number].to_s }
-
-      versions_to_refresh.each_slice(100) do |s|
-        Version.upsert_all(
-          s,
-          unique_by: [:package_id, :number],
-          update_only: [:published_at, :licenses, :metadata, :status, :integrity, :registry_id, :updated_at]
+      by_number = package.versions.where(number: versions_to_refresh.map { |v| v[:number].to_s }).index_by(&:number)
+      versions_to_refresh.each do |v|
+        by_number[v[:number].to_s]&.update_columns(
+          v.slice(:published_at, :licenses, :metadata, :status, :integrity).compact.merge(updated_at: Time.zone.now)
         )
       end
     end
@@ -287,9 +284,7 @@ class Registry < ApplicationRecord
   end
 
   def versions_metadata_for_sync(package_metadata, existing_version_numbers, force:)
-    ecosystem_instance.versions_metadata(package_metadata, existing_version_numbers, force: force)
-  rescue ArgumentError
-    ecosystem_instance.versions_metadata(package_metadata, existing_version_numbers)
+    versions_metadata = ecosystem_instance.versions_metadata(package_metadata, force ? [] : existing_version_numbers)
   end
 
   def ecosystem_instance
