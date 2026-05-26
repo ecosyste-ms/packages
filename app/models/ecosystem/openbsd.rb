@@ -129,7 +129,7 @@ module Ecosystem
       row = synced_port_for_name(name)
       return [] if row.blank?
 
-      dependency_rows_by_path_id[row["PathId"].to_i].filter_map do |dep|
+      Array(dependency_rows_by_path_id[row["PathId"].to_i]).filter_map do |dep|
         dep_path = dep[:path]
         next unless synced_port_present?(dep_path)
 
@@ -148,16 +148,16 @@ module Ecosystem
       maint = row["MAINTAINER"]
       return [] if maint.blank?
 
-      segments = maint.split("<", 2)
-      display = segments.first.to_s.strip
-      email = segments[1].to_s.gsub(">", "").strip
-      return [] if email.blank?
+      maint.scan(/([^<,]+)?<([^>]+)>/).filter_map do |display, email|
+        email = email.to_s.strip
+        next if email.blank?
 
-      [{
-        uuid: email,
-        name: display.presence || email,
-        email: email,
-      }]
+        {
+          uuid: email,
+          name: display.to_s.strip.presence || email,
+          email: email,
+        }
+      end
     end
 
     def packages_base_url
@@ -231,11 +231,6 @@ module Ecosystem
     def load_synced_ports
       index_map = load_index_basenames
 
-      tarball_names = index_map.keys
-      tarball_set = tarball_names.each_with_object({}) do |basename, memo|
-        memo[basename] = true
-      end
-
       sqlports_pkg = resolved_sqlports_tgz_filename
       return [] if sqlports_pkg.blank?
 
@@ -253,7 +248,7 @@ module Ecosystem
       synced = dedupe_port_rows(ports).select do |row|
         next false if row["FULLPKGNAME"].blank?
 
-        tarball_set.include?("#{row["FULLPKGNAME"]}.tgz")
+        index_map.key?("#{row["FULLPKGNAME"]}.tgz")
       end
       @dependency_rows_by_path_id = build_dependency_index(synced)
       synced
@@ -317,23 +312,21 @@ module Ecosystem
 
     def select_dependencies_sql
       <<~SQL.squish
-        SELECT FullPkgPath AS full_pkg_path,
+        SELECT PathId AS path_id,
                DependsPath AS dep_path,
                CAST(Type AS INTEGER) AS type
         FROM Depends
         WHERE CAST(Type AS INTEGER) IN (#{DEPENDENCY_KINDS_BY_TYPE.keys.join(',')})
-        ORDER BY full_pkg_path ASC, dep_path ASC
+        ORDER BY path_id ASC, dep_path ASC
       SQL
     end
 
     def build_dependency_index(ports)
-      path_ids_by_full_path = ports.each_with_object({}) do |row, memo|
-        memo[row["FullPkgPath"].to_s] = row["PathId"].to_i
-      end
+      synced_path_ids = ports.each_with_object({}) { |row, memo| memo[row["PathId"].to_i] = true }
 
       sqlite3_exec_json(select_dependencies_sql).each_with_object(Hash.new { |h, k| h[k] = [] }) do |row, memo|
-        path_id = path_ids_by_full_path[row["full_pkg_path"].to_s]
-        next if path_id.blank?
+        path_id = row["path_id"].to_i
+        next unless synced_path_ids[path_id]
 
         kind = DEPENDENCY_KINDS_BY_TYPE[row["type"].to_i]
         dep_path = row["dep_path"].to_s
@@ -376,7 +369,7 @@ module Ecosystem
     def discover_sqlports_tgz_filename
       body = get_raw("#{packages_base_url}/")
       matches = body.to_s.scan(/href="(sqlports-[\d.]+\.tgz)"/i).flatten
-      matches.max_by(&:length)
+      matches.max_by { |match| Gem::Version.new(match[/sqlports-([\d.]+)\.tgz/i, 1]) }
     rescue StandardError => e
       Rails.logger.warn("Unable to discover OpenBSD sqlports bundle: #{e.message}")
       nil

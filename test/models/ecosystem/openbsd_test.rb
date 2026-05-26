@@ -91,13 +91,17 @@ class OpenbsdTest < ActiveSupport::TestCase
     assert deps.all? { |d| d[:requirements] == "*" }
   end
 
+  test "dependencies_metadata returns empty for ports without deps" do
+    assert_equal [], @ecosystem.dependencies_metadata("net/curl", nil, {})
+  end
+
   test "maintainers_metadata parses Maintainer field" do
     maintainers = @ecosystem.maintainers_metadata("devel/git")
-    assert_equal 1, maintainers.size
-    assert_equal "ports@openbsd.org", maintainers.first[:uuid]
-    assert_equal "OpenBSD ports", maintainers.first[:name]
-    assert_equal "ports@openbsd.org", maintainers.first[:email]
-    assert_nil maintainers.first[:url]
+    assert_equal 2, maintainers.size
+    assert_equal ["semarie@online.fr", "robert@openbsd.org"], maintainers.map { |m| m[:uuid] }
+    assert_equal ["Sebastien Marie", "Robert Nagy"], maintainers.map { |m| m[:name] }
+    assert_equal ["semarie@online.fr", "robert@openbsd.org"], maintainers.map { |m| m[:email] }
+    assert maintainers.none? { |m| m.key?(:url) }
   end
 
   test "maintainers_metadata skips entries without email" do
@@ -108,5 +112,11 @@ class OpenbsdTest < ActiveSupport::TestCase
     assert_includes @ecosystem.all_package_names, "devel/git"
     assert_includes @ecosystem.all_package_names, "net/curl"
     assert_not_includes @ecosystem.all_package_names, "archivers/unzip"
+  end
+
+  test "discover_sqlports_tgz_filename sorts by version" do
+    @ecosystem.stubs(:get_raw).returns('<a href="sqlports-7.9.tgz">old</a><a href="sqlports-7.10.tgz">new</a>')
+
+    assert_equal "sqlports-7.10.tgz", @ecosystem.discover_sqlports_tgz_filename
   end
 end
