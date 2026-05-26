@@ -1,0 +1,9 @@
+DESCRIPTION=Demo two
+HOMEPAGE=https://example.com/demo
+LICENSE=MIT
+KEYWORDS=amd64
+SLOT=0
+EAPI=8
+SRC_URI=https://downloads.example.com/demo-2.0.tar.xz
+RDEPEND=dev-libs/baselayout
+_md5_=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
