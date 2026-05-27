@@ -235,6 +235,7 @@ freebsd_registries = [
     url: 'https://pkg.freebsd.org/FreeBSD:14:amd64/latest',
     ecosystem: 'freebsd',
     github: 'freebsd',
+    version: '14',
     default: true
   },
   {
@@ -242,6 +243,7 @@ freebsd_registries = [
     url: 'https://pkg.freebsd.org/FreeBSD:15:amd64/latest',
     ecosystem: 'freebsd',
     github: 'freebsd',
+    version: '15',
     default: false
   },
 ]
