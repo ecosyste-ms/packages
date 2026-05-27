@@ -369,7 +369,7 @@ module Ecosystem
     def discover_sqlports_tgz_filename
       body = get_raw("#{packages_base_url}/")
       matches = body.to_s.scan(/href="(sqlports-[\d.]+\.tgz)"/i).flatten
-      matches.max_by { |match| Gem::Version.new(match[/sqlports-([\d.]+)\.tgz/i, 1]) }
+      matches.max_by { |match| Gem::Version.new(match[/sqlports-([\d.]+)\.tgz/i, 1]) }&.force_encoding(Encoding::UTF_8)
     rescue StandardError => e
       Rails.logger.warn("Unable to discover OpenBSD sqlports bundle: #{e.message}")
       nil

@@ -119,4 +119,27 @@ class OpenbsdTest < ActiveSupport::TestCase
 
     assert_equal "sqlports-7.10.tgz", @ecosystem.discover_sqlports_tgz_filename
   end
+
+  test "load_synced_ports handles binary-encoded discovered sqlports filename" do
+    registry = Registry.new(
+      name: "openbsd-7.9-amd64",
+      url: "https://cdn.openbsd.org/pub/OpenBSD/7.9/packages/amd64",
+      ecosystem: "openbsd",
+      metadata: { "arch" => "amd64" }
+    )
+    ecosystem = Ecosystem::Openbsd.new(registry)
+
+    def ecosystem.download_and_cache(url, *_args, **_kwargs)
+      fixtures = Rails.root.join("test/fixtures/files/openbsd")
+      return fixtures.join("index.txt") if url.end_with?("/index.txt")
+      return fixtures.join("sqlports-7.54.tgz") if url.end_with?("/sqlports-7.54.tgz")
+
+      nil
+    end
+
+    body = (+'<a href="sqlports-7.54.tgz">x</a>').force_encoding(Encoding::ASCII_8BIT)
+    ecosystem.stubs(:get_raw).returns(body)
+
+    assert_includes ecosystem.all_package_names, "devel/git"
+  end
 end
