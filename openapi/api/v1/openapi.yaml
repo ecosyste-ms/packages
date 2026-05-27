@@ -1233,10 +1233,11 @@ paths:
             type: string
         - name: latest
           in: query
-          description: filter by latest version
+          description: only include packages whose latest version depends on this package (default true). Set to false to include historical dependents.
           required: false
           schema:
             type: boolean
+            default: true
         - name: kind
           in: query
           description: filter by dependency kind

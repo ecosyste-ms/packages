@@ -855,6 +855,35 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test 'dependent_packages defaults to latest versions only' do
+    dependent = @registry.packages.create(name: 'needs-rand', ecosystem: @registry.ecosystem)
+    old = dependent.versions.create(number: '1.0.0', latest: false)
+    old.dependencies.create(package_id: @package.id, package_name: @package.name, ecosystem: @registry.ecosystem, requirements: '>= 0', kind: 'runtime')
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+    assert_empty Oj.load(@response.body)
+
+    latest = dependent.versions.create(number: '2.0.0', latest: true)
+    latest.dependencies.create(package_id: @package.id, package_name: @package.name, ecosystem: @registry.ecosystem, requirements: '>= 0', kind: 'runtime')
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+    names = Oj.load(@response.body).map { |p| p['name'] }
+    assert_includes names, 'needs-rand'
+  end
+
+  test 'dependent_packages with latest=false returns historical dependents' do
+    dependent = @registry.packages.create(name: 'used-rand-once', ecosystem: @registry.ecosystem)
+    old = dependent.versions.create(number: '1.0.0', latest: false)
+    old.dependencies.create(package_id: @package.id, package_name: @package.name, ecosystem: @registry.ecosystem, requirements: '>= 0', kind: 'runtime')
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name, latest: 'false')
+    assert_response :success
+    names = Oj.load(@response.body).map { |p| p['name'] }
+    assert_includes names, 'used-rand-once'
+  end
+
   test 'get dependent_package_kinds for pypi package with underscore in name' do
     pypi_registry = Registry.create(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
     pypi_package = pypi_registry.packages.create(
