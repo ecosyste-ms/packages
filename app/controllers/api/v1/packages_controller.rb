@@ -214,10 +214,10 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = find_package_with_normalization!(@registry, params[:id])
 
-    if params[:latest].present?
-      @kinds = @package.latest_dependent_package_kinds
-    else
+    if params[:latest] == 'false'
       @kinds = @package.dependent_package_kinds
+    else
+      @kinds = @package.latest_dependent_package_kinds
     end
 
     if stale?(@package, public: true)
