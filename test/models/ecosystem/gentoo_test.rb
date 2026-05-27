@@ -19,6 +19,7 @@ class GentooTest < ActiveSupport::TestCase
 
     @fixture_root = Pathname.new(File.join(@fixture_tmpdir, "md5-cache"))
     @ecosystem.stubs(:md5_cache_root).returns(@fixture_root)
+    @ecosystem.stubs(:refresh_md5_cache).returns(@fixture_root)
 
     f1 = @fixture_root.join("app-misc", "demo-1.0-r1")
     f2 = @fixture_root.join("app-misc", "demo-2.0")
@@ -59,13 +60,20 @@ class GentooTest < ActiveSupport::TestCase
     assert_equal "emerge =app-misc/demo-2.0", @ecosystem.install_command(pkg, ver)
   end
 
-  test "download_url uses first http URL from SRC_URI" do
-    pkg = Package.new(ecosystem: "gentoo", name: "app-misc/demo")
+  test "download_url reads from version metadata without touching the snapshot" do
+    e = Ecosystem::Gentoo.new(@registry)
+    e.expects(:md5_cache_root).never
+    e.expects(:refresh_md5_cache).never
 
-    assert_equal(
-      "https://downloads.example.com/demo-2.0.tar.xz",
-      @ecosystem.download_url(pkg, pkg.versions.build(number: "2.0"))
+    pkg = Package.new(ecosystem: "gentoo", name: "app-misc/demo")
+    ver = pkg.versions.build(
+      number: "2.0",
+      metadata: { "download_url" => "https://downloads.example.com/demo-2.0.tar.xz" }
     )
+
+    assert_equal "https://downloads.example.com/demo-2.0.tar.xz", e.download_url(pkg, ver)
+    assert_nil e.download_url(pkg, pkg.versions.build(number: "1.0", metadata: {}))
+    assert_nil e.download_url(pkg, nil)
   end
 
   test "map_package_metadata" do
@@ -93,6 +101,9 @@ class GentooTest < ActiveSupport::TestCase
       ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
       versions.map { |v| v.dig(:metadata, :ebuild_md5) }.sort
     )
+
+    v2 = versions.find { |v| v[:number] == "2.0" }
+    assert_equal "https://downloads.example.com/demo-2.0.tar.xz", v2.dig(:metadata, :download_url)
   end
 
   test "dependencies_metadata splits runtime and build atoms and skips blockers" do
@@ -142,6 +153,23 @@ class GentooTest < ActiveSupport::TestCase
     g.stubs(:md5_cache_root).returns(@fixture_root)
 
     assert_equal "removed", g.check_status(pkg)
+  end
+
+  test "check_status is nil when md5 cache is not on disk" do
+    pkg = Package.new(ecosystem: "gentoo", name: "app-misc/demo")
+    g = Ecosystem::Gentoo.new(@registry)
+
+    g.stubs(:md5_cache_root).returns(nil)
+
+    assert_nil g.check_status(pkg)
+  end
+
+  test "md5_cache_root is read-only and does not download" do
+    g = Ecosystem::Gentoo.new(@registry)
+    g.expects(:download_and_cache).never
+    g.stubs(:md5_cache_dest).returns(Pathname.new("/nonexistent/gentoo-md5-cache"))
+
+    assert_nil g.md5_cache_root
   end
 
   test "recently_updated_package_names prefers newer cache mtimes" do

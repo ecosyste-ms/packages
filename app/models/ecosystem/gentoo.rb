@@ -46,14 +46,8 @@ module Ecosystem
       registry_url(package)
     end
 
-    def download_url(package, version)
-      return nil unless version.present?
-
-      rec = record_for_version(package.name, version.number)
-      return nil if rec.blank?
-
-      src = rec["SRC_URI"].to_s.split(/\s+/).find { |u| u.start_with?("http://", "https://") }
-      src.presence
+    def download_url(_package, version)
+      version&.metadata&.dig("download_url")
     end
 
     def install_command(package, version = nil)
@@ -63,6 +57,7 @@ module Ecosystem
     end
 
     def check_status(package)
+      return nil if md5_cache_root.blank?
       return "removed" if fetch_package_metadata(package.name).blank?
     end
 
@@ -70,9 +65,16 @@ module Ecosystem
       @cache_slug ||= Digest::MD5.hexdigest(snapshot_url)[0, 12]
     end
 
-    def md5_cache_root
-      return @md5_cache_root if @md5_cache_root
+    def md5_cache_dest
+      Rails.root.join("tmp", "cache", "ecosystems", "gentoo-md5-cache-#{cache_slug}")
+    end
 
+    def md5_cache_root
+      dest = md5_cache_dest
+      dest.directory? ? dest : nil
+    end
+
+    def refresh_md5_cache
       cached_xz = download_and_cache(
         snapshot_url,
         "gentoo-portage-#{cache_slug}.tar.xz",
@@ -81,27 +83,32 @@ module Ecosystem
 
       return nil if cached_xz.blank? || !File.exist?(cached_xz.to_s)
 
-      dest = Rails.root.join("tmp", "cache", "ecosystems", "gentoo-md5-cache-#{cache_slug}")
+      dest = md5_cache_dest
+      return dest if dest.directory? && File.mtime(dest) >= File.mtime(cached_xz.to_s)
 
-      if !dest.directory? || File.mtime(dest) < File.mtime(cached_xz.to_s)
-        FileUtils.rm_rf(dest)
-        Dir.mktmpdir("gentoo-portage") do |dir|
-          ok = system(
-            "tar", "-xJf", cached_xz.to_s, "-C", dir,
-            "portage/metadata/md5-cache"
-          )
-          extracted = File.join(dir, "portage", "metadata", "md5-cache")
+      FileUtils.mkdir_p(dest.dirname)
+      work = dest.dirname.join("#{dest.basename}.work-#{Process.pid}-#{SecureRandom.hex(4)}")
 
-          unless ok && File.directory?(extracted)
-            Rails.logger.error("Gentoo #{registry.name}: failed to extract md5-cache from portage snapshot")
-            return nil
-          end
+      begin
+        FileUtils.mkdir_p(work)
+        ok = system(
+          "tar", "-xJf", cached_xz.to_s, "-C", work.to_s,
+          "portage/metadata/md5-cache"
+        )
+        extracted = work.join("portage", "metadata", "md5-cache")
 
-          FileUtils.mv(extracted, dest)
+        unless ok && extracted.directory?
+          Rails.logger.error("Gentoo #{registry.name}: failed to extract md5-cache from portage snapshot")
+          return nil
         end
-      end
 
-      @md5_cache_root = dest
+        FileUtils.rm_rf(dest)
+        File.rename(extracted, dest)
+        @atom_paths = nil
+        dest
+      ensure
+        FileUtils.rm_rf(work)
+      end
     end
 
     def atom_paths
@@ -130,10 +137,12 @@ module Ecosystem
     end
 
     def all_package_names
+      refresh_md5_cache
       atom_paths.keys.sort
     end
 
     def recently_updated_package_names
+      refresh_md5_cache
       pairs = []
 
       atom_paths.each do |atom, paths|
@@ -190,7 +199,6 @@ module Ecosystem
         _pn, pv = split_package_version(pf)
         next if pv.blank? || existing_version_numbers.include?(pv.to_s)
 
-        sum = rec["_md5_"]
         acc << {
           number: pv,
           published_at: File.mtime(path),
@@ -198,7 +206,8 @@ module Ecosystem
             slot: rec["SLOT"],
             keywords: rec["KEYWORDS"],
             eapi: rec["EAPI"],
-            ebuild_md5: sum,
+            ebuild_md5: rec["_md5_"],
+            download_url: src_uri_url(rec),
           }.compact,
         }.compact
       end
@@ -242,14 +251,8 @@ module Ecosystem
       recs[idx] || recs.last
     end
 
-    def record_for_version(name, version_number)
-      raw = fetch_package_metadata_uncached(name)
-      return nil if raw.blank?
-
-      raw["paths"].zip(raw["records"]).each do |path, rec|
-        return rec if rec_path_pv(path) == version_number.to_s
-      end
-      nil
+    def src_uri_url(rec)
+      rec["SRC_URI"].to_s.split(/\s+/).find { |u| u.start_with?("http://", "https://") }
     end
 
     def parse_md5_cache_file(path)
