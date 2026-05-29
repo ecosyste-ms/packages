@@ -74,4 +74,36 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     @version = @package.versions.find_by_number!(params[:id])
     fresh_when @version, public: true
   end
+
+  def lookup
+    integrity = params[:integrity]
+
+    if integrity.blank?
+      if params[:sha256].present?
+        integrity = "sha256-#{params[:sha256]}"
+      elsif params[:sha1].present?
+        integrity = "sha1-#{params[:sha1]}"
+      elsif params[:sha512].present?
+        integrity = "sha512-#{params[:sha512]}"
+      end
+    end
+
+    if integrity.present? && integrity.match?(/\A[a-fA-F0-9]+\z/)
+      if integrity.length == 64
+        integrity = "sha256-#{integrity}"
+      elsif integrity.length == 40
+        integrity = "sha1-#{integrity}"
+      elsif integrity.length == 128
+        integrity = "sha512-#{integrity}"
+      end
+    end
+
+    if integrity.blank?
+      return render json: { error: 'Missing integrity parameter' }, status: :bad_request
+    end
+
+    scope = Version.where(integrity: integrity).includes(package: :registry)
+
+    @pagy, @versions = pagy_countless(scope)
+  end
 end
