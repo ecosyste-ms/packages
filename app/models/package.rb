@@ -287,7 +287,7 @@ class Package < ApplicationRecord
     read_attribute(:licenses).presence || repo_metadata && repo_metadata['license']
   end
 
-  NON_SPDX_LICENSE_VALUES = %w[other unknown none noassertion proprietary custom see\ license].freeze
+  NON_SPDX_LICENSE_VALUES = ["other", "unknown", "none", "noassertion", "proprietary", "custom", "see license", "open source"].freeze
 
   def spdx_license
     return Spdx.parse_spdx(licenses).licenses if Spdx.valid_spdx?(licenses)
