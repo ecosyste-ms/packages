@@ -37,6 +37,7 @@ default_registries = [
   {name: 'hub.docker.com', url: 'https://hub.docker.com', ecosystem: 'docker', github: 'docker', metadata: {api_url: 'https://registry-1.docker.io'}, default: true},
   {name: 'swiftpackageindex.com', url: 'https://swiftpackageindex.com', ecosystem: 'swiftpm', github: 'SwiftPackageIndex', default: true},
   {name: 'vcpkg.io', url: 'https://vcpkg.io', ecosystem: 'vcpkg', github: 'vcpkg', default: true},
+  {name: 'winget-pkgs', url: 'https://github.com/microsoft/winget-pkgs', ecosystem: 'winget', github: 'microsoft', default: true},
   {name: 'conan.io', url: 'https://conan.io/center', ecosystem: 'conan', github: 'conan-io', default: true},
   {name: "carthage", url: "https://github.com/Carthage/Carthage", ecosystem: "carthage", github: "Carthage", default: true},
   {name: 'github actions', url: 'https://github.com/marketplace/actions/', ecosystem: 'actions', github: 'actions', default: true},
