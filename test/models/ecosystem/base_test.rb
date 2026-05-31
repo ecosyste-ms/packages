@@ -119,6 +119,58 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal [], result
   end
 
+  test 'name_from_purl joins namespace by default' do
+    purl = Purl.parse('pkg:npm/@babel/core@7.0.0')
+    assert_equal '@babel/core', Ecosystem::Base.name_from_purl(purl)
+  end
+
+  test 'name_from_purl defaults docker namespace to library' do
+    purl = Purl.parse('pkg:docker/redis@7')
+    assert_equal 'library/redis', Ecosystem::Base.name_from_purl(purl)
+  end
+
+  test 'name_from_purl drops distro namespace for apk' do
+    purl = Purl.parse('pkg:apk/alpine/jq@1.7.1-r0')
+    assert_equal 'jq', Ecosystem::Base.name_from_purl(purl)
+  end
+
+  test 'name_from_purl drops distro namespace for deb' do
+    purl = Purl.parse('pkg:deb/debian/curl@8.5.0-2')
+    assert_equal 'curl', Ecosystem::Base.name_from_purl(purl)
+  end
+
+  test 'name_from_purl drops distro namespace for alpm' do
+    purl = Purl.parse('pkg:alpm/arch/jq@1.8.1-3?arch=x86_64')
+    assert_equal 'jq', Ecosystem::Base.name_from_purl(purl)
+  end
+
+  test 'purl_type_to_ecosystems returns all matching ecosystems for apk' do
+    ecosystems = Ecosystem::Base.purl_type_to_ecosystems('apk')
+    assert_includes ecosystems, 'alpine'
+    assert_includes ecosystems, 'adelie'
+    assert_includes ecosystems, 'postmarketos'
+  end
+
+  test 'purl_type_to_ecosystems returns all matching ecosystems for deb' do
+    ecosystems = Ecosystem::Base.purl_type_to_ecosystems('deb')
+    assert_includes ecosystems, 'debian'
+    assert_includes ecosystems, 'ubuntu'
+    assert_includes ecosystems, 'deb'
+  end
+
+  test 'purl_type_to_ecosystems returns single for npm' do
+    assert_equal ['npm'], Ecosystem::Base.purl_type_to_ecosystems('npm')
+  end
+
+  test 'purl_type_to_ecosystem still returns first match' do
+    assert_equal 'npm', Ecosystem::Base.purl_type_to_ecosystem('npm')
+    refute_nil Ecosystem::Base.purl_type_to_ecosystem('deb')
+  end
+
+  test 'purl_type_namespace_in_name? defaults true for unknown types' do
+    assert Ecosystem::Base.purl_type_namespace_in_name?('totally-unknown')
+  end
+
   test 'download_and_cache returns cached file when it exists and is fresh' do
     cache_dir = Rails.root.join('tmp', 'cache', 'ecosystems')
     FileUtils.mkdir_p(cache_dir)

@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>AUR Newest Packages</title><link>http://aur.archlinux.org/rss</link>
+<item><title>arch-update</title><link>http://aur.archlinux.org/packages/arch-update</link></item>
+<item><title>brave-nightly-bin</title><link>http://aur.archlinux.org/packages/brave-nightly-bin</link></item>
+</channel></rss>
