@@ -208,8 +208,7 @@ module Ecosystem
     end
 
     def version_licenses(name, version)
-      info = fetch_version(name, version)["info"] || {}
-      info["license_expression"].presence || info["license"].presence
+      licenses(fetch_version(name, version))
     end
 
     def dependencies_metadata(name, version, _package)
@@ -235,12 +234,24 @@ module Ecosystem
       nil
     end
 
-    def licenses(package)
-      return package["info"]["license_expression"] if package["info"]["license_expression"].present?
-      return package["info"]["license"] if package["info"]["license"].present?
+    LICENSE_IDENTIFIER_MAX_LENGTH = 100
 
-      license_classifiers = package["info"]["classifiers"].select { |c| c.start_with?("License :: ") }
-      license_classifiers.map { |l| l.split(":: ").last }.join(",")
+    def licenses(package)
+      info = package["info"] || {}
+      return info["license_expression"] if info["license_expression"].present?
+
+      license = info["license"]
+      return license if license_identifier?(license)
+
+      license_classifiers = (info["classifiers"] || []).select { |c| c.start_with?("License :: ") }
+      return license_classifiers.map { |l| l.split(":: ").last }.join(",") if license_classifiers.any?
+
+      license.presence
+    end
+
+    def license_identifier?(license)
+      return false if license.blank?
+      license.length <= LICENSE_IDENTIFIER_MAX_LENGTH && !license.include?("\n")
     end
 
     def package_find_names(package_name)

@@ -476,6 +476,40 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal "MIT License,BSD License", @ecosystem.licenses(package)
   end
 
+  test 'licenses falls back to classifiers when license contains a full license body' do
+    package = {
+      "info" => {
+        "license_expression" => nil,
+        "license" => "Copyright (c) 2001-2002 Enthought, Inc.\nAll rights reserved.\n\nRedistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met...",
+        "classifiers" => ["License :: OSI Approved :: BSD License"]
+      }
+    }
+    assert_equal "BSD License", @ecosystem.licenses(package)
+  end
+
+  test 'licenses falls back to classifiers when license is a long single-line string' do
+    package = {
+      "info" => {
+        "license_expression" => nil,
+        "license" => "BSD 3-Clause License Copyright (c) 2008-2011, AQR Capital Management, LLC, Lambda Foundry, Inc. and PyData Development Team. All rights reserved.",
+        "classifiers" => ["License :: OSI Approved :: BSD License"]
+      }
+    }
+    assert_equal "BSD License", @ecosystem.licenses(package)
+  end
+
+  test 'licenses returns license body when no classifiers available' do
+    body = "Copyright body\nwith newlines"
+    package = {
+      "info" => {
+        "license_expression" => nil,
+        "license" => body,
+        "classifiers" => []
+      }
+    }
+    assert_equal body, @ecosystem.licenses(package)
+  end
+
   test 'pypi package_metadata funding_url flask' do
     stub_request(:get, "https://pypi.org/pypi/flask/json")
       .to_return({ status: 200, body: file_fixture('pypi/flask/flask.json') })
