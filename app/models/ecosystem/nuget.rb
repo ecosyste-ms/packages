@@ -319,7 +319,7 @@ module Ecosystem
       return nil unless leaf.is_a?(Hash) && leaf["packageHash"].present?
       algo = (leaf["packageHashAlgorithm"] || "SHA512").to_s.downcase
       "#{algo}-#{leaf['packageHash']}"
-    rescue StandardError
+    rescue Faraday::Error, Oj::ParseError
       nil
     end
 
