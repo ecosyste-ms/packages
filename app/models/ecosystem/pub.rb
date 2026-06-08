@@ -64,7 +64,8 @@ module Ecosystem
       pkg_metadata[:versions].map do |v|
         {
           number: v["version"],
-          published_at: v['published']
+          published_at: v['published'],
+          integrity: v["archive_sha256"].present? ? "sha256-#{v['archive_sha256']}" : nil
         }
       end
     end

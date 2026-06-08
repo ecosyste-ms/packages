@@ -125,6 +125,7 @@ module Ecosystem
 
         {
           number: version,
+	  integrity: sha256.present? ? "sha256-#{sha256}" : nil,
           metadata: {
             url: url,
             sha256: sha256
