@@ -5,6 +5,7 @@ class MavenTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(default: true, name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
     @ecosystem = Ecosystem::Maven.new(@registry)
+    stub_request(:get, /\.jar\.sha1$/).to_return(status: 404, body: '')
     @package = Package.new(ecosystem: 'maven', name: 'dev.zio:zio-aws-autoscaling_3')
     @version = @package.versions.build(number: '5.17.224.2')
   end
@@ -590,5 +591,19 @@ class MavenTest < ActiveSupport::TestCase
     assert_not_nil result2
     # Should only have made one HTTP request
     assert_requested(pom_stub, times: 1)
+  end
+
+  test 'version_integrity maps the .jar.sha1 sidecar to sha1 integrity' do
+    stub_request(:get, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/5.17.225.2/zio-aws-autoscaling_3-5.17.225.2.jar.sha1")
+      .to_return(status: 200, body: "16d2a89f307bc09e96af26d938ade5812550606a")
+    integrity = @ecosystem.send(:version_integrity, 'dev.zio:zio-aws-autoscaling_3', '5.17.225.2')
+    assert_equal "sha1-16d2a89f307bc09e96af26d938ade5812550606a", integrity
+  end
+
+  test 'version_integrity returns nil when no .jar.sha1 exists (pom-only / 404)' do
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/pom-only/1.0.0/pom-only-1.0.0.jar.sha1")
+      .to_return(status: 404, body: "")
+    integrity = @ecosystem.send(:version_integrity, 'com.example:pom-only', '1.0.0')
+    assert_nil integrity
   end
 end
