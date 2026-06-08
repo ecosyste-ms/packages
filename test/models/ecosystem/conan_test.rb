@@ -86,6 +86,7 @@ class ConanTest < ActiveSupport::TestCase
     assert_equal versions_metadata.length, 1
     assert_equal versions_metadata.first[:number], '1.3.1'
     assert_equal versions_metadata.first[:metadata][:url], 'https://zlib.net/fossils/zlib-1.3.1.tar.gz'
+    assert_equal versions_metadata.first[:integrity], "sha256-9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23"
   end
 
   test 'dependencies_metadata from api' do

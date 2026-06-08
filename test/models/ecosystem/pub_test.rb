@@ -95,8 +95,8 @@ class PubTest < ActiveSupport::TestCase
     package_metadata = @ecosystem.package_metadata('bloc')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
-    assert_equal versions_metadata.first, {:number=>"0.1.0", :published_at=>"2018-10-08T02:30:26.298213Z"}
-    assert_equal versions_metadata.last, {:number=>"8.0.3", :published_at=>"2022-02-28T16:43:11.890583Z"}
+    assert_equal versions_metadata.first, {:number=>"0.1.0", :published_at=>"2018-10-08T02:30:26.298213Z", :integrity=>nil}
+    assert_equal versions_metadata.last, {:number=>"8.0.3", :published_at=>"2022-02-28T16:43:11.890583Z", :integrity=>nil}
   end
 
   test 'dependencies_metadata' do

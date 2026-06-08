@@ -90,6 +90,7 @@ module Ecosystem
           number: version["num"],
           published_at: version["created_at"],
           status: (version['yanked'] ? 'yanked' : nil),
+          integrity: version["checksum"].present? ? "sha256-" + version["checksum"] : nil,
           metadata: {
             uuid: version["id"],
             downloads: version["downloads"],
