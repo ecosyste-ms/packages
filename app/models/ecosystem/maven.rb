@@ -244,6 +244,7 @@ module Ecosystem
             number: version,
             published_at: published_at_node ? Time.parse(published_at_node.text) : nil,
             licenses: license_list,
+            integrity: version_integrity(pkg_metadata[:name], version),
             metadata: {
               properties: properties,
               java_version: extract_java_version(pom),
@@ -258,6 +259,17 @@ module Ecosystem
         next
         end
         .compact
+    end
+
+    def version_integrity(name, version)
+      group_id, artifact_id = *name.split(':', 2)
+      url = "#{@registry_url}/#{group_id.gsub('.', '/')}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.jar.sha1"
+      resp = request(url)
+      return nil unless resp.respond_to?(:success?) && resp.success?
+      sha1 = resp.body.to_s.strip[/\A[0-9a-fA-F]{40}/]
+      sha1 ? "sha1-#{sha1.downcase}" : nil
+    rescue StandardError
+      nil
     end
 
     def dependencies_metadata(name, version, mapped_package)
