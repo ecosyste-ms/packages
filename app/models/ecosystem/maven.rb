@@ -268,7 +268,7 @@ module Ecosystem
       return nil unless resp.respond_to?(:success?) && resp.success?
       sha1 = resp.body.to_s.strip[/\A[0-9a-fA-F]{40}/]
       sha1 ? "sha1-#{sha1.downcase}" : nil
-    rescue StandardError
+    rescue Faraday::Error
       nil
     end
 
