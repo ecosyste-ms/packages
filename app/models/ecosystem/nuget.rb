@@ -305,9 +305,22 @@ module Ecosystem
           number: version,
           published_at: catalog_entry["published"],
           status: status,
+          integrity: version_integrity(item, skip: existing_set.include?(version.to_s)),
           metadata: build_version_nuspec_metadata(pkg_metadata[:name], version, pkg_metadata, item, skip_nuspec: existing_set.include?(version.to_s))
         }
       end
+    end
+
+    def version_integrity(item, skip: false)
+      return nil if skip
+      catalog_entry = item["catalogEntry"]
+      return nil unless catalog_entry && catalog_entry["@id"].present?
+      leaf = get_json(catalog_entry["@id"])
+      return nil unless leaf.is_a?(Hash) && leaf["packageHash"].present?
+      algo = (leaf["packageHashAlgorithm"] || "SHA512").to_s.downcase
+      "#{algo}-#{leaf['packageHash']}"
+    rescue StandardError
+      nil
     end
 
     def version_status(catalog_entry)
