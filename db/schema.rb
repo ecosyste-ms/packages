@@ -237,6 +237,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_30_204256) do
     t.string "status"
     t.datetime "updated_at", null: false
     t.index ["id"], name: "index_versions_on_id_where_latest_covering", where: "(latest = true)", include: ["package_id"]
+    t.index ["integrity"], name: "index_versions_on_integrity", where: "(integrity IS NOT NULL)"
     t.index ["package_id", "number"], name: "index_versions_on_package_id_and_number", unique: true
     t.index ["published_at"], name: "index_versions_on_published_at"
     t.index ["registry_id", "created_at"], name: "index_versions_on_registry_id_and_created_at"
