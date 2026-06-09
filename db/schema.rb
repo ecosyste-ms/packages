@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_27_145308) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_29_182000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -229,6 +229,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_27_145308) do
     t.string "status"
     t.datetime "updated_at", null: false
     t.index ["id"], name: "index_versions_on_id_where_latest_covering", where: "(latest = true)", include: ["package_id"]
+    t.index ["integrity"], name: "index_versions_on_integrity", where: "(integrity IS NOT NULL)"
     t.index ["package_id", "number"], name: "index_versions_on_package_id_and_number", unique: true
     t.index ["published_at"], name: "index_versions_on_published_at"
     t.index ["registry_id", "created_at"], name: "index_versions_on_registry_id_and_created_at"
