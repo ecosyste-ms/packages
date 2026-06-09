@@ -2,6 +2,7 @@ require "test_helper"
 
 class NugetTest < ActiveSupport::TestCase
   setup do
+    stub_request(:get, %r{\Ahttps://api\.nuget\.org/v3/catalog0/}).to_return(status: 200, body: '{}')
     @registry = Registry.new(default: true, name: 'NuGet.org', url: 'https://www.nuget.org', ecosystem: 'nuget')
     @ecosystem = Ecosystem::Nuget.new(@registry)
     @package = Package.new(ecosystem: 'nuget', name: 'ogcapi.net.sqlserver')
@@ -117,6 +118,10 @@ class NugetTest < ActiveSupport::TestCase
       .to_return({ status: 404, body: "" })
     stub_request(:get, "https://api.nuget.org/v3-flatcontainer/ogcapi.net.sqlserver/0.3.1/ogcapi.net.sqlserver.nuspec")
       .to_return({ status: 404, body: "" })
+    stub_request(:get, "https://api.nuget.org/v3/catalog0/data/2022.03.25.05.13.54/ogcapi.net.sqlserver.0.3.0.json")
+      .to_return({ status: 200, body: '{"packageHash":"AAAA000abc==","packageHashAlgorithm":"SHA512"}' })
+    stub_request(:get, "https://api.nuget.org/v3/catalog0/data/2022.03.25.10.27.50/ogcapi.net.sqlserver.0.3.1.json")
+      .to_return({ status: 200, body: '{"packageHash":"BBBB111def==","packageHashAlgorithm":"SHA512"}' })
     package_metadata = @ecosystem.package_metadata('ogcapi.net.sqlserver')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
@@ -128,7 +133,9 @@ class NugetTest < ActiveSupport::TestCase
     assert_equal "2022-03-25T05:11:36.793+00:00", versions_metadata[0][:published_at]
     assert_equal "0.3.1", versions_metadata[1][:number]
     assert_equal "2022-03-25T10:25:47.79+00:00", versions_metadata[1][:published_at]
-    
+    assert_equal "sha512-AAAA000abc==", versions_metadata[0][:integrity]
+    assert_equal "sha512-BBBB111def==", versions_metadata[1][:integrity]    
+
     # Check that metadata now includes enhanced information
     metadata_0 = versions_metadata[0][:metadata]
     assert_not_nil metadata_0
