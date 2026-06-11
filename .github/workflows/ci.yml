@@ -45,6 +45,14 @@ jobs:
         with:
           bundler-cache: true
 
+      - name: Install pom
+        env:
+          POM_VERSION: 0.1.2
+        run: |
+          curl -fsSL "https://github.com/git-pkgs/pom/releases/download/v${POM_VERSION}/pom_${POM_VERSION}_linux_amd64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin pom
+          pom -version
+
       - name: Run tests
         env:
           RAILS_ENV: test
