@@ -29,8 +29,31 @@ class ExportsRakeTest < ActiveSupport::TestCase
       'registry' => 'hackage.haskell.org',
       'name' => 'aeson',
       'version' => '2.2.3.0',
-      'url' => 'https://hackage.haskell.org/package/aeson-2.2.3.0/aeson-2.2.3.0.tar.gz'
+      'url' => 'https://hackage.haskell.org/package/aeson-2.2.3.0/aeson-2.2.3.0.tar.gz',
+      'status' => nil
     }, lines.first)
+  end
+
+  test "integrity_worklist falls back to package status when version status is blank" do
+    registry = Registry.create(name: 'hackage.haskell.org', url: 'https://hackage.haskell.org', ecosystem: 'hackage')
+    package = Package.create(name: 'aeson', ecosystem: 'hackage', registry: registry, status: 'removed')
+    Version.create(package: package, number: '2.2.3.0', registry: registry)
+
+    ENV['REGISTRY'] = 'hackage.haskell.org'
+    output = capture_io { Rake::Task["exports:integrity_worklist"].execute }.first
+
+    assert_equal 'removed', JSON.parse(output)['status']
+  end
+
+  test "integrity_worklist prefers version status over package status" do
+    registry = Registry.create(name: 'hackage.haskell.org', url: 'https://hackage.haskell.org', ecosystem: 'hackage')
+    package = Package.create(name: 'aeson', ecosystem: 'hackage', registry: registry, status: 'removed')
+    Version.create(package: package, number: '2.2.3.0', registry: registry, status: 'yanked')
+
+    ENV['REGISTRY'] = 'hackage.haskell.org'
+    output = capture_io { Rake::Task["exports:integrity_worklist"].execute }.first
+
+    assert_equal 'yanked', JSON.parse(output)['status']
   end
 
   test "integrity_worklist skips versions without a download url" do

@@ -189,7 +189,8 @@ namespace :exports do
         version.package = package
         url = version.download_url rescue nil
         next if url.blank?
-        puts({ registry: registry.name, name: package.name, version: version.number, url: url }.to_json)
+        status = version.status.presence || package.status.presence
+        puts({ registry: registry.name, name: package.name, version: version.number, url: url, status: status }.to_json)
       end
     end
   end
