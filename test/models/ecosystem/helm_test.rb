@@ -29,8 +29,19 @@ class HelmTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
+    stub_request(:get, "https://artifacthub.io/api/v1/packages/helm/prometheus-community/kube-prometheus-stack/74.0.0")
+      .to_return(status: 200, body: '{"content_url":"https://example.com/charts/kube-prometheus-stack-74.0.0.tgz","digest":"abc123"}')
     download_url = @ecosystem.download_url(@package, @version)
-    assert_nil download_url
+    assert_equal 'https://example.com/charts/kube-prometheus-stack-74.0.0.tgz', download_url
+  end
+
+  test 'download_url without version returns nil' do
+    assert_nil @ecosystem.download_url(@package)
+  end
+
+  test 'download_url with invalid name format' do
+    @package.name = 'invalid-name'
+    assert_nil @ecosystem.download_url(@package, @version)
   end
 
   test 'documentation_url' do

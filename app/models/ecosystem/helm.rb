@@ -13,7 +13,16 @@ module Ecosystem
       url
     end
 
-    def download_url(_package, _version = nil)
+    def download_url(package, version = nil)
+      return nil unless version
+      parts = package.name.split('/')
+      return nil unless parts.length == 2
+
+      repository, name = parts
+      number = version.respond_to?(:number) ? version.number : version
+      data = get_json("https://artifacthub.io/api/v1/packages/helm/#{repository}/#{name}/#{number}")
+      data["content_url"].presence
+    rescue Faraday::Error, Oj::ParseError
       nil
     end
 
