@@ -175,6 +175,25 @@ namespace :exports do
       end
   end
 
+  desc 'Export versions missing integrity as JSONL (usage: rake exports:integrity_worklist REGISTRY=hackage.haskell.org)'
+  task integrity_worklist: :environment do
+    registry = Registry.find_by(name: ENV['REGISTRY'])
+    unless registry
+      $stderr.puts "Registry not found: #{ENV['REGISTRY'].inspect} (set REGISTRY to a registry name)"
+      exit 1
+    end
+
+    registry.packages.each_instance do |package|
+      package.registry = registry
+      package.versions.where(integrity: [nil, '']).each do |version|
+        version.package = package
+        url = version.download_url rescue nil
+        next if url.blank?
+        puts({ registry: registry.name, name: package.name, version: version.number, url: url }.to_json)
+      end
+    end
+  end
+
   desc 'Export npm versions published per day (usage: rake exports:npm_versions_per_day START_DATE=2024-11-05 END_DATE=2025-01-05)'
   task npm_versions_per_day: :environment do
     start_date = ENV['START_DATE'] ? Date.parse(ENV['START_DATE']) : Date.new(2024, 11, 5)
