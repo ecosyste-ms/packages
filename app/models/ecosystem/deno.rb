@@ -3,7 +3,17 @@ module Ecosystem
     def registry_url(package, version = nil)
       "https://deno.land/x/#{package.name}"  + (version ? "@#{version}" : "")
     end
+    def download_url(package, version = nil)
+      return nil unless version
+      number = version.respond_to?(:number) ? version.number : version
+      meta = get_json("https://cdn.deno.land/#{package.name}/versions/#{CGI.escape(number)}/meta/meta.json")
+      opts = meta && meta["upload_options"]
+      return nil unless opts && opts["type"] == "github" && opts["repository"].present? && opts["ref"].present?
 
+      "https://codeload.github.com/#{opts['repository']}/tar.gz/refs/tags/#{opts['ref']}"
+    rescue Faraday::Error, Oj::ParseError
+      nil
+    end
     def documentation_url(package, version = nil)
       if version
         "https://doc.deno.land/https://deno.land/x/#{package.name}@#{version}/mod.ts"

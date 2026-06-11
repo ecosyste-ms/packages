@@ -19,8 +19,20 @@ class DenoTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
+    stub_request(:get, "https://cdn.deno.land/deno_es/versions/v0.4.2/meta/meta.json")
+      .to_return(status: 200, body: '{"upload_options":{"type":"github","repository":"denosaurs/deno_es","ref":"v0.4.2"}}')
     download_url = @ecosystem.download_url(@package, @version)
-    assert_nil download_url
+    assert_equal 'https://codeload.github.com/denosaurs/deno_es/tar.gz/refs/tags/v0.4.2', download_url
+  end
+
+  test 'download_url without version returns nil' do
+    assert_nil @ecosystem.download_url(@package)
+  end
+
+  test 'download_url returns nil for non-github source' do
+    stub_request(:get, "https://cdn.deno.land/deno_es/versions/v0.4.2/meta/meta.json")
+      .to_return(status: 200, body: '{"upload_options":{"type":"other","repository":"x/y","ref":"v0.4.2"}}')
+    assert_nil @ecosystem.download_url(@package, @version)
   end
 
   test 'documentation_url' do
