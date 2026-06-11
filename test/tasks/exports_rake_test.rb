@@ -60,7 +60,8 @@ class ExportsRakeTest < ActiveSupport::TestCase
     registry = Registry.create(name: 'artifacthub.io', url: 'https://artifacthub.io', ecosystem: 'helm')
     package = Package.create(name: 'bitnami/redis', ecosystem: 'helm', registry: registry)
     Version.create(package: package, number: '1.0.0', registry: registry)
-
+    stub_request(:get, "https://artifacthub.io/api/v1/packages/helm/bitnami/redis/1.0.0")
+      .to_return(status: 200, body: '{}')
     ENV['REGISTRY'] = 'artifacthub.io'
     output = capture_io { Rake::Task["exports:integrity_worklist"].execute }.first
 
