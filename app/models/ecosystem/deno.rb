@@ -3,16 +3,12 @@ module Ecosystem
     def registry_url(package, version = nil)
       "https://deno.land/x/#{package.name}"  + (version ? "@#{version}" : "")
     end
-    def download_url(package, version = nil)
-      return nil unless version
-      number = version.respond_to?(:number) ? version.number : version
-      meta = get_json("https://cdn.deno.land/#{package.name}/versions/#{CGI.escape(number)}/meta/meta.json")
-      opts = meta && meta["upload_options"]
-      return nil unless opts && opts["type"] == "github" && opts["repository"].present? && opts["ref"].present?
-
-      "https://codeload.github.com/#{opts['repository']}/tar.gz/refs/tags/#{opts['ref']}"
-    rescue Faraday::Error, Oj::ParseError
-      nil
+    def download_url(_package, version = nil)
+      return nil unless version.respond_to?(:metadata) && version.metadata
+      return nil unless version.metadata['source_type'] == 'github'
+      repo = version.metadata['source_repository'].presence or return nil
+      ref  = version.metadata['source_ref'].presence or return nil
+      "https://codeload.github.com/#{repo}/tar.gz/refs/tags/#{ref}"
     end
     def documentation_url(package, version = nil)
       if version
@@ -91,6 +87,11 @@ module Ecosystem
           {
             number: version,
             published_at: ver['uploaded_at'],
+            metadata: {
+              'source_type'       => (ver['upload_options'] || {})['type'],
+              'source_repository' => (ver['upload_options'] || {})['repository'],
+              'source_ref'        => (ver['upload_options'] || {})['ref'],
+            },
           }
         rescue
           nil
