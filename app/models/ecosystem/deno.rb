@@ -3,7 +3,13 @@ module Ecosystem
     def registry_url(package, version = nil)
       "https://deno.land/x/#{package.name}"  + (version ? "@#{version}" : "")
     end
-
+    def download_url(_package, version = nil)
+      return nil unless version.respond_to?(:metadata) && version.metadata
+      return nil unless version.metadata['source_type'] == 'github'
+      repo = version.metadata['source_repository'].presence or return nil
+      ref  = version.metadata['source_ref'].presence or return nil
+      "https://codeload.github.com/#{repo}/tar.gz/refs/tags/#{ref}"
+    end
     def documentation_url(package, version = nil)
       if version
         "https://doc.deno.land/https://deno.land/x/#{package.name}@#{version}/mod.ts"
@@ -81,6 +87,11 @@ module Ecosystem
           {
             number: version,
             published_at: ver['uploaded_at'],
+            metadata: {
+              'source_type'       => (ver['upload_options'] || {})['type'],
+              'source_repository' => (ver['upload_options'] || {})['repository'],
+              'source_ref'        => (ver['upload_options'] || {})['ref'],
+            },
           }
         rescue
           nil
