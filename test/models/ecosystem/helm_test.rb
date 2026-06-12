@@ -11,6 +11,8 @@ class HelmTest < ActiveSupport::TestCase
       metadata: { 'repository_url' => 'https://prometheus-community.github.io/helm-charts' }
     )
     @version = @package.versions.build(number: '74.0.0')
+    stub_request(:get, %r{\Ahttps://artifacthub\.io/api/v1/packages/helm/[^/]+/[^/]+/[^/]+\z})
+      .to_return(status: 200, body: '{"content_url":"https://charts.example.com/chart.tgz","digest":"abc"}')
   end
 
   test 'registry_url' do
@@ -29,18 +31,16 @@ class HelmTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    stub_request(:get, "https://artifacthub.io/api/v1/packages/helm/prometheus-community/kube-prometheus-stack/74.0.0")
-      .to_return(status: 200, body: '{"content_url":"https://example.com/charts/kube-prometheus-stack-74.0.0.tgz","digest":"abc123"}')
-    download_url = @ecosystem.download_url(@package, @version)
-    assert_equal 'https://example.com/charts/kube-prometheus-stack-74.0.0.tgz', download_url
+    @version.metadata = { 'content_url' => 'https://example.com/charts/kube-prometheus-stack-74.0.0.tgz' }
+    assert_equal 'https://example.com/charts/kube-prometheus-stack-74.0.0.tgz', @ecosystem.download_url(@package, @version)
   end
 
   test 'download_url without version returns nil' do
     assert_nil @ecosystem.download_url(@package)
   end
 
-  test 'download_url with invalid name format' do
-    @package.name = 'invalid-name'
+  test 'download_url returns nil when content_url missing' do
+    @version.metadata = {}
     assert_nil @ecosystem.download_url(@package, @version)
   end
 
@@ -161,6 +161,7 @@ class HelmTest < ActiveSupport::TestCase
       assert first_version[:number].present?
       assert_equal first_version[:licenses], package_metadata[:licenses]
       assert_kind_of Hash, first_version[:metadata]
+      assert_equal 'https://charts.example.com/chart.tgz', first_version[:metadata]['content_url']
     end
   end
 

@@ -13,17 +13,9 @@ module Ecosystem
       url
     end
 
-    def download_url(package, version = nil)
-      return nil unless version
-      parts = package.name.split('/')
-      return nil unless parts.length == 2
-
-      repository, name = parts
-      number = version.respond_to?(:number) ? version.number : version
-      data = get_json("https://artifacthub.io/api/v1/packages/helm/#{repository}/#{name}/#{number}")
-      data["content_url"].presence
-    rescue Faraday::Error, Oj::ParseError
-      nil
+    def download_url(_package, version = nil)
+      return nil unless version.respond_to?(:metadata) && version.metadata
+      version.metadata['content_url'].presence
     end
 
     def documentation_url(package, _version = nil)
@@ -158,11 +150,14 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       return [] unless pkg_metadata[:versions]
+      parts = pkg_metadata[:name].to_s.split('/')
+      repository, name = parts.length == 2 ? parts : [nil, nil]
 
       pkg_metadata[:versions]
         .select { |v| v['version'].present? }
         .reject { |v| existing_version_numbers.include?(v['version']) }
         .map do |version|
+          content_url = fetch_content_url(repository, name, version['version']) if repository && name
           {
             number: version['version'],
             published_at: version['ts'] ? Time.at(version['ts']).utc : nil,
@@ -170,10 +165,18 @@ module Ecosystem
             metadata: {
               'app_version' => version['app_version'],
               'contains_security_updates' => version['contains_security_updates'] || false,
-              'prerelease' => version['prerelease'] || false
+              'prerelease' => version['prerelease'] || false,
+              'content_url' => content_url,
             }
           }
         end
+    end
+
+    def fetch_content_url(repository, name, number)
+      data = get_json("https://artifacthub.io/api/v1/packages/helm/#{repository}/#{name}/#{number}")
+      data.is_a?(Hash) ? data['content_url'].presence : nil
+    rescue Faraday::Error, Oj::ParseError
+      nil
     end
 
     def self.purl_type
