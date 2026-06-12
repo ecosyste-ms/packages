@@ -15,6 +15,7 @@ class PackageTest < ActiveSupport::TestCase
   end
 
   setup do
+    UpdateRankingsWorker.stubs(:perform_async)
     @registry = Registry.create(default: true, name: 'rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
     @package = @registry.packages.create(name: 'foo', ecosystem: @registry.ecosystem, licenses: 'mit')
     @version = @package.versions.create(number: '1.0.0', published_at: 1.month.ago)
@@ -103,6 +104,43 @@ class PackageTest < ActiveSupport::TestCase
 
   test 'install_command' do
     assert_equal @package.install_command, 'gem install foo -s https://rubygems.org'
+  end
+
+  test 'repo_funding_links splits comma separated github usernames' do
+    @package.update(
+      repo_metadata: {
+        'metadata' => {
+          'funding' => {
+            'github' => 'foo, bar, baz'
+          }
+        }
+      }
+    )
+
+    assert_equal [
+      'https://github.com/sponsors/foo',
+      'https://github.com/sponsors/bar',
+      'https://github.com/sponsors/baz'
+    ], @package.repo_funding_links
+  end
+
+  test 'repo_funding_links limits github usernames to four' do
+    @package.update(
+      repo_metadata: {
+        'metadata' => {
+          'funding' => {
+            'github' => 'foo, bar, baz, qux, quux'
+          }
+        }
+      }
+    )
+
+    assert_equal [
+      'https://github.com/sponsors/foo',
+      'https://github.com/sponsors/bar',
+      'https://github.com/sponsors/baz',
+      'https://github.com/sponsors/qux'
+    ], @package.repo_funding_links
   end
 
   test 'registry_url' do
