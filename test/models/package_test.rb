@@ -15,7 +15,6 @@ class PackageTest < ActiveSupport::TestCase
   end
 
   setup do
-    UpdateRankingsWorker.stubs(:perform_async)
     @registry = Registry.create(default: true, name: 'rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
     @package = @registry.packages.create(name: 'foo', ecosystem: @registry.ecosystem, licenses: 'mit')
     @version = @package.versions.create(number: '1.0.0', published_at: 1.month.ago)
@@ -121,6 +120,23 @@ class PackageTest < ActiveSupport::TestCase
       'https://github.com/sponsors/foo',
       'https://github.com/sponsors/bar',
       'https://github.com/sponsors/baz'
+    ], @package.repo_funding_links
+  end
+
+  test 'repo_funding_links handles github username arrays' do
+    @package.update(
+      repo_metadata: {
+        'metadata' => {
+          'funding' => {
+            'github' => ['foo', 'bar']
+          }
+        }
+      }
+    )
+
+    assert_equal [
+      'https://github.com/sponsors/foo',
+      'https://github.com/sponsors/bar'
     ], @package.repo_funding_links
   end
 
