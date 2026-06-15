@@ -394,7 +394,8 @@ class Package < ApplicationRecord
           v.assign_attributes(version)
           v.save(validate: false)
         else
-          created_versions << versions.create(version)
+          created = versions.create(version)
+          created_versions << created if created.persisted?
         end
       rescue ActiveRecord::RecordNotUnique
         Rails.logger.warn("Version not unique: #{version[:number]}")

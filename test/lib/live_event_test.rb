@@ -72,4 +72,12 @@ class LiveEventTest < ActiveSupport::TestCase
       assert_nil LiveEvent.emit({ event: 'version.created' })
     end
   end
+
+  test 'emit swallows invalid URI errors' do
+    ENV['LIVE_WEBHOOK_URL'] = 'http://[invalid'
+
+    assert_nothing_raised do
+      assert_nil LiveEvent.emit({ event: 'version.created' })
+    end
+  end
 end

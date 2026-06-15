@@ -17,7 +17,7 @@ module LiveEvent
       req.body = { events: events }.to_json
     end
     nil
-  rescue Faraday::Error
+  rescue Faraday::Error, URI::InvalidURIError
     nil
   end
 end

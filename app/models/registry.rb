@@ -215,8 +215,8 @@ class Registry < ApplicationRecord
       end
 
       if LiveEvent.enabled?
-        new_numbers = new_versions.map { |v| v.with_indifferent_access[:number].to_s }
-        package.emit_new_version_events(package.versions.where(number: new_numbers).to_a)
+        new_numbers = new_versions.map { |v| v.with_indifferent_access[:number].to_s } - existing_version_numbers
+        package.emit_new_version_events(package.versions.where(number: new_numbers).to_a) if new_numbers.any?
       end
 
       all_deps = []

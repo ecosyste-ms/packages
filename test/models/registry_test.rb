@@ -188,6 +188,23 @@ class RegistryTest < ActiveSupport::TestCase
     @registry.sync_package('existing')
   end
 
+  test 'sync_package does not emit version.created for status updates to existing versions' do
+    LiveEvent.stubs(:enabled?).returns(true)
+    pkg = @registry.packages.create(name: 'existing', ecosystem: 'rubygems', last_synced_at: 2.days.ago)
+    pkg.versions.create(number: '1.0.0', registry_id: @registry.id)
+
+    ecosystem = @registry.ecosystem_instance
+    ecosystem.stubs(:package_metadata).returns({ name: 'existing' })
+    ecosystem.stubs(:versions_metadata).returns([{ number: '1.0.0', status: 'yanked' }])
+    ecosystem.stubs(:dependencies_metadata).returns([])
+    Package.any_instance.stubs(:check_status)
+    Package.any_instance.stubs(:update_repo_metadata_async)
+
+    Package.any_instance.expects(:emit_new_version_events).never
+
+    @registry.sync_package('existing')
+  end
+
   test 'sync_package skips version reload when LiveEvent disabled' do
     LiveEvent.stubs(:enabled?).returns(false)
 
