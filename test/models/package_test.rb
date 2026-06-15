@@ -105,6 +105,60 @@ class PackageTest < ActiveSupport::TestCase
     assert_equal @package.install_command, 'gem install foo -s https://rubygems.org'
   end
 
+  test 'repo_funding_links splits comma separated github usernames' do
+    @package.update(
+      repo_metadata: {
+        'metadata' => {
+          'funding' => {
+            'github' => 'foo, bar, baz'
+          }
+        }
+      }
+    )
+
+    assert_equal [
+      'https://github.com/sponsors/foo',
+      'https://github.com/sponsors/bar',
+      'https://github.com/sponsors/baz'
+    ], @package.repo_funding_links
+  end
+
+  test 'repo_funding_links handles github username arrays' do
+    @package.update(
+      repo_metadata: {
+        'metadata' => {
+          'funding' => {
+            'github' => ['foo', 'bar']
+          }
+        }
+      }
+    )
+
+    assert_equal [
+      'https://github.com/sponsors/foo',
+      'https://github.com/sponsors/bar'
+    ], @package.repo_funding_links
+  end
+
+  test 'repo_funding_links limits github usernames to four' do
+    @package.update(
+      repo_metadata: {
+        'metadata' => {
+          'funding' => {
+            'github' => 'foo, bar, baz, qux, quux'
+          }
+        }
+      }
+    )
+
+    assert_equal [
+      'https://github.com/sponsors/foo',
+      'https://github.com/sponsors/bar',
+      'https://github.com/sponsors/baz',
+      'https://github.com/sponsors/qux'
+    ], @package.repo_funding_links
+  end
+
   test 'registry_url' do
     assert_equal @package.registry_url, 'https://rubygems.org/gems/foo'
   end

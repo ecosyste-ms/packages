@@ -614,7 +614,7 @@ class Package < ApplicationRecord
       next if v.blank?
       case key
       when "github"
-        Array(v).map{|username| "https://github.com/sponsors/#{username}" }
+        github_funding_usernames(v).map{|username| "https://github.com/sponsors/#{username}" }
       when "tidelift"
         "https://tidelift.com/funding/github/#{v}"
       when "community_bridge"
@@ -643,6 +643,10 @@ class Package < ApplicationRecord
         v
       end
     end.flatten.compact
+  end
+
+  def github_funding_usernames(value)
+    Array(value).flat_map { |username| username.to_s.split(",") }.map(&:strip).reject(&:blank?).first(4)
   end
 
   def stars
