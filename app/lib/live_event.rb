@@ -9,8 +9,8 @@ module LiveEvent
     return if events.empty?
 
     Faraday.post(ENV['LIVE_WEBHOOK_URL']) do |req|
-      req.options.timeout = 2
-      req.options.open_timeout = 2
+      req.options.timeout = 0.5
+      req.options.open_timeout = 0.5
       req.headers['Content-Type'] = 'application/json'
       req.headers['User-Agent'] = 'packages.ecosyste.ms'
       req.headers['Authorization'] = "Bearer #{ENV['LIVE_WEBHOOK_TOKEN']}" if ENV['LIVE_WEBHOOK_TOKEN'].present?

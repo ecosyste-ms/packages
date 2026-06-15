@@ -19,7 +19,7 @@ Events are emitted inline from the sync path, which already runs inside Sidekiq,
 - [`Registry#sync_package`](../app/models/registry.rb#L219) emits `version.created` for every row inserted via `Version.upsert_all`. The just-inserted versions are reloaded with one query and one POST carries all of them.
 - [`Package#update_versions`](../app/models/package.rb#L403) emits `version.created` for any versions it creates.
 
-[`LiveEvent.emit`](../app/lib/live_event.rb#L6) makes the request with a 2-second connect and read timeout and rescues `Faraday::Error`. A slow or dead receiver adds at most two seconds to a sync and never causes it to fail. Delivery is fire-and-forget with no retries; this is a live ticker, not a durable log, so a dropped event is acceptable.
+[`LiveEvent.emit`](../app/lib/live_event.rb#L6) makes the request with a 500ms connect and read timeout and rescues `Faraday::Error`. The emit methods on `Package` additionally rescue any `StandardError` raised while building the payload, so a slow or dead receiver adds at most half a second to a sync and a serialisation bug never causes one to fail. Delivery is fire-and-forget with no retries; this is a live ticker, not a durable log, so a dropped event is acceptable.
 
 ## Request
 

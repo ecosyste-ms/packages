@@ -417,4 +417,18 @@ class PackageTest < ActiveSupport::TestCase
     LiveEvent.expects(:emit).never
     @package.emit_new_version_events([@version])
   end
+
+  test 'emit_new_package_event swallows payload errors' do
+    LiveEvent.stubs(:enabled?).returns(true)
+    @package.stubs(:as_live_event_json).raises(NoMethodError, 'boom')
+
+    assert_nothing_raised { @package.emit_new_package_event }
+  end
+
+  test 'emit_new_version_events swallows payload errors' do
+    LiveEvent.stubs(:enabled?).returns(true)
+    @version.stubs(:as_live_event_json).raises(NoMethodError, 'boom')
+
+    assert_nothing_raised { @package.emit_new_version_events([@version]) }
+  end
 end

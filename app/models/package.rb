@@ -249,6 +249,8 @@ class Package < ApplicationRecord
   def emit_new_package_event
     return unless LiveEvent.enabled?
     LiveEvent.emit(live_event_payload(event: 'package.created'))
+  rescue StandardError => e
+    Rails.logger.warn("LiveEvent package.created failed for #{registry&.name}/#{name}: #{e.class}: #{e.message}")
   end
 
   def emit_new_version_events(version_records)
@@ -259,6 +261,8 @@ class Package < ApplicationRecord
       live_event_payload(event: 'version.created', version: v)
     end
     LiveEvent.emit(events)
+  rescue StandardError => e
+    Rails.logger.warn("LiveEvent version.created failed for #{registry&.name}/#{name}: #{e.class}: #{e.message}")
   end
 
   def update_details
