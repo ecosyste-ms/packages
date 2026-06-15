@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>Arch Linux: Recent package updates</title><link>https://archlinux.org/packages/</link><description>Recently updated packages in the Arch Linux package repositories.</description>
+<item><title>river-classic 0.3.17-1 x86_64</title><link>https://archlinux.org/packages/extra-testing/x86_64/river-classic/</link></item>
+<item><title>jq 1.8.1-3 x86_64</title><link>https://archlinux.org/packages/extra/x86_64/jq/</link></item>
+</channel></rss>
