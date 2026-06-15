@@ -334,4 +334,87 @@ class PackageTest < ActiveSupport::TestCase
     refute_includes results, package_without_advisories
     refute_includes results, @package
   end
+
+  test 'as_live_event_json includes API fields' do
+    json = @package.as_live_event_json
+
+    assert_equal 'foo', json['name']
+    assert_equal 'rubygems', json['ecosystem']
+    assert_equal 'pkg:gem/foo', json['purl']
+    assert_equal 'https://rubygems.org/gems/foo', json['registry_url']
+    assert_equal 'gem install foo -s https://rubygems.org', json['install_command']
+    assert json.key?('description')
+    assert json.key?('repository_url')
+    assert json.key?('latest_release_number')
+    assert json.key?('status')
+    refute json.key?('maintainers')
+    refute json.key?('repo_metadata')
+  end
+
+  test 'live_event_payload for package.created' do
+    payload = @package.live_event_payload(event: 'package.created')
+
+    assert_equal 'package.created', payload[:event]
+    assert_equal 'rubygems.org', payload[:registry]
+    assert_equal 'https://packages.ecosyste.ms/api/v1/registries/rubygems.org', payload[:registry_url]
+    assert_equal 'https://packages.ecosyste.ms/api/v1/registries/rubygems.org/packages/foo', payload[:package_url]
+    assert_equal 'foo', payload[:package]['name']
+    assert_equal 'pkg:gem/foo', payload[:package]['purl']
+    refute payload.key?(:version)
+  end
+
+  test 'live_event_payload for version.created' do
+    payload = @package.live_event_payload(event: 'version.created', version: @version)
+
+    assert_equal 'version.created', payload[:event]
+    assert_equal 'https://packages.ecosyste.ms/api/v1/registries/rubygems.org/packages/foo', payload[:package_url]
+    assert_equal 'https://packages.ecosyste.ms/api/v1/registries/rubygems.org/packages/foo/versions/1.0.0', payload[:version_url]
+    assert_equal 'foo', payload[:package]['name']
+    assert_equal '1.0.0', payload[:version]['number']
+    assert_equal 'pkg:gem/foo@1.0.0', payload[:version]['purl']
+    assert payload[:version].key?('published_at')
+    assert payload[:version].key?('download_url')
+  end
+
+  test 'live_event_payload encodes package name in url' do
+    npm = Registry.create(default: true, name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    pkg = npm.packages.create(name: '@scope/pkg', ecosystem: 'npm')
+
+    assert_equal 'https://packages.ecosyste.ms/api/v1/registries/npmjs.org/packages/%40scope%2Fpkg',
+                 pkg.live_event_payload(event: 'package.created')[:package_url]
+  end
+
+  test 'emit_new_package_event calls LiveEvent.emit' do
+    LiveEvent.stubs(:enabled?).returns(true)
+    LiveEvent.expects(:emit).with(has_entry(:event, 'package.created'))
+    @package.emit_new_package_event
+  end
+
+  test 'emit_new_package_event does nothing when LiveEvent disabled' do
+    LiveEvent.stubs(:enabled?).returns(false)
+    LiveEvent.expects(:emit).never
+    @package.emit_new_package_event
+  end
+
+  test 'emit_new_version_events calls LiveEvent.emit with one event per version' do
+    LiveEvent.stubs(:enabled?).returns(true)
+    LiveEvent.expects(:emit).with do |events|
+      events.length == 2 &&
+        events.all? { |e| e[:event] == 'version.created' } &&
+        events.map { |e| e[:version]['number'] } == ['1.0.0', '2.0.0']
+    end
+    @package.emit_new_version_events([@version, @version2])
+  end
+
+  test 'emit_new_version_events does nothing with empty array' do
+    LiveEvent.stubs(:enabled?).returns(true)
+    LiveEvent.expects(:emit).never
+    @package.emit_new_version_events([])
+  end
+
+  test 'emit_new_version_events does nothing when LiveEvent disabled' do
+    LiveEvent.stubs(:enabled?).returns(false)
+    LiveEvent.expects(:emit).never
+    @package.emit_new_version_events([@version])
+  end
 end

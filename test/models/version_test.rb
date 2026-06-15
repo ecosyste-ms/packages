@@ -57,4 +57,16 @@ class VersionTest < ActiveSupport::TestCase
     assert Purl.parse(@version.purl)
   end
 
+  test 'as_live_event_json includes API fields' do
+    json = @version.as_live_event_json
+
+    assert_equal '1.0.0', json['number']
+    assert_equal 'pkg:gem/foo@1.0.0', json['purl']
+    assert_equal 'https://rubygems.org/downloads/foo-1.0.0.gem', json['download_url']
+    assert_equal 'https://rubygems.org/gems/foo/versions/1.0.0', json['registry_url']
+    assert json.key?('published_at')
+    assert json.key?('integrity')
+    assert json.key?('status')
+    refute json.key?('dependencies')
+  end
 end
