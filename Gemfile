@@ -73,8 +73,6 @@ group :test do
   gem "rails-controller-testing"
 end
 
-gem "vers", "~> 1.0"
-
 group :development, :test do
   gem "dotenv-rails", "~> 3.2"
 end
