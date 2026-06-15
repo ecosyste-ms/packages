@@ -53,7 +53,7 @@ module Ecosystem
     def install_command(package, version = nil)
       return "emerge #{package.name}" if version.blank?
 
-      "emerge =#{package.name}-#{version.number}"
+      "emerge =#{package.name}-#{version}"
     end
 
     def check_status(package)

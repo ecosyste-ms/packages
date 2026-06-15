@@ -54,10 +54,16 @@ class GentooTest < ActiveSupport::TestCase
 
   test "install_command with and without version" do
     pkg = Package.new(ecosystem: "gentoo", name: "app-misc/demo")
-    ver = pkg.versions.build(number: "2.0")
 
     assert_equal "emerge app-misc/demo", @ecosystem.install_command(pkg)
-    assert_equal "emerge =app-misc/demo-2.0", @ecosystem.install_command(pkg, ver)
+    assert_equal "emerge =app-misc/demo-2.0", @ecosystem.install_command(pkg, "2.0")
+  end
+
+  test "Version#install_command delegates correctly" do
+    pkg = Package.new(registry: @registry, ecosystem: "gentoo", name: "app-misc/demo")
+    ver = Version.new(package: pkg, number: "2.0")
+
+    assert_equal "emerge =app-misc/demo-2.0", ver.install_command
   end
 
   test "download_url reads from version metadata without touching the snapshot" do
