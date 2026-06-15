@@ -214,6 +214,53 @@ class Package < ApplicationRecord
     registry.purl(self)
   end
 
+  LIVE_EVENT_ATTRS = [:id, :name, :ecosystem, :description, :homepage, :licenses, :normalized_licenses,
+                      :repository_url, :keywords_array, :namespace, :versions_count, :first_release_published_at,
+                      :latest_release_published_at, :latest_release_number, :last_synced_at, :created_at,
+                      :updated_at, :dependent_packages_count, :downloads, :downloads_period,
+                      :dependent_repos_count, :rankings, :docker_dependents_count, :docker_downloads_count,
+                      :status, :critical].freeze
+  LIVE_EVENT_METHODS = [:registry_url, :install_command, :documentation_url, :purl, :docker_usage_url,
+                        :usage_url, :dependent_repositories_url, :funding_links].freeze
+
+  def as_live_event_json
+    as_json(only: LIVE_EVENT_ATTRS, methods: LIVE_EVENT_METHODS)
+  end
+
+  def packages_api_url
+    "https://packages.ecosyste.ms/api/v1/registries/#{registry.name}/packages/#{ERB::Util.url_encode(name)}"
+  end
+
+  def live_event_payload(event:, version: nil)
+    payload = {
+      event: event,
+      registry: registry.name,
+      registry_url: "https://packages.ecosyste.ms/api/v1/registries/#{registry.name}",
+      package_url: packages_api_url,
+      package: as_live_event_json
+    }
+    if version
+      payload[:version_url] = "#{packages_api_url}/versions/#{ERB::Util.url_encode(version.number)}"
+      payload[:version] = version.as_live_event_json
+    end
+    payload
+  end
+
+  def emit_new_package_event
+    return unless LiveEvent.enabled?
+    LiveEvent.emit(live_event_payload(event: 'package.created'))
+  end
+
+  def emit_new_version_events(version_records)
+    return unless LiveEvent.enabled?
+    return if version_records.blank?
+    events = version_records.map do |v|
+      v.package = self
+      live_event_payload(event: 'version.created', version: v)
+    end
+    LiveEvent.emit(events)
+  end
+
   def update_details
     set_latest_on_latest_version
     normalize_licenses
@@ -334,6 +381,7 @@ class Package < ApplicationRecord
     return false unless package_metadata
     versions_metadata = registry.ecosystem_instance.versions_metadata(package_metadata)
 
+    created_versions = []
     versions_metadata.each do |version|
       if version[:integrity].present?
         v = versions.find{|ver| ver.integrity == version[:integrity] }
@@ -343,16 +391,18 @@ class Package < ApplicationRecord
       begin
         if v
           v.registry_id = registry_id
-          v.assign_attributes(version) 
+          v.assign_attributes(version)
           v.save(validate: false)
-        else        
-          versions.create(version)
+        else
+          created = versions.create(version)
+          created_versions << created if created.persisted?
         end
       rescue ActiveRecord::RecordNotUnique
         Rails.logger.warn("Version not unique: #{version[:number]}")
       end
     end
     update_columns(versions_count: versions.count, versions_updated_at: Time.now)
+    emit_new_version_events(created_versions)
   end
 
   def update_versions_async

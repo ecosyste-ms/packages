@@ -191,9 +191,11 @@ class Registry < ApplicationRecord
     package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page, :time, :download_stats, :tags_url))
 
     update_repo_metadata_after_save = package.changed?
+    new_package = package.new_record?
 
     package.save!
 
+    package.emit_new_package_event if new_package
     package.update_repo_metadata_async if update_repo_metadata_after_save
 
     new_versions = []
@@ -211,7 +213,12 @@ class Registry < ApplicationRecord
       new_versions.each_slice(100) do |s|
         Version.upsert_all(s, unique_by: [:package_id, :number])
       end
-      
+
+      if LiveEvent.enabled?
+        new_numbers = new_versions.map { |v| v.with_indifferent_access[:number].to_s } - existing_version_numbers
+        package.emit_new_version_events(package.versions.where(number: new_numbers).to_a) if new_numbers.any?
+      end
+
       all_deps = []
       all_versions = package.versions
 

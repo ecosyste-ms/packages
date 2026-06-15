@@ -154,6 +154,72 @@ class RegistryTest < ActiveSupport::TestCase
     @registry.sync_package_async('split')
   end
 
+  test 'sync_package emits package.created and version.created for new package' do
+    LiveEvent.stubs(:enabled?).returns(true)
+
+    ecosystem = @registry.ecosystem_instance
+    ecosystem.stubs(:package_metadata).returns({ name: 'newpkg' })
+    ecosystem.stubs(:versions_metadata).returns([{ number: '1.0.0', published_at: Time.now }])
+    ecosystem.stubs(:dependencies_metadata).returns([])
+    Package.any_instance.stubs(:check_status)
+    Package.any_instance.stubs(:update_repo_metadata_async)
+
+    Package.any_instance.expects(:emit_new_package_event).once
+    Package.any_instance.expects(:emit_new_version_events).with do |records|
+      records.length == 1 && records.first.is_a?(Version) && records.first.number == '1.0.0'
+    end
+
+    @registry.sync_package('newpkg')
+  end
+
+  test 'sync_package does not emit package.created for existing package' do
+    LiveEvent.stubs(:enabled?).returns(true)
+    @registry.packages.create(name: 'existing', ecosystem: 'rubygems', last_synced_at: 2.days.ago)
+
+    ecosystem = @registry.ecosystem_instance
+    ecosystem.stubs(:package_metadata).returns({ name: 'existing' })
+    ecosystem.stubs(:versions_metadata).returns([])
+    ecosystem.stubs(:dependencies_metadata).returns([])
+    Package.any_instance.stubs(:check_status)
+    Package.any_instance.stubs(:update_repo_metadata_async)
+
+    Package.any_instance.expects(:emit_new_package_event).never
+
+    @registry.sync_package('existing')
+  end
+
+  test 'sync_package does not emit version.created for status updates to existing versions' do
+    LiveEvent.stubs(:enabled?).returns(true)
+    pkg = @registry.packages.create(name: 'existing', ecosystem: 'rubygems', last_synced_at: 2.days.ago)
+    pkg.versions.create(number: '1.0.0', registry_id: @registry.id)
+
+    ecosystem = @registry.ecosystem_instance
+    ecosystem.stubs(:package_metadata).returns({ name: 'existing' })
+    ecosystem.stubs(:versions_metadata).returns([{ number: '1.0.0', status: 'yanked' }])
+    ecosystem.stubs(:dependencies_metadata).returns([])
+    Package.any_instance.stubs(:check_status)
+    Package.any_instance.stubs(:update_repo_metadata_async)
+
+    Package.any_instance.expects(:emit_new_version_events).never
+
+    @registry.sync_package('existing')
+  end
+
+  test 'sync_package skips version reload when LiveEvent disabled' do
+    LiveEvent.stubs(:enabled?).returns(false)
+
+    ecosystem = @registry.ecosystem_instance
+    ecosystem.stubs(:package_metadata).returns({ name: 'newpkg' })
+    ecosystem.stubs(:versions_metadata).returns([{ number: '1.0.0' }])
+    ecosystem.stubs(:dependencies_metadata).returns([])
+    Package.any_instance.stubs(:check_status)
+    Package.any_instance.stubs(:update_repo_metadata_async)
+
+    Package.any_instance.expects(:emit_new_version_events).never
+
+    @registry.sync_package('newpkg')
+  end
+
   test 'sync_all_recently_updated_packages_async' do
     @registry.expects(:sync_recently_updated_packages_async).returns(true)
     Registry.stubs(:frequently_synced).returns([@registry])

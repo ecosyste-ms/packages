@@ -164,6 +164,15 @@ class Version < ApplicationRecord
     package.registry.ecosystem_instance.purl(package, self)
   end
 
+  LIVE_EVENT_ATTRS = [:id, :number, :published_at, :licenses, :integrity, :status, :metadata,
+                      :created_at, :updated_at, :latest].freeze
+  LIVE_EVENT_METHODS = [:download_url, :registry_url, :documentation_url, :install_command,
+                        :purl, :related_tag].freeze
+
+  def as_live_event_json
+    as_json(only: LIVE_EVENT_ATTRS, methods: LIVE_EVENT_METHODS)
+  end
+
   def digest_url
     "https://digest.ecosyste.ms/digest?url=#{CGI.escape(download_url)}&encoding=hex&algorithm=sha256" # TODO encoding and algorithm should come from ecosystem_instance
   end
