@@ -48,6 +48,20 @@ class SwiftpmTest < ActiveSupport::TestCase
     assert_equal check_status_url, "https://swiftpackageindex.com/swift-cloud/Compute"
   end
 
+  test 'check_status returns nil when url is invalid' do
+    @ecosystem.stubs(:fetch_package_metadata).returns(nil)
+    @ecosystem.stubs(:check_status_url).returns("https://swift-tar (#13072)")
+
+    assert_nil @ecosystem.check_status(@package)
+  end
+
+  test 'check_status returns nil on connection failure' do
+    @ecosystem.stubs(:fetch_package_metadata).returns(nil)
+    stub_request(:head, "https://swiftpackageindex.com/swift-cloud/Compute").to_raise(Faraday::ConnectionFailed)
+
+    assert_nil @ecosystem.check_status(@package)
+  end
+
   test 'purl' do
     purl = @ecosystem.purl(@package)
     assert_equal purl, 'pkg:swift/github.com/swift-cloud/Compute'

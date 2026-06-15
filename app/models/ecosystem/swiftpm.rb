@@ -37,6 +37,8 @@ module Ecosystem
       url = check_status_url(package)
       response = Faraday.head(url)
       return "removed" if [400, 404, 410].include?(response.status)
+    rescue URI::InvalidURIError, Faraday::Error
+      nil
     end
 
     def check_status_url(package)
