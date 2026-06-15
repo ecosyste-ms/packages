@@ -2,8 +2,6 @@ require 'test_helper'
 
 class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
   setup do
-    Package.any_instance.stubs(:update_rankings_async)
-
     @registry = Registry.create(name: 'crates.io', url: 'https://crates.io', ecosystem: 'cargo')
     @package = @registry.packages.create(ecosystem: 'cargo', name: 'rand')
     @version = @package.versions.create(number: '1.0.0', metadata: {foo: 'bar'}, registry_id: @registry.id)
@@ -67,7 +65,7 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'lookup version by full integrity' do
-    @version.update!(integrity: "sha256-#{'a' * 64}")
+    @version.update_column(:integrity, "sha256-#{'a' * 64}")
 
     get lookup_api_v1_versions_path(integrity: "sha256-#{'a' * 64}")
     assert_response :success
@@ -82,7 +80,7 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
 
   test 'lookup version by sha256 hex parameter' do
     hex = 'b' * 64
-    @version.update!(integrity: "sha256-#{hex}")
+    @version.update_column(:integrity, "sha256-#{hex}")
 
     get lookup_api_v1_versions_path(sha256: hex.upcase)
     assert_response :success
@@ -95,7 +93,7 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
 
   test 'lookup version by sha1 hex parameter' do
     hex = 'c' * 40
-    @version.update!(integrity: "sha1-#{hex}")
+    @version.update_column(:integrity, "sha1-#{hex}")
 
     get lookup_api_v1_versions_path(sha1: hex.upcase)
     assert_response :success
@@ -108,7 +106,7 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
 
   test 'lookup version by sha512 hex parameter' do
     hex = 'd' * 128
-    @version.update!(integrity: "sha512-#{hex}")
+    @version.update_column(:integrity, "sha512-#{hex}")
 
     get lookup_api_v1_versions_path(sha512: hex.upcase)
     assert_response :success
@@ -121,7 +119,7 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
 
   test 'lookup version by bare integrity hex' do
     hex = 'e' * 64
-    @version.update!(integrity: "sha256-#{hex}")
+    @version.update_column(:integrity, "sha256-#{hex}")
 
     get lookup_api_v1_versions_path(integrity: hex.upcase)
     assert_response :success
@@ -142,7 +140,7 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'lookup version returns empty array without match' do
-    @version.update!(integrity: "sha256-#{'f' * 64}")
+    @version.update_column(:integrity, "sha256-#{'f' * 64}")
 
     get lookup_api_v1_versions_path(sha256: '0' * 64)
     assert_response :success
