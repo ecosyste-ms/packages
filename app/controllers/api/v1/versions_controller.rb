@@ -74,4 +74,16 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     @version = @package.versions.find_by_number!(params[:id])
     fresh_when @version, public: true
   end
+
+  def lookup
+    integrity = Version.normalize_integrity(params)
+
+    if integrity.blank?
+      return render json: { error: 'Missing integrity parameter' }, status: :bad_request
+    end
+
+    scope = Version.where(integrity: integrity).includes(:dependencies, package: :registry)
+
+    @pagy, @versions = pagy_countless(scope)
+  end
 end

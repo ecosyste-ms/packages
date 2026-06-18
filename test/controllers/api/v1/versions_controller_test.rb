@@ -64,6 +64,92 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal first_version['metadata'], { 'foo' => 'bar' }
   end
 
+  test 'lookup version by full integrity' do
+    @version.update_column(:integrity, "sha256-#{'a' * 64}")
+
+    get lookup_api_v1_versions_path(integrity: "sha256-#{'a' * 64}")
+    assert_response :success
+    assert_template 'versions/lookup', file: 'versions/lookup.json.jbuilder'
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal '1.0.0', actual_response.first['number']
+    assert_equal @package.name, actual_response.first['package']['name']
+  end
+
+  test 'lookup version by sha256 hex parameter' do
+    hex = 'b' * 64
+    @version.update_column(:integrity, "sha256-#{hex}")
+
+    get lookup_api_v1_versions_path(sha256: hex.upcase)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal '1.0.0', actual_response.first['number']
+  end
+
+  test 'lookup version by sha1 hex parameter' do
+    hex = 'c' * 40
+    @version.update_column(:integrity, "sha1-#{hex}")
+
+    get lookup_api_v1_versions_path(sha1: hex.upcase)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal '1.0.0', actual_response.first['number']
+  end
+
+  test 'lookup version by sha512 hex parameter' do
+    hex = 'd' * 128
+    @version.update_column(:integrity, "sha512-#{hex}")
+
+    get lookup_api_v1_versions_path(sha512: hex.upcase)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal '1.0.0', actual_response.first['number']
+  end
+
+  test 'lookup version by bare integrity hex' do
+    hex = 'e' * 64
+    @version.update_column(:integrity, "sha256-#{hex}")
+
+    get lookup_api_v1_versions_path(integrity: hex.upcase)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal '1.0.0', actual_response.first['number']
+  end
+
+  test 'lookup version returns bad request without integrity parameter' do
+    get lookup_api_v1_versions_path
+    assert_response :bad_request
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 'Missing integrity parameter', actual_response['error']
+  end
+
+  test 'lookup version returns empty array without match' do
+    @version.update_column(:integrity, "sha256-#{'f' * 64}")
+
+    get lookup_api_v1_versions_path(sha256: '0' * 64)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal [], actual_response
+  end
+
   test 'get version numbers' do
     get version_numbers_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
     assert_response :success
