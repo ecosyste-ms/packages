@@ -89,6 +89,11 @@ class AdelieTest < ActiveSupport::TestCase
     assert_equal download_url, 'https://distfiles.adelielinux.org/adelie/current/system/x86_64/abuild-3.5-r0.apk'
   end
 
+  test 'download_url without version returns nil' do
+    download_url = @ecosystem.download_url(@package, nil)
+    assert_nil download_url
+  end
+
   test 'install_command' do
     install_command = @ecosystem.install_command(@package)
     assert_equal install_command, 'apk add abuild'
