@@ -884,6 +884,62 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_includes names, 'used-rand-once'
   end
 
+  test 'dependent_packages serves from top_dependent_packages cache when available' do
+    dep1 = @registry.packages.create(name: 'dep-one', ecosystem: @registry.ecosystem, downloads: 100)
+    dep2 = @registry.packages.create(name: 'dep-two', ecosystem: @registry.ecosystem, downloads: 200)
+    dep3 = @registry.packages.create(name: 'dep-three', ecosystem: @registry.ecosystem, downloads: 50)
+    TopDependentPackage.create!(package_id: @package.id, sort: 'downloads', dependent_ids: [dep2.id, dep1.id, dep3.id], updated_at: Time.current)
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name, sort: 'downloads', order: 'desc', per_page: 2)
+    assert_response :success
+    assert_equal 'top_dependent_packages', @response.headers['X-Source']
+
+    names = Oj.load(@response.body).map { |p| p['name'] }
+    assert_equal ['dep-two', 'dep-one'], names
+  end
+
+  test 'dependent_packages cache paginates within cached ids' do
+    deps = 3.times.map { |i| @registry.packages.create(name: "dep#{i}", ecosystem: @registry.ecosystem) }
+    TopDependentPackage.create!(package_id: @package.id, sort: 'downloads', dependent_ids: deps.map(&:id), updated_at: Time.current)
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name, sort: 'downloads', per_page: 2, page: 2)
+    assert_response :success
+    assert_equal 'top_dependent_packages', @response.headers['X-Source']
+
+    names = Oj.load(@response.body).map { |p| p['name'] }
+    assert_equal ['dep2'], names
+  end
+
+  test 'dependent_packages cache skipped when sort not cached' do
+    TopDependentPackage.create!(package_id: @package.id, sort: 'downloads', dependent_ids: [999], updated_at: Time.current)
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name, sort: 'name')
+    assert_response :success
+    assert_nil @response.headers['X-Source']
+  end
+
+  test 'dependent_packages cache skipped when filters present' do
+    dep = @registry.packages.create(name: 'cached-dep', ecosystem: @registry.ecosystem)
+    TopDependentPackage.create!(package_id: @package.id, sort: 'downloads', dependent_ids: [dep.id], updated_at: Time.current)
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name, sort: 'downloads', kind: 'runtime')
+    assert_response :success
+    assert_nil @response.headers['X-Source']
+  end
+
+  test 'dependent_packages cache skipped for rank with default desc order' do
+    dep = @registry.packages.create(name: 'cached-dep', ecosystem: @registry.ecosystem)
+    TopDependentPackage.create!(package_id: @package.id, sort: 'rank', dependent_ids: [dep.id], updated_at: Time.current)
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name, sort: 'rank')
+    assert_response :success
+    assert_nil @response.headers['X-Source']
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name, sort: 'rank', order: 'asc')
+    assert_response :success
+    assert_equal 'top_dependent_packages', @response.headers['X-Source']
+  end
+
   test 'dependent_package_kinds defaults to latest versions only' do
     dependent = @registry.packages.create(name: 'needs-rand', ecosystem: @registry.ecosystem)
     old = dependent.versions.create(number: '1.0.0', latest: false)

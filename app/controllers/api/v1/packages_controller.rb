@@ -186,6 +186,16 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = find_package_with_normalization!(@registry, params[:id])
 
+    if TopDependentPackage.cacheable_request?(params) &&
+       (cached = @package.top_dependent_packages.find_by(sort: params[:sort]))
+      @pagy, page_ids = pagy_array(cached.dependent_ids)
+      by_id = Package.where(id: page_ids).includes(:registry, { maintainers: :registry }).index_by(&:id)
+      @packages = page_ids.map { |i| by_id[i] }.compact
+      response.headers['X-Source'] = 'top_dependent_packages'
+      fresh_when([cached, *@packages], public: true)
+      return
+    end
+
     if params[:latest] == 'false'
       scope = @package.dependent_packages(kind: params[:kind]).includes(:registry, {maintainers: :registry})
     else

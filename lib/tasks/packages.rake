@@ -388,4 +388,19 @@ namespace :packages do
       puts "#{pkg},#{deps.size},#{deps.uniq.join(';')}"
     end;nil
   end
+
+  desc 'populate top_dependent_packages cache for packages above threshold'
+  task update_top_dependent_packages: :environment do
+    with_rake_lock('packages:update_top_dependent_packages', ttl: 24.hours.to_i) do
+      ids = Package.where('dependent_packages_count > ?', TopDependentPackage::THRESHOLD)
+                   .order(dependent_packages_count: :desc)
+                   .pluck(:id)
+      ids.each_with_index do |package_id, i|
+        package = Package.find_by(id: package_id)
+        next unless package
+        package.update_top_dependent_packages
+        puts "#{i + 1}/#{ids.length} #{package.ecosystem}/#{package.name} (#{package.dependent_packages_count})" if (i % 100).zero?
+      end
+    end
+  end
 end
