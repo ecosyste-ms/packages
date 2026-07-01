@@ -41,6 +41,23 @@ class PackagesController < ApplicationController
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = find_package_with_normalization!(@registry, params[:id])
 
+    if @package.dependent_packages_count.to_i > TopDependentPackage::THRESHOLD
+      @kinds = nil
+    elsif params[:latest] == 'false'
+      @kinds = @package.dependent_package_kinds
+    else
+      @kinds = @package.latest_dependent_package_kinds
+    end
+
+    if TopDependentPackage.cacheable_request?(params) &&
+       (cached = @package.top_dependent_packages.find_by(sort: params[:sort]))
+      @pagy, page_ids = pagy_array(cached.dependent_ids)
+      by_id = Package.where(id: page_ids).includes(:registry).index_by(&:id)
+      @dependent_packages = page_ids.map { |i| by_id[i] }.compact
+      fresh_when([cached, *@dependent_packages], public: true)
+      return
+    end
+
     if params[:latest] == 'false'
       scope = @package.dependent_packages(kind: params[:kind]).includes(:registry)
     else
@@ -59,12 +76,6 @@ class PackagesController < ApplicationController
       end
     else
       scope = scope.order('latest_release_published_at DESC')
-    end
-
-    if params[:latest] == 'false'
-      @kinds = @package.dependent_package_kinds
-    else
-      @kinds = @package.latest_dependent_package_kinds
     end
 
     @pagy, @dependent_packages = pagy_countless(scope)

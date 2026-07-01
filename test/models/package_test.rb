@@ -431,4 +431,53 @@ class PackageTest < ActiveSupport::TestCase
 
     assert_nothing_raised { @package.emit_new_version_events([@version]) }
   end
+
+  test 'update_top_dependent_packages does nothing below threshold' do
+    @package.update_column(:dependent_packages_count, TopDependentPackage::THRESHOLD)
+    @package.update_top_dependent_packages
+    assert_empty @package.top_dependent_packages
+  end
+
+  test 'update_top_dependent_packages clears stale rows below threshold' do
+    TopDependentPackage.create!(package_id: @package.id, sort: 'downloads', dependent_ids: [1, 2, 3], updated_at: Time.current)
+    @package.update_column(:dependent_packages_count, 5)
+    @package.update_top_dependent_packages
+    assert_empty @package.top_dependent_packages.reload
+  end
+
+  test 'update_top_dependent_packages writes one row per sort above threshold' do
+    deps = 3.times.map do |i|
+      d = @registry.packages.create!(name: "dep#{i}", ecosystem: @registry.ecosystem,
+                                      downloads: (i + 1) * 100,
+                                      dependent_packages_count: 3 - i,
+                                      dependent_repos_count: i,
+                                      rankings: { 'average' => (i + 1).to_f })
+      v = d.versions.create!(number: '1.0.0', latest: true)
+      v.dependencies.create!(package_id: @package.id, package_name: @package.name, ecosystem: @registry.ecosystem, requirements: '>= 0', kind: 'runtime')
+      d
+    end
+
+    @package.update_column(:dependent_packages_count, TopDependentPackage::THRESHOLD + 1)
+    @package.update_top_dependent_packages
+
+    rows = @package.top_dependent_packages.reload.index_by(&:sort)
+    assert_equal TopDependentPackage::SORTS.keys.sort, rows.keys.sort
+
+    assert_equal [deps[2].id, deps[1].id, deps[0].id], rows['downloads'].dependent_ids
+    assert_equal [deps[0].id, deps[1].id, deps[2].id], rows['dependent_packages_count'].dependent_ids
+    assert_equal [deps[2].id, deps[1].id, deps[0].id], rows['dependent_repos_count'].dependent_ids
+    assert_equal [deps[0].id, deps[1].id, deps[2].id], rows['rank'].dependent_ids
+  end
+
+  test 'update_top_dependent_packages upserts on repeat' do
+    dep = @registry.packages.create!(name: 'dep', ecosystem: @registry.ecosystem, downloads: 100)
+    v = dep.versions.create!(number: '1.0.0', latest: true)
+    v.dependencies.create!(package_id: @package.id, package_name: @package.name, ecosystem: @registry.ecosystem, requirements: '>= 0', kind: 'runtime')
+
+    @package.update_column(:dependent_packages_count, TopDependentPackage::THRESHOLD + 1)
+    @package.update_top_dependent_packages
+    @package.update_top_dependent_packages
+
+    assert_equal TopDependentPackage::SORTS.size, @package.top_dependent_packages.reload.count
+  end
 end

@@ -11,6 +11,7 @@ class Package < ApplicationRecord
 
   has_many :maintainerships, dependent: :delete_all
   has_many :maintainers, through: :maintainerships
+  has_many :top_dependent_packages, dependent: :delete_all
 
   def self.sortable_columns
     {
@@ -27,6 +28,7 @@ class Package < ApplicationRecord
       'docker_dependents_count' => 'docker_dependents_count',
       'stargazers_count' => "(repo_metadata ->> 'stargazers_count')::text::integer",
       'forks_count' => "(repo_metadata ->> 'forks_count')::text::integer",
+      'rank' => "(rankings ->> 'average')::float",
     }
   end
 
@@ -159,6 +161,21 @@ class Package < ApplicationRecord
   def update_dependent_packages_details
     update_dependent_package_ids
     update_dependent_packages_count
+    update_top_dependent_packages
+  end
+
+  def update_top_dependent_packages
+    if dependent_packages_count.to_i <= TopDependentPackage::THRESHOLD
+      top_dependent_packages.delete_all
+      return
+    end
+
+    ids = latest_dependent_packages.pluck(:id)
+    rows = TopDependentPackage::SORTS.map do |key, cfg|
+      top = Package.where(id: ids).order(Arel.sql(cfg[:order])).limit(TopDependentPackage::LIMIT).pluck(:id)
+      { package_id: id, sort: key, dependent_ids: top, updated_at: Time.current }
+    end
+    TopDependentPackage.upsert_all(rows, unique_by: [:package_id, :sort])
   end
 
   def update_maintainers_count
