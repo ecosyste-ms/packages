@@ -31,12 +31,16 @@ class GitlabUrlParser < UrlParser
   end
 
   def trim_repository_suffix(segments)
-    gitlab_separator_index = segments.index('-')
+    gitlab_separator_index = suffix_index(segments, '-')
     return segments[0...gitlab_separator_index] if gitlab_separator_index
 
-    tags_index = segments.index('tags')
+    tags_index = suffix_index(segments, 'tags')
     return segments[0...tags_index] if tags_index
 
     segments
+  end
+
+  def suffix_index(segments, segment)
+    segments.each_index.find { |index| index >= 2 && segments[index] == segment }
   end
 end

@@ -5,6 +5,9 @@ class GitlabUrlParserTest < ActiveSupport::TestCase
     [
       ['https://gitlab.com/maxcdn/shml/', 'maxcdn/shml'],
       ['https://gitlab.com/group/subgroup/project.git', 'group/subgroup/project'],
+      ['https://gitlab.com/tags/project.git', 'tags/project'],
+      ['https://gitlab.com/group/tags/project.git', 'group/tags/project'],
+      ['https://gitlab.com/group/project/-/tree/main', 'group/project'],
       ['git+https://gitlab.com/hugojosefson/express-cluster-stability.git', 'hugojosefson/express-cluster-stability'],
       ['www.gitlab.com/37point2/brainfuckifyjs', '37point2/brainfuckifyjs'],
       ['ssh+git@gitlab.com:omardelarosa/tonka-npm.git', 'omardelarosa/tonka-npm'],
