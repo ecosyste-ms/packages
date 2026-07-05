@@ -236,6 +236,12 @@ paths:
           required: false
           schema:
             type: integer
+        - name: per_page
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: successful operation
@@ -244,7 +250,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Version'
+                  $ref: '#/components/schemas/VersionLookup'
         '400':
           description: missing integrity parameter
 
@@ -2143,6 +2149,15 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/Dependency'
+    VersionLookup:
+      allOf:
+        - $ref: '#/components/schemas/VersionWithDependencies'
+        - type: object
+          required:
+            - package
+          properties:
+            package:
+              $ref: '#/components/schemas/PackageWithRegistry'
     VersionWithPackage:
       required:
         - id

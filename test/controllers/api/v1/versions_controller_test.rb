@@ -76,6 +76,34 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, actual_response.length
     assert_equal '1.0.0', actual_response.first['number']
     assert_equal @package.name, actual_response.first['package']['name']
+    assert actual_response.first['package']['registry'].key?('versions_count')
+    assert actual_response.first['package']['registry'].key?('downloads')
+    assert actual_response.first['package']['registry'].key?('purl_type')
+  end
+
+  test 'lookup version by full integrity with uppercase algorithm prefix' do
+    @version.update_column(:integrity, "sha256-#{'a' * 64}")
+
+    get lookup_api_v1_versions_path(integrity: "SHA256-#{'A' * 64}")
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal '1.0.0', actual_response.first['number']
+  end
+
+  test 'lookup version by full integrity with base64 digest' do
+    digest = '47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='
+    @version.update_column(:integrity, "sha256-#{digest}")
+
+    get lookup_api_v1_versions_path(integrity: "SHA256-#{digest}")
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal '1.0.0', actual_response.first['number']
   end
 
   test 'lookup version by sha256 hex parameter' do

@@ -82,7 +82,9 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
       return render json: { error: 'Missing integrity parameter' }, status: :bad_request
     end
 
-    scope = Version.where(integrity: integrity).includes(:dependencies, package: :registry)
+    scope = Version.where(integrity: integrity)
+                   .includes(:dependencies, package: :registry)
+                   .order('published_at DESC nulls last, created_at DESC, id DESC')
 
     @pagy, @versions = pagy_countless(scope)
   end

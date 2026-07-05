@@ -58,8 +58,11 @@ class Version < ApplicationRecord
         integrity
       end
     else
-      integrity.sub(/\A(sha256|sha1|sha512)-([a-fA-F0-9]+)\z/i) do
-        "#{Regexp.last_match(1).downcase}-#{Regexp.last_match(2).downcase}"
+      integrity.sub(/\A(sha256|sha1|sha512)-(.+)\z/i) do
+        digest = Regexp.last_match(2)
+        digest = digest.downcase if digest.match?(/\A[a-fA-F0-9]+\z/)
+
+        "#{Regexp.last_match(1).downcase}-#{digest}"
       end
     end
   end
