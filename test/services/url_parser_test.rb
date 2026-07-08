@@ -4,6 +4,7 @@ class UrlParserTest < ActiveSupport::TestCase
   test 'parses gitlab urls' do
     [
       ['https://gitlab.com/maxcdn/shml/', 'https://gitlab.com/maxcdn/shml'],
+      ['https://gitlab.com/group/subgroup/project.git', 'https://gitlab.com/group/subgroup/project'],
       ['git+https://gitlab.com/hugojosefson/express-cluster-stability.git', 'https://gitlab.com/hugojosefson/express-cluster-stability'],
       ['www.gitlab.com/37point2/brainfuckifyjs', 'https://gitlab.com/37point2/brainfuckifyjs'],
       ['ssh+git@gitlab.com:omardelarosa/tonka-npm.git', 'https://gitlab.com/omardelarosa/tonka-npm'],
