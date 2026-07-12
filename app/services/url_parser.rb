@@ -25,7 +25,8 @@ class UrlParser
   def self.try_all(url)
     GithubUrlParser.parse_to_full_url(url) ||
     GitlabUrlParser.parse_to_full_url(url) ||
-    BitbucketUrlParser.parse_to_full_url(url)
+    BitbucketUrlParser.parse_to_full_url(url) ||
+    ForgeUrlParser.parse_to_full_url(url)
   end
 
   def parse_to_full_url
