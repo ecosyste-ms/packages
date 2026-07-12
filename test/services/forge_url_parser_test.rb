@@ -19,6 +19,7 @@ class ForgeUrlParserTest < ActiveSupport::TestCase
       'https://forgejo.example.com/group/project',
       'https://codeberg.org/project',
       'https://notcodeberg.org/group/project',
+      'https://example.com/codeberg.org/group/project',
       'https://gitea.com/project',
     ].each do |url|
       assert_nil ForgeUrlParser.parse(url)
