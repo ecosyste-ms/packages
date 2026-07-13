@@ -39,4 +39,15 @@ class UrlParserTest < ActiveSupport::TestCase
       assert_equal result, full_name
     end
   end
+
+  test 'parses known forge host urls' do
+    [
+      ['https://codeberg.org/dnkl/foot/', 'https://codeberg.org/dnkl/foot'],
+      ['git+https://codeberg.org/forgejo/forgejo.git', 'https://codeberg.org/forgejo/forgejo'],
+      ['https://gitea.com/gitea/tea', 'https://gitea.com/gitea/tea'],
+    ].each do |url, full_name|
+      result = UrlParser.try_all(url)
+      assert_equal result, full_name
+    end
+  end
 end
