@@ -1,5 +1,6 @@
 class ErrorsController < ApplicationController
   skip_before_action :set_cache_headers
+  skip_before_action :reject_path_traversal_in_params
 
   def not_found
     respond_to do |format|

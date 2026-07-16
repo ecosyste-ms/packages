@@ -46,4 +46,30 @@ class ErrorsControllerTest < ActionDispatch::IntegrationTest
     refute_includes cache_control, 'public', "got: #{cache_control}"
     refute_includes cache_control, 's-maxage', "got: #{cache_control}"
   end
+
+  test 'path traversal renders 404 through exceptions_app' do
+    # With show_exceptions enabled, RecordNotFound is re-dispatched through
+    # the router to ErrorsController. The router merges (not replaces) path
+    # params, so the original traversal id is still present when
+    # ErrorsController runs; it must skip reject_path_traversal_in_params
+    # or the failsafe 500 is returned instead.
+    Registry.create(name: 'npmjs.org', url: 'https://npmjs.org', ecosystem: 'npm')
+    with_show_exceptions(:all) do
+      get '/registries/npmjs.org/namespaces/..%2F..%2F..'
+      assert_response :not_found
+      assert_template 'errors/not_found'
+    end
+  end
+
+  def with_show_exceptions(value)
+    env_config = Rails.application.env_config
+    old_show = env_config['action_dispatch.show_exceptions']
+    old_detailed = env_config['action_dispatch.show_detailed_exceptions']
+    env_config['action_dispatch.show_exceptions'] = value
+    env_config['action_dispatch.show_detailed_exceptions'] = false
+    yield
+  ensure
+    env_config['action_dispatch.show_exceptions'] = old_show
+    env_config['action_dispatch.show_detailed_exceptions'] = old_detailed
+  end
 end
