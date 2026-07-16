@@ -1,8 +1,14 @@
 class Package < ApplicationRecord
   include EcosystemsApiClient
   
+  # Matches a name where any /-delimited segment is exactly "." or "..".
+  # Such names generate URLs that CDNs and browsers normalise into other
+  # paths (e.g. "./../../../" collapses to "/"), causing cache poisoning.
+  PATH_TRAVERSAL_SEGMENT = %r{(?:\A|/)\.\.?(?:/|\z)}
+
   validates_presence_of :registry_id, :name, :ecosystem
   validates_uniqueness_of :name, scope: :registry_id
+  validates :name, format: { without: PATH_TRAVERSAL_SEGMENT, message: 'contains path traversal segments' }
 
   belongs_to :registry
   counter_culture :registry
