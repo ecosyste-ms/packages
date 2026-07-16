@@ -14,6 +14,23 @@ class PackageTest < ActiveSupport::TestCase
     should validate_uniqueness_of(:name).scoped_to(:registry_id)
   end
 
+  test 'rejects names with path traversal segments' do
+    registry = Registry.create(name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go')
+    ['./../../../', '..', '../foo', 'foo/..', 'foo/../bar', './', 'foo/./bar'].each do |name|
+      package = registry.packages.build(name: name, ecosystem: 'go')
+      assert_not package.valid?, "expected #{name.inspect} to be invalid"
+      assert_includes package.errors[:name], 'contains path traversal segments'
+    end
+  end
+
+  test 'allows names with dots that are not traversal segments' do
+    registry = Registry.create(name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go')
+    ['github.com/foo/bar', 'lodash.debounce', 'foo.bar/baz', '...ellipsis', 'a..b'].each do |name|
+      package = registry.packages.build(name: name, ecosystem: 'go')
+      assert package.valid?, "expected #{name.inspect} to be valid: #{package.errors.full_messages}"
+    end
+  end
+
   setup do
     @registry = Registry.create(default: true, name: 'rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
     @package = @registry.packages.create(name: 'foo', ecosystem: @registry.ecosystem, licenses: 'mit')

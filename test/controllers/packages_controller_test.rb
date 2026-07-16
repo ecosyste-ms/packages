@@ -18,6 +18,36 @@ class PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_template 'packages/show', file: 'packages/show.html.erb'
   end
 
+  test 'package name with path traversal segments returns 404' do
+    # A package named "./../../../" generates a URL that CDNs normalise to "/",
+    # so serving it as 200 with public cache headers poisons the homepage cache.
+    # Such names are rejected at validation time; if one already exists in the
+    # database the show action must still refuse to serve it.
+    package = @registry.packages.build(ecosystem: 'cargo', name: './../../../')
+    package.save(validate: false)
+
+    get '/registries/crates.io/packages/.%2F..%2F..%2F..%2F'
+    assert_response :not_found
+  end
+
+  test 'path traversal segments in any glob route param return 404' do
+    # These routes render 200 for arbitrary ids, so without this guard a
+    # request like /registries/crates.io/namespaces/..%2F..%2F.. would be
+    # cached by the CDN under "/".
+    [
+      '/keywords/..',
+      '/registries/crates.io/namespaces/..%2F..%2F..',
+      '/registries/crates.io/keywords/..%2F..%2F..',
+      '/registries/crates.io/maintainers/..%2F..%2F..',
+      '/registries/crates.io/packages/rand/versions/..',
+      '/api/v1/registries/crates.io/packages/..%2F..%2F..%2F..',
+      '/api/v1/keywords/..%2F..',
+    ].each do |path|
+      get path
+      assert_response :not_found, "expected 404 for #{path}"
+    end
+  end
+
   test 'list packages for a nixpkgs registry' do
     nix_registry = Registry.create(name: 'nixpkgs-23.05', url: 'https://channels.nixos.org/nixos-23.05', ecosystem: 'nixpkgs', version: '23.05')
     nix_registry.packages.create(ecosystem: 'nixpkgs', name: 'python313Packages.numpy', metadata: { 'position' => 'pkgs/development/python-modules/numpy/2.nix:205' })

@@ -2,6 +2,7 @@ class ApplicationController < ActionController::Base
   include Pagy::Backend
 
   skip_before_action :verify_authenticity_token
+  before_action :reject_path_traversal_in_params
   before_action :set_cache_headers
 
   after_action lambda {
@@ -48,6 +49,20 @@ class ApplicationController < ActionController::Base
     end
   rescue
     Package.none
+  end
+
+  # Several routes accept ids matching /.*/ because package names, version
+  # numbers, keywords etc. can legitimately contain slashes and dots. A value
+  # whose /-delimited segments include "." or ".." produces a URL that CDNs
+  # normalise into a different path (e.g. "/keywords/../.." collapses to "/"),
+  # so a 200 response here would be cached against the wrong page. Refuse to
+  # serve any request where a path parameter contains such a segment.
+  def reject_path_traversal_in_params
+    request.path_parameters.each do |key, value|
+      next if key == :controller || key == :action || key == :format
+      next unless value.is_a?(String)
+      raise ActiveRecord::RecordNotFound if value.match?(Package::PATH_TRAVERSAL_SEGMENT)
+    end
   end
 
   def find_package_with_normalization!(registry, name)
