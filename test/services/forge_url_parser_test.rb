@@ -29,9 +29,19 @@ class ForgeUrlParserTest < ActiveSupport::TestCase
   test 'parses configured self-hosted forge urls' do
     with_forge_hosts('https://gitea.example.com,https://forgejo.example.com/forgejo') do
       assert_equal 'org/repo', ForgeUrlParser.parse('https://gitea.example.com/org/repo')
+      assert_equal 'org/repo', ForgeUrlParser.parse('https://gitea.example.com:443/org/repo')
       assert_equal 'group/project', ForgeUrlParser.parse('https://forgejo.example.com/forgejo/group/project')
       assert_equal 'https://forgejo.example.com/forgejo/group/project', ForgeUrlParser.parse_to_full_url('https://forgejo.example.com/forgejo/group/project')
+      assert_nil ForgeUrlParser.parse('https://gitea.example.com:8443/org/repo')
       assert_nil ForgeUrlParser.parse('https://forgejo.example.com/group/project')
+    end
+  end
+
+  test 'parses a configured forge host with a non-default port' do
+    with_forge_hosts('https://gitea.example.com:8443') do
+      assert_equal 'org/repo', ForgeUrlParser.parse('https://gitea.example.com:8443/org/repo')
+      assert_equal 'https://gitea.example.com:8443/org/repo', ForgeUrlParser.parse_to_full_url('https://gitea.example.com:8443/org/repo')
+      assert_nil ForgeUrlParser.parse('https://gitea.example.com/org/repo')
     end
   end
 
