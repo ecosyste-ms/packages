@@ -50,4 +50,20 @@ class UrlParserTest < ActiveSupport::TestCase
       assert_equal result, full_name
     end
   end
+
+  test 'parses configured self-hosted forge urls' do
+    with_forge_hosts('https://gitea.example.com') do
+      assert_equal 'https://gitea.example.com/org/repo', UrlParser.try_all('https://gitea.example.com/org/repo')
+    end
+  end
+
+  private
+
+  def with_forge_hosts(hosts)
+    original_hosts = ENV['FORGE_HOSTS']
+    ENV['FORGE_HOSTS'] = hosts
+    yield
+  ensure
+    original_hosts.nil? ? ENV.delete('FORGE_HOSTS') : ENV['FORGE_HOSTS'] = original_hosts
+  end
 end
