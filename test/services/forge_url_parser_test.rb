@@ -34,6 +34,7 @@ class ForgeUrlParserTest < ActiveSupport::TestCase
       assert_equal 'https://forgejo.example.com/forgejo/group/project', ForgeUrlParser.parse_to_full_url('https://forgejo.example.com/forgejo/group/project')
       assert_nil ForgeUrlParser.parse('https://gitea.example.com:8443/org/repo')
       assert_nil ForgeUrlParser.parse('https://forgejo.example.com/group/project')
+      assert_nil ForgeUrlParser.parse('git@forgejo.example.com:group/project.git')
     end
   end
 
@@ -42,6 +43,17 @@ class ForgeUrlParserTest < ActiveSupport::TestCase
       assert_equal 'org/repo', ForgeUrlParser.parse('https://gitea.example.com:8443/org/repo')
       assert_equal 'https://gitea.example.com:8443/org/repo', ForgeUrlParser.parse_to_full_url('https://gitea.example.com:8443/org/repo')
       assert_nil ForgeUrlParser.parse('https://gitea.example.com/org/repo')
+    end
+  end
+
+  test 'parses configured hosts with forge-like subdomains' do
+    prefixes = %w[git www ssh raw wiki]
+    hosts = prefixes.map { |prefix| "https://#{prefix}.example.com" }.join(',')
+
+    with_forge_hosts(hosts) do
+      prefixes.each do |prefix|
+        assert_equal 'org/repo', ForgeUrlParser.parse("https://#{prefix}.example.com/org/repo")
+      end
     end
   end
 

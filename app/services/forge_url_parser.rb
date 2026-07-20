@@ -11,6 +11,8 @@ class ForgeUrlParser < UrlParser
   end
 
   DEFAULT_HOSTS = %w[https://codeberg.org https://gitea.com].freeze
+  COMMON_SUBDOMAINS = %w[www ssh raw git wiki].freeze
+  COMMON_SUBDOMAIN_PATTERN = "(?:(?:#{COMMON_SUBDOMAINS.join('|')})\\.)?".freeze
 
   def self.hosts
     configured_hosts_value = ENV.fetch('FORGE_HOSTS', '')
@@ -57,9 +59,14 @@ class ForgeUrlParser < UrlParser
     false
   end
 
+  def remove_subdomain
+    # Preserve configured forge hostnames exactly.
+    nil
+  end
+
   def remove_domain
     port = host_config.port ? ":#{host_config.port}" : '(?::443)?'
-    url.gsub!(/#{Regexp.escape(host_config.hostname)}#{port}(?::|\/)?/i, '')
+    url.gsub!(/#{optional_subdomain_pattern(host_config)}#{Regexp.escape(host_config.hostname)}#{port}(?::|\/)?/i, '')
   end
 
   def remove_extra_segments
@@ -77,13 +84,18 @@ class ForgeUrlParser < UrlParser
   end
 
   def authority_pattern(host)
-    subdomain = '(?:(?:www|ssh|raw|git|wiki)\\.)?'
     host_name = Regexp.escape(host.hostname)
 
     if host.port
-      /(?:\A|\/\/|@|(?:git|ssh|https?|hg|svn|scm):)#{subdomain}#{host_name}:#{host.port}(?=\/|\z)/i
+      /(?:\A|\/\/|@|(?:git|ssh|https?|hg|svn|scm):)#{optional_subdomain_pattern(host)}#{host_name}:#{host.port}(?=\/|\z)/i
     else
-      /(?:(?:\A|@|(?:git|ssh|https?|hg|svn|scm):)#{subdomain}#{host_name}(?=[:\/]|\z)|\/\/#{subdomain}#{host_name}(?::443)?(?=\/|\z))/i
+      /(?:(?:\A|@|(?:git|ssh|https?|hg|svn|scm):)#{optional_subdomain_pattern(host)}#{host_name}(?=[:\/]|\z)|\/\/#{optional_subdomain_pattern(host)}#{host_name}(?::443)?(?=\/|\z))/i
     end
+  end
+
+  def optional_subdomain_pattern(host)
+    return '' if COMMON_SUBDOMAINS.include?(host.hostname.split('.').first)
+
+    COMMON_SUBDOMAIN_PATTERN
   end
 end
