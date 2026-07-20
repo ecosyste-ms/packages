@@ -466,7 +466,7 @@ paths:
                 $ref: '#/components/schemas/KeywordWithPackages'
   /registries:
     get:
-      summary: list registies
+      summary: list registries
       operationId: getRegistries
       tags:
         - registries
