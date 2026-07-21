@@ -27,6 +27,16 @@ class PackagesRakeTest < ActiveSupport::TestCase
     Rake::Task["packages:sync_least_recent"].invoke
   end
 
+  test "backfills NuGet packages without verified metadata" do
+    registry = Registry.create(name: 'NuGet.org', url: 'https://www.nuget.org', ecosystem: 'nuget')
+    registry.packages.create!(name: 'unchecked', ecosystem: 'nuget', metadata: {})
+    registry.packages.create!(name: 'verified', ecosystem: 'nuget', metadata: { 'verified' => false })
+
+    SyncPackageWorker.expects(:perform_bulk).with([[registry.id, 'unchecked', true]])
+
+    Rake::Task["packages:backfill_nuget_verified"].invoke
+  end
+
   test "nixpkgs_python_native_deps reports non-python dependencies" do
     registry = Registry.create(name: 'Nixpkgs', url: 'https://search.nixos.org', ecosystem: 'nixpkgs', packages_count: 3)
 

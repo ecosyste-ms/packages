@@ -106,6 +106,19 @@ class NugetTest < ActiveSupport::TestCase
     # Check that metadata is present (even if .nuspec requests fail)
     metadata = package_metadata[:metadata]
     assert_not_nil metadata
+    assert_equal false, metadata[:verified]
+  end
+
+  test 'package_metadata leaves verified unset when the search response has no package' do
+    stub_request(:get, "https://api.nuget.org/v3/registration5-gz-semver2/ogcapi.net.sqlserver/index.json")
+      .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
+    stub_request(:get, "https://azuresearch-usnc.nuget.org/query?q=packageid:ogcapi.net.sqlserver")
+      .to_return({ status: 200, body: '{"data":[]}' })
+    @ecosystem.stubs(:parse_nuspec_metadata).returns(nil)
+
+    package_metadata = @ecosystem.package_metadata('ogcapi.net.sqlserver')
+
+    assert_not package_metadata[:metadata].key?(:verified)
   end
 
   test 'versions_metadata' do
@@ -199,6 +212,7 @@ class NugetTest < ActiveSupport::TestCase
     # Enhanced package metadata from .nuspec (NuGet-specific only)
     metadata = package_metadata[:metadata]
     assert_not_nil metadata
+    assert_equal true, metadata[:verified]
     
     # NuGet-specific package information
     assert_equal "Copyright © James Newton-King 2008", metadata[:copyright]
