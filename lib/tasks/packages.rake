@@ -36,6 +36,18 @@ namespace :packages do
     end
   end
 
+  desc 'backfill NuGet verified package metadata'
+  task backfill_nuget_verified: :environment do
+    with_rake_lock('packages:backfill_nuget_verified') do
+      registry = Registry.find_by!(ecosystem: 'nuget')
+      packages = registry.packages.where("NOT (COALESCE(metadata::jsonb, '{}'::jsonb) ? 'verified')")
+
+      packages.in_batches(of: 1_000) do |batch|
+        SyncPackageWorker.perform_bulk(batch.pluck(:name).map { |name| [registry.id, name, true] })
+      end
+    end
+  end
+
   desc 'sync_worst_one_percent'
   task sync_worst_one_percent: :environment do
     with_rake_lock('packages:sync_worst_one_percent') do
