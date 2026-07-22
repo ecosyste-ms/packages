@@ -47,6 +47,14 @@ class PackageTest < ActiveSupport::TestCase
     end
   end
 
+  test 'sort_order identifies a descending-only fallback as the default sort' do
+    error = assert_raises(Package::UnsupportedSortDirection) do
+      Package.sort_order(sort: 'invalid', order: 'asc', default: 'downloads')
+    end
+
+    assert_equal 'the default downloads sort only supports descending order', error.message
+  end
+
   test 'sort_order uses descending nulls last ordering for nullable metrics' do
     sql = Package.order(Package.sort_order(sort: 'downloads', order: 'desc')).to_sql
 

@@ -7,28 +7,23 @@ class AddDescendingRegistryPackageSortIndexes < ActiveRecord::Migration[8.1]
     add_index :packages,
               'registry_id, downloads DESC NULLS LAST',
               name: 'index_packages_on_registry_downloads_desc',
-              algorithm: :concurrently,
-              if_not_exists: true
+              algorithm: :concurrently
     add_index :packages,
               'registry_id, dependent_packages_count DESC NULLS LAST',
               name: 'index_packages_on_registry_dependent_packages_desc',
-              algorithm: :concurrently,
-              if_not_exists: true
+              algorithm: :concurrently
     add_index :packages,
               'registry_id, dependent_repos_count DESC NULLS LAST',
               name: 'index_packages_on_registry_dependent_repos_desc',
-              algorithm: :concurrently,
-              if_not_exists: true
+              algorithm: :concurrently
     add_index :packages,
               "registry_id, ((repo_metadata ->> 'stargazers_count')::text::integer) DESC NULLS LAST",
               name: 'index_packages_on_registry_stargazers_desc',
-              algorithm: :concurrently,
-              if_not_exists: true
+              algorithm: :concurrently
     add_index :packages,
               "registry_id, ((repo_metadata ->> 'forks_count')::text::integer) DESC NULLS LAST",
               name: 'index_packages_on_registry_forks_desc',
-              algorithm: :concurrently,
-              if_not_exists: true
+              algorithm: :concurrently
   end
 
   def down

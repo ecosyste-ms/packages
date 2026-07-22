@@ -48,11 +48,13 @@ class Package < ApplicationRecord
   end
 
   def self.sort_order(sort:, order:, default: 'updated_at')
-    sort_key = sortable_columns.key?(sort) ? sort : default
+    requested_sort = sortable_columns.key?(sort)
+    sort_key = requested_sort ? sort : default
     direction = order == 'asc' ? :asc : :desc
 
     if direction == :asc && DESCENDING_ONLY_SORTS.include?(sort_key)
-      raise UnsupportedSortDirection, "#{sort_key} only supports descending order"
+      sort_name = requested_sort ? sort_key : "the default #{sort_key} sort"
+      raise UnsupportedSortDirection, "#{sort_name} only supports descending order"
     end
 
     ordering = Arel.sql(sortable_columns.fetch(sort_key)).public_send(direction)

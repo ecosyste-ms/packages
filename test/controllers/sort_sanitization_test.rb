@@ -104,6 +104,18 @@ class SortSanitizationTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_content
   end
 
+  test 'critical index explains ascending default sort errors' do
+    @package.update(critical: true)
+
+    get critical_path(order: 'asc')
+    assert_response :unprocessable_content
+    assert_equal 'the default downloads sort only supports descending order', response.body
+
+    get critical_path(sort: 'invalid', order: 'asc')
+    assert_response :unprocessable_content
+    assert_equal 'the default downloads sort only supports descending order', response.body
+  end
+
   test 'critical index with invalid sort falls back to default' do
     @package.update(critical: true)
     get critical_path(sort: '1;DROP TABLE packages--')
@@ -162,6 +174,14 @@ class SortSanitizationTest < ActionDispatch::IntegrationTest
     get api_v1_critical_index_path(sort: '1;DROP TABLE packages--')
     assert_response :success
     assert_equal 1, @registry.packages.count
+  end
+
+  test 'api critical index explains ascending default sort errors' do
+    @package.update(critical: true)
+    get api_v1_critical_index_path(order: 'asc')
+
+    assert_response :unprocessable_content
+    assert_equal 'the default downloads sort only supports descending order', response.parsed_body['error']
   end
 
   # -- API VersionsController --
