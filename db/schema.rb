@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_30_204256) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_22_190000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -132,16 +132,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_30_204256) do
     t.index "(((rankings ->> 'average'::text))::double precision)", name: "index_packages_on_rankings_average"
     t.index "(((repo_metadata ->> 'stargazers_count'::text))::integer) DESC NULLS LAST", name: "index_packages_on_stargazers_desc", where: "(length((repo_metadata)::text) > 2)"
     t.index "lower((repository_url)::text)", name: "index_packages_on_lower_repository_url"
+    t.index "registry_id, (((repo_metadata ->> 'forks_count'::text))::integer) DESC NULLS LAST", name: "index_packages_on_registry_forks_desc"
     t.index "registry_id, (((repo_metadata ->> 'forks_count'::text))::integer)", name: "index_packages_on_forks_count"
+    t.index "registry_id, (((repo_metadata ->> 'stargazers_count'::text))::integer) DESC NULLS LAST", name: "index_packages_on_registry_stargazers_desc"
     t.index "registry_id, (((repo_metadata ->> 'stargazers_count'::text))::integer)", name: "index_packages_on_stargazers_count"
     t.index "registry_id, ((metadata ->> 'normalized_name'::text))", name: "index_packages_on_registry_id_and_normalized_name", where: "((metadata ->> 'normalized_name'::text) IS NOT NULL)"
     t.index ["critical"], name: "index_packages_on_critical", where: "(critical = true)"
     t.index ["first_release_published_at"], name: "index_packages_on_first_release_published_at"
     t.index ["keywords"], name: "index_packages_on_keywords", using: :gin
     t.index ["latest_release_published_at"], name: "index_packages_on_latest_release_published_at"
+    t.index ["registry_id", "dependent_packages_count"], name: "index_packages_on_registry_dependent_packages_desc", order: { dependent_packages_count: "DESC NULLS LAST" }
     t.index ["registry_id", "dependent_packages_count"], name: "index_packages_on_registry_id_and_dependent_packages_count"
+    t.index ["registry_id", "dependent_repos_count"], name: "index_packages_on_registry_dependent_repos_desc", order: { dependent_repos_count: "DESC NULLS LAST" }
     t.index ["registry_id", "dependent_repos_count"], name: "index_packages_on_registry_id_and_dependent_repos_count"
     t.index ["registry_id", "docker_downloads_count"], name: "index_packages_on_registry_id_and_docker_downloads_count"
+    t.index ["registry_id", "downloads"], name: "index_packages_on_registry_downloads_desc", order: { downloads: "DESC NULLS LAST" }
     t.index ["registry_id", "downloads"], name: "index_packages_on_registry_id_and_downloads"
     t.index ["registry_id", "name"], name: "index_packages_on_registry_id_and_name", unique: true
     t.index ["registry_id", "namespace"], name: "index_packages_on_registry_id_and_namespace"

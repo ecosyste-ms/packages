@@ -38,6 +38,58 @@ class PackageTest < ActiveSupport::TestCase
     @version2 = @package.versions.create(number: '2.0.0', published_at: 1.week.ago)
   end
 
+  test 'sort_order restricts usage and popularity metrics to descending order' do
+    Package::DESCENDING_ONLY_SORTS.each do |sort|
+      error = assert_raises(Package::UnsupportedSortDirection) do
+        Package.sort_order(sort: sort, order: 'asc')
+      end
+      assert_equal "#{sort} only supports descending order", error.message
+    end
+  end
+
+  test 'sort_order uses descending nulls last ordering for nullable metrics' do
+    sql = Package.order(Package.sort_order(sort: 'downloads', order: 'desc')).to_sql
+
+    assert_includes sql, 'ORDER BY downloads DESC NULLS LAST'
+  end
+
+  test 'sort_order omits null ordering for updated_at' do
+    ascending_sql = Package.order(Package.sort_order(sort: 'updated_at', order: 'asc')).to_sql
+    descending_sql = Package.order(Package.sort_order(sort: 'updated_at', order: 'desc')).to_sql
+
+    assert_includes ascending_sql, 'ORDER BY updated_at ASC'
+    assert_includes descending_sql, 'ORDER BY updated_at DESC'
+    refute_includes ascending_sql, 'NULLS LAST'
+    refute_includes descending_sql, 'NULLS LAST'
+  end
+
+  test 'sort_order leaves docker downloads available in both directions' do
+    sql = Package.order(Package.sort_order(sort: 'docker_downloads_count', order: 'asc')).to_sql
+
+    assert_includes sql, 'ORDER BY docker_downloads_count ASC NULLS LAST'
+  end
+
+  test 'registry metric sort indexes use descending nulls last ordering' do
+    index_names = %w[
+      index_packages_on_registry_downloads_desc
+      index_packages_on_registry_dependent_packages_desc
+      index_packages_on_registry_dependent_repos_desc
+      index_packages_on_registry_stargazers_desc
+      index_packages_on_registry_forks_desc
+    ]
+    definitions = ActiveRecord::Base.connection.select_rows(<<~SQL).to_h
+      SELECT indexname, indexdef
+      FROM pg_indexes
+      WHERE tablename = 'packages'
+        AND indexname IN (#{index_names.map { |name| ActiveRecord::Base.connection.quote(name) }.join(', ')})
+    SQL
+
+    assert_equal index_names.sort, definitions.keys.sort
+    definitions.each_value do |definition|
+      assert_includes definition, 'DESC NULLS LAST'
+    end
+  end
+
   test 'update_details' do
     @package.expects(:normalize_licenses).returns(true)
     @package.expects(:set_latest_release_published_at).returns(true)

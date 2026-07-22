@@ -27,12 +27,7 @@ class MaintainersController < ApplicationController
     scope = @maintainer.packages.includes(:registry)
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns)
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order)
     else
       scope = scope.order('updated_at desc')
     end

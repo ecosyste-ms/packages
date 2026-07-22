@@ -14,12 +14,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = scope.critical if params[:critical].present?
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns)
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order)
     end
 
     @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
@@ -37,12 +32,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = scope.with_funding if params[:funding].present?
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns)
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order)
     end
 
     @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
@@ -58,12 +48,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = scope.where(registry_id: @registry.id) if @registry
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns, default: 'downloads')
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order(default: 'downloads'))
     else
       scope = scope.order_by_maintainer_count_asc.order('downloads DESC nulls last')
     end
@@ -93,12 +78,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     end
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns)
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order)
     end
 
     @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
@@ -162,12 +142,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = scope.name_postfix(params[:postfix]) if params[:postfix].present?
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns)
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order)
     end
 
     @pagy, @packages = pagy_countless(scope, limit_max: 10000)
@@ -208,12 +183,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = scope.where("downloads >= ?", params[:min_downloads].to_i) if params[:min_downloads].present?
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns)
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order)
     end
 
     @pagy, @packages = pagy_countless(scope)
@@ -245,12 +215,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns)
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order)
     end
 
     @pagy, @packages = pagy_countless(scope)

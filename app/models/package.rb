@@ -1,5 +1,14 @@
 class Package < ApplicationRecord
   include EcosystemsApiClient
+
+  UnsupportedSortDirection = Class.new(ArgumentError)
+  DESCENDING_ONLY_SORTS = %w[
+    downloads
+    dependent_repos_count
+    dependent_packages_count
+    stargazers_count
+    forks_count
+  ].freeze
   
   # Matches a name where any /-delimited segment is exactly "." or "..".
   # Such names generate URLs that CDNs and browsers normalise into other
@@ -36,6 +45,18 @@ class Package < ApplicationRecord
       'forks_count' => "(repo_metadata ->> 'forks_count')::text::integer",
       'rank' => "(rankings ->> 'average')::float",
     }
+  end
+
+  def self.sort_order(sort:, order:, default: 'updated_at')
+    sort_key = sortable_columns.key?(sort) ? sort : default
+    direction = order == 'asc' ? :asc : :desc
+
+    if direction == :asc && DESCENDING_ONLY_SORTS.include?(sort_key)
+      raise UnsupportedSortDirection, "#{sort_key} only supports descending order"
+    end
+
+    ordering = Arel.sql(sortable_columns.fetch(sort_key)).public_send(direction)
+    sort_key == 'updated_at' ? ordering : ordering.nulls_last
   end
 
   scope :ecosystem, ->(ecosystem) { where(ecosystem: ecosystem.downcase) }
