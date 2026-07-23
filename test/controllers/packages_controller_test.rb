@@ -10,6 +10,7 @@ class PackagesControllerTest < ActionDispatch::IntegrationTest
     get registry_packages_path(registry_id: @registry.name)
     assert_response :success
     assert_template 'packages/index', file: 'packages/index.html.erb'
+    assert_not_includes response.body, 'Least Stars'
   end
 
   test 'get a package for a registry' do

@@ -1,6 +1,13 @@
 class ApplicationController < ActionController::Base
   include Pagy::Backend
 
+  rescue_from Package::UnsupportedSortDirection do |error|
+    respond_to do |format|
+      format.json { render json: { error: error.message }, status: :unprocessable_content }
+      format.any { render plain: error.message, status: :unprocessable_content }
+    end
+  end
+
   skip_before_action :verify_authenticity_token
   before_action :reject_path_traversal_in_params
   before_action :set_cache_headers
@@ -87,5 +94,9 @@ class ApplicationController < ActionController::Base
     sort_param = params[:sort].presence || default
     sql = allowed_columns[sort_param] || allowed_columns[default] || default
     Arel.sql(sql)
+  end
+
+  def package_sort_order(default: 'updated_at')
+    Package.sort_order(sort: params[:sort], order: params[:order], default: default)
   end
 end

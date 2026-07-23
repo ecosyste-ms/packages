@@ -8,12 +8,7 @@ class PackagesController < ApplicationController
     end
     
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns)
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order)
     else
       scope = scope.order('updated_at DESC')
     end
@@ -68,12 +63,7 @@ class PackagesController < ApplicationController
     scope = scope.where("downloads >= ?", params[:min_downloads].to_i) if params[:min_downloads].present?
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns)
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order)
     else
       scope = scope.order('latest_release_published_at DESC')
     end
@@ -95,12 +85,7 @@ class PackagesController < ApplicationController
 
     scope = @package.related_packages.includes(:registry)
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns)
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order)
     else
       scope = scope.order('latest_release_published_at DESC')
     end

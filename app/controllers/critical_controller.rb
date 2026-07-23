@@ -9,12 +9,7 @@ class CriticalController < ApplicationController
     scope = scope.where(registry_id: @registry.id) if params[:registry]
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns, default: 'downloads')
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order(default: 'downloads'))
     else
       scope = scope.order('downloads DESC nulls last')
     end
@@ -34,12 +29,7 @@ class CriticalController < ApplicationController
     scope = scope.where(registry_id: @registry.id) if params[:registry]
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns, default: 'downloads')
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order(default: 'downloads'))
     else
       scope = scope.order('packages.downloads DESC nulls last')
     end
@@ -80,12 +70,7 @@ class CriticalController < ApplicationController
     scope = scope.where(registry_id: @registry.id) if params[:registry]
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns, default: 'downloads')
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order(default: 'downloads'))
     else
       scope = scope.order_by_maintainer_count_asc.order('downloads DESC nulls last')
     end
