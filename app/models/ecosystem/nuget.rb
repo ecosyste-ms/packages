@@ -143,7 +143,10 @@ module Ecosystem
       search_result = download_stats&.dig("data")&.first
       return {} unless search_result.is_a?(Hash)
 
-      { verified: search_result["verified"] == true }
+      verified = search_result["verified"]
+      return {} unless [true, false].include?(verified)
+
+      { verified: verified }
     end
 
     def build_package_nuspec_metadata(nuspec_metadata)

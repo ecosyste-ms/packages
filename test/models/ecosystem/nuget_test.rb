@@ -121,6 +121,10 @@ class NugetTest < ActiveSupport::TestCase
     assert_not package_metadata[:metadata].key?(:verified)
   end
 
+  test 'verified_metadata leaves verified unset when the search response omits it' do
+    assert_equal({}, @ecosystem.verified_metadata({ "data" => [{ "totalDownloads" => 0 }] }))
+  end
+
   test 'versions_metadata' do
     stub_request(:get, "https://api.nuget.org/v3/registration5-gz-semver2/ogcapi.net.sqlserver/index.json")
       .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
