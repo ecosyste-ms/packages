@@ -131,7 +131,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
 
   def names
     @registry = Registry.find_by_name!(params[:id])
-    scope = @registry.packages
+    scope = @registry.packages.select(:id, :name, :updated_at)
     scope = scope.created_after(params[:created_after]) if params[:created_after].present?
     scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
     scope = scope.created_before(params[:created_before]) if params[:created_before].present?
