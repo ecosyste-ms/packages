@@ -3,9 +3,17 @@ require "test_helper"
 class SyncPackageWorkerTest < ActiveSupport::TestCase
   test 'perform' do
     @registry = Registry.create(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
-    @registry.expects(:sync_package).with('foo')
+    @registry.expects(:sync_package).with('foo', force: false)
     Registry.expects(:find_by_id).with(@registry.id).returns(@registry)
     job = SyncPackageWorker.new
     job.perform(@registry.id, 'foo')
+  end
+
+  test 'perform force sync' do
+    @registry = Registry.create(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
+    @registry.expects(:sync_package).with('foo', force: true)
+    Registry.expects(:find_by_id).with(@registry.id).returns(@registry)
+
+    SyncPackageWorker.new.perform(@registry.id, 'foo', true)
   end
 end
