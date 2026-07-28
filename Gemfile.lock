@@ -275,7 +275,7 @@ GEM
       sidekiq (>= 7.0.0, < 9.0.0)
       thor (>= 1.0, < 3.0)
     simple-rss (2.2.0)
-    sitemap_generator (7.1.0)
+    sitemap_generator (7.1.1)
       builder (~> 3.0)
     spdx (2.0.12)
       fuzzy_match (~> 2.1)
@@ -515,7 +515,7 @@ CHECKSUMS
   sidekiq (8.1.6) sha256=be20cd051124b1a16cf97ea9157137abbd30a515c16a5ae9312d2eadd045e40f
   sidekiq-unique-jobs (8.1.0) sha256=6a7eaa61ac408197a542350df905687b506acae2f485da03b11d28b1c367dc35
   simple-rss (2.2.0) sha256=77e09f7275cc27912dff58cbdfd6a56d87ab0dae30fad7d86f43cf834855c0c4
-  sitemap_generator (7.1.0) sha256=5e493e67e8846b2a2ffc72799ff0f4a71db6c11c1269f7a9ae3433f40ec0af92
+  sitemap_generator (7.1.1) sha256=ab2a133d512a7b33ed713a27a9977f61d8379c9943e3b79900243fc1c4f7f81d
   spdx (2.0.12) sha256=c44ad4b9fbfa8138bfc1e8065fc7cf531207b63dccd2b63b0b61df7c5bdf80a6
   sprockets (4.2.2) sha256=761e5a49f1c288704763f73139763564c845a8f856d52fba013458f8af1b59b1
   sprockets-rails (3.5.2) sha256=a9e88e6ce9f8c912d349aa5401509165ec42326baf9e942a85de4b76dbc4119e
