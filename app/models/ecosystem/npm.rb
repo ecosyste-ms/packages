@@ -110,7 +110,8 @@ module Ecosystem
         namespace: namespace(package),
         metadata: {
           "funding" => latest_version["funding"],
-          "dist-tags" => package["dist-tags"]
+          "dist-tags" => package["dist-tags"],
+          "contentPolicy" => latest_version["contentPolicy"]
         }
       }
 
@@ -196,7 +197,8 @@ module Ecosystem
             "directories" => v["directories"],
             "engines" => v["engines"],
             "exports" => v["exports"],
-            "browserify" => v["browserify"]
+            "browserify" => v["browserify"],
+            "contentPolicy" => v["contentPolicy"]
           }
         }
       end
