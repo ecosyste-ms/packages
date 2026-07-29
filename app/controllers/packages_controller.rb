@@ -47,6 +47,7 @@ class PackagesController < ApplicationController
     if TopDependentPackage.cacheable_request?(params) &&
        (cached = @package.top_dependent_packages.find_by(sort: params[:sort]))
       @pagy, page_ids = pagy_array(cached.dependent_ids)
+      page_ids ||= []
       by_id = Package.where(id: page_ids).includes(:registry).index_by(&:id)
       @dependent_packages = page_ids.map { |i| by_id[i] }.compact
       fresh_when([cached, *@dependent_packages], public: true)

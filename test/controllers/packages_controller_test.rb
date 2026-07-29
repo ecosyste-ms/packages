@@ -100,6 +100,16 @@ class PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal [dep2, dep1], assigns(:dependent_packages)
   end
 
+  test 'dependent_packages returns an empty cached page when page overflows' do
+    dependent = @registry.packages.create(name: 'dep-one', ecosystem: @registry.ecosystem)
+    TopDependentPackage.create!(package_id: @package.id, sort: 'downloads', dependent_ids: [dependent.id], updated_at: Time.current)
+
+    get dependent_packages_registry_package_path(registry_id: @registry.name, id: @package.name, sort: 'downloads', page: 2)
+
+    assert_response :success
+    assert_empty assigns(:dependent_packages)
+  end
+
   test 'dependent_packages skips kinds sidebar above threshold' do
     @package.update_column(:dependent_packages_count, TopDependentPackage::THRESHOLD + 1)
 

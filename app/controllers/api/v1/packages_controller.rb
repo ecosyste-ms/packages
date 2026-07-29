@@ -164,6 +164,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     if TopDependentPackage.cacheable_request?(params) &&
        (cached = @package.top_dependent_packages.find_by(sort: params[:sort]))
       @pagy, page_ids = pagy_array(cached.dependent_ids)
+      page_ids ||= []
       by_id = Package.where(id: page_ids).includes(:registry, { maintainers: :registry }).index_by(&:id)
       @packages = page_ids.map { |i| by_id[i] }.compact
       response.headers['X-Source'] = 'top_dependent_packages'

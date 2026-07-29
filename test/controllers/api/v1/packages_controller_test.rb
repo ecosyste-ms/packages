@@ -910,6 +910,16 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal ['dep2'], names
   end
 
+  test 'dependent_packages returns an empty cached page when page overflows' do
+    dependent = @registry.packages.create(name: 'dep-one', ecosystem: @registry.ecosystem)
+    TopDependentPackage.create!(package_id: @package.id, sort: 'downloads', dependent_ids: [dependent.id], updated_at: Time.current)
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name, sort: 'downloads', page: 2)
+
+    assert_response :success
+    assert_equal [], Oj.load(@response.body)
+  end
+
   test 'dependent_packages cache skipped when sort not cached' do
     TopDependentPackage.create!(package_id: @package.id, sort: 'downloads', dependent_ids: [999], updated_at: Time.current)
 
