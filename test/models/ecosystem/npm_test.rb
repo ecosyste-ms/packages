@@ -108,7 +108,7 @@ class NpmTest < ActiveSupport::TestCase
     assert_equal package_metadata[:downloads], 1076972
     assert_equal package_metadata[:downloads_period], "last-month"
     assert_nil package_metadata[:namespace]
-    assert_equal package_metadata[:metadata], {"funding"=>nil, "dist-tags"=>{"latest"=>"2.0.1"}}
+    assert_equal package_metadata[:metadata], {"funding"=>nil, "dist-tags"=>{"latest"=>"2.0.1"}, "contentPolicy"=>nil}
   end
 
   test 'versions_metadata' do
@@ -182,5 +182,7 @@ class NpmTest < ActiveSupport::TestCase
     assert_equal first_version[:metadata]["_npmVersion"], "10.5.0"
     assert_equal first_version[:metadata]["exports"]["."]["default"], "./index.js"
     assert_equal first_version[:metadata]["browserify"]["transform"], ["loose-envify"]
+    assert_equal first_version[:metadata]["contentPolicy"], {"class"=>"dual-use"}
+    assert_equal package_metadata[:metadata]["contentPolicy"], {"class"=>"dual-use"}
   end
 end
