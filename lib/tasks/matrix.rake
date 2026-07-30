@@ -2,6 +2,30 @@ require 'matrix'
 require 'csv'
 
 namespace :matrix do
+  desc 'Export package metrics used by the FOSDEM 2025 correlation analysis'
+  task export: :environment do
+    connection = ActiveRecord::Base.connection.raw_connection
+
+    connection.copy_data(<<~SQL) do
+      COPY (
+        SELECT
+          ecosystem AS "Ecosystem",
+          downloads AS "Downloads",
+          dependent_repos_count,
+          repo_metadata ->> 'stargazers_count' AS stargazers_count,
+          repo_metadata ->> 'forks_count' AS forks_count,
+          dependent_packages_count,
+          docker_downloads_count,
+          docker_dependents_count
+        FROM packages
+      ) TO STDOUT WITH (FORMAT CSV, HEADER TRUE)
+    SQL
+      while row = connection.get_copy_data
+        $stdout.write(row)
+      end
+    end
+  end
+
   task correlations: :environment do
     csv_path = Rails.root.join('data/matrix.csv')
 
