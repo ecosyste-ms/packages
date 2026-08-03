@@ -28,6 +28,45 @@ class Version < ApplicationRecord
 
   scope :active, -> { where(status: nil) }
 
+  def self.normalize_integrity(params)
+    integrity = params[:integrity]
+
+    if integrity.blank?
+      if params[:sha256].present?
+        integrity = "sha256-#{params[:sha256].to_s.downcase}"
+      elsif params[:sha1].present?
+        integrity = "sha1-#{params[:sha1].to_s.downcase}"
+      elsif params[:sha512].present?
+        integrity = "sha512-#{params[:sha512].to_s.downcase}"
+      end
+    end
+
+    return if integrity.blank?
+
+    integrity = integrity.to_s
+
+    if integrity.match?(/\A[a-fA-F0-9]+\z/)
+      integrity = integrity.downcase
+
+      if integrity.length == 64
+        "sha256-#{integrity}"
+      elsif integrity.length == 40
+        "sha1-#{integrity}"
+      elsif integrity.length == 128
+        "sha512-#{integrity}"
+      else
+        integrity
+      end
+    else
+      integrity.sub(/\A(sha256|sha1|sha512)-(.+)\z/i) do
+        digest = Regexp.last_match(2)
+        digest = digest.downcase if digest.match?(/\A[a-fA-F0-9]+\z/)
+
+        "#{Regexp.last_match(1).downcase}-#{digest}"
+      end
+    end
+  end
+
   def to_param
     number.gsub(/(\r\n|\n)/, "%0A")
   end
