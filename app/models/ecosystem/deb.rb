@@ -13,6 +13,10 @@ module Ecosystem
       false
     end
 
+    def self.purl_namespace_in_name?
+      false
+    end
+
     def purl_params(package, version = nil)
       {
         type: 'deb',
