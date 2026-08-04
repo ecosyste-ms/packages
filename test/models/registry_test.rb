@@ -232,6 +232,30 @@ class RegistryTest < ActiveSupport::TestCase
     Registry.sync_all_packages_async
   end
 
+  test 'sync_package refreshes published_at for existing version on force sync' do
+    package = @registry.packages.create!(name: 'test-package', ecosystem: @registry.ecosystem)
+    bad_date = Time.at(1_700_000)
+    version = package.versions.create!(
+      number: '1.0.0',
+      published_at: bad_date,
+      registry_id: @registry.id
+    )
+
+    ecosystem = @registry.ecosystem_instance
+    ecosystem.stubs(:package_metadata).returns({ name: 'test-package', description: 'Test' })
+
+    corrected_date = Time.parse('2023-09-09T00:00:00Z')
+    ecosystem.stubs(:versions_metadata).returns([
+      { number: '1.0.0', published_at: corrected_date }
+    ])
+    ecosystem.stubs(:dependencies_metadata).returns([])
+
+    @registry.sync_package('test-package', force: true)
+
+    version.reload
+    assert_in_delta corrected_date.to_f, version.read_attribute(:published_at).to_f, 1.0
+  end
+
   test 'sync_package does not trigger N+1 when checking for existing dependencies' do
     # Create package with existing versions that have dependencies
     package = @registry.packages.create!(name: 'test-package', ecosystem: @registry.ecosystem)
