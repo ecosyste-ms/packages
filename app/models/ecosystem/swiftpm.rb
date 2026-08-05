@@ -54,9 +54,9 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      u = "https://github.com/SwiftPackageIndex/PackageList/commits/main.atom"
-      titles = SimpleRSS.parse(get_raw(u)).items.map(&:title)
-      titles.map { |t| t.match(/^Add (\w)/) && t.match(/^Add (.+)/)[1] }.uniq.compact
+      added = get_xml("https://swiftpackageindex.com/packages.rss").css('item guid').map(&:text)
+      released = get_xml("https://swiftpackageindex.com/releases.rss").css('item guid').map { |g| g.text.split('/')[0..1].join('/') }
+      (added + released).uniq.compact.map { |name| "github.com/#{name}" }
     rescue
       []
     end
@@ -94,8 +94,7 @@ module Ecosystem
 
     def fetch_package_metadata_uncached(name)
       json = get_json("https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://#{CGI.escape(name)}")
-      return nil if json.nil?
-      return nil if json['error'].present?
+      return nil unless json.is_a?(Hash) && json['full_name'].present?
       json.merge('name' => name, 'repository_url' => "https://#{name}")
     rescue
       nil
