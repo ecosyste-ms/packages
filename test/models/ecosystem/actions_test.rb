@@ -238,6 +238,17 @@ class ActionsTest < ActiveSupport::TestCase
     assert @version.reload.immutable
   end
 
+  test 'update_existing_versions handles null metadata' do
+    @version.update_column(:metadata, nil)
+
+    @ecosystem.update_existing_versions(
+      @package,
+      [{ number: @version.number, metadata: { immutable: true } }]
+    )
+
+    assert_equal({ 'immutable' => true }, @version.reload.metadata)
+  end
+
   test 'update_versions preserves immutability when the release value is null' do
     @version.update!(metadata: @version.metadata.merge('immutable' => true))
     @registry.stubs(:ecosystem_instance).returns(@ecosystem)

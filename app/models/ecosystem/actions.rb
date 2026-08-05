@@ -198,7 +198,7 @@ module Ecosystem
         next if version.immutable == immutable
 
         version.update_columns(
-          metadata: version.metadata.merge('immutable' => immutable),
+          metadata: (version.metadata || {}).merge('immutable' => immutable),
           updated_at: Time.current
         )
       end
