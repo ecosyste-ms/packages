@@ -48,6 +48,17 @@ namespace :packages do
     end
   end
 
+  desc 'backfill GitHub Actions release immutability'
+  task backfill_github_actions_immutability: :environment do
+    with_rake_lock('packages:backfill_github_actions_immutability', ttl: 24.hours.to_i) do
+      registry = Registry.find_by!(ecosystem: 'actions')
+
+      registry.packages.in_batches(of: 1_000) do |batch|
+        UpdateVersionsWorker.perform_bulk(batch.pluck(:id).map { |id| [id] })
+      end
+    end
+  end
+
   desc 'sync_worst_one_percent'
   task sync_worst_one_percent: :environment do
     with_rake_lock('packages:sync_worst_one_percent') do

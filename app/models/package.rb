@@ -427,9 +427,10 @@ class Package < ApplicationRecord
   end
 
   def update_versions
-    package_metadata = registry.ecosystem_instance.package_metadata(name)
+    ecosystem = registry.ecosystem_instance
+    package_metadata = ecosystem.package_metadata(name)
     return false unless package_metadata
-    versions_metadata = registry.ecosystem_instance.versions_metadata(package_metadata)
+    versions_metadata = ecosystem.versions_metadata(package_metadata)
 
     created_versions = []
     versions_metadata.each do |version|
@@ -441,6 +442,10 @@ class Package < ApplicationRecord
       begin
         if v
           v.registry_id = registry_id
+          metadata_key = version.key?(:metadata) ? :metadata : 'metadata'
+          if version.key?(metadata_key)
+            version = version.merge(metadata_key => ecosystem.merge_version_metadata(v.metadata, version[metadata_key]))
+          end
           v.assign_attributes(version)
           v.save(validate: false)
         else

@@ -233,6 +233,14 @@ module Ecosystem
       []
     end
 
+    def update_existing_versions(_package, _versions_metadata)
+      nil
+    end
+
+    def merge_version_metadata(_existing_metadata, new_metadata)
+      new_metadata
+    end
+
     def download_and_cache(url, cache_key, ttl: 1.hour)
       cache_dir = Rails.root.join('tmp', 'cache', 'ecosystems')
       FileUtils.mkdir_p(cache_dir)

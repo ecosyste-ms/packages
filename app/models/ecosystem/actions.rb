@@ -131,7 +131,7 @@ module Ecosystem
 
     def map_package_metadata(package)
       return nil unless package
-      {
+      metadata = {
         name: package['name'],
         description: package['yaml']['description'].presence || package["description"],
         repository_url: package["repository_url"],
@@ -139,9 +139,12 @@ module Ecosystem
         keywords_array: package['topics'],
         homepage: package["homepage"],
         tags_url: package["tags_url"],
+        releases_url: package["releases_url"],
         namespace: package["owner"],
         metadata: package['yaml'].merge('default_branch' => package['default_branch'], 'path' => package['path'])
       }
+      metadata.delete(:releases_url) if metadata[:releases_url].blank?
+      metadata
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
@@ -149,18 +152,69 @@ module Ecosystem
       tags_json = get_json(pkg_metadata[:tags_url]+'?per_page=1000')
       return [] if tags_json.blank?
 
+      releases_by_tag = {}
+      if pkg_metadata[:releases_url]
+        releases_json = begin
+          get_json(pkg_metadata[:releases_url]+'?per_page=1000') || []
+        rescue StandardError
+          []
+        end
+        releases_by_tag = releases_json.index_by { |release| release['tag_name'] }
+      end
+
       tags_json.map do |tag|
+        release = releases_by_tag[tag['name']]
+        metadata = {
+          sha: tag['sha'],
+          download_url: tag['download_url']
+        }
+        metadata[:immutable] = release['immutable'] if [true, false].include?(release&.fetch('immutable', nil))
+
         {
           number: tag['name'],
           published_at: tag['published_at'],
-          metadata: {
-            sha: tag['sha'],
-            download_url: tag['download_url']
-          }
+          metadata: metadata
         }
       end
     rescue StandardError
       []
+    end
+
+    def update_existing_versions(package, versions_metadata)
+      immutable_by_number = versions_metadata.each_with_object({}) do |version, result|
+        version = version.with_indifferent_access
+        metadata = version[:metadata]&.with_indifferent_access || {}
+        next unless metadata.key?(:immutable)
+        next unless [true, false].include?(metadata[:immutable])
+
+        result[version[:number].to_s.downcase] = metadata[:immutable]
+      end
+
+      package.versions.select(:id, :number, :metadata).find_each do |version|
+        normalized_number = version.number.downcase
+        next unless immutable_by_number.key?(normalized_number)
+
+        immutable = immutable_by_number[normalized_number]
+        next if version.immutable == immutable
+
+        version.update_columns(
+          metadata: version.metadata.merge('immutable' => immutable),
+          updated_at: Time.current
+        )
+      end
+    end
+
+    def merge_version_metadata(existing_metadata, new_metadata)
+      existing_metadata = (existing_metadata || {}).with_indifferent_access
+      new_metadata = (new_metadata || {}).with_indifferent_access
+      immutable = new_metadata[:immutable]
+
+      return new_metadata if [true, false].include?(immutable)
+
+      new_metadata.delete(:immutable)
+      existing_immutable = existing_metadata[:immutable]
+      new_metadata[:immutable] = existing_immutable if [true, false].include?(existing_immutable)
+      new_metadata
     end
 
     def dependencies_metadata(name, version, package)

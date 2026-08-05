@@ -28,6 +28,10 @@ class Version < ApplicationRecord
 
   scope :active, -> { where(status: nil) }
 
+  def immutable
+    metadata['immutable'] if metadata.is_a?(Hash)
+  end
+
   def self.normalize_integrity(params)
     integrity = params[:integrity]
 

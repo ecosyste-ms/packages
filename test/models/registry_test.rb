@@ -210,7 +210,11 @@ class RegistryTest < ActiveSupport::TestCase
 
     ecosystem = @registry.ecosystem_instance
     ecosystem.stubs(:package_metadata).returns({ name: 'newpkg' })
-    ecosystem.stubs(:versions_metadata).returns([{ number: '1.0.0' }])
+    versions_metadata = [{ number: '1.0.0' }]
+    ecosystem.stubs(:versions_metadata).returns(versions_metadata)
+    ecosystem.expects(:update_existing_versions).with do |package, metadata|
+      package.name == 'newpkg' && metadata == versions_metadata
+    end
     ecosystem.stubs(:dependencies_metadata).returns([])
     Package.any_instance.stubs(:check_status)
     Package.any_instance.stubs(:update_repo_metadata_async)
