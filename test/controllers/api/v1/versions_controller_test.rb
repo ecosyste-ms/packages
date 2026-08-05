@@ -26,6 +26,7 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'get version of a package' do
+    @version.update!(metadata: { foo: 'bar', immutable: false })
     get api_v1_registry_package_version_path(registry_id: @registry.name, package_id: @package.name, id: '1.0.0')
     assert_response :success
     assert_template 'versions/show', file: 'versions/show.json.jbuilder'
@@ -33,7 +34,8 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     actual_response = Oj.load(@response.body)
 
     assert_equal actual_response['number'], "1.0.0"
-    assert_equal actual_response['metadata'], {"foo"=>"bar"}
+    assert_equal actual_response['immutable'], false
+    assert_equal actual_response['metadata'], {"foo"=>"bar", "immutable"=>false}
   end
 
   test 'get recent versions' do

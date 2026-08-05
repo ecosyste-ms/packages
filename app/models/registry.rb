@@ -188,7 +188,7 @@ class Registry < ApplicationRecord
       return
     end
 
-    package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page, :time, :download_stats, :tags_url))
+    package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page, :time, :download_stats, :tags_url, :releases_url))
 
     update_repo_metadata_after_save = package.changed?
     new_package = package.new_record?
@@ -202,6 +202,7 @@ class Registry < ApplicationRecord
     existing_version_numbers = package.versions.pluck('number')
 
     versions_metadata = ecosystem_instance.versions_metadata(package_metadata, existing_version_numbers)
+    ecosystem_instance.update_existing_versions(package, versions_metadata)
 
     versions_metadata.each do |version|
       new_versions << version.merge(package_id: package.id, registry_id: id, created_at: Time.now, updated_at: Time.now) unless existing_version_numbers.find { |v| v == version.with_indifferent_access[:number].to_s && version.with_indifferent_access[:status].nil? }

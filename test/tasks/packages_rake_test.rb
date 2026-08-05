@@ -37,6 +37,18 @@ class PackagesRakeTest < ActiveSupport::TestCase
     Rake::Task["packages:backfill_nuget_verified"].invoke
   end
 
+  test "backfills GitHub Actions release immutability" do
+    registry = Registry.create(name: 'GitHub Actions', url: 'https://github.com', ecosystem: 'actions')
+    first_package = registry.packages.create!(name: 'actions/checkout', ecosystem: 'actions')
+    second_package = registry.packages.create!(name: 'actions/cache', ecosystem: 'actions')
+
+    UpdateVersionsWorker.expects(:perform_bulk).with([[first_package.id], [second_package.id]])
+
+    task = Rake::Task["packages:backfill_github_actions_immutability"]
+    task.reenable
+    task.invoke
+  end
+
   test "nixpkgs_python_native_deps reports non-python dependencies" do
     registry = Registry.create(name: 'Nixpkgs', url: 'https://search.nixos.org', ecosystem: 'nixpkgs', packages_count: 3)
 

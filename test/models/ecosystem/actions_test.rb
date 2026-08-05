@@ -178,10 +178,14 @@ class ActionsTest < ActiveSupport::TestCase
   end
 
   test 'versions_metadata' do
+    lookup = Oj.load(file_fixture('actions/lookup?url=https:%2F%2Fgithub.com%2Fgetsentry%2Faction-git-diff-suggestions').read)
+    lookup['releases_url'] = 'http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/getsentry%2Faction-git-diff-suggestions/releases'
     stub_request(:get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/getsentry%2Faction-git-diff-suggestions/tags?per_page=1000")
       .to_return({ status: 200, body: file_fixture('actions/tags') })
+    stub_request(:get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/getsentry%2Faction-git-diff-suggestions/releases?per_page=1000")
+      .to_return({ status: 200, body: file_fixture('actions/releases') })
     stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/getsentry/action-git-diff-suggestions")
-      .to_return({ status: 200, body: file_fixture('actions/lookup?url=https:%2F%2Fgithub.com%2Fgetsentry%2Faction-git-diff-suggestions') })
+      .to_return({ status: 200, body: lookup.to_json })
     stub_request(:get, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/main/action.yml")
       .to_return({ status: 200, body: file_fixture('actions/action.yml') })
     stub_request(:get, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/v1/action.yml")
@@ -189,7 +193,79 @@ class ActionsTest < ActiveSupport::TestCase
     package_metadata = @ecosystem.package_metadata('getsentry/action-git-diff-suggestions')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
-    assert_equal versions_metadata.first, {:number=>"v1", :published_at=>"2020-11-25T01:40:25.000Z", :metadata=>{:sha=>"8c75946d0d7bbe80a92cf3579d544321512c30b7", :download_url=>"https://codeload.github.com/getsentry/action-git-diff-suggestions/tar.gz/v1"}}
+    assert_equal versions_metadata.first, {:number=>"v1", :published_at=>"2020-11-25T01:40:25.000Z", :metadata=>{:sha=>"8c75946d0d7bbe80a92cf3579d544321512c30b7", :download_url=>"https://codeload.github.com/getsentry/action-git-diff-suggestions/tar.gz/v1", :immutable=>true}}
+  end
+
+  test 'versions_metadata keeps tags when releases are unavailable' do
+    tags_url = 'https://repos.ecosyste.ms/tags'
+    releases_url = 'https://repos.ecosyste.ms/releases'
+    tags = Oj.load(file_fixture('actions/tags').read)
+    @ecosystem.stubs(:get_json).with("#{tags_url}?per_page=1000").returns(tags)
+    @ecosystem.stubs(:get_json).with("#{releases_url}?per_page=1000").raises(StandardError)
+
+    versions_metadata = @ecosystem.versions_metadata(tags_url: tags_url, releases_url: releases_url)
+
+    assert_equal 1, versions_metadata.length
+    refute versions_metadata.first[:metadata].key?(:immutable)
+  end
+
+  test 'update_versions stores immutability on an existing version' do
+    @registry.stubs(:ecosystem_instance).returns(@ecosystem)
+    @ecosystem.stubs(:package_metadata).with(@package.name).returns({ name: @package.name })
+    @ecosystem.stubs(:versions_metadata).returns([
+      {
+        number: @version.number,
+        metadata: {
+          download_url: @version.metadata['download_url'],
+          immutable: true
+        }
+      }
+    ])
+
+    @package.update_versions
+
+    assert @version.reload.immutable
+  end
+
+  test 'update_existing_versions refreshes changed immutability' do
+    @version.update!(metadata: @version.metadata.merge('immutable' => false))
+
+    @ecosystem.update_existing_versions(
+      @package,
+      [{ number: @version.number.upcase, metadata: { immutable: true } }]
+    )
+
+    assert @version.reload.immutable
+  end
+
+  test 'update_existing_versions handles null metadata' do
+    @version.update_column(:metadata, nil)
+
+    @ecosystem.update_existing_versions(
+      @package,
+      [{ number: @version.number, metadata: { immutable: true } }]
+    )
+
+    assert_equal({ 'immutable' => true }, @version.reload.metadata)
+  end
+
+  test 'update_versions preserves immutability when the release value is null' do
+    @version.update!(metadata: @version.metadata.merge('immutable' => true))
+    @registry.stubs(:ecosystem_instance).returns(@ecosystem)
+    @ecosystem.stubs(:package_metadata).with(@package.name).returns({ name: @package.name })
+    @ecosystem.stubs(:versions_metadata).returns([
+      {
+        number: @version.number,
+        metadata: {
+          download_url: @version.metadata['download_url'],
+          immutable: nil
+        }
+      }
+    ])
+
+    @package.update_versions
+
+    assert @version.reload.immutable
   end
 
   test 'purl' do

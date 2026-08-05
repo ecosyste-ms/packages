@@ -23,6 +23,12 @@ class VersionTest < ActiveSupport::TestCase
     assert_equal @version.published_at, @version.created_at
   end
 
+  test 'immutable reads version metadata' do
+    @version.update!(metadata: { immutable: false })
+
+    assert_equal false, @version.immutable
+  end
+
   test 'sort' do
     sorted = [@version, @version2].sort
     assert_equal sorted.first, @version2
