@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<feed xml:base="http://community.chocolatey.org/api/v2/" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns="http://www.w3.org/2005/Atom">
+  <title type="text">Packages</title>
+  <id>http://community.chocolatey.org/api/v2/Packages</id>
+  <link rel="self" title="Packages" href="Packages" />
+  <entry>
+    <id>http://community.chocolatey.org/api/v2/Packages(Id='0ad',Version='0.27.0')</id>
+    <title type="text">0ad</title>
+    <summary type="text">RTS game</summary>
+    <author><name>Wildfire Games</name></author>
+    <content type="application/zip" src="https://community.chocolatey.org/api/v2/package/0ad/0.27.0" />
+  </entry>
+  <entry>
+    <id>http://community.chocolatey.org/api/v2/Packages(Id='jq',Version='1.8.1')</id>
+    <title type="text">jq</title>
+    <summary type="text">Command-line JSON processor</summary>
+    <author><name>Stephen Dolan</name></author>
+    <content type="application/zip" src="https://community.chocolatey.org/api/v2/package/jq/1.8.1" />
+  </entry>
+  <link rel="next" href="https://community.chocolatey.org/api/v2/Packages()?$filter=IsLatestVersion&amp;$select=Id&amp;$skiptoken='1','jq'" />
+</feed>
