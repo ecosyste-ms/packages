@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 module Ecosystem
   class Debian < Deb
+    def self.purl_type
+      'deb'
+    end
+
     def default_mirror_url
       "http://deb.debian.org/debian"
     end
