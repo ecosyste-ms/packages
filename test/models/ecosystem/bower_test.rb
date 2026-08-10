@@ -94,7 +94,7 @@ class BowerTest < ActiveSupport::TestCase
   test 'versions_metadata' do
     stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/angular/bower-angular")
       .to_return({ status: 200, body: file_fixture('bower/lookup?url=https:%2F%2Fgithub.com%2Fangular%2Fbower-angular') })
-    stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/angular/bower-angular/tags")
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/angular/bower-angular/tags?per_page=1000")
       .to_return({ status: 200, body: file_fixture('bower/tags') })
     versions_metadata = @ecosystem.versions_metadata({name: 'bower-angular', repository_url: "https://github.com/angular/bower-angular"})
 

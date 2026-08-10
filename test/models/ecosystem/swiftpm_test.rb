@@ -123,7 +123,7 @@ class SwiftpmTest < ActiveSupport::TestCase
   end
 
   test 'versions_metadata' do
-    stub_request(:get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/swift-cloud%2FCompute/tags")
+    stub_request(:get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/swift-cloud%2FCompute/tags?per_page=1000")
       .to_return({ status: 200, body: file_fixture('swiftpm/tags') })
     stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/swift-cloud/Compute")
       .to_return({ status: 200, body: file_fixture('swiftpm/lookup?url=https:%2F%2Fgithub.com%2Fswift-cloud%2FCompute') })
@@ -177,5 +177,10 @@ class SwiftpmTest < ActiveSupport::TestCase
       {:package_name=>"github.com/krzyzanowskim/CryptoSwift", :requirements=>"1.6.0", :kind=>"runtime", :ecosystem=>"swiftpm"},
       {:package_name=>"github.com/apple/swift-docc-plugin", :requirements=>"1.0.0", :kind=>"runtime", :ecosystem=>"swiftpm"}
     ], dependencies_metadata
+  end
+
+  test 'update_existing_versions syncs tag-backed changes' do
+    @ecosystem.expects(:sync_tag_backed_versions).with(@package, [{ number: '2.3.1' }])
+    @ecosystem.update_existing_versions(@package, [{ number: '2.3.1' }])
   end
 end

@@ -75,7 +75,7 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       return [] unless pkg_metadata[:tags_url]
-      tags_json = get_json(pkg_metadata[:tags_url])
+      tags_json = get_json(pkg_metadata[:tags_url]+"?per_page=#{REPOS_TAGS_PER_PAGE}")
       return [] if tags_json.blank?
 
       tags_json.map do |tag|
@@ -90,6 +90,10 @@ module Ecosystem
       end
     rescue StandardError
       []
+    end
+
+    def update_existing_versions(package, versions_metadata)
+      sync_tag_backed_versions(package, versions_metadata)
     end
 
     def fetch_package_metadata_uncached(name)

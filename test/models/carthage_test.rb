@@ -82,7 +82,7 @@ class CarthageTest < ActiveSupport::TestCase
   end
 
   test 'versions_metadata' do
-    stub_request(:get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/Carthage%2FReactiveTask/tags")
+    stub_request(:get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/Carthage%2FReactiveTask/tags?per_page=1000")
       .to_return({ status: 200, body: file_fixture('carthage/tags') })
     stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/Carthage/ReactiveTask")
       .to_return({ status: 200, body: file_fixture('carthage/lookup?url=https:%2F%2Fgithub.com%2FCarthage%2FReactiveTask') })

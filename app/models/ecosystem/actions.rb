@@ -149,7 +149,7 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       return [] unless pkg_metadata[:tags_url]
-      tags_json = get_json(pkg_metadata[:tags_url]+'?per_page=1000')
+      tags_json = get_json(pkg_metadata[:tags_url]+"?per_page=#{REPOS_TAGS_PER_PAGE}")
       return [] if tags_json.blank?
 
       releases_by_tag = {}
@@ -181,6 +181,8 @@ module Ecosystem
     end
 
     def update_existing_versions(package, versions_metadata)
+      sync_tag_backed_versions(package, versions_metadata)
+
       immutable_by_number = versions_metadata.each_with_object({}) do |version, result|
         version = version.with_indifferent_access
         metadata = version[:metadata]&.with_indifferent_access || {}
