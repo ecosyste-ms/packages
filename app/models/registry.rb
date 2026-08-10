@@ -100,13 +100,16 @@ class Registry < ApplicationRecord
     return [] if all_names.empty?
 
     missing = []
+    scanned = 0
     all_names.each_slice(10_000) do |batch|
+      scanned += batch.length
       existing_in_batch = packages.where(name: batch).pluck(:name).to_set
       missing.concat(batch.reject { |name| existing_in_batch.include?(name) })
       break if missing.length >= MISSING_PACKAGE_NAMES_LIMIT
     end
-    if missing.length > MISSING_PACKAGE_NAMES_LIMIT
-      Rails.logger.warn("missing_package_names for #{name} (#{ecosystem}) returned #{missing.length}+ names; capping at #{MISSING_PACKAGE_NAMES_LIMIT}")
+    if missing.length >= MISSING_PACKAGE_NAMES_LIMIT
+      more = scanned < all_names.length ? '+' : ''
+      Rails.logger.warn("missing_package_names for #{name} (#{ecosystem}) found #{missing.length}#{more} names; capping at #{MISSING_PACKAGE_NAMES_LIMIT}")
       missing = missing.first(MISSING_PACKAGE_NAMES_LIMIT)
     end
     missing
