@@ -148,6 +148,18 @@ class BaseTest < ActiveSupport::TestCase
     assert_nil version.status
   end
 
+  test 'sync_tag_backed_versions keeps existing download_url when incoming omits it' do
+    version = @package.versions.create(number: 'v3', metadata: { 'sha' => 'old', 'download_url' => 'keep_me' })
+
+    @ecosystem.sync_tag_backed_versions(@package, [
+      { number: 'v3', metadata: { sha: 'new' } }
+    ])
+
+    version.reload
+    assert_equal 'new', version.metadata['sha']
+    assert_equal 'keep_me', version.metadata['download_url']
+  end
+
   test 'sync_tag_backed_versions marks missing versions removed and restores returning versions' do
     gone = @package.versions.create(number: 'gone', metadata: { 'sha' => 'a' })
     already_removed = @package.versions.create(number: 'also-gone', status: 'removed', updated_at: 2.days.ago)

@@ -264,10 +264,9 @@ module Ecosystem
         incoming_metadata = (incoming[:metadata] || {}).with_indifferent_access
         existing_metadata = (version.metadata || {}).with_indifferent_access
         if incoming_metadata[:sha].present? && incoming_metadata[:sha] != existing_metadata[:sha]
-          updates[:metadata] = existing_metadata.merge(
-            'sha' => incoming_metadata[:sha],
-            'download_url' => incoming_metadata[:download_url]
-          ).compact
+          new_metadata = existing_metadata.merge('sha' => incoming_metadata[:sha])
+          new_metadata['download_url'] = incoming_metadata[:download_url] if incoming_metadata[:download_url].present?
+          updates[:metadata] = new_metadata
           updates[:published_at] = incoming[:published_at] if incoming[:published_at].present?
         end
 

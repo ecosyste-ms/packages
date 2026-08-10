@@ -91,4 +91,9 @@ class CarthageTest < ActiveSupport::TestCase
 
     assert_equal versions_metadata.first, {:number=>"0.16.0", :published_at=>"2019-05-29T17:11:59.000Z", :metadata=>{:sha=>"df1bf7625684180b9377a8ba3c076db08d98757e", :download_url=>"https://codeload.github.com/Carthage/ReactiveTask/tar.gz/0.16.0"}}
   end
+
+  test 'update_existing_versions syncs tag-backed changes' do
+    @ecosystem.expects(:sync_tag_backed_versions).with(@package, [{ number: '0.16.0' }])
+    @ecosystem.update_existing_versions(@package, [{ number: '0.16.0' }])
+  end
 end
