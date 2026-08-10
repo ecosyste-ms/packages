@@ -102,10 +102,29 @@ class Registry < ApplicationRecord
       existing_in_batch = packages.where(name: batch).pluck(:name).to_set
       missing.concat(batch.reject { |name| existing_in_batch.include?(name) })
     end
-    missing
+    reject_known_by_normalized_name(missing)
   rescue => e
     Rails.logger.error("Error in missing_package_names for registry #{id} (#{ecosystem}): #{e.message}")
     []
+  end
+
+  # For ecosystems that define normalized_name (e.g. Go), drop names whose
+  # normalized form matches an existing package's metadata['normalized_name'].
+  # Uses index_packages_on_registry_id_and_normalized_name. No-op for
+  # ecosystems whose normalized_name returns nil.
+  def reject_known_by_normalized_name(names)
+    return names if names.empty?
+    pairs = names.filter_map { |n| nn = ecosystem_instance.normalized_name(n); [n, nn] if nn }
+    return names if pairs.empty?
+
+    known = Set.new
+    pairs.map(&:last).uniq.each_slice(10_000) do |batch|
+      known.merge(packages.where("metadata->>'normalized_name' = ANY(ARRAY[?]::text[])", batch).pluck(Arel.sql("metadata->>'normalized_name'")))
+    end
+    return names if known.empty?
+
+    known_originals = pairs.filter_map { |n, nn| n if known.include?(nn) }.to_set
+    names.reject { |n| known_originals.include?(n) }
   end
 
   def sync_all_packages

@@ -50,6 +50,25 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal @registry.missing_package_names, []
   end
 
+  test 'reject_known_by_normalized_name is a no-op when the ecosystem does not normalize' do
+    @registry.packages.create(name: 'foo', ecosystem: @registry.ecosystem)
+    assert_equal ['foo', 'bar'], @registry.reject_known_by_normalized_name(['foo', 'bar'])
+  end
+
+  test 'missing_package_names drops case-variants of existing packages via normalized_name' do
+    go = Registry.create(name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go')
+    go.packages.create!(ecosystem: 'go', name: 'github.com/BurntSushi/toml', metadata: { 'normalized_name' => 'github.com/burntsushi/toml' })
+    go.expects(:all_package_names).returns(['github.com/BurntSushi/toml', 'github.com/burntsushi/toml', 'github.com/Burntsushi/toml', 'github.com/new/module'])
+    assert_equal ['github.com/new/module'], go.missing_package_names
+  end
+
+  test 'missing_package_names still returns names when normalized_name is not populated' do
+    go = Registry.create(name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go')
+    go.packages.create!(ecosystem: 'go', name: 'github.com/BurntSushi/toml', metadata: {})
+    go.expects(:all_package_names).returns(['github.com/burntsushi/toml', 'github.com/new/module'])
+    assert_equal ['github.com/burntsushi/toml', 'github.com/new/module'], go.missing_package_names
+  end
+
   test 'existing_package_names' do
     @registry.save
     @registry.packages.create(name: 'foo', ecosystem: @registry.ecosystem)

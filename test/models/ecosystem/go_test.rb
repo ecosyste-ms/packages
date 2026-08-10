@@ -83,6 +83,10 @@ class GoTest < ActiveSupport::TestCase
     assert_equal recently_updated_package_names.last, 'github.com/xenolf/lego'
   end
 
+  test 'normalized_name downcases' do
+    assert_equal 'github.com/burntsushi/toml', @ecosystem.normalized_name('github.com/BurntSushi/toml')
+  end
+
   test 'package_metadata' do
     stub_request(:get, "https://pkg.go.dev/v1beta/module/github.com/aws/smithy-go?licenses=true")
       .to_return({ status: 200, body: file_fixture('go/api_module_smithy-go.json') })
@@ -97,6 +101,18 @@ class GoTest < ActiveSupport::TestCase
     assert_equal package_metadata[:repository_url], "https://github.com/aws/smithy-go"
     assert_nil package_metadata[:keywords_array]
     assert_equal package_metadata[:namespace], "github.com/aws"
+    assert_equal package_metadata[:metadata], { 'normalized_name' => 'github.com/aws/smithy-go' }
+  end
+
+  test 'package_metadata sets normalized_name for mixed-case module path' do
+    stub_request(:get, "https://pkg.go.dev/v1beta/module/github.com/BurntSushi/toml?licenses=true")
+      .to_return({ status: 200, body: file_fixture('go/api_module_smithy-go.json') })
+    stub_request(:get, "https://pkg.go.dev/v1beta/package/github.com/BurntSushi/toml")
+      .to_return({ status: 200, body: file_fixture('go/api_package_smithy-go.json') })
+    package_metadata = @ecosystem.package_metadata('github.com/BurntSushi/toml')
+
+    assert_equal package_metadata[:name], 'github.com/BurntSushi/toml'
+    assert_equal package_metadata[:metadata], { 'normalized_name' => 'github.com/burntsushi/toml' }
   end
 
   test 'package_metadata falls back to proxy when API misses' do
@@ -108,6 +124,7 @@ class GoTest < ActiveSupport::TestCase
 
     assert_equal package_metadata[:name], "github.com/aws/smithy-go"
     assert_equal package_metadata[:repository_url], "https://github.com/aws/smithy-go"
+    assert_equal package_metadata[:metadata], { 'normalized_name' => 'github.com/aws/smithy-go' }
   end
 
   test 'versions_metadata' do

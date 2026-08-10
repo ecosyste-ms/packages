@@ -47,6 +47,10 @@ module Ecosystem
       "#{@registry_url}/#{encode_for_proxy(package.name)}/@v/#{version}.zip"
     end
 
+    def normalized_name(name)
+      name.downcase
+    end
+
     def all_package_names
       names = []
       pkgs = get_raw("https://index.golang.org/index").split("\n").map{|row| Oj.load(row)}
@@ -110,10 +114,15 @@ module Ecosystem
           licenses: licenses,
           repository_url: url,
           homepage: url,
-          namespace: package[:name].split('/')[0..-2].join('/')
+          namespace: package[:name].split('/')[0..-2].join('/'),
+          metadata: { 'normalized_name' => normalized_name(package[:name]) }
         }
       else
-        { name: package[:name], repository_url: UrlParser.try_all(package[:name]) }
+        {
+          name: package[:name],
+          repository_url: UrlParser.try_all(package[:name]),
+          metadata: { 'normalized_name' => normalized_name(package[:name]) }
+        }
       end
     end
 

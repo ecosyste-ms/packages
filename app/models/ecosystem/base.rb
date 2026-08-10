@@ -14,6 +14,15 @@ module Ecosystem
       false
     end
 
+    # Return a normalized form of the package name for this ecosystem, or nil
+    # if the ecosystem does not define one. When set, the value is stored in
+    # metadata['normalized_name'] (indexed) and used by
+    # Registry#missing_package_names to recognise a package that already exists
+    # under a different literal name (e.g. Go module path case-variants).
+    def normalized_name(name)
+      nil
+    end
+
     def sync_maintainers_inline?
       false
     end
