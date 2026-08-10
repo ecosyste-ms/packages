@@ -69,7 +69,7 @@ module Ecosystem
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       repo_json = get_json("https://repos.ecosyste.ms/api/v1/repositories/lookup?url=#{CGI.escape(pkg_metadata[:repository_url])}")
       return [] if repo_json.blank?
-      tags_json = get_json("https://repos.ecosyste.ms/api/v1/hosts/#{repo_json['host']['name']}/repositories/#{repo_json['full_name']}/tags")
+      tags_json = get_json("https://repos.ecosyste.ms/api/v1/hosts/#{repo_json['host']['name']}/repositories/#{repo_json['full_name']}/tags?per_page=#{REPOS_TAGS_PER_PAGE}")
       return [] if tags_json.blank?
 
       tags_json.map do |tag|
@@ -84,6 +84,10 @@ module Ecosystem
       end
     rescue StandardError
       []
+    end
+
+    def update_existing_versions(package, versions_metadata)
+      sync_tag_backed_versions(package, versions_metadata)
     end
 
     def fetch_package_metadata_uncached(name)

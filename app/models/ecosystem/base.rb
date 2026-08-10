@@ -237,6 +237,43 @@ module Ecosystem
       nil
     end
 
+    REPOS_TAGS_PER_PAGE = 1000
+
+    def sync_tag_backed_versions(package, versions_metadata)
+      return if versions_metadata.blank?
+
+      remote = versions_metadata.each_with_object({}) do |version, result|
+        version = version.with_indifferent_access
+        result[version[:number].to_s.downcase] = version
+      end
+      mark_removed = versions_metadata.size < REPOS_TAGS_PER_PAGE
+      now = Time.current
+
+      package.versions.select(:id, :number, :status, :published_at, :metadata).find_each do |version|
+        incoming = remote[version.number.to_s.downcase]
+        if incoming.nil?
+          next unless mark_removed
+          next if version.status == 'removed'
+          version.update_columns(status: 'removed', updated_at: now)
+          next
+        end
+
+        updates = {}
+        updates[:status] = nil if version.status == 'removed'
+
+        incoming_metadata = (incoming[:metadata] || {}).with_indifferent_access
+        existing_metadata = (version.metadata || {}).with_indifferent_access
+        if incoming_metadata[:sha].present? && incoming_metadata[:sha] != existing_metadata[:sha]
+          new_metadata = existing_metadata.merge('sha' => incoming_metadata[:sha])
+          new_metadata['download_url'] = incoming_metadata[:download_url] if incoming_metadata[:download_url].present?
+          updates[:metadata] = new_metadata
+          updates[:published_at] = incoming[:published_at] if incoming[:published_at].present?
+        end
+
+        version.update_columns(updates.merge(updated_at: now)) if updates.any?
+      end
+    end
+
     def merge_version_metadata(_existing_metadata, new_metadata)
       new_metadata
     end

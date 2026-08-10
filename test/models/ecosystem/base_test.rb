@@ -131,4 +131,76 @@ class BaseTest < ActiveSupport::TestCase
     assert cached_file.exist?
     FileUtils.rm_f(cached_file)
   end
+
+  test 'sync_tag_backed_versions refreshes moved sha and published_at' do
+    version = @package.versions.create(number: 'v2', published_at: 2.days.ago, metadata: { 'sha' => 'old', 'download_url' => 'old_url', 'other' => 'kept' })
+    published = 1.hour.ago.change(usec: 0)
+
+    @ecosystem.sync_tag_backed_versions(@package, [
+      { number: 'v2', published_at: published, metadata: { sha: 'new', download_url: 'new_url' } }
+    ])
+
+    version.reload
+    assert_equal 'new', version.metadata['sha']
+    assert_equal 'new_url', version.metadata['download_url']
+    assert_equal 'kept', version.metadata['other']
+    assert_equal published, version.published_at
+    assert_nil version.status
+  end
+
+  test 'sync_tag_backed_versions keeps existing download_url when incoming omits it' do
+    version = @package.versions.create(number: 'v3', metadata: { 'sha' => 'old', 'download_url' => 'keep_me' })
+
+    @ecosystem.sync_tag_backed_versions(@package, [
+      { number: 'v3', metadata: { sha: 'new' } }
+    ])
+
+    version.reload
+    assert_equal 'new', version.metadata['sha']
+    assert_equal 'keep_me', version.metadata['download_url']
+  end
+
+  test 'sync_tag_backed_versions marks missing versions removed and restores returning versions' do
+    gone = @package.versions.create(number: 'gone', metadata: { 'sha' => 'a' })
+    already_removed = @package.versions.create(number: 'also-gone', status: 'removed', updated_at: 2.days.ago)
+    already_removed_updated_at = already_removed.updated_at
+    back = @package.versions.create(number: 'back', status: 'removed', metadata: { 'sha' => 'same' })
+
+    @ecosystem.sync_tag_backed_versions(@package, [
+      { 'number' => 'back', 'metadata' => { 'sha' => 'same' } },
+      { 'number' => 'kept', 'metadata' => { 'sha' => 'x' } }
+    ])
+
+    assert_equal 'removed', gone.reload.status
+    assert_equal 'removed', already_removed.reload.status
+    assert_equal already_removed_updated_at.to_i, already_removed.updated_at.to_i
+    assert_nil back.reload.status
+  end
+
+  test 'sync_tag_backed_versions leaves non-removed status alone when sha is unchanged' do
+    version = @package.versions.create(number: 'v1', status: 'deprecated', metadata: { 'sha' => 'same' })
+
+    @ecosystem.sync_tag_backed_versions(@package, [
+      { number: 'v1', metadata: { sha: 'same' } }
+    ])
+
+    assert_equal 'deprecated', version.reload.status
+  end
+
+  test 'sync_tag_backed_versions does nothing when versions_metadata is empty' do
+    version = @package.versions.create(number: 'v1', metadata: { 'sha' => 'a' })
+
+    @ecosystem.sync_tag_backed_versions(@package, [])
+
+    assert_nil version.reload.status
+  end
+
+  test 'sync_tag_backed_versions skips removal when the tags page is full' do
+    beyond_page = @package.versions.create(number: 'old', metadata: { 'sha' => 'a' })
+    full_page = Array.new(Ecosystem::Base::REPOS_TAGS_PER_PAGE) { |i| { number: "v#{i}", metadata: { sha: "s#{i}" } } }
+
+    @ecosystem.sync_tag_backed_versions(@package, full_page)
+
+    assert_nil beyond_page.reload.status
+  end
 end

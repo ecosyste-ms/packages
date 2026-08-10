@@ -67,7 +67,7 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       return [] unless pkg_metadata[:tags_url]
-      tags_json = get_json(pkg_metadata[:tags_url])
+      tags_json = get_json(pkg_metadata[:tags_url]+"?per_page=#{REPOS_TAGS_PER_PAGE}")
       return [] if tags_json.blank?
 
       tags_json.map do |tag|
@@ -84,9 +84,13 @@ module Ecosystem
       []
     end
 
+    def update_existing_versions(package, versions_metadata)
+      sync_tag_backed_versions(package, versions_metadata)
+    end
+
     def dependencies_metadata(name, version, package)
       return [] unless package[:repository_url]
-      github_name_with_owner = GithubUrlParser.parse(package[:repository_url]) 
+      github_name_with_owner = GithubUrlParser.parse(package[:repository_url])
       return [] unless github_name_with_owner
       deps = get_raw_no_exception("https://raw.githubusercontent.com/#{github_name_with_owner}/#{version}/Cartfile")
       return [] unless deps.present?
