@@ -91,6 +91,8 @@ class Registry < ApplicationRecord
     packages.pluck(:name)
   end
 
+  MISSING_PACKAGE_NAMES_LIMIT = 5_000
+
   def missing_package_names
     all_names = all_package_names
     all_names = all_names.keys if all_names.is_a?(Hash)
@@ -101,6 +103,11 @@ class Registry < ApplicationRecord
     all_names.each_slice(10_000) do |batch|
       existing_in_batch = packages.where(name: batch).pluck(:name).to_set
       missing.concat(batch.reject { |name| existing_in_batch.include?(name) })
+      break if missing.length >= MISSING_PACKAGE_NAMES_LIMIT
+    end
+    if missing.length > MISSING_PACKAGE_NAMES_LIMIT
+      Rails.logger.warn("missing_package_names for #{name} (#{ecosystem}) returned #{missing.length}+ names; capping at #{MISSING_PACKAGE_NAMES_LIMIT}")
+      missing = missing.first(MISSING_PACKAGE_NAMES_LIMIT)
     end
     missing
   rescue => e
