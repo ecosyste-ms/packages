@@ -85,6 +85,14 @@ class RegistryTest < ActiveSupport::TestCase
     @registry.expects(:sync_packages_async).with(['foo', 'bar', 'baz'])
     @registry.sync_missing_packages_async
   end
+
+  test 'sync_missing_packages_async delegates incremental discovery to the ecosystem' do
+    ecosystem = @registry.ecosystem_instance
+    ecosystem.expects(:sync_missing_packages_incrementally?).returns(true)
+    ecosystem.expects(:sync_missing_packages_async).returns(2)
+    @registry.expects(:missing_package_names).never
+    assert_equal 2, @registry.sync_missing_packages_async
+  end
   
   test 'sync_recently_updated_packages_async' do
     @registry.expects(:recently_updated_package_names_excluding_recently_synced).returns(['foo', 'bar', 'baz'])
@@ -147,6 +155,19 @@ class RegistryTest < ActiveSupport::TestCase
 
     result = @registry.sync_package('some-package')
     assert_equal false, result
+  end
+
+  test 'sync_package forwards an indexed version and updates last_synced_at' do
+    ecosystem = @registry.ecosystem_instance
+    ecosystem.expects(:package_metadata).with('newpkg', version: '1.2.3').returns({ name: 'newpkg' })
+    ecosystem.stubs(:versions_metadata).returns([])
+    Package.any_instance.stubs(:check_status)
+    Package.any_instance.stubs(:update_repo_metadata_async)
+
+    package = @registry.sync_package('newpkg', version: '1.2.3')
+
+    assert package.persisted?
+    assert package.last_synced_at
   end
 
   test 'sync_package_async' do

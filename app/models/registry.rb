@@ -125,6 +125,10 @@ class Registry < ApplicationRecord
   end
 
   def sync_missing_packages_async
+    if ecosystem_instance.sync_missing_packages_incrementally?
+      return ecosystem_instance.sync_missing_packages_async
+    end
+
     sync_in_batches? ? sync_missing_packages : sync_packages_async(missing_package_names)
   end
 
@@ -156,9 +160,13 @@ class Registry < ApplicationRecord
     end
   end
 
-  def sync_package(name, force: false)
+  def sync_package(name, force: false, version: nil)
     logger.info "Syncing #{name}"
-    package_metadata = ecosystem_instance.package_metadata(name)
+    package_metadata = if version
+                         ecosystem_instance.package_metadata(name, version: version)
+                       else
+                         ecosystem_instance.package_metadata(name)
+                       end
     unless package_metadata
       logger.error "Failed to sync #{name}: package_metadata returned nil or false"
       return false

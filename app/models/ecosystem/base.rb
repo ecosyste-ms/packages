@@ -14,6 +14,10 @@ module Ecosystem
       false
     end
 
+    def sync_missing_packages_incrementally?
+      false
+    end
+
     def sync_maintainers_inline?
       false
     end
@@ -113,14 +117,25 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
-      return @last_fetched_metadata if @last_fetched_name == name
-      @last_fetched_name = name
-      @last_fetched_metadata = fetch_package_metadata_uncached(name)
+    def fetch_package_metadata(name, version: nil)
+      cache_key = [name, version]
+      return @last_fetched_metadata if @last_fetched_key == cache_key
+
+      metadata = if version
+                   fetch_package_metadata_for_version(name, version)
+                 else
+                   fetch_package_metadata_uncached(name)
+                 end
+      @last_fetched_key = cache_key
+      @last_fetched_metadata = metadata
     end
 
-    def package_metadata(name)
-      map_package_metadata(fetch_package_metadata(name))
+    def fetch_package_metadata_for_version(name, _version)
+      fetch_package_metadata_uncached(name)
+    end
+
+    def package_metadata(name, version: nil)
+      map_package_metadata(fetch_package_metadata(name, version: version))
     end
 
     def map_dependencies(deps, kind, optional = false, ecosystem = self.class.name.demodulize.downcase)
