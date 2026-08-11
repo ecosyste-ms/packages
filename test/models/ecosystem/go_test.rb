@@ -10,7 +10,7 @@ class GoTest < ActiveSupport::TestCase
   end
 
   teardown do
-    @original_go_proxy_url.nil? ? ENV.delete('GO_PROXY_URL') : ENV['GO_PROXY_URL'] = @original_go_proxy_url
+    ENV['GO_PROXY_URL'] = @original_go_proxy_url
   end
 
   test 'registry_url' do
