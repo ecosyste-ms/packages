@@ -6,13 +6,16 @@ class SyncPackageVersionWorker
                   lock_args_method: :lock_args
 
   def self.lock_args(args)
-    args.first(2)
+    args.first(3)
   end
 
   def perform(registry_id, name, version)
     registry = Registry.find_by_id(registry_id)
-    return if registry.nil? || registry.packages.exists?(name: name)
+    return if registry.nil?
 
-    registry.sync_package(name, version: version)
+    package = registry.packages.find_by(name: name)
+    return if package&.versions&.exists?(number: version)
+
+    registry.sync_package(name, force: package.present?, version: version)
   end
 end
