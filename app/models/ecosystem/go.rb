@@ -4,6 +4,11 @@ module Ecosystem
     INDEX_API = "https://index.golang.org/index"
     INDEX_PAGE_SIZE = 2_000
     SYNC_MISSING_CURSOR_KEY = "sync_missing_packages_cursor"
+    DEFAULT_PROXY_URL = "https://proxy.golang.org/cached-only"
+
+    def proxy_url
+      ENV.fetch('GO_PROXY_URL', DEFAULT_PROXY_URL).delete_suffix('/')
+    end
 
     def self.purl_type
       'golang'
@@ -33,8 +38,7 @@ module Ecosystem
       url = "https://pkg.go.dev/#{package.name}"
       response = Faraday.head(url)
       if [400, 404, 410, 302, 301].include?(response.status)
-        proxy_url = "#{@registry_url}/#{encode_for_proxy(package.name)}/@v/list"
-        response = Faraday.get(proxy_url)
+        response = Faraday.get("#{proxy_url}/#{encode_for_proxy(package.name)}/@v/list")
         return "removed" if [400, 404, 410].include?(response.status)
         return unless response.success?
         return unless response.body.length.zero?
@@ -42,7 +46,7 @@ module Ecosystem
         version = package.versions.active.order(id: :desc).pick(:number)
         return "removed" unless version
 
-        version_url = "#{@registry_url}/#{encode_for_proxy(package.name)}/@v/#{encode_for_proxy(version)}.info"
+        version_url = "#{proxy_url}/#{encode_for_proxy(package.name)}/@v/#{encode_for_proxy(version)}.info"
         version_response = Faraday.get(version_url)
         return "removed" if [400, 404, 410].include?(version_response.status)
       end
@@ -54,7 +58,7 @@ module Ecosystem
 
     def download_url(package, version)
       return nil unless version.present?
-      "#{@registry_url}/#{encode_for_proxy(package.name)}/@v/#{encode_for_proxy(version.to_s)}.zip"
+      "#{proxy_url}/#{encode_for_proxy(package.name)}/@v/#{encode_for_proxy(version.to_s)}.zip"
     end
 
     def sync_missing_packages_incrementally?
@@ -174,7 +178,7 @@ module Ecosystem
       package = fetch_package_metadata_from_pkgsite(name)
       return package if package
 
-      resp = request("#{@registry_url}/#{encode_for_proxy(name)}/@v/list")
+      resp = request("#{proxy_url}/#{encode_for_proxy(name)}/@v/list")
       if resp.success? && resp.body.length > 0
         { name: name, repository_url: UrlParser.try_all(name) }
       else
@@ -195,7 +199,7 @@ module Ecosystem
     end
 
     def fetch_package_metadata_for_version(name, version)
-      resp = request("#{@registry_url}/#{encode_for_proxy(name)}/@v/#{encode_for_proxy(version)}.mod")
+      resp = request("#{proxy_url}/#{encode_for_proxy(name)}/@v/#{encode_for_proxy(version)}.mod")
       return false if [400, 404, 410].include?(resp.status)
       raise "Go proxy returned #{resp.status} for #{name}@#{version}.mod" unless resp.success?
 
@@ -311,7 +315,7 @@ module Ecosystem
     end
 
     def versions_from_proxy(name, existing_version_numbers)
-      resp = request("#{@registry_url}/#{encode_for_proxy(name)}/@v/list")
+      resp = request("#{proxy_url}/#{encode_for_proxy(name)}/@v/list")
       return [] unless resp.success?
 
       resp.body.split("\n").map(&:strip).reject(&:empty?)
@@ -327,9 +331,7 @@ module Ecosystem
 
     def dependencies_metadata(name, version, _package)
       # Go proxy spec: https://golang.org/cmd/go/#hdr-Module_proxy_protocol
-      # TODO: this can take up to 2sec if it's a cache miss on the proxy. Might be able
-      # to scrape the webpage or wait for an API for a faster fetch here.
-      resp = request("#{@registry_url}/#{encode_for_proxy(name)}/@v/#{encode_for_proxy(version)}.mod")
+      resp = request("#{proxy_url}/#{encode_for_proxy(name)}/@v/#{encode_for_proxy(version)}.mod")
       if resp.status == 200
         go_mod_file = resp.body
         result = Bibliothecary::Parsers::Go.parse_go_mod(go_mod_file)
@@ -349,7 +351,7 @@ module Ecosystem
     end
 
     def get_version(package_name, version)
-      get_json("#{@registry_url}/#{encode_for_proxy(package_name)}/@v/#{encode_for_proxy(version)}.info") rescue {}
+      get_json("#{proxy_url}/#{encode_for_proxy(package_name)}/@v/#{encode_for_proxy(version)}.info") rescue {}
     end
 
     # will convert a string with capital letters and replace with a "!" prepended to the lowercase letter

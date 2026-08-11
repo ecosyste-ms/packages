@@ -50,6 +50,31 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal @registry.missing_package_names, []
   end
 
+  test 'missing_package_names caps at MISSING_PACKAGE_NAMES_LIMIT' do
+    limit = Registry::MISSING_PACKAGE_NAMES_LIMIT
+    names = (1..(limit + 200)).map { |i| "pkg-#{i}" }
+    @registry.expects(:all_package_names).returns(names)
+    result = @registry.missing_package_names
+    assert_equal limit, result.length
+    assert_equal names.first(limit), result
+  end
+
+  test 'missing_package_names stops scanning batches once cap is reached' do
+    limit = Registry::MISSING_PACKAGE_NAMES_LIMIT
+    names = (1..30_000).map { |i| "pkg-#{i}" }
+    @registry.expects(:all_package_names).returns(names)
+    @registry.packages.expects(:where).once.returns(stub(pluck: []))
+    assert_equal limit, @registry.missing_package_names.length
+  end
+
+  test 'missing_package_names warns when exactly at the cap' do
+    limit = Registry::MISSING_PACKAGE_NAMES_LIMIT
+    names = (1..limit).map { |i| "pkg-#{i}" }
+    @registry.expects(:all_package_names).returns(names)
+    Rails.logger.expects(:warn).with { |msg| msg.include?("found #{limit} names") && !msg.include?("#{limit}+") }
+    assert_equal limit, @registry.missing_package_names.length
+  end
+
   test 'existing_package_names' do
     @registry.save
     @registry.packages.create(name: 'foo', ecosystem: @registry.ecosystem)

@@ -2,10 +2,15 @@ require "test_helper"
 
 class GoTest < ActiveSupport::TestCase
   setup do
+    @original_go_proxy_url = ENV.delete('GO_PROXY_URL')
     @registry = Registry.new(default: true, name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'Go')
     @ecosystem = Ecosystem::Go.new(@registry)
     @package = Package.new(ecosystem: 'Go', name: 'github.com/aws/smithy-go')
     @version = @package.versions.build(number: 'v1.11.1')
+  end
+
+  teardown do
+    ENV['GO_PROXY_URL'] = @original_go_proxy_url
   end
 
   test 'registry_url' do
@@ -20,13 +25,21 @@ class GoTest < ActiveSupport::TestCase
 
   test 'download_url' do
     download_url = @ecosystem.download_url(@package, @version)
-    assert_equal download_url, 'https://proxy.golang.org/github.com/aws/smithy-go/@v/v1.11.1.zip'
+    assert_equal download_url, 'https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/v1.11.1.zip'
+  end
+
+  test 'download_url uses configured proxy' do
+    ENV['GO_PROXY_URL'] = 'https://go-proxy.example.com/'
+
+    download_url = @ecosystem.download_url(@package, @version)
+
+    assert_equal download_url, 'https://go-proxy.example.com/github.com/aws/smithy-go/@v/v1.11.1.zip'
   end
 
   test 'download_url escapes uppercase version characters for the proxy' do
     version = @package.versions.build(number: 'v1.0.0-RC1')
 
-    assert_equal 'https://proxy.golang.org/github.com/aws/smithy-go/@v/v1.0.0-!r!c1.zip',
+    assert_equal 'https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/v1.0.0-!r!c1.zip',
       @ecosystem.download_url(@package, version)
   end
 
@@ -51,6 +64,7 @@ class GoTest < ActiveSupport::TestCase
   end
 
   test 'check_status accepts a pseudo-version when the version list is empty' do
+    ENV['GO_PROXY_URL'] = 'https://go-status.example'
     registry = Registry.create!(name: 'Go status', url: 'https://go-status.example', ecosystem: 'Go')
     package = registry.packages.create!(name: 'example.com/pseudo-only', ecosystem: 'go')
     package.versions.create!(number: 'v0.0.0-20260810161643-097856497a66', registry: registry)
@@ -191,7 +205,7 @@ class GoTest < ActiveSupport::TestCase
   test 'package_metadata falls back to proxy when API misses' do
     stub_request(:get, "https://pkg.go.dev/v1beta/module/github.com/aws/smithy-go?licenses=true")
       .to_return({ status: 404, body: '{"code":404,"message":"not found"}' })
-    stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/list")
+    stub_request(:get, "https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/list")
       .to_return({ status: 200, body: file_fixture('go/list') })
     package_metadata = @ecosystem.package_metadata('github.com/aws/smithy-go')
 
@@ -202,7 +216,7 @@ class GoTest < ActiveSupport::TestCase
   test 'package_metadata rejects an indexed version with an alternative module path' do
     name = 'github.com/googlecloudplatform/professional-services/tools/lambda-compat'
     version = 'v0.0.0-20260810161643-097856497a66'
-    stub_request(:get, "https://proxy.golang.org/#{name}/@v/#{version}.mod")
+    stub_request(:get, "https://proxy.golang.org/cached-only/#{name}/@v/#{version}.mod")
       .to_return(status: 200, body: "module github.com/GoogleCloudPlatform/professional-services/tools/lambda-compat\n")
 
     assert_equal false, @ecosystem.package_metadata(name, version: version)
@@ -211,7 +225,7 @@ class GoTest < ActiveSupport::TestCase
   test 'package_metadata accepts an exact indexed version when the version list is empty' do
     name = 'github.com/example/pseudo-only'
     version = 'v0.0.0-20260810161643-097856497a66'
-    stub_request(:get, "https://proxy.golang.org/#{name}/@v/#{version}.mod")
+    stub_request(:get, "https://proxy.golang.org/cached-only/#{name}/@v/#{version}.mod")
       .to_return(status: 200, body: "module #{name}\n")
     stub_request(:get, "https://pkg.go.dev/v1beta/module/#{name}?licenses=true")
       .to_return(status: 404, body: '{"code":404,"message":"not found"}')
@@ -250,7 +264,7 @@ class GoTest < ActiveSupport::TestCase
   end
 
   test 'dependencies_metadata' do
-    stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/v1.9.0.mod")
+    stub_request(:get, "https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/v1.9.0.mod")
       .to_return({ status: 200, body: file_fixture('go/v1.9.0.mod') })
     dependencies_metadata = @ecosystem.dependencies_metadata('github.com/aws/smithy-go', 'v1.9.0', nil)
 
@@ -259,7 +273,7 @@ class GoTest < ActiveSupport::TestCase
 
   test 'dependencies_metadata escapes uppercase version characters for the proxy' do
     version = 'v1.0.0-RC1'
-    stub_request(:get, 'https://proxy.golang.org/github.com/aws/smithy-go/@v/v1.0.0-!r!c1.mod')
+    stub_request(:get, 'https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/v1.0.0-!r!c1.mod')
       .to_return(status: 200, body: file_fixture('go/v1.9.0.mod'))
 
     dependencies = @ecosystem.dependencies_metadata('github.com/aws/smithy-go', version, nil)
@@ -270,9 +284,9 @@ class GoTest < ActiveSupport::TestCase
   test 'versions_metadata falls back to proxy when API misses' do
     stub_request(:get, "https://pkg.go.dev/v1beta/versions/github.com/aws/smithy-go?limit=1000")
       .to_return({ status: 404, body: '{"code":404,"message":"not found"}' })
-    stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/list")
+    stub_request(:get, "https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/list")
       .to_return({ status: 200, body: file_fixture('go/list') })
-    stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/v1.9.0.info")
+    stub_request(:get, "https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/v1.9.0.info")
       .to_return({ status: 200, body: file_fixture('go/v1.9.0.info') })
 
     versions_metadata = @ecosystem.versions_metadata({ name: 'github.com/aws/smithy-go' })
@@ -285,9 +299,9 @@ class GoTest < ActiveSupport::TestCase
     version = 'v0.0.0-20260810161643-097856497a66'
     stub_request(:get, "https://pkg.go.dev/v1beta/versions/#{name}?limit=1000")
       .to_return(status: 404, body: '{"code":404,"message":"not found"}')
-    stub_request(:get, "https://proxy.golang.org/#{name}/@v/list")
+    stub_request(:get, "https://proxy.golang.org/cached-only/#{name}/@v/list")
       .to_return(status: 200, body: '')
-    stub_request(:get, "https://proxy.golang.org/#{name}/@v/#{version}.info")
+    stub_request(:get, "https://proxy.golang.org/cached-only/#{name}/@v/#{version}.info")
       .to_return(status: 200, body: Oj.dump('Version' => version, 'Time' => '2026-08-10T16:16:43Z'))
 
     versions_metadata = @ecosystem.versions_metadata({ name: name, version: version })
