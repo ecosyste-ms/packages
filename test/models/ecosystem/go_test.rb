@@ -2,10 +2,15 @@ require "test_helper"
 
 class GoTest < ActiveSupport::TestCase
   setup do
+    @original_go_proxy_url = ENV.delete('GO_PROXY_URL')
     @registry = Registry.new(default: true, name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'Go')
     @ecosystem = Ecosystem::Go.new(@registry)
     @package = Package.new(ecosystem: 'Go', name: 'github.com/aws/smithy-go')
     @version = @package.versions.build(number: 'v1.11.1')
+  end
+
+  teardown do
+    @original_go_proxy_url.nil? ? ENV.delete('GO_PROXY_URL') : ENV['GO_PROXY_URL'] = @original_go_proxy_url
   end
 
   test 'registry_url' do
@@ -20,7 +25,15 @@ class GoTest < ActiveSupport::TestCase
 
   test 'download_url' do
     download_url = @ecosystem.download_url(@package, @version)
-    assert_equal download_url, 'https://proxy.golang.org/github.com/aws/smithy-go/@v/v1.11.1.zip'
+    assert_equal download_url, 'https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/v1.11.1.zip'
+  end
+
+  test 'download_url uses configured proxy' do
+    ENV['GO_PROXY_URL'] = 'https://go-proxy.example.com/'
+
+    download_url = @ecosystem.download_url(@package, @version)
+
+    assert_equal download_url, 'https://go-proxy.example.com/github.com/aws/smithy-go/@v/v1.11.1.zip'
   end
 
   test 'documentation_url' do
@@ -102,7 +115,7 @@ class GoTest < ActiveSupport::TestCase
   test 'package_metadata falls back to proxy when API misses' do
     stub_request(:get, "https://pkg.go.dev/v1beta/module/github.com/aws/smithy-go?licenses=true")
       .to_return({ status: 404, body: '{"code":404,"message":"not found"}' })
-    stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/list")
+    stub_request(:get, "https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/list")
       .to_return({ status: 200, body: file_fixture('go/list') })
     package_metadata = @ecosystem.package_metadata('github.com/aws/smithy-go')
 
@@ -137,7 +150,7 @@ class GoTest < ActiveSupport::TestCase
   end
 
   test 'dependencies_metadata' do
-    stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/v1.9.0.mod")
+    stub_request(:get, "https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/v1.9.0.mod")
       .to_return({ status: 200, body: file_fixture('go/v1.9.0.mod') })
     dependencies_metadata = @ecosystem.dependencies_metadata('github.com/aws/smithy-go', 'v1.9.0', nil)
 
@@ -147,9 +160,9 @@ class GoTest < ActiveSupport::TestCase
   test 'versions_metadata falls back to proxy when API misses' do
     stub_request(:get, "https://pkg.go.dev/v1beta/versions/github.com/aws/smithy-go?limit=1000")
       .to_return({ status: 404, body: '{"code":404,"message":"not found"}' })
-    stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/list")
+    stub_request(:get, "https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/list")
       .to_return({ status: 200, body: file_fixture('go/list') })
-    stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/v1.9.0.info")
+    stub_request(:get, "https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/v1.9.0.info")
       .to_return({ status: 200, body: file_fixture('go/v1.9.0.info') })
 
     versions_metadata = @ecosystem.versions_metadata({ name: 'github.com/aws/smithy-go' })
