@@ -236,26 +236,24 @@ module Ecosystem
 
     def map_package_metadata(package)
       return false unless package
-      if package[:module]
-        mod = package[:module]
-        url = mod['repoUrl']
-        licenses = Array(mod['licenses']).flat_map { |l| l['types'] }.compact.uniq.join(',')
+      metadata = if package[:module]
+                   mod = package[:module]
+                   url = mod['repoUrl']
+                   licenses = Array(mod['licenses']).flat_map { |l| l['types'] }.compact.uniq.join(',')
 
-        metadata = {
-          name: package[:name],
-          description: package[:synopsis],
-          licenses: licenses,
-          repository_url: url,
-          homepage: url,
-          namespace: package[:name].split('/')[0..-2].join('/')
-        }
-        metadata[:version] = package[:version] if package[:version].present?
-        metadata
-      else
-        metadata = { name: package[:name], repository_url: UrlParser.try_all(package[:name]) }
-        metadata[:version] = package[:version] if package[:version].present?
-        metadata
-      end
+                   {
+                     name: package[:name],
+                     description: package[:synopsis],
+                     licenses: licenses,
+                     repository_url: url,
+                     homepage: url,
+                     namespace: package[:name].split('/')[0..-2].join('/')
+                   }
+                 else
+                   { name: package[:name], repository_url: UrlParser.try_all(package[:name]) }
+                 end
+      metadata[:version] = package[:version] if package[:version].present?
+      metadata
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
