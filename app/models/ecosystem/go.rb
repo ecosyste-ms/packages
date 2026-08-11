@@ -1,6 +1,11 @@
 module Ecosystem
   class Go < Base
     PKGSITE_API = "https://pkg.go.dev/v1beta"
+    DEFAULT_PROXY_URL = "https://proxy.golang.org/cached-only"
+
+    def proxy_url
+      ENV.fetch('GO_PROXY_URL', DEFAULT_PROXY_URL).delete_suffix('/')
+    end
 
     def self.purl_type
       'golang'
@@ -30,8 +35,7 @@ module Ecosystem
       url = "https://pkg.go.dev/#{package.name}"
       response = Faraday.head(url)
       if [400, 404, 410, 302, 301].include?(response.status)
-        proxy_url = "#{@registry_url}/#{encode_for_proxy(package.name)}/@v/list"
-        response = Faraday.get(proxy_url)
+        response = Faraday.get("#{proxy_url}/#{encode_for_proxy(package.name)}/@v/list")
         if [400, 404, 410].include?(response.status) || response.body.length.zero?
           "removed"
         end
@@ -44,7 +48,7 @@ module Ecosystem
 
     def download_url(package, version)
       return nil unless version.present?
-      "#{@registry_url}/#{encode_for_proxy(package.name)}/@v/#{version}.zip"
+      "#{proxy_url}/#{encode_for_proxy(package.name)}/@v/#{version}.zip"
     end
 
     def all_package_names
@@ -78,7 +82,7 @@ module Ecosystem
         mod = Oj.load(resp.body)
         { name: name, module: mod, synopsis: fetch_synopsis(name) }
       else
-        resp = request("#{@registry_url}/#{encode_for_proxy(name)}/@v/list")
+        resp = request("#{proxy_url}/#{encode_for_proxy(name)}/@v/list")
         if resp.success? && resp.body.length > 0
           { name: name, repository_url: UrlParser.try_all(name) }
         else
@@ -160,7 +164,7 @@ module Ecosystem
     end
 
     def versions_from_proxy(name, existing_version_numbers)
-      resp = request("#{@registry_url}/#{encode_for_proxy(name)}/@v/list")
+      resp = request("#{proxy_url}/#{encode_for_proxy(name)}/@v/list")
       return [] unless resp.success?
 
       resp.body.split("\n").map(&:strip).reject(&:empty?)
@@ -176,9 +180,7 @@ module Ecosystem
 
     def dependencies_metadata(name, version, _package)
       # Go proxy spec: https://golang.org/cmd/go/#hdr-Module_proxy_protocol
-      # TODO: this can take up to 2sec if it's a cache miss on the proxy. Might be able
-      # to scrape the webpage or wait for an API for a faster fetch here.
-      resp = request("#{@registry_url}/#{encode_for_proxy(name)}/@v/#{version}.mod")
+      resp = request("#{proxy_url}/#{encode_for_proxy(name)}/@v/#{version}.mod")
       if resp.status == 200
         go_mod_file = resp.body
         result = Bibliothecary::Parsers::Go.parse_go_mod(go_mod_file)
@@ -198,7 +200,7 @@ module Ecosystem
     end
 
     def get_version(package_name, version)
-      get_json("#{@registry_url}/#{encode_for_proxy(package_name)}/@v/#{version}.info") rescue {}
+      get_json("#{proxy_url}/#{encode_for_proxy(package_name)}/@v/#{version}.info") rescue {}
     end
 
     # will convert a string with capital letters and replace with a "!" prepended to the lowercase letter
