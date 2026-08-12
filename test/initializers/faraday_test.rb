@@ -32,6 +32,20 @@ class FaradayInitializerTest < ActiveSupport::TestCase
       headers: { 'User-Agent' => 'packages.ecosyste.ms' }
   end
 
+  test "Faraday.get emits registry_http_requests metric" do
+    stub_request(:get, "https://direct.example.org/x").to_return(status: 200)
+    Appsignal.expects(:increment_counter).with("registry_http_requests", 1, host: "direct.example.org", status: "200")
+    Appsignal.stubs(:add_distribution_value)
+    Faraday.get("https://direct.example.org/x")
+  end
+
+  test "Faraday.head emits registry_http_requests metric" do
+    stub_request(:head, "https://direct.example.org/x").to_return(status: 404)
+    Appsignal.expects(:increment_counter).with("registry_http_requests", 1, host: "direct.example.org", status: "404")
+    Appsignal.stubs(:add_distribution_value)
+    Faraday.head("https://direct.example.org/x")
+  end
+
   test "default User-Agent is applied to direct Faraday.post calls" do
     # Stub the request to check headers
     stub_request(:post, "https://example.com/test")
