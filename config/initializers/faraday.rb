@@ -8,10 +8,6 @@ Faraday.default_connection_options = {
   }
 }
 
-# Faraday.get / Faraday.head / Faraday.post use this connection. Building it
-# explicitly lets us include :instrumentation so those calls are counted by
-# the request.faraday subscriber below alongside calls that go through
-# Ecosystem::Base#request.
 Faraday.default_connection = Faraday.new do |builder|
   builder.request :instrumentation
   builder.adapter Faraday.default_adapter
