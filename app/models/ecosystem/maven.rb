@@ -274,8 +274,9 @@ module Ecosystem
 
     def dependencies_metadata(name, version, mapped_package)
       group_id, artifact_id = *name.split(':', 2)
-      url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.pom"
-      pom_file = generate_effective_pom(request(url).body)
+      effective = fetch_effective_pom(group_id, artifact_id, version)
+      return [] if effective.nil?
+      pom_file = effective[:body]
       properties = mapped_package&.dig(:properties) || {}
       Bibliothecary::Parsers::Maven.parse_pom_manifest(pom_file, properties).map do |dep|
         {
@@ -525,12 +526,11 @@ module Ecosystem
     end
 
     def fetch_pom(group_id, artifact_id, version)
-      url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.pom"
-      pom_request = request(url)
-      return nil if pom_request.status == 404
-      xml = Ox.parse(generate_effective_pom(pom_request.body))
+      effective = fetch_effective_pom(group_id, artifact_id, version)
+      return nil if effective.nil?
+      xml = Ox.parse(effective[:body])
       return nil if xml.nil?
-      published_at = pom_request.headers["Last-Modified"]
+      published_at = effective[:last_modified]
       if published_at.present?
         pat = Ox::Element.new("publishedAt")
         pat << published_at
@@ -539,6 +539,18 @@ module Ecosystem
       xml
     rescue URI::InvalidURIError, Ox::Error
       nil
+    end
+
+    def fetch_effective_pom(group_id, artifact_id, version)
+      @effective_pom_cache ||= {}
+      key = "#{group_id}/#{artifact_id}/#{version}"
+      return @effective_pom_cache[key] if @effective_pom_cache.key?(key)
+      url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.pom"
+      resp = request(url)
+      return @effective_pom_cache[key] = nil if resp.status == 404
+      @effective_pom_cache[key] = { body: generate_effective_pom(resp.body), last_modified: resp.headers["Last-Modified"] }
+    rescue URI::InvalidURIError
+      @effective_pom_cache[key] = nil
     end
 
     def get_pom(group_id, artifact_id, version, seen = [])
@@ -610,15 +622,21 @@ module Ecosystem
       license_urls.map { |url| url_license_map[url.strip] }.compact
     end
 
+    MAVEN_CENTRAL_URLS = [
+      "https://repo.maven.apache.org/maven2",
+      "https://repo1.maven.org/maven2",
+      "https://maven-central.storage-download.googleapis.com/maven2"
+    ].freeze
+
     private
 
     def is_maven_central?
-      @registry_url == "https://repo.maven.apache.org/maven2" || @registry_url == "https://repo1.maven.org/maven2"
+      MAVEN_CENTRAL_URLS.include?(@registry_url)
     end
 
     def supports_archetype_catalog?
       case @registry_url
-      when "https://repo.maven.apache.org/maven2", "https://repo1.maven.org/maven2"
+      when *MAVEN_CENTRAL_URLS
         true
       when "https://repository.jboss.org/nexus/content/repositories/releases"
         true
