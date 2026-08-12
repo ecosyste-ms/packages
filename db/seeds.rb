@@ -23,7 +23,7 @@ default_registries = [
   {name: 'deno.land', url: 'https://deno.land', ecosystem: 'deno', github: 'denoland', default: true},
   {name: 'clojars.org', url: 'https://repo.clojars.org', ecosystem: 'clojars', github: 'clojars', default: true},
   {name: 'registry.bazel.build', url: 'https://registry.bazel.build', ecosystem: 'bazel', github: 'bazelbuild', default: true},
-  {name: 'repo1.maven.org', url: 'https://maven-central.storage-download.googleapis.com/maven2', ecosystem: 'maven', github: 'maven-central', default: true},
+  {name: 'repo1.maven.org', url: 'https://maven-central.storage-download.googleapis.com/maven2', ecosystem: 'maven', github: 'maven-central', default: true, rate_limit: 2},
   {name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven', github: 'jboss-eap', default: false},
   {name: 'repository.apache.org-releases', url: 'https://repository.apache.org/content/repositories/releases', ecosystem: 'maven', github: 'apache', default: false},
   {name: 'repository.apache.org-snapshots', url: 'https://repository.apache.org/content/repositories/snapshots', ecosystem: 'maven', github: 'apache', default: false},
