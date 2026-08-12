@@ -193,7 +193,7 @@ namespace :packages do
     with_rake_lock('packages:sync_outdated_docker') do
       registry = Registry.find_by(ecosystem: 'docker')
       registry.packages.active.outdated.limit(1000).order('RANDOM()').select(:id).each_with_index do |package, i|
-        UpdatePackageWorker.perform_in(i.seconds, package.id)
+        SyncPackageByIdWorker.perform_in(i.seconds, registry.id, package.id)
       end
     end
   end

@@ -298,22 +298,22 @@ class PackageTest < ActiveSupport::TestCase
     assert_includes result, scoped_package
   end
 
-  test 'sync_async enqueues UpdatePackageWorker' do
+  test 'sync_async enqueues SyncPackageByIdWorker' do
     @package.update(last_synced_at: 2.days.ago)
-    UpdatePackageWorker.expects(:perform_async).with(@package.id).once
+    SyncPackageByIdWorker.expects(:perform_async).with(@package.registry_id, @package.id).once
     @package.sync_async
   end
 
   test 'sync_async skips recently synced packages' do
     @package.update(last_synced_at: 1.hour.ago)
-    UpdatePackageWorker.expects(:perform_async).never
+    SyncPackageByIdWorker.expects(:perform_async).never
     @package.sync_async
   end
 
   test 'sync_async skips batch ecosystem packages' do
     batch_registry = Registry.create(name: 'nixpkgs-unstable', url: 'https://channels.nixos.org/nixos-unstable', ecosystem: 'nixpkgs', version: 'unstable')
     batch_package = batch_registry.packages.create(name: 'hello', ecosystem: 'nixpkgs', last_synced_at: 2.days.ago)
-    UpdatePackageWorker.expects(:perform_async).never
+    SyncPackageByIdWorker.expects(:perform_async).never
     batch_package.sync_async
   end
 
