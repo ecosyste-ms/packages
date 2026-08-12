@@ -62,8 +62,8 @@ module Ecosystem
       return [] unless parts.length == 2
 
       repository, package_name = parts
-      data = get_json("https://artifacthub.io/api/v1/packages/helm/#{repository}/#{package_name}/#{version}")
-      deps = data.dig('data', 'dependencies') || []
+      data = fetch_version_details(repository, package_name, version)
+      deps = data.is_a?(Hash) && data.dig('data', 'dependencies') || []
 
       deps.map do |dep|
         dep_name = if dep['artifacthub_repository_name']
@@ -173,10 +173,17 @@ module Ecosystem
     end
 
     def fetch_content_url(repository, name, number)
-      data = get_json("https://artifacthub.io/api/v1/packages/helm/#{repository}/#{name}/#{number}")
+      data = fetch_version_details(repository, name, number)
       data.is_a?(Hash) ? data['content_url'].presence : nil
+    end
+
+    def fetch_version_details(repository, name, number)
+      @version_details ||= {}
+      key = [repository, name, number]
+      return @version_details[key] if @version_details.key?(key)
+      @version_details[key] = get_json("https://artifacthub.io/api/v1/packages/helm/#{repository}/#{name}/#{number}")
     rescue Faraday::Error, Oj::ParseError
-      nil
+      @version_details[key] = nil
     end
 
     def self.purl_type
