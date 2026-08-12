@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_22_190000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_12_111725) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -104,6 +104,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_22_190000) do
     t.bigint "docker_downloads_count"
     t.bigint "downloads"
     t.string "downloads_period"
+    t.datetime "downloads_updated_at"
     t.string "ecosystem"
     t.datetime "first_release_published_at"
     t.string "homepage"

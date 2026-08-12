@@ -132,6 +132,22 @@ namespace :packages do
     end
   end
 
+  task update_download_counts: :environment do
+    with_rake_lock('packages:update_download_counts') do
+      Registry.where(ecosystem: 'npm').find_each do |r|
+        UpdateDownloadCountsWorker.perform_async(r.id, false)
+      end
+    end
+  end
+
+  task update_top_download_counts: :environment do
+    with_rake_lock('packages:update_top_download_counts') do
+      Registry.where(ecosystem: 'npm').find_each do |r|
+        UpdateDownloadCountsWorker.perform_async(r.id, true)
+      end
+    end
+  end
+
   desc 'update_extra_counts'
   task update_extra_counts: :environment do
     with_rake_lock('packages:update_extra_counts') do
