@@ -404,5 +404,10 @@ module Ecosystem
       options.deep_merge!(headers: { "Accept" => "application/json" })
       get(url, options)
     end
+
+    def get_json_array(url, options = {})
+      json = get_json(url, options)
+      json.is_a?(Array) ? json : []
+    end
   end
 end

@@ -19,16 +19,12 @@ module Ecosystem
 
     def fetch_package_metadata_uncached(name)
       json = get_json("https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/#{CGI.escape(name)}")
-      return nil if json.nil?
-      return nil if json['error'].present?
+      return nil unless json.is_a?(Hash) && json['full_name'].present?
       json.merge('name' => name, 'repository_url' => "https://github.com/#{name}")
     end
 
     def recently_updated_package_names
-      json = get_json("https://repos.ecosyste.ms/api/v1/package_names/carthage")
-      return [] if json.nil?
-      return [] if json['error'].present?
-      json.first(20)
+      get_json_array("https://repos.ecosyste.ms/api/v1/package_names/carthage").first(20)
     rescue
       []
     end
@@ -46,7 +42,7 @@ module Ecosystem
     end
 
     def all_package_names
-      get_json("https://repos.ecosyste.ms/api/v1/package_names/carthage")
+      get_json_array("https://repos.ecosyste.ms/api/v1/package_names/carthage")
     rescue
       []
     end

@@ -107,7 +107,7 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      get_json("https://repos.ecosyste.ms/api/v1/package_names/actions").first(20)
+      get_json_array("https://repos.ecosyste.ms/api/v1/package_names/actions").first(20)
     rescue
       []
     end
@@ -125,7 +125,7 @@ module Ecosystem
     end
 
     def all_package_names
-      get_json("https://repos.ecosyste.ms/api/v1/package_names/actions")
+      get_json_array("https://repos.ecosyste.ms/api/v1/package_names/actions")
     rescue
       []
     end
