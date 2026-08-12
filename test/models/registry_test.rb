@@ -402,4 +402,33 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal 3, stat_2022.packages_count
   end
 
+  test 'sync_budget returns rate_limit times period seconds' do
+    @registry.rate_limit = 2
+    assert_equal 1800, @registry.sync_budget(15.minutes)
+    @registry.rate_limit = nil
+    assert_nil @registry.sync_budget(15.minutes)
+  end
+
+  test 'sync_one_percent_of_packages caps at sync_budget' do
+    @registry.stubs(:one_percent_of_packages_count).returns(4000)
+    @registry.rate_limit = 1
+    scope = mock
+    scope.expects(:limit).with(1200).returns([])
+    @registry.packages.stubs(:active).returns(stub(outdated: stub(order: scope)))
+    @registry.sync_one_percent_of_packages(period: 20.minutes)
+  end
+
+  test 'sync_one_percent_of_packages uses one_percent when unthrottled' do
+    @registry.stubs(:one_percent_of_packages_count).returns(300)
+    scope = mock
+    scope.expects(:limit).with(300).returns([])
+    @registry.packages.stubs(:active).returns(stub(outdated: stub(order: scope)))
+    @registry.sync_one_percent_of_packages
+  end
+
+  test 'sync_worst_one_percent skips when critical queue is backed up' do
+    Sidekiq::Queue.any_instance.stubs(:size).returns(20_000)
+    Registry.any_instance.expects(:sync_one_percent_of_packages).never
+    Registry.sync_worst_one_percent
+  end
 end
