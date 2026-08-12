@@ -226,4 +226,29 @@ class HelmTest < ActiveSupport::TestCase
     status = @ecosystem.check_status(@package)
     assert_nil status
   end
+
+  test 'versions_metadata and dependencies_metadata share one per-version fetch' do
+    version_stub = stub_request(:get, "https://artifacthub.io/api/v1/packages/helm/foo/bar/1.0.0")
+      .to_return(status: 200, body: '{"content_url":"https://example.com/x.tgz","data":{"dependencies":[{"name":"dep","version":"1"}]}}',
+                 headers: { 'Content-Type' => 'application/json' })
+
+    pkg = { name: 'foo/bar', versions: [{ 'version' => '1.0.0', 'ts' => 0 }], licenses: 'MIT' }
+    versions = @ecosystem.versions_metadata(pkg)
+    assert_equal 'https://example.com/x.tgz', versions.first[:metadata]['content_url']
+
+    deps = @ecosystem.dependencies_metadata('foo/bar', '1.0.0', nil)
+    assert_equal 'dep', deps.first[:package_name]
+
+    assert_requested version_stub, times: 1
+  end
+
+  test 'fetch_version_details caches nil on error and does not refetch' do
+    stub_request(:get, "https://artifacthub.io/api/v1/packages/helm/foo/bar/1.0.0")
+      .to_return(status: 500, body: 'not json')
+
+    assert_nil @ecosystem.fetch_version_details('foo', 'bar', '1.0.0')
+    assert_nil @ecosystem.fetch_version_details('foo', 'bar', '1.0.0')
+    assert_equal [], @ecosystem.dependencies_metadata('foo/bar', '1.0.0', nil)
+    assert_requested :get, "https://artifacthub.io/api/v1/packages/helm/foo/bar/1.0.0", times: 1
+  end
 end
