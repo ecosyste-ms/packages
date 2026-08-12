@@ -488,7 +488,7 @@ class Package < ApplicationRecord
   end
 
   def check_status_async
-    CheckStatusWorker.perform_async(id)
+    CheckPackageStatusWorker.perform_async(registry_id, id)
   end
 
   def repository_or_homepage_url
