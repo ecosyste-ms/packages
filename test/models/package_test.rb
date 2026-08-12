@@ -311,9 +311,23 @@ class PackageTest < ActiveSupport::TestCase
   end
 
   test 'check_statuses_async selects registry_id for the worker' do
+    Sidekiq::Queue.any_instance.stubs(:size).returns(0)
     @package.update!(last_synced_at: 6.weeks.ago, status: 'active')
     CheckPackageStatusWorker.expects(:perform_async).with(@registry.id, @package.id)
     Package.check_statuses_async
+  end
+
+  test 'check_statuses_async skips when critical queue is backed up' do
+    Sidekiq::Queue.any_instance.stubs(:size).returns(20_000)
+    @package.update!(last_synced_at: 6.weeks.ago, status: 'active')
+    CheckPackageStatusWorker.expects(:perform_async).never
+    Package.check_statuses_async
+  end
+
+  test 'sync_least_recent_async skips when critical queue is backed up' do
+    Sidekiq::Queue.any_instance.stubs(:size).returns(20_000)
+    SyncPackageByIdWorker.expects(:perform_async).never
+    Package.sync_least_recent_async
   end
 
   test 'sync_async skips batch ecosystem packages' do

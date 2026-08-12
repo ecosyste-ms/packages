@@ -49,6 +49,10 @@ class Registry < ApplicationRecord
     metadata && metadata['rate_limit']
   end
 
+  def sync_budget(period)
+    rate_limit ? rate_limit * period.to_i : nil
+  end
+
   def rate_limit=(value)
     self.metadata = (metadata || {}).merge('rate_limit' => value).compact
   end
@@ -512,11 +516,13 @@ class Registry < ApplicationRecord
     count
   end
 
-  def sync_one_percent_of_packages
-    packages.active.outdated.order('RANDOM()').limit(one_percent_of_packages_count).each(&:sync_async)
+  def sync_one_percent_of_packages(period: 20.minutes)
+    limit = [one_percent_of_packages_count, sync_budget(period)].compact.min
+    packages.active.outdated.order('RANDOM()').limit(limit).each(&:sync_async)
   end
 
   def self.sync_worst_one_percent
+    return if Sidekiq::Queue.new('critical').size > 10_000
     Registry.frequently_synced.sort_by(&:outdated_percentage).last.sync_one_percent_of_packages
   end
 
