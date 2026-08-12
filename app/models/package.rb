@@ -138,7 +138,7 @@ class Package < ApplicationRecord
   end
 
   def self.check_statuses_async
-    Package.frequently_synced.active.where('last_synced_at < ?', 5.weeks.ago).limit(1000).select('packages.id').each(&:check_status_async)
+    Package.frequently_synced.active.where('last_synced_at < ?', 5.weeks.ago).limit(1000).select('packages.id, packages.registry_id').each(&:check_status_async)
   end
 
   def self.sync_download_counts_async
