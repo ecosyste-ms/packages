@@ -310,6 +310,12 @@ class PackageTest < ActiveSupport::TestCase
     @package.sync_async
   end
 
+  test 'check_statuses_async selects registry_id for the worker' do
+    @package.update!(last_synced_at: 6.weeks.ago, status: 'active')
+    CheckPackageStatusWorker.expects(:perform_async).with(@registry.id, @package.id)
+    Package.check_statuses_async
+  end
+
   test 'sync_async skips batch ecosystem packages' do
     batch_registry = Registry.create(name: 'nixpkgs-unstable', url: 'https://channels.nixos.org/nixos-unstable', ecosystem: 'nixpkgs', version: 'unstable')
     batch_package = batch_registry.packages.create(name: 'hello', ecosystem: 'nixpkgs', last_synced_at: 2.days.ago)
