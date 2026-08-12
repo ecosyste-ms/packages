@@ -606,4 +606,28 @@ class MavenTest < ActiveSupport::TestCase
     integrity = @ecosystem.send(:version_integrity, 'com.example:pom-only', '1.0.0')
     assert_nil integrity
   end
+
+  test 'versions_metadata and dependencies_metadata share one .pom fetch per version' do
+    pom = '<project xmlns="http://maven.apache.org/POM/4.0.0"><groupId>com.example</groupId><artifactId>foo</artifactId><version>1.0.0</version><dependencies><dependency><groupId>junit</groupId><artifactId>junit</artifactId><version>4.13</version></dependency></dependencies></project>'
+    pom_stub = stub_request(:get, "https://repo1.maven.org/maven2/com/example/foo/1.0.0/foo-1.0.0.pom")
+      .to_return(status: 200, body: pom, headers: { 'Last-Modified' => 'Wed, 01 Jan 2025 00:00:00 GMT' })
+    @ecosystem.stubs(:generate_effective_pom).with(pom).returns(pom)
+
+    @ecosystem.versions_metadata({ name: 'com.example:foo', versions: ['1.0.0'] })
+    deps = @ecosystem.dependencies_metadata('com.example:foo', '1.0.0', nil)
+
+    assert_equal 'junit:junit', deps.first[:package_name]
+    assert_requested pom_stub, times: 1
+  end
+
+  test 'dependencies_metadata returns [] when pom is 404' do
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/gone/1.0.0/gone-1.0.0.pom")
+      .to_return(status: 404)
+    assert_equal [], @ecosystem.dependencies_metadata('com.example:gone', '1.0.0', nil)
+  end
+
+  test 'is_maven_central? recognises the Google mirror' do
+    r = Registry.new(url: 'https://maven-central.storage-download.googleapis.com/maven2', name: 'x', ecosystem: 'maven')
+    assert Ecosystem::Maven.new(r).send(:is_maven_central?)
+  end
 end
