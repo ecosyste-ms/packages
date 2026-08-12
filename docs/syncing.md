@@ -52,7 +52,7 @@ Any service can ping a specific package directly:
 
 **Single package ping** -- [`GET /api/v1/registries/:registry_id/packages/:id/ping`](../app/controllers/api/v1/packages_controller.rb#L276)
 
-Queues an [`UpdatePackageWorker`](../app/sidekiq/update_package_worker.rb) for the package. If the package doesn't exist yet, it queues a [`SyncPackageWorker`](../app/sidekiq/sync_package_worker.rb) to create it.
+Queues a [`SyncPackageByIdWorker`](../app/sidekiq/sync_package_by_id_worker.rb) for the package. If the package doesn't exist yet, it queues a [`SyncPackageWorker`](../app/sidekiq/sync_package_worker.rb) to create it.
 
 **Bulk ping by repository URL** -- [`GET /api/v1/packages/ping?repository_url=...`](../app/controllers/api/v1/packages_controller.rb#L289)
 
@@ -79,19 +79,21 @@ Polling and pings handle most updates, but packages can still fall behind. Sever
 | Every 30 min | `packages:sync_least_recent_top` | [`Package.sync_least_recent_top_async`](../app/models/package.rb#L85) -- 3000 random top-2% packages not synced in over 12 hours |
 | Every 20 min | `packages:sync_worst_one_percent` | [`Registry.sync_worst_one_percent`](../app/models/registry.rb#L423) -- finds the registry with the highest [`outdated_percentage`](../app/models/registry.rb#L395), syncs 1% of its outdated packages at random |
 | Hourly | `packages:sync_batch_registries_outdated` | [`Registry.sync_in_batches_outdated`](../app/models/registry.rb#L46) -- for batch-sync registries (deb, conda, vcpkg, alpine, nixpkgs, bower, julia, adelie, postmarketos), syncs up to 1000 outdated packages each |
-| Hourly | `packages:sync_outdated_docker` | 1000 random [outdated](../app/models/package.rb#L38) Docker packages (rate-limited to 1/sec) |
+| Hourly | `packages:sync_outdated_docker` | 1000 random [outdated](../app/models/package.rb#L38) Docker packages |
 | Daily (midnight) | `packages:sync_missing` | [`Registry.sync_all_missing_packages_async`](../app/models/registry.rb#L34) -- compares each registry's full package list against the database and syncs anything missing |
 
 A package is considered ["outdated"](../app/models/package.rb#L38) when `last_synced_at` is older than one month.
 
 ## Sync throttling
 
-Several mechanisms prevent redundant syncing:
+Sync jobs are capped per registry host so we don't overwhelm upstream services. Each registry can have a `rate_limit` (jobs per second) stored in its `metadata`; sidekiq-throttled enforces it at fetch time across all worker processes, and the periodic sweeps above cap their per-registry enqueue at what that limit can drain before the next tick. See [throttling.md](throttling.md) for how it works, which workers are covered, and how to tune a limit.
+
+Separately, several checks prevent redundant syncing of the same package:
 
 - [`Package#sync_async`](../app/models/package.rb#L310) skips the job entirely if the package was synced in the last 24 hours.
 - [`Registry#sync_package`](../app/models/registry.rb#L145) checks the same 24-hour window. If a recently-synced package is requested again, it schedules the sync to run after the 24 hours expire rather than dropping it.
 - [`recently_updated_package_names_excluding_recently_synced`](../app/models/registry.rb#L70) filters out packages synced in the last 10 minutes.
-- [`Package.sync_download_counts_async`](../app/models/package.rb#L93) and [`sync_maintainers_async`](../app/models/package.rb#L101) check the Sidekiq default queue size and bail out if it exceeds 20,000 jobs.
+- The catch-up sweeps and [`sync_download_counts_async`](../app/models/package.rb#L93) / [`sync_maintainers_async`](../app/models/package.rb#L101) check Sidekiq queue size and skip the tick if the queue is already backed up.
 
 ## How packages are prioritised
 
