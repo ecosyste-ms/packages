@@ -63,18 +63,26 @@ class GoTest < ActiveSupport::TestCase
     assert_equal install_command, 'go get github.com/aws/smithy-go@v1.11.1'
   end
 
-  test 'check_status accepts a pseudo-version when the version list is empty' do
-    ENV['GO_PROXY_URL'] = 'https://go-status.example'
-    registry = Registry.create!(name: 'Go status', url: 'https://go-status.example', ecosystem: 'Go')
-    package = registry.packages.create!(name: 'example.com/pseudo-only', ecosystem: 'go')
-    package.versions.create!(number: 'v0.0.0-20260810161643-097856497a66', registry: registry)
-    ecosystem = Ecosystem::Go.new(registry)
-    stub_request(:head, 'https://pkg.go.dev/example.com/pseudo-only').to_return(status: 404)
-    stub_request(:get, 'https://go-status.example/example.com/pseudo-only/@v/list').to_return(status: 200, body: '')
-    stub_request(:get, 'https://go-status.example/example.com/pseudo-only/@v/v0.0.0-20260810161643-097856497a66.info')
-      .to_return(status: 200, body: '{}')
+  test 'check_status returns nil when fetch_package_metadata finds the module' do
+    @ecosystem.expects(:fetch_package_metadata).with(@package.name).returns(name: @package.name, module: {})
+    assert_nil @ecosystem.check_status(@package)
+  end
 
-    assert_nil ecosystem.check_status(package)
+  test 'check_status returns removed when fetch_package_metadata returns false' do
+    @ecosystem.expects(:fetch_package_metadata).with(@package.name).returns(false)
+    assert_equal 'removed', @ecosystem.check_status(@package)
+  end
+
+  test 'check_status after a failed sync makes no extra proxy requests' do
+    stub_request(:get, %r{https://pkg\.go\.dev/v1beta/module/example\.com/gone}).to_return(status: 404)
+    stub_request(:get, %r{https://pkg\.go\.dev/v1beta/package/example\.com/gone}).to_return(status: 404)
+    proxy_list = stub_request(:get, "https://proxy.golang.org/cached-only/example.com/gone/@v/list").to_return(status: 404)
+
+    assert_equal false, @ecosystem.fetch_package_metadata('example.com/gone')
+
+    package = Package.new(name: 'example.com/gone', ecosystem: 'go')
+    assert_equal 'removed', @ecosystem.check_status(package)
+    assert_requested proxy_list, times: 1
   end
 
   test 'purl' do
