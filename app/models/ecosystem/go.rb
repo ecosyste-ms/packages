@@ -35,21 +35,10 @@ module Ecosystem
     end
 
     def check_status(package)
-      url = "https://pkg.go.dev/#{package.name}"
-      response = Faraday.head(url)
-      if [400, 404, 410, 302, 301].include?(response.status)
-        response = Faraday.get("#{proxy_url}/#{encode_for_proxy(package.name)}/@v/list")
-        return "removed" if [400, 404, 410].include?(response.status)
-        return unless response.success?
-        return unless response.body.length.zero?
-
-        version = package.versions.active.order(id: :desc).pick(:number)
-        return "removed" unless version
-
-        version_url = "#{proxy_url}/#{encode_for_proxy(package.name)}/@v/#{encode_for_proxy(version)}.info"
-        version_response = Faraday.get(version_url)
-        return "removed" if [400, 404, 410].include?(version_response.status)
-      end
+      meta = fetch_package_metadata(package.name)
+      return nil if meta.is_a?(Hash) && meta[:name].present?
+      return "removed" if meta == false
+      nil
     end
 
     def install_command(package, version = nil)
