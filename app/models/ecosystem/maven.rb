@@ -610,15 +610,21 @@ module Ecosystem
       license_urls.map { |url| url_license_map[url.strip] }.compact
     end
 
+    MAVEN_CENTRAL_URLS = [
+      "https://repo.maven.apache.org/maven2",
+      "https://repo1.maven.org/maven2",
+      "https://maven-central.storage-download.googleapis.com/maven2"
+    ].freeze
+
     private
 
     def is_maven_central?
-      @registry_url == "https://repo.maven.apache.org/maven2" || @registry_url == "https://repo1.maven.org/maven2"
+      MAVEN_CENTRAL_URLS.include?(@registry_url)
     end
 
     def supports_archetype_catalog?
       case @registry_url
-      when "https://repo.maven.apache.org/maven2", "https://repo1.maven.org/maven2"
+      when *MAVEN_CENTRAL_URLS
         true
       when "https://repository.jboss.org/nexus/content/repositories/releases"
         true
