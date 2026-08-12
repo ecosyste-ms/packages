@@ -105,7 +105,10 @@ module Ecosystem
       tarball_name = "#{folder_name}.tar.gz"
       downloaded_file = File.open "/tmp/#{tarball_name}", "wb"
 
-      connection = Faraday.new
+      connection = Faraday.new do |builder|
+        builder.request :instrumentation
+        builder.adapter Faraday.default_adapter
+      end
       response = connection.get(url)
 
       File.open(downloaded_file, 'wb') do |file|

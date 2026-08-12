@@ -45,6 +45,27 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal 'removed', status
   end
 
+  test 'request emits registry_http_requests metric tagged by host and status' do
+    stub_request(:get, "https://registry.example.org/pkg.json")
+      .to_return(status: 200, body: '{}')
+
+    Appsignal.expects(:increment_counter).with("registry_http_requests", 1, host: "registry.example.org", status: "200")
+    Appsignal.expects(:add_distribution_value).with("registry_http_duration", anything, host: "registry.example.org")
+
+    @ecosystem.send(:get_raw, "https://registry.example.org/pkg.json")
+  end
+
+  test 'check_status emits registry_http_requests metric' do
+    stub_request(:head, "https://example.com/package")
+      .to_return(status: 404)
+
+    Appsignal.expects(:increment_counter).with("registry_http_requests", 1, host: "example.com", status: "404")
+    Appsignal.stubs(:add_distribution_value)
+
+    @ecosystem.stubs(:check_status_url).returns('https://example.com/package')
+    @ecosystem.check_status(@package)
+  end
+
   test 'check_status returns nil for 200 status' do
     stub_request(:head, "https://example.com/package")
       .to_return(status: 200)
