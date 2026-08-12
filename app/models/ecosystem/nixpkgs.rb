@@ -122,6 +122,7 @@ module Ecosystem
       connection = Faraday.new(packages_url) do |builder|
         builder.use Faraday::FollowRedirects::Middleware
         builder.request :retry, { max: 3, interval: 0.5, backoff_factor: 2 }
+        builder.request :instrumentation
         builder.headers['Accept-Encoding'] = 'identity'
         builder.adapter :net_http
       end

@@ -37,6 +37,7 @@ module Ecosystem
 
       connection = Faraday.new(url) do |faraday|
         faraday.use Faraday::FollowRedirects::Middleware
+        faraday.request :instrumentation
         faraday.adapter Faraday.default_adapter
       end
 
