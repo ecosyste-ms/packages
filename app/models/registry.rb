@@ -3,6 +3,8 @@ class Registry < ApplicationRecord
 
   validates_uniqueness_of :name, :url
 
+  validate :rate_limit_must_be_positive
+
   has_many :packages
   has_many :versions
   has_many :maintainers
@@ -10,6 +12,51 @@ class Registry < ApplicationRecord
 
   scope :not_docker, -> { where.not(ecosystem: 'docker') }
   scope :frequently_synced, -> { where.not(ecosystem: ['docker', 'cocoapods', 'bower']) }
+
+  THROTTLE_CACHE_TTL = 60
+
+  def self.throttle_cache
+    if @throttle_cache.nil? || Process.clock_gettime(Process::CLOCK_MONOTONIC) > @throttle_cache_expires_at
+      @throttle_cache = pluck(:id, :url, :metadata).each_with_object({}) do |(id, url, meta), h|
+        limit = meta.is_a?(Hash) ? meta['rate_limit'] : nil
+        h[id] = { host: extract_host(url), rate_limit: (limit.to_i if limit) }
+      end
+      @throttle_cache_expires_at = Process.clock_gettime(Process::CLOCK_MONOTONIC) + THROTTLE_CACHE_TTL
+    end
+    @throttle_cache
+  end
+
+  def self.extract_host(url)
+    uri = Addressable::URI.heuristic_parse(url)
+    uri&.host.presence || url
+  rescue Addressable::URI::InvalidURIError
+    url
+  end
+
+  def self.reset_throttle_cache
+    @throttle_cache = nil
+  end
+
+  def self.host_for(id)
+    throttle_cache.dig(id, :host)
+  end
+
+  def self.rate_limit_for(id)
+    throttle_cache.dig(id, :rate_limit)
+  end
+
+  def rate_limit
+    metadata && metadata['rate_limit']
+  end
+
+  def rate_limit=(value)
+    self.metadata = (metadata || {}).merge('rate_limit' => value).compact
+  end
+
+  def rate_limit_must_be_positive
+    return if rate_limit.nil?
+    errors.add(:rate_limit, 'must be a positive integer') unless rate_limit.is_a?(Integer) && rate_limit > 0
+  end
 
   def self.find_by_name!(name)
     name = 'cocoapods.org' if name == 'cocoapod.org'
