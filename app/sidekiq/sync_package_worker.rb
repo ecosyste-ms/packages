@@ -1,6 +1,8 @@
 class SyncPackageWorker
   include Sidekiq::Worker
+  include Sidekiq::Throttled::Job
   sidekiq_options queue: :critical, lock: :until_executed, lock_expiration: 1.hour.to_i
+  sidekiq_throttle_as :registry_host
 
   def perform(registry_id, name, force = false)
     registry = Registry.find_by_id(registry_id)

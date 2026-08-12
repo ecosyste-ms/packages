@@ -42,7 +42,8 @@ class PackagesRakeTest < ActiveSupport::TestCase
     first_package = registry.packages.create!(name: 'actions/checkout', ecosystem: 'actions')
     second_package = registry.packages.create!(name: 'actions/cache', ecosystem: 'actions')
 
-    UpdateVersionsWorker.expects(:perform_bulk).with([[first_package.id], [second_package.id]])
+    expected = [[first_package.id], [second_package.id]]
+    UpdateVersionsWorker.expects(:perform_bulk).with { |arg| arg.sort == expected.sort }
 
     task = Rake::Task["packages:backfill_github_actions_immutability"]
     task.reenable

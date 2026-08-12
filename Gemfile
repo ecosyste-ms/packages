@@ -30,6 +30,7 @@ gem "simple-rss"
 gem "redis"
 gem "sidekiq"
 gem 'sidekiq-unique-jobs'
+gem 'sidekiq-throttled'
 gem "ecosystems-bibliothecary", github: "ecosyste-ms/bibliothecary", branch: "main", require: "bibliothecary"
 gem "pagy", "~> 9.4.0"
 gem "pghero"
