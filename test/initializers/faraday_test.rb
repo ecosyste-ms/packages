@@ -1,6 +1,25 @@
 require 'test_helper'
 
 class FaradayInitializerTest < ActiveSupport::TestCase
+  test "sets default timeout on all Faraday connections" do
+    conn = Faraday.new(url: 'https://example.com')
+    assert_equal 30, conn.options.timeout
+    assert_equal 10, conn.options.open_timeout
+  end
+
+  test "sets default timeout on the default connection" do
+    assert_equal 30, Faraday.default_connection.options.timeout
+    assert_equal 10, Faraday.default_connection.options.open_timeout
+  end
+
+  test "explicit timeout overrides the default" do
+    conn = Faraday.new(url: 'https://example.com') do |f|
+      f.options.timeout = 5
+      f.adapter Faraday.default_adapter
+    end
+    assert_equal 5, conn.options.timeout
+  end
+
   test "sets default User-Agent header for Faraday connections" do
     # Create a new Faraday connection without any custom headers
     conn = Faraday.new(url: 'https://example.com')
