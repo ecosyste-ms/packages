@@ -124,6 +124,13 @@ class RegistryTest < ActiveSupport::TestCase
     @registry.expects(:sync_packages_async).with(['foo', 'bar', 'baz'])
     @registry.sync_recently_updated_packages_async
   end
+
+  test 'sync_recently_updated_packages_async skips batch-sync ecosystems' do
+    @registry.stubs(:sync_in_batches?).returns(true)
+    @registry.expects(:sync_recently_updated_packages).never
+    @registry.expects(:sync_packages_async).never
+    assert_nil @registry.sync_recently_updated_packages_async
+  end
   
   test 'sync_packages' do
     @registry.expects(:sync_package).with('foo')
