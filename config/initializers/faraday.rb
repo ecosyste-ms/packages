@@ -10,8 +10,11 @@ Faraday.default_connection_options = {
 
 ActiveSupport::Notifications.subscribe("request.faraday") do |*args|
   event = ActiveSupport::Notifications::Event.new(*args)
-  host = event.payload[:url].host
-  status = event.payload.response&.status || 0
+  env = event.payload
+  host = env[:url].host
+  status = env[:status] || 0
   Appsignal.increment_counter("registry_http_requests", 1, host: host, status: status.to_s)
   Appsignal.add_distribution_value("registry_http_duration", event.duration, host: host)
+rescue => e
+  Rails.logger.warn("request.faraday subscriber error: #{e.class} #{e.message}")
 end
