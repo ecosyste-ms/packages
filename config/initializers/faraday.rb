@@ -8,6 +8,11 @@ Faraday.default_connection_options = {
   }
 }
 
+Faraday.default_connection = Faraday.new do |builder|
+  builder.request :instrumentation
+  builder.adapter Faraday.default_adapter
+end
+
 ActiveSupport::Notifications.subscribe("request.faraday") do |*args|
   event = ActiveSupport::Notifications::Event.new(*args)
   env = event.payload
