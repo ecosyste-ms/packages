@@ -330,6 +330,20 @@ class PackageTest < ActiveSupport::TestCase
     Package.sync_least_recent_async
   end
 
+  test 'sync_least_recent_async excludes throttled registries' do
+    Sidekiq::Queue.any_instance.stubs(:size).returns(0)
+    Registry.reset_throttle_cache
+    throttled = Registry.create!(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm', metadata: { 'rate_limit' => 1 })
+    stale_throttled = throttled.packages.create!(name: 'left-pad', ecosystem: 'npm', status: 'active', last_synced_at: 2.months.ago)
+    stale_open = @registry.packages.create!(name: 'stale-gem', ecosystem: 'rubygems', status: 'active', last_synced_at: 2.months.ago)
+
+    SyncPackageByIdWorker.expects(:perform_async).with(@registry.id, stale_open.id).once
+    SyncPackageByIdWorker.expects(:perform_async).with(throttled.id, stale_throttled.id).never
+    Package.sync_least_recent_async
+  ensure
+    Registry.reset_throttle_cache
+  end
+
   test 'sync_async skips batch ecosystem packages' do
     batch_registry = Registry.create(name: 'nixpkgs-unstable', url: 'https://channels.nixos.org/nixos-unstable', ecosystem: 'nixpkgs', version: 'unstable')
     batch_package = batch_registry.packages.create(name: 'hello', ecosystem: 'nixpkgs', last_synced_at: 2.days.ago)

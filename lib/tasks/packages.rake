@@ -24,7 +24,7 @@ namespace :packages do
   task sync_recent_npm: :environment do
     with_rake_lock('packages:sync_recent_npm') do
       r = Registry.find_by(ecosystem: 'npm')
-      r.sync_recently_updated_packages_async
+      r.sync_recently_updated_packages_async(period: 5.minutes)
     end
   end
 
@@ -32,7 +32,7 @@ namespace :packages do
   task sync_recent_pypi: :environment do
     with_rake_lock('packages:sync_recent_pypi') do
       r = Registry.find_by(ecosystem: 'pypi')
-      r.sync_recently_updated_packages_async
+      r.sync_recently_updated_packages_async(period: 2.minutes)
     end
   end
 
