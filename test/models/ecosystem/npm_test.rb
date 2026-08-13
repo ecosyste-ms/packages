@@ -160,12 +160,13 @@ class NpmTest < ActiveSupport::TestCase
   end
 
   test 'fetch_download_counts fetches scoped names individually' do
-    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/lodash")
-      .to_return(status: 200, body: '{"lodash":{"downloads":5}}', headers: { 'Content-Type' => 'application/json' })
+    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/lodash,express")
+      .to_return(status: 200, body: '{"lodash":{"downloads":5},"express":{"downloads":6}}', headers: { 'Content-Type' => 'application/json' })
     stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/@scope/pkg")
       .to_return(status: 200, body: '{"downloads":7,"package":"@scope/pkg"}', headers: { 'Content-Type' => 'application/json' })
-    counts = @ecosystem.fetch_download_counts(['@scope/pkg', 'lodash'])
+    counts = @ecosystem.fetch_download_counts(['@scope/pkg', 'lodash', 'express'])
     assert_equal 5, counts['lodash']
+    assert_equal 6, counts['express']
     assert_equal 7, counts['@scope/pkg']
   end
 
@@ -177,6 +178,21 @@ class NpmTest < ActiveSupport::TestCase
       .to_return(status: 200, body: '{"pkg129":{"downloads":1}}', headers: { 'Content-Type' => 'application/json' })
     counts = @ecosystem.fetch_download_counts(names)
     assert_equal 1, counts['pkg129']
+  end
+
+  test 'fetch_download_counts routes a lone unscoped name through the single-package path' do
+    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/lodash")
+      .to_return(status: 200, body: '{"downloads":9,"package":"lodash"}', headers: { 'Content-Type' => 'application/json' })
+    assert_equal({ 'lodash' => 9 }, @ecosystem.fetch_download_counts(['lodash']))
+  end
+
+  test 'fetch_download_counts routes a single-name trailing slice through the single-package path' do
+    names = (1..129).map { |i| "pkg#{i}" }
+    stub_request(:get, %r{https://api\.npmjs\.org/downloads/point/last-month/pkg1,.*,pkg128$})
+      .to_return(status: 200, body: '{}', headers: { 'Content-Type' => 'application/json' })
+    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/pkg129")
+      .to_return(status: 200, body: '{"downloads":3,"package":"pkg129"}', headers: { 'Content-Type' => 'application/json' })
+    assert_equal 3, @ecosystem.fetch_download_counts(names)['pkg129']
   end
 
   test 'fetch_download_counts ignores non-hash bulk response' do

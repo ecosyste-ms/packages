@@ -53,6 +53,12 @@ class UpdateDownloadCountsWorkerTest < ActiveSupport::TestCase
     assert_nil @registry.reload.metadata['download_counts_cursor']
   end
 
+  test "cursor write goes through merge_metadata_key" do
+    @registry.expects(:merge_metadata_key).with('download_counts_cursor', 'bbb')
+    @registry.ecosystem_instance.expects(:fetch_download_counts).with(['aaa', 'bbb']).returns({})
+    @registry.update_download_counts(limit: 10)
+  end
+
   test "update_download_counts is a no-op when ecosystem has no fetch_download_counts" do
     r = Registry.create!(name: 'crates.io', url: 'https://crates.io', ecosystem: 'cargo')
     r.packages.create!(name: 'x', ecosystem: 'cargo')

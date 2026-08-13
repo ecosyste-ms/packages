@@ -151,6 +151,10 @@ module Ecosystem
       scoped, unscoped = names.partition { |n| n.start_with?('@') }
       counts = {}
       unscoped.each_slice(BULK_DOWNLOADS_LIMIT) do |batch|
+        if batch.length == 1
+          scoped << batch.first
+          next
+        end
         json = get_json("https://api.npmjs.org/downloads/point/last-month/#{batch.join(',')}")
         next unless json.is_a?(Hash)
         json.each { |name, data| counts[name] = data['downloads'] if data.is_a?(Hash) }

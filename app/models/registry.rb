@@ -87,6 +87,14 @@ class Registry < ApplicationRecord
     all.each(&:update_extra_counts)
   end
 
+  def merge_metadata_key(key, value)
+    Registry.where(id: id).update_all([
+      "metadata = (COALESCE(metadata, '{}')::jsonb || jsonb_build_object(?, ?::text))::json",
+      key.to_s, value.to_s
+    ])
+    reload
+  end
+
   def update_download_counts(limit: 1000, top: false)
     return 0 unless ecosystem_instance.respond_to?(:fetch_download_counts)
     scope = packages.where("status IS NULL OR status <> ?", 'removed')
@@ -96,7 +104,7 @@ class Registry < ApplicationRecord
       cursor = (metadata || {})['download_counts_cursor'].to_s
       batch = scope.where('name > ?', cursor).order(:name).limit(limit).pluck(:id, :name)
       if batch.empty?
-        update_column(:metadata, (metadata || {}).merge('download_counts_cursor' => '')) unless cursor.blank?
+        merge_metadata_key('download_counts_cursor', '') unless cursor.blank?
         return 0
       end
     end
@@ -111,7 +119,7 @@ class Registry < ApplicationRecord
         Package.where(id: ids).update_all(downloads_updated_at: now)
       end
     end
-    update_column(:metadata, (metadata || {}).merge('download_counts_cursor' => batch.last.last)) unless top
+    merge_metadata_key('download_counts_cursor', batch.last.last) unless top
     batch.length
   end
 
