@@ -17,7 +17,7 @@ module Ecosystem
 
     def check_status_url(package)
       group_id, artifact_id = *package.name.split(':', 2)
-      "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/"
+      directory_listing_url(group_id, artifact_id)
     end
 
     def download_url(package, version)
@@ -191,7 +191,7 @@ module Ecosystem
     end
 
     def fetch_versions_from_html_directory(group_id, artifact_id)
-      directory_url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/"
+      directory_url = directory_listing_url(group_id, artifact_id)
       Rails.logger.info "Fetching versions from HTML directory: #{directory_url}"
       html = get_html(directory_url)
 
@@ -627,6 +627,13 @@ module Ecosystem
       "https://repo1.maven.org/maven2",
       "https://maven-central.storage-download.googleapis.com/maven2"
     ].freeze
+
+    MAVEN_CENTRAL_GCS_MIRROR = "https://maven-central.storage-download.googleapis.com/maven2"
+
+    def directory_listing_url(group_id, artifact_id)
+      base = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/"
+      @registry_url == MAVEN_CENTRAL_GCS_MIRROR ? "#{base}index.html" : base
+    end
 
     private
 

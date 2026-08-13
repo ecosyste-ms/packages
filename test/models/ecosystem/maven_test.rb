@@ -630,4 +630,32 @@ class MavenTest < ActiveSupport::TestCase
     r = Registry.new(url: 'https://maven-central.storage-download.googleapis.com/maven2', name: 'x', ecosystem: 'maven')
     assert Ecosystem::Maven.new(r).send(:is_maven_central?)
   end
+
+  test 'check_status_url on the Google mirror appends index.html' do
+    r = Registry.new(url: 'https://maven-central.storage-download.googleapis.com/maven2', name: 'x', ecosystem: 'maven')
+    eco = Ecosystem::Maven.new(r)
+    assert_equal "https://maven-central.storage-download.googleapis.com/maven2/dev/zio/zio-aws-autoscaling_3/index.html", eco.check_status_url(@package)
+  end
+
+  test 'check_status_url on a non-mirror registry uses the bare directory url' do
+    r = Registry.new(url: 'https://repository.jboss.org/nexus/content/repositories/releases', name: 'jboss', ecosystem: 'maven')
+    eco = Ecosystem::Maven.new(r)
+    assert_equal "https://repository.jboss.org/nexus/content/repositories/releases/dev/zio/zio-aws-autoscaling_3/", eco.check_status_url(@package)
+  end
+
+  test 'HTML directory listing fallback on the Google mirror fetches index.html' do
+    r = Registry.new(url: 'https://maven-central.storage-download.googleapis.com/maven2', name: 'x', ecosystem: 'maven')
+    eco = Ecosystem::Maven.new(r)
+
+    stub_request(:get, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/maven-metadata.xml")
+      .to_raise(Faraday::ResourceNotFound.new(nil, { status: 404 }))
+    stub_request(:get, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/index.html")
+      .to_return(status: 200, body: '<html><body><pre><a href=../>../</a><a href="1.0/">1.0/</a></pre></body></html>')
+    stub_request(:get, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/1.0/jcip-annotations-1.0.pom")
+      .to_return(status: 200, body: file_fixture('maven/jcip-annotations-1.0.pom'), headers: { 'last-modified' => 'Thu, 14 Aug 2008 02:49:00 GMT' })
+
+    package_metadata = eco.package_metadata('net.jcip:jcip-annotations')
+    assert_equal ['1.0'], package_metadata[:versions]
+    assert_not_requested :get, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/"
+  end
 end
