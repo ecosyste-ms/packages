@@ -21,12 +21,17 @@ module Ecosystem
 
     def check_status(package)
       json = fetch_package_metadata(package.name)
-      return nil if json.present? && json.is_a?(Hash) && json["name"].present?
+      if json.present? && json.is_a?(Hash) && json["name"].present?
+        return json["isDiscontinued"] ? "discontinued" : nil
+      end
 
       # Fall back to a direct request if not cached
       url = check_status_url(package)
       response = Faraday.get(url)
       return "removed" if [400, 404, 410].include?(response.status)
+    rescue => e
+      Rails.logger.warn("Error checking status for pub package #{package.name}: #{e.message}")
+      false
     end
 
     def all_package_names

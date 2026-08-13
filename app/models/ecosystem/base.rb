@@ -92,7 +92,7 @@ module Ecosystem
         URI.parse(url)
       rescue URI::InvalidURIError => e
         Rails.logger.warn("Invalid URI for package #{package.id} (#{package.name}): #{url} - #{e.message}")
-        return nil
+        return false
       end
 
       connection = Faraday.new(url) do |faraday|
@@ -107,7 +107,7 @@ module Ecosystem
       "removed" if [400, 404, 410].include?(response.status)
     rescue => e
       Rails.logger.warn("Error checking status for package #{package.id} (#{package.name}): #{e.message}")
-      nil
+      false
     end
 
     def ecosystem_name(ecosystem)

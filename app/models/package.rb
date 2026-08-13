@@ -487,7 +487,11 @@ class Package < ApplicationRecord
 
   def check_status
     result = registry.ecosystem_instance.check_status(self)
-    update(status: result || 'active', last_synced_at: Time.now)
+    if result == false
+      update_columns(last_synced_at: Time.now)
+    else
+      update(status: result || 'active', last_synced_at: Time.now)
+    end
   end
 
   def check_status_async

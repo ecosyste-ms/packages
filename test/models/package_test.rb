@@ -402,6 +402,14 @@ class PackageTest < ActiveSupport::TestCase
     assert @package.last_synced_at > 1.minute.ago
   end
 
+  test 'check_status leaves status untouched and stamps last_synced_at when ecosystem returns false' do
+    @package.update_columns(status: 'deprecated', last_synced_at: 2.months.ago)
+    @package.registry.ecosystem_instance.expects(:check_status).with(@package).returns(false)
+    @package.check_status
+    assert_equal 'deprecated', @package.reload.read_attribute(:status)
+    assert @package.last_synced_at > 1.minute.ago
+  end
+
   test 'dependent_packages returns packages that depend on this package' do
     dependent = @registry.packages.create(name: 'bar', ecosystem: @registry.ecosystem)
     dep_version = dependent.versions.create(number: '1.0.0')
