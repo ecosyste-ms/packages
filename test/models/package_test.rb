@@ -317,8 +317,8 @@ class PackageTest < ActiveSupport::TestCase
     Package.check_statuses_async
   end
 
-  test 'check_statuses_async skips when critical queue is backed up' do
-    Sidekiq::Queue.any_instance.stubs(:size).returns(20_000)
+  test 'check_statuses_async skips when default queue is backed up' do
+    Sidekiq::Queue.expects(:new).with('default').returns(stub(size: 30_000))
     @package.update!(last_synced_at: 6.weeks.ago, status: 'active')
     CheckPackageStatusWorker.expects(:perform_async).never
     Package.check_statuses_async
