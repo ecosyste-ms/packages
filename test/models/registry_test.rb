@@ -444,6 +444,37 @@ class RegistryTest < ActiveSupport::TestCase
     assert_nil @registry.sync_budget(15.minutes)
   end
 
+  test 'sync_budget floors fractional rate_limit' do
+    @registry.rate_limit = 0.5
+    assert_equal 450, @registry.sync_budget(15.minutes)
+  end
+
+  test 'rate_limit accepts positive floats and rejects zero' do
+    @registry.rate_limit = 0.5
+    assert @registry.valid?
+    @registry.rate_limit = 0
+    refute @registry.valid?
+    @registry.rate_limit = -1
+    refute @registry.valid?
+  end
+
+  test 'throttle_limit_for and throttle_period_for handle integer, fractional, and nil rate limits' do
+    Registry.reset_throttle_cache
+    fast = Registry.create!(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm', metadata: { 'rate_limit' => 3 })
+    slow = Registry.create!(name: 'artifacthub.io', url: 'https://artifacthub.io', ecosystem: 'helm', metadata: { 'rate_limit' => 0.5 })
+
+    assert_equal 3, Registry.throttle_limit_for(fast.id)
+    assert_equal 1, Registry.throttle_period_for(fast.id)
+
+    assert_equal 1, Registry.throttle_limit_for(slow.id)
+    assert_equal 2, Registry.throttle_period_for(slow.id)
+
+    assert_nil Registry.throttle_limit_for(@registry.id)
+    assert_equal 1, Registry.throttle_period_for(@registry.id)
+  ensure
+    Registry.reset_throttle_cache
+  end
+
   test 'sync_one_percent_of_packages caps at sync_budget' do
     @registry.stubs(:one_percent_of_packages_count).returns(4000)
     @registry.rate_limit = 1
