@@ -136,11 +136,11 @@ class Package < ApplicationRecord
 
   def self.sync_least_recent_top_async
     return if Sidekiq::Queue.new('critical').size > 10_000
-    Package.active.frequently_synced.order('RANDOM()').top(2).where('packages.last_synced_at < ?', 12.hours.ago).select('packages.id, packages.last_synced_at, packages.registry_id').limit(3_000).each(&:sync_async)
+    Package.active.frequently_synced.order('RANDOM()').top(2).where('packages.last_synced_at < ?', 12.hours.ago).select('packages.id, packages.last_synced_at, packages.registry_id').limit(500).each(&:sync_async)
   end
 
   def self.check_statuses_async
-    return if Sidekiq::Queue.new('critical').size > 10_000
+    return if Sidekiq::Queue.new('default').size > 20_000
     Package.frequently_synced.active.where('last_synced_at < ?', 5.weeks.ago).limit(1000).select('packages.id, packages.registry_id').each(&:check_status_async)
   end
 
