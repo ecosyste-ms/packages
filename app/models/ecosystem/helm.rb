@@ -148,6 +148,8 @@ module Ecosystem
       }
     end
 
+    NEW_VERSIONS_PER_SYNC = 5
+
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       return [] unless pkg_metadata[:versions]
       parts = pkg_metadata[:name].to_s.split('/')
@@ -156,8 +158,14 @@ module Ecosystem
       pkg_metadata[:versions]
         .select { |v| v['version'].present? }
         .reject { |v| existing_version_numbers.include?(v['version']) }
-        .map do |version|
-          content_url = fetch_content_url(repository, name, version['version']) if repository && name
+        .sort_by { |v| -v['ts'].to_i }
+        .first(NEW_VERSIONS_PER_SYNC)
+        .filter_map do |version|
+          if repository && name
+            details = fetch_version_details(repository, name, version['version'])
+            next if details.nil?
+            content_url = details['content_url'].presence
+          end
           {
             number: version['version'],
             published_at: version['ts'] ? Time.at(version['ts']).utc : nil,

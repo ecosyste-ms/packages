@@ -251,4 +251,27 @@ class HelmTest < ActiveSupport::TestCase
     assert_equal [], @ecosystem.dependencies_metadata('foo/bar', '1.0.0', nil)
     assert_requested :get, "https://artifacthub.io/api/v1/packages/helm/foo/bar/1.0.0", times: 1
   end
+
+  test 'versions_metadata caps at NEW_VERSIONS_PER_SYNC newest versions' do
+    versions = (1..8).map { |i| { 'version' => "1.#{i}.0", 'ts' => 1_700_000_000 + i } }
+    pkg = { name: 'foo/bar', versions: versions, licenses: 'MIT' }
+    result = @ecosystem.versions_metadata(pkg)
+    assert_equal Ecosystem::Helm::NEW_VERSIONS_PER_SYNC, result.length
+    assert_equal ['1.8.0', '1.7.0', '1.6.0', '1.5.0', '1.4.0'], result.map { |v| v[:number] }
+  end
+
+  test 'versions_metadata applies the cap after excluding existing versions' do
+    versions = (1..8).map { |i| { 'version' => "1.#{i}.0", 'ts' => 1_700_000_000 + i } }
+    pkg = { name: 'foo/bar', versions: versions, licenses: 'MIT' }
+    result = @ecosystem.versions_metadata(pkg, ['1.8.0', '1.7.0', '1.6.0', '1.5.0', '1.4.0'])
+    assert_equal ['1.3.0', '1.2.0', '1.1.0'], result.map { |v| v[:number] }
+  end
+
+  test 'versions_metadata drops versions whose per-version fetch failed' do
+    stub_request(:get, "https://artifacthub.io/api/v1/packages/helm/foo/bar/2.0.0")
+      .to_return(status: 429, body: '')
+    pkg = { name: 'foo/bar', versions: [{ 'version' => '1.0.0', 'ts' => 100 }, { 'version' => '2.0.0', 'ts' => 200 }], licenses: 'MIT' }
+    result = @ecosystem.versions_metadata(pkg)
+    assert_equal ['1.0.0'], result.map { |v| v[:number] }
+  end
 end
