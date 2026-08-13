@@ -6,9 +6,9 @@ Package syncs make HTTP requests to upstream registries, and several of those re
 
 [`sidekiq-throttled`](https://github.com/ixti/sidekiq-throttled) patches `Sidekiq::BasicFetch`. When a worker process pulls a job from redis, it checks the job's throttle strategy before running it. If the job is over its limit, it is pushed back onto its queue with a raw `redis.lpush` and a different job is fetched instead. The push does not go through `Sidekiq::Client`, so `sidekiq-unique-jobs` client middleware does not run and the job's `until_executed` lock stays intact rather than being deduped. The `:schedule` requeue mode would go through the client and lose the job, so the default `:enqueue` mode is used.
 
-A single shared strategy, `:registry_host`, is registered in [`config/initializers/sidekiq_throttled.rb`](../config/initializers/sidekiq_throttled.rb). Its threshold key is the host part of the registry's URL, so two registries whose URLs point at the same host share one bucket. Its limit is `registry.metadata['rate_limit']`, an integer number of jobs per second. When `rate_limit` is nil `sidekiq-throttled` short-circuits before any redis call and the job runs immediately, so unthrottled registries carry no overhead.
+A single shared strategy, `:registry_host`, is registered in [`config/initializers/sidekiq_throttled.rb`](../config/initializers/sidekiq_throttled.rb). Its threshold key is the host part of the registry's URL, so two registries whose URLs point at the same host share one bucket. Its rate is `registry.metadata['rate_limit']`, jobs per second; `sidekiq-throttled` takes a limit-per-period pair rather than a rate, so [`Registry`](../app/models/registry.rb) exposes helpers that translate one into the other. When `rate_limit` is nil the limit proc returns nil, `sidekiq-throttled` short-circuits before any redis call, and the job runs immediately, so unthrottled registries carry no overhead.
 
-The workers that share `:registry_host` all take `registry_id` as their first argument, which the strategy's `key_suffix` and `limit` procs read at fetch time via [`Registry.host_for`](../app/models/registry.rb) and [`Registry.rate_limit_for`](../app/models/registry.rb):
+The workers that share `:registry_host` all take `registry_id` as their first argument, which the strategy's procs read at fetch time:
 
 | Worker | Enqueued from |
 |---|---|
@@ -31,7 +31,7 @@ Rake tasks that call `Registry#sync_packages` directly (the non-async path used 
 Registry.find_by_name!('npmjs.org').update!(rate_limit: 3)
 ```
 
-`rate_limit` is stored in the registry's `metadata` json and validated as a positive integer, since sidekiq-throttled treats zero or negative as permanently throttled. Default limits for registries that have throttled us are set in [`db/seeds.rb`](../db/seeds.rb). Setting the value back to nil removes the cap:
+`rate_limit` is stored in the registry's `metadata` json and validated as a positive number (integer or float), since sidekiq-throttled treats zero or negative as permanently throttled. A float below 1 gives fewer than one job per second, useful for hosts that 429 even at one job per second. Default limits for registries that have throttled us are set in [`db/seeds.rb`](../db/seeds.rb); production values are tuned via the console and may differ. Setting the value back to nil removes the cap:
 
 ```ruby
 Registry.find_by_name!('npmjs.org').update!(rate_limit: nil)
@@ -39,10 +39,12 @@ Registry.find_by_name!('npmjs.org').update!(rate_limit: nil)
 
 ## Enqueue budget
 
-Throttled jobs go back onto their queue, so if crons enqueue more jobs for a rate-limited registry than that registry can drain before the next cron tick, the queue grows without bound. [`Registry#sync_budget(period)`](../app/models/registry.rb) returns `rate_limit * period` seconds (nil when unthrottled), and [`Registry#sync_one_percent_of_packages`](../app/models/registry.rb) caps its batch at that budget so a tick never adds more than can be processed by the next one. The cross-ecosystem sweeps in [`Package.sync_least_recent_async`](../app/models/package.rb), [`sync_least_recent_top_async`](../app/models/package.rb) and [`check_statuses_async`](../app/models/package.rb) skip the tick when the `:critical` queue is over 10,000 so a backlog from any source stops compounding.
+Throttled jobs go back onto their queue, so if crons enqueue more jobs for a rate-limited registry than that registry can drain before the next cron tick, the queue grows without bound. [`Registry#sync_budget(period)`](../app/models/registry.rb) returns the number of jobs a registry's throttle can drain over `period` (nil when unthrottled), and the per-registry enqueue paths cap their batches at that budget so a tick never adds more than can be processed by the next one.
+
+Throttled registries still receive jobs from more than one cron, and each cron sizes its batch against the throttle independently, so their combined inflow can exceed a single registry's drain rate. To keep that from compounding, the broad stale-package sweep excludes throttled registries entirely, and the remaining sweeps skip a tick when their target queue is already over its guard threshold.
 
 ## Metrics
 
-Every outbound Faraday request emits a `request.faraday` notification, which [`config/initializers/faraday.rb`](../config/initializers/faraday.rb) turns into two AppSignal custom metrics: `registry_http_requests` (counter, tagged `host` and `status`) and `registry_http_duration` (distribution, tagged `host`). The "Registry outbound HTTP" AppSignal dashboard graphs successful requests, 429s, 4xx/5xx errors, connection failures and p95 duration per host.
+Every outbound Faraday request emits a `request.faraday` notification, which [`config/initializers/faraday.rb`](../config/initializers/faraday.rb) turns into two AppSignal custom metrics: `registry_http_requests` (counter, tagged `host` and `status`) and `registry_http_duration` (distribution, tagged `host`). The "Registry outbound HTTP" AppSignal dashboard graphs successful requests, 429s, 4xx/5xx errors, connection failures and p95 duration per host. The 429 series is the signal for whether a `rate_limit` is set correctly: a host serving 429s needs a lower value, and a host that has been 429-free for a while is a candidate for a higher one.
 
-`sidekiq_queue_latency` and `sidekiq_queue_length` for the `:critical` queue show whether throttled jobs are backing up. If `:critical` latency climbs steadily across cron ticks, either a registry's `rate_limit` is set below what its share of the periodic sweeps enqueues, or a cron is enqueueing more than the budget cap accounts for.
+`sidekiq_queue_length` for `:critical` shows whether throttled jobs are backing up. Because `sidekiq-throttled` requeues an over-limit job with its original `enqueued_at` intact, `sidekiq_queue_latency` on that queue reports the age of the oldest requeued job rather than time-to-first-run, so a steady non-zero length with a bouncing latency is the throttle working as intended. A length that climbs across cron ticks without falling back means a cron is enqueueing more than the budget cap accounts for.
