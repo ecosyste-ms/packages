@@ -19,7 +19,7 @@ class Registry < ApplicationRecord
     if @throttle_cache.nil? || Process.clock_gettime(Process::CLOCK_MONOTONIC) > @throttle_cache_expires_at
       @throttle_cache = pluck(:id, :url, :metadata).each_with_object({}) do |(id, url, meta), h|
         limit = meta.is_a?(Hash) ? meta['rate_limit'] : nil
-        h[id] = { host: extract_host(url), rate_limit: (limit.to_i if limit) }
+        h[id] = { host: extract_host(url), rate_limit: (limit.to_f if limit) }
       end
       @throttle_cache_expires_at = Process.clock_gettime(Process::CLOCK_MONOTONIC) + THROTTLE_CACHE_TTL
     end
@@ -45,6 +45,18 @@ class Registry < ApplicationRecord
     throttle_cache.dig(id, :rate_limit)
   end
 
+  def self.throttle_limit_for(id)
+    rl = rate_limit_for(id)
+    return nil if rl.nil?
+    rl >= 1 ? rl.round : 1
+  end
+
+  def self.throttle_period_for(id)
+    rl = rate_limit_for(id)
+    return 1 if rl.nil? || rl >= 1
+    (1.0 / rl).ceil
+  end
+
   def self.throttled_ids
     throttle_cache.select { |_, v| v[:rate_limit] }.keys
   end
@@ -54,7 +66,7 @@ class Registry < ApplicationRecord
   end
 
   def sync_budget(period)
-    rate_limit ? rate_limit * period.to_i : nil
+    rate_limit ? (rate_limit * period.to_i).floor : nil
   end
 
   def rate_limit=(value)
@@ -63,7 +75,7 @@ class Registry < ApplicationRecord
 
   def rate_limit_must_be_positive
     return if rate_limit.nil?
-    errors.add(:rate_limit, 'must be a positive integer') unless rate_limit.is_a?(Integer) && rate_limit > 0
+    errors.add(:rate_limit, 'must be a positive number') unless rate_limit.is_a?(Numeric) && rate_limit > 0
   end
 
   def self.find_by_name!(name)
