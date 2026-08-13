@@ -131,7 +131,7 @@ class Package < ApplicationRecord
 
   def self.sync_least_recent_async
     return if Sidekiq::Queue.new('critical').size > 10_000
-    Package.active.outdated.frequently_synced.order('RANDOM()').limit(4000).select('packages.id, packages.last_synced_at, packages.registry_id').each(&:sync_async)
+    Package.active.outdated.frequently_synced.where.not(registry_id: Registry.throttled_ids).order('RANDOM()').limit(4000).select('packages.id, packages.last_synced_at, packages.registry_id').each(&:sync_async)
   end
 
   def self.sync_least_recent_top_async

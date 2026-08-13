@@ -107,7 +107,7 @@ class RegistryTest < ActiveSupport::TestCase
   
   test 'sync_missing_packages_async' do
     @registry.expects(:missing_package_names).returns(['foo', 'bar', 'baz'])
-    @registry.expects(:sync_packages_async).with(['foo', 'bar', 'baz'])
+    @registry.expects(:sync_packages_async).with(['foo', 'bar', 'baz'], period: 1.hour)
     @registry.sync_missing_packages_async
   end
 
@@ -121,8 +121,14 @@ class RegistryTest < ActiveSupport::TestCase
   
   test 'sync_recently_updated_packages_async' do
     @registry.expects(:recently_updated_package_names_excluding_recently_synced).returns(['foo', 'bar', 'baz'])
-    @registry.expects(:sync_packages_async).with(['foo', 'bar', 'baz'])
+    @registry.expects(:sync_packages_async).with(['foo', 'bar', 'baz'], period: 15.minutes)
     @registry.sync_recently_updated_packages_async
+  end
+
+  test 'sync_recently_updated_packages_async passes period through' do
+    @registry.expects(:recently_updated_package_names_excluding_recently_synced).returns(['foo'])
+    @registry.expects(:sync_packages_async).with(['foo'], period: 5.minutes)
+    @registry.sync_recently_updated_packages_async(period: 5.minutes)
   end
 
   test 'sync_recently_updated_packages_async skips batch-sync ecosystems' do
@@ -141,6 +147,18 @@ class RegistryTest < ActiveSupport::TestCase
   test 'sync_packages_async' do
     SyncPackageWorker.expects(:perform_bulk).with([[@registry.id, "foo"], [@registry.id, "bar"]])
     @registry.sync_packages_async(['foo', 'bar'])
+  end
+
+  test 'sync_packages_async caps at sync_budget for throttled registries' do
+    @registry.rate_limit = 1
+    SyncPackageWorker.expects(:perform_bulk).with([[@registry.id, "a"], [@registry.id, "b"]])
+    @registry.sync_packages_async(%w[a b c d], period: 2.seconds)
+  end
+
+  test 'sync_packages_async is uncapped when rate_limit is nil' do
+    assert_nil @registry.rate_limit
+    SyncPackageWorker.expects(:perform_bulk).with([[@registry.id, "a"], [@registry.id, "b"], [@registry.id, "c"]])
+    @registry.sync_packages_async(%w[a b c], period: 1.second)
   end
 
   test 'sync_package' do
@@ -407,6 +425,16 @@ class RegistryTest < ActiveSupport::TestCase
     # Should pick up running total from skipped 2021 (2) and add new package
     assert_equal 1, stat_2022.new_packages_count
     assert_equal 3, stat_2022.packages_count
+  end
+
+  test 'throttled_ids returns registries with a rate_limit' do
+    Registry.reset_throttle_cache
+    throttled = Registry.create!(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm', metadata: { 'rate_limit' => 1 })
+    ids = Registry.throttled_ids
+    assert_includes ids, throttled.id
+    refute_includes ids, @registry.id
+  ensure
+    Registry.reset_throttle_cache
   end
 
   test 'sync_budget returns rate_limit times period seconds' do

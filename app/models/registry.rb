@@ -45,6 +45,10 @@ class Registry < ApplicationRecord
     throttle_cache.dig(id, :rate_limit)
   end
 
+  def self.throttled_ids
+    throttle_cache.select { |_, v| v[:rate_limit] }.keys
+  end
+
   def rate_limit
     metadata && metadata['rate_limit']
   end
@@ -190,12 +194,12 @@ class Registry < ApplicationRecord
       return ecosystem_instance.sync_missing_packages_async
     end
 
-    sync_in_batches? ? sync_missing_packages : sync_packages_async(missing_package_names)
+    sync_in_batches? ? sync_missing_packages : sync_packages_async(missing_package_names, period: 1.hour)
   end
 
-  def sync_recently_updated_packages_async
+  def sync_recently_updated_packages_async(period: 15.minutes)
     return if sync_in_batches?
-    sync_packages_async(recently_updated_package_names_excluding_recently_synced)
+    sync_packages_async(recently_updated_package_names_excluding_recently_synced, period: period)
   end
 
   def sync_packages(package_names)
@@ -216,7 +220,9 @@ class Registry < ApplicationRecord
     end
   end
 
-  def sync_packages_async(package_names)
+  def sync_packages_async(package_names, period: 15.minutes)
+    budget = sync_budget(period)
+    package_names = package_names.first(budget) if budget
     package_names.each_slice(1_000) do |batch|
       SyncPackageWorker.perform_bulk(batch.map{|name| [id, name]})
     end
