@@ -130,4 +130,32 @@ class PubTest < ActiveSupport::TestCase
     assert_not_requested(:get, "https://pub.dev/packages/bloc")
     assert_not_requested(:head, "https://pub.dev/packages/bloc")
   end
+
+  test 'check_status returns discontinued when isDiscontinued is set' do
+    @ecosystem.stubs(:fetch_package_metadata).with('bloc').returns({ 'name' => 'bloc', 'isDiscontinued' => true })
+    assert_equal 'discontinued', @ecosystem.check_status(@package)
+  end
+
+  test 'check_status returns nil when isDiscontinued is false' do
+    @ecosystem.stubs(:fetch_package_metadata).with('bloc').returns({ 'name' => 'bloc', 'isDiscontinued' => false })
+    assert_nil @ecosystem.check_status(@package)
+  end
+
+  test 'check_status returns false when the request errors' do
+    @ecosystem.stubs(:fetch_package_metadata).with('bloc').returns(nil)
+    stub_request(:get, "https://pub.dev/packages/bloc").to_raise(Faraday::ConnectionFailed.new('boom'))
+    assert_equal false, @ecosystem.check_status(@package)
+  end
+
+  test 'check_status returns false when the metadata request errors but the package page exists' do
+    stub_request(:get, "https://pub.dev/api/packages/bloc").to_raise(Faraday::ConnectionFailed.new('boom'))
+    stub_request(:get, "https://pub.dev/packages/bloc").to_return(status: 200)
+    assert_equal false, @ecosystem.check_status(@package)
+  end
+
+  test 'check_status returns false when the package page request is unsuccessful' do
+    @ecosystem.stubs(:fetch_package_metadata).with('bloc').returns(nil)
+    stub_request(:get, "https://pub.dev/packages/bloc").to_return(status: 500)
+    assert_equal false, @ecosystem.check_status(@package)
+  end
 end

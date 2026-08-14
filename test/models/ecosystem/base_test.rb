@@ -13,7 +13,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_nil status
   end
 
-  test 'check_status returns nil when URL is invalid' do
+  test 'check_status returns false when URL is invalid' do
     # Create a package with an invalid URI in repository_url
     invalid_package = @registry.packages.create(
       ecosystem: 'test',
@@ -24,7 +24,7 @@ class BaseTest < ActiveSupport::TestCase
     # Mock check_status_url to return the invalid URL
     @ecosystem.stubs(:check_status_url).returns('https://MTAnalytics (#11070)')
     status = @ecosystem.check_status(invalid_package)
-    assert_nil status
+    assert_equal false, status
   end
 
   test 'check_status returns removed for 404 status' do
@@ -75,13 +75,22 @@ class BaseTest < ActiveSupport::TestCase
     assert_nil status
   end
 
-  test 'check_status handles Faraday errors gracefully' do
+  test 'check_status returns false for unsuccessful status' do
+    stub_request(:head, "https://example.com/package")
+      .to_return(status: 500)
+
+    @ecosystem.stubs(:check_status_url).returns('https://example.com/package')
+    status = @ecosystem.check_status(@package)
+    assert_equal false, status
+  end
+
+  test 'check_status returns false on Faraday errors so status is left untouched' do
     stub_request(:head, "https://example.com/package")
       .to_raise(Faraday::ConnectionFailed.new('Connection failed'))
 
     @ecosystem.stubs(:check_status_url).returns('https://example.com/package')
     status = @ecosystem.check_status(@package)
-    assert_nil status
+    assert_equal false, status
   end
 
   test 'download_and_cache returns nil when wget fails to download' do
