@@ -29,6 +29,8 @@ module Ecosystem
       url = check_status_url(package)
       response = Faraday.get(url)
       return "removed" if [400, 404, 410].include?(response.status)
+
+      false
     rescue => e
       Rails.logger.warn("Error checking status for pub package #{package.name}: #{e.message}")
       false

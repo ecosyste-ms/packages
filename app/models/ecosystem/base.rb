@@ -104,7 +104,10 @@ module Ecosystem
       end
 
       response = connection.head(url)
-      "removed" if [400, 404, 410].include?(response.status)
+      return "removed" if [400, 404, 410].include?(response.status)
+      return nil if response.success?
+
+      false
     rescue => e
       Rails.logger.warn("Error checking status for package #{package.id} (#{package.name}): #{e.message}")
       false

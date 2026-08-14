@@ -75,6 +75,15 @@ class BaseTest < ActiveSupport::TestCase
     assert_nil status
   end
 
+  test 'check_status returns false for unsuccessful status' do
+    stub_request(:head, "https://example.com/package")
+      .to_return(status: 500)
+
+    @ecosystem.stubs(:check_status_url).returns('https://example.com/package')
+    status = @ecosystem.check_status(@package)
+    assert_equal false, status
+  end
+
   test 'check_status returns false on Faraday errors so status is left untouched' do
     stub_request(:head, "https://example.com/package")
       .to_raise(Faraday::ConnectionFailed.new('Connection failed'))

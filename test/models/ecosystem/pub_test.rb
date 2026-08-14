@@ -146,4 +146,16 @@ class PubTest < ActiveSupport::TestCase
     stub_request(:get, "https://pub.dev/packages/bloc").to_raise(Faraday::ConnectionFailed.new('boom'))
     assert_equal false, @ecosystem.check_status(@package)
   end
+
+  test 'check_status returns false when the metadata request errors but the package page exists' do
+    stub_request(:get, "https://pub.dev/api/packages/bloc").to_raise(Faraday::ConnectionFailed.new('boom'))
+    stub_request(:get, "https://pub.dev/packages/bloc").to_return(status: 200)
+    assert_equal false, @ecosystem.check_status(@package)
+  end
+
+  test 'check_status returns false when the package page request is unsuccessful' do
+    @ecosystem.stubs(:fetch_package_metadata).with('bloc').returns(nil)
+    stub_request(:get, "https://pub.dev/packages/bloc").to_return(status: 500)
+    assert_equal false, @ecosystem.check_status(@package)
+  end
 end
