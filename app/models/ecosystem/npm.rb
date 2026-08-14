@@ -158,6 +158,8 @@ module Ecosystem
         json = get_json("https://api.npmjs.org/downloads/point/last-month/#{batch.join(',')}")
         next unless json.is_a?(Hash)
         json.each { |name, data| counts[name] = data['downloads'] if data.is_a?(Hash) }
+      rescue
+        next
       end
       scoped.each do |name|
         json = get_json("https://api.npmjs.org/downloads/point/last-month/#{name}")

@@ -201,6 +201,15 @@ class NpmTest < ActiveSupport::TestCase
     assert_equal({}, @ecosystem.fetch_download_counts(['a', 'b']))
   end
 
+  test 'fetch_download_counts continues after a bulk request errors' do
+    names = (1..130).map { |i| "pkg#{i}" }
+    stub_request(:get, %r{https://api\.npmjs\.org/downloads/point/last-month/pkg1,.*,pkg128$})
+      .to_return(status: 500, body: 'not json', headers: { 'Content-Type' => 'application/json' })
+    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/pkg129,pkg130")
+      .to_return(status: 200, body: '{"pkg129":{"downloads":1}}', headers: { 'Content-Type' => 'application/json' })
+    assert_equal 1, @ecosystem.fetch_download_counts(names)['pkg129']
+  end
+
   test 'check_status uses memoized metadata without extra HTTP request' do
     stub_request(:get, "https://registry.npmjs.org/base62")
       .to_return({ status: 200, body: file_fixture('npm/base62') })
