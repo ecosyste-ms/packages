@@ -95,8 +95,6 @@ class NpmTest < ActiveSupport::TestCase
   test 'package_metadata' do
     stub_request(:get, "https://registry.npmjs.org/base62")
       .to_return({ status: 200, body: file_fixture('npm/base62') })
-    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/base62")
-      .to_return({ status: 200, body: file_fixture('npm/base62.1') })
     package_metadata = @ecosystem.package_metadata('base62')
 
     assert_equal package_metadata[:name], "base62"
@@ -115,8 +113,6 @@ class NpmTest < ActiveSupport::TestCase
   test 'versions_metadata' do
     stub_request(:get, "https://registry.npmjs.org/base62")
       .to_return({ status: 200, body: file_fixture('npm/base62') })
-    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/base62")
-      .to_return({ status: 200, body: file_fixture('npm/base62.1') })
     package_metadata = @ecosystem.package_metadata('base62')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
@@ -138,8 +134,6 @@ class NpmTest < ActiveSupport::TestCase
   test 'dependencies_metadata' do
     stub_request(:get, "https://registry.npmjs.org/base62")
       .to_return({ status: 200, body: file_fixture('npm/base62') })
-    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/base62")
-      .to_return({ status: 200, body: file_fixture('npm/base62.1') })
     package_metadata = @ecosystem.package_metadata('base62')
     dependencies_metadata = @ecosystem.dependencies_metadata('base62', '2.0.0', package_metadata)
 
@@ -213,8 +207,6 @@ class NpmTest < ActiveSupport::TestCase
   test 'check_status uses memoized metadata without extra HTTP request' do
     stub_request(:get, "https://registry.npmjs.org/base62")
       .to_return({ status: 200, body: file_fixture('npm/base62') })
-    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/base62")
-      .to_return({ status: 200, body: file_fixture('npm/base62.1') })
 
     # Fetch metadata first to populate the cache
     @ecosystem.package_metadata('base62')
@@ -230,8 +222,6 @@ class NpmTest < ActiveSupport::TestCase
   test 'versions_metadata includes npm specific fields for modern packages' do
     stub_request(:get, "https://registry.npmjs.org/react")
       .to_return({ status: 200, body: file_fixture('npm/react_fresh') })
-    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/react")
-      .to_return({ status: 200, body: '{"downloads": 50000000}' })
     package_metadata = @ecosystem.package_metadata('react')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
     
