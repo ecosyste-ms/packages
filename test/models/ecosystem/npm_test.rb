@@ -7,6 +7,7 @@ class NpmTest < ActiveSupport::TestCase
     @package = Package.new(ecosystem: 'npm', name: 'base62')
     @version = @package.versions.build(number: '2.0.1')
     @maintainer = @registry.maintainers.build(login: 'foo')
+    @ecosystem.stubs(:sleep)
   end
 
   test 'registry_url' do
@@ -162,6 +163,16 @@ class NpmTest < ActiveSupport::TestCase
     assert_equal 5, counts['lodash']
     assert_equal 6, counts['express']
     assert_equal 7, counts['@scope/pkg']
+  end
+
+  test 'fetch_download_counts paces requests' do
+    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/lodash,express")
+      .to_return(status: 200, body: '{}', headers: { 'Content-Type' => 'application/json' })
+    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/@scope/pkg")
+      .to_return(status: 200, body: '{"downloads":7}', headers: { 'Content-Type' => 'application/json' })
+    @ecosystem.expects(:sleep).with(Ecosystem::Npm::DOWNLOADS_REQUEST_INTERVAL).once
+
+    @ecosystem.fetch_download_counts(['@scope/pkg', 'lodash', 'express'])
   end
 
   test 'fetch_download_counts slices unscoped names into batches of 128' do

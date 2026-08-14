@@ -9,8 +9,13 @@ class UpdateDownloadCountsWorkerTest < ActiveSupport::TestCase
   end
 
   test "perform delegates to Registry#update_download_counts" do
-    Registry.any_instance.expects(:update_download_counts)
+    Registry.any_instance.expects(:update_download_counts).with(top: false, limit: 1000)
     UpdateDownloadCountsWorker.new.perform(@registry.id)
+  end
+
+  test "perform refreshes the top 10,000 packages" do
+    Registry.any_instance.expects(:update_download_counts).with(top: true, limit: 10_000)
+    UpdateDownloadCountsWorker.new.perform(@registry.id, true)
   end
 
   test "shares the registry_host throttle strategy" do
