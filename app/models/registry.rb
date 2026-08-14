@@ -89,8 +89,8 @@ class Registry < ApplicationRecord
 
   def merge_metadata_key(key, value)
     Registry.where(id: id).update_all([
-      "metadata = (COALESCE(metadata, '{}')::jsonb || jsonb_build_object(?, ?::text))::json",
-      key.to_s, value.to_s
+      "metadata = (COALESCE(metadata, '{}')::jsonb || jsonb_build_object(?::text, ?::jsonb))::json",
+      key.to_s, value.to_json
     ])
     reload
   end
@@ -111,13 +111,13 @@ class Registry < ApplicationRecord
     return 0 if batch.empty?
     counts = ecosystem_instance.fetch_download_counts(batch.map(&:last))
     now = Time.current
-    batch.group_by { |_, name| counts[name] }.each do |count, rows|
-      ids = rows.map(&:first)
-      if count
-        Package.where(id: ids).update_all(downloads: count, downloads_updated_at: now)
-      else
-        Package.where(id: ids).update_all(downloads_updated_at: now)
-      end
+    Package.where(id: batch.map(&:first)).update_all(downloads_updated_at: now)
+    with_counts = batch.filter_map { |id, name| [Integer(id), Integer(counts[name])] if counts[name] }
+    if with_counts.any?
+      values = with_counts.map { |id, c| "(#{id},#{c})" }.join(',')
+      Package.connection.exec_update(
+        "UPDATE packages SET downloads = v.downloads FROM (VALUES #{values}) AS v(id, downloads) WHERE packages.id = v.id"
+      )
     end
     merge_metadata_key('download_counts_cursor', batch.last.last) unless top
     batch.length

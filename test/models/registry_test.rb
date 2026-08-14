@@ -443,6 +443,14 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal 'abc', @registry.metadata['download_counts_cursor']
   end
 
+  test 'merge_metadata_key preserves value type' do
+    @registry.merge_metadata_key('rate_limit', 0.5)
+    assert_equal 0.5, @registry.reload.metadata['rate_limit']
+    @registry.merge_metadata_key('rate_limit', 3)
+    assert_equal 3, @registry.reload.metadata['rate_limit']
+    assert_kind_of Numeric, @registry.metadata['rate_limit']
+  end
+
   test 'throttled_ids returns registries with a rate_limit' do
     Registry.reset_throttle_cache
     throttled = Registry.create!(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm', metadata: { 'rate_limit' => 1 })

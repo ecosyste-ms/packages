@@ -43,6 +43,13 @@ class UpdateDownloadCountsWorkerTest < ActiveSupport::TestCase
     assert_equal '', @registry.reload.metadata['download_counts_cursor']
   end
 
+  test "update_download_counts writes a zero count" do
+    @a.update_column(:downloads, 999)
+    @registry.ecosystem_instance.expects(:fetch_download_counts).with(['aaa', 'bbb']).returns('aaa' => 0)
+    @registry.update_download_counts(limit: 10)
+    assert_equal 0, @a.reload.downloads
+  end
+
   test "top mode picks highest-download packages and does not touch the cursor" do
     @a.update_column(:downloads, 100)
     @b.update_column(:downloads, 50)
