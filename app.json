@@ -33,6 +33,14 @@
       "schedule": "26 * * * *"
     },
     {
+      "command": "bundle exec rake packages:update_download_counts",
+      "schedule": "2,12,22,32,42,52 * * * *"
+    },
+    {
+      "command": "bundle exec rake packages:update_top_download_counts",
+      "schedule": "29 0 * * *"
+    },
+    {
       "command": "bundle exec rake packages:sync_missing",
       "schedule": "0 0 * * *"
     },

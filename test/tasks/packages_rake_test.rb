@@ -27,6 +27,15 @@ class PackagesRakeTest < ActiveSupport::TestCase
     Rake::Task["packages:sync_least_recent"].invoke
   end
 
+  test "schedules the top npm download refresh daily" do
+    config = JSON.parse(Rails.root.join('app.json').read)
+    cron = config.fetch('cron').find do |entry|
+      entry['command'] == 'bundle exec rake packages:update_top_download_counts'
+    end
+
+    assert_equal '29 0 * * *', cron.fetch('schedule')
+  end
+
   test "backfills NuGet packages without verified metadata" do
     registry = Registry.create(name: 'NuGet.org', url: 'https://www.nuget.org', ecosystem: 'nuget')
     registry.packages.create!(name: 'unchecked', ecosystem: 'nuget', metadata: {})

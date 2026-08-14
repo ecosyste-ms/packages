@@ -7,6 +7,7 @@ class NpmTest < ActiveSupport::TestCase
     @package = Package.new(ecosystem: 'npm', name: 'base62')
     @version = @package.versions.build(number: '2.0.1')
     @maintainer = @registry.maintainers.build(login: 'foo')
+    @ecosystem.stubs(:sleep)
   end
 
   test 'registry_url' do
@@ -95,8 +96,6 @@ class NpmTest < ActiveSupport::TestCase
   test 'package_metadata' do
     stub_request(:get, "https://registry.npmjs.org/base62")
       .to_return({ status: 200, body: file_fixture('npm/base62') })
-    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/base62")
-      .to_return({ status: 200, body: file_fixture('npm/base62.1') })
     package_metadata = @ecosystem.package_metadata('base62')
 
     assert_equal package_metadata[:name], "base62"
@@ -105,8 +104,9 @@ class NpmTest < ActiveSupport::TestCase
     assert_equal package_metadata[:licenses], "MIT"
     assert_equal package_metadata[:repository_url], "https://github.com/base62/base62.js"
     assert_equal package_metadata[:keywords_array], ["base-62", "encoder", "decoder"]
-    assert_equal package_metadata[:downloads], 1076972
+    assert_nil package_metadata[:downloads]
     assert_equal package_metadata[:downloads_period], "last-month"
+    assert_not_requested :get, "https://api.npmjs.org/downloads/point/last-month/base62"
     assert_nil package_metadata[:namespace]
     assert_equal package_metadata[:metadata], {"funding"=>nil, "dist-tags"=>{"latest"=>"2.0.1"}, "contentPolicy"=>nil}
   end
@@ -114,8 +114,6 @@ class NpmTest < ActiveSupport::TestCase
   test 'versions_metadata' do
     stub_request(:get, "https://registry.npmjs.org/base62")
       .to_return({ status: 200, body: file_fixture('npm/base62') })
-    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/base62")
-      .to_return({ status: 200, body: file_fixture('npm/base62.1') })
     package_metadata = @ecosystem.package_metadata('base62')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
@@ -137,8 +135,6 @@ class NpmTest < ActiveSupport::TestCase
   test 'dependencies_metadata' do
     stub_request(:get, "https://registry.npmjs.org/base62")
       .to_return({ status: 200, body: file_fixture('npm/base62') })
-    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/base62")
-      .to_return({ status: 200, body: file_fixture('npm/base62.1') })
     package_metadata = @ecosystem.package_metadata('base62')
     dependencies_metadata = @ecosystem.dependencies_metadata('base62', '2.0.0', package_metadata)
 
@@ -147,15 +143,81 @@ class NpmTest < ActiveSupport::TestCase
     ]
   end
 
-  test 'maintainer_url' do 
+  test 'maintainer_url' do
     assert_equal @ecosystem.maintainer_url(@maintainer), 'https://www.npmjs.com/~foo'
+  end
+
+  test 'fetch_download_counts bulk-fetches unscoped names' do
+    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/base62,express")
+      .to_return(status: 200, body: '{"base62":{"downloads":10},"express":{"downloads":20}}', headers: { 'Content-Type' => 'application/json' })
+    counts = @ecosystem.fetch_download_counts(['base62', 'express'])
+    assert_equal({ 'base62' => 10, 'express' => 20 }, counts)
+  end
+
+  test 'fetch_download_counts fetches scoped names individually' do
+    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/lodash,express")
+      .to_return(status: 200, body: '{"lodash":{"downloads":5},"express":{"downloads":6}}', headers: { 'Content-Type' => 'application/json' })
+    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/@scope/pkg")
+      .to_return(status: 200, body: '{"downloads":7,"package":"@scope/pkg"}', headers: { 'Content-Type' => 'application/json' })
+    counts = @ecosystem.fetch_download_counts(['@scope/pkg', 'lodash', 'express'])
+    assert_equal 5, counts['lodash']
+    assert_equal 6, counts['express']
+    assert_equal 7, counts['@scope/pkg']
+  end
+
+  test 'fetch_download_counts paces requests' do
+    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/lodash,express")
+      .to_return(status: 200, body: '{}', headers: { 'Content-Type' => 'application/json' })
+    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/@scope/pkg")
+      .to_return(status: 200, body: '{"downloads":7}', headers: { 'Content-Type' => 'application/json' })
+    @ecosystem.expects(:sleep).with(Ecosystem::Npm::DOWNLOADS_REQUEST_INTERVAL).once
+
+    @ecosystem.fetch_download_counts(['@scope/pkg', 'lodash', 'express'])
+  end
+
+  test 'fetch_download_counts slices unscoped names into batches of 128' do
+    names = (1..130).map { |i| "pkg#{i}" }
+    stub_request(:get, %r{https://api\.npmjs\.org/downloads/point/last-month/pkg1,.*,pkg128$})
+      .to_return(status: 200, body: '{}', headers: { 'Content-Type' => 'application/json' })
+    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/pkg129,pkg130")
+      .to_return(status: 200, body: '{"pkg129":{"downloads":1}}', headers: { 'Content-Type' => 'application/json' })
+    counts = @ecosystem.fetch_download_counts(names)
+    assert_equal 1, counts['pkg129']
+  end
+
+  test 'fetch_download_counts routes a lone unscoped name through the single-package path' do
+    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/lodash")
+      .to_return(status: 200, body: '{"downloads":9,"package":"lodash"}', headers: { 'Content-Type' => 'application/json' })
+    assert_equal({ 'lodash' => 9 }, @ecosystem.fetch_download_counts(['lodash']))
+  end
+
+  test 'fetch_download_counts routes a single-name trailing slice through the single-package path' do
+    names = (1..129).map { |i| "pkg#{i}" }
+    stub_request(:get, %r{https://api\.npmjs\.org/downloads/point/last-month/pkg1,.*,pkg128$})
+      .to_return(status: 200, body: '{}', headers: { 'Content-Type' => 'application/json' })
+    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/pkg129")
+      .to_return(status: 200, body: '{"downloads":3,"package":"pkg129"}', headers: { 'Content-Type' => 'application/json' })
+    assert_equal 3, @ecosystem.fetch_download_counts(names)['pkg129']
+  end
+
+  test 'fetch_download_counts ignores non-hash bulk response' do
+    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/a,b")
+      .to_return(status: 500, body: 'null', headers: { 'Content-Type' => 'application/json' })
+    assert_equal({}, @ecosystem.fetch_download_counts(['a', 'b']))
+  end
+
+  test 'fetch_download_counts continues after a bulk request errors' do
+    names = (1..130).map { |i| "pkg#{i}" }
+    stub_request(:get, %r{https://api\.npmjs\.org/downloads/point/last-month/pkg1,.*,pkg128$})
+      .to_return(status: 500, body: 'not json', headers: { 'Content-Type' => 'application/json' })
+    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/pkg129,pkg130")
+      .to_return(status: 200, body: '{"pkg129":{"downloads":1}}', headers: { 'Content-Type' => 'application/json' })
+    assert_equal 1, @ecosystem.fetch_download_counts(names)['pkg129']
   end
 
   test 'check_status uses memoized metadata without extra HTTP request' do
     stub_request(:get, "https://registry.npmjs.org/base62")
       .to_return({ status: 200, body: file_fixture('npm/base62') })
-    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/base62")
-      .to_return({ status: 200, body: file_fixture('npm/base62.1') })
 
     # Fetch metadata first to populate the cache
     @ecosystem.package_metadata('base62')
@@ -171,8 +233,6 @@ class NpmTest < ActiveSupport::TestCase
   test 'versions_metadata includes npm specific fields for modern packages' do
     stub_request(:get, "https://registry.npmjs.org/react")
       .to_return({ status: 200, body: file_fixture('npm/react_fresh') })
-    stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/react")
-      .to_return({ status: 200, body: '{"downloads": 50000000}' })
     package_metadata = @ecosystem.package_metadata('react')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
     

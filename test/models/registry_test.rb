@@ -427,6 +427,30 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal 3, stat_2022.packages_count
   end
 
+  test 'merge_metadata_key preserves keys written by another connection after load' do
+    @registry.update!(metadata: { 'rate_limit' => 1 })
+    stale = Registry.find(@registry.id)
+    Registry.where(id: @registry.id).update_all("metadata = (metadata::jsonb || '{\"rate_limit\":5}'::jsonb)::json")
+    stale.merge_metadata_key('download_counts_cursor', 'zzz')
+    fresh = Registry.find(@registry.id)
+    assert_equal 5, fresh.metadata['rate_limit']
+    assert_equal 'zzz', fresh.metadata['download_counts_cursor']
+  end
+
+  test 'merge_metadata_key handles empty metadata' do
+    @registry.update_column(:metadata, nil)
+    @registry.merge_metadata_key('download_counts_cursor', 'abc')
+    assert_equal 'abc', @registry.metadata['download_counts_cursor']
+  end
+
+  test 'merge_metadata_key preserves value type' do
+    @registry.merge_metadata_key('rate_limit', 0.5)
+    assert_equal 0.5, @registry.reload.metadata['rate_limit']
+    @registry.merge_metadata_key('rate_limit', 3)
+    assert_equal 3, @registry.reload.metadata['rate_limit']
+    assert_kind_of Numeric, @registry.metadata['rate_limit']
+  end
+
   test 'throttled_ids returns registries with a rate_limit' do
     Registry.reset_throttle_cache
     throttled = Registry.create!(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm', metadata: { 'rate_limit' => 1 })

@@ -115,9 +115,6 @@ module Ecosystem
         }
       }
 
-      downloads = downloads(package)
-      h[:downloads] = downloads if downloads.present?
-
       h
     end
 
@@ -148,10 +145,38 @@ module Ecosystem
       package["_id"].split("/").first.gsub('@', '')
     end
 
-    def downloads(package)
-      get_json("https://api.npmjs.org/downloads/point/last-month/#{package["_id"]}")['downloads']
+    BULK_DOWNLOADS_LIMIT = 128
+    DOWNLOADS_REQUEST_INTERVAL = 1.0 / 3
+
+    def fetch_download_counts(names)
+      scoped, unscoped = names.partition { |n| n.start_with?('@') }
+      counts = {}
+      requested = false
+      fetch = lambda do |url|
+        sleep(DOWNLOADS_REQUEST_INTERVAL) if requested
+        requested = true
+        get_json(url)
+      end
+      unscoped.each_slice(BULK_DOWNLOADS_LIMIT) do |batch|
+        if batch.length == 1
+          scoped << batch.first
+          next
+        end
+        json = fetch.call("https://api.npmjs.org/downloads/point/last-month/#{batch.join(',')}")
+        next unless json.is_a?(Hash)
+        json.each { |name, data| counts[name] = data['downloads'] if data.is_a?(Hash) }
+      rescue
+        next
+      end
+      scoped.each do |name|
+        json = fetch.call("https://api.npmjs.org/downloads/point/last-month/#{name}")
+        counts[name] = json['downloads'] if json.is_a?(Hash) && json['downloads']
+      rescue
+        next
+      end
+      counts
     rescue
-      nil
+      counts || {}
     end
 
     def licenses(latest_version)

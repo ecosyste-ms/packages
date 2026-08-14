@@ -87,6 +87,42 @@ class Registry < ApplicationRecord
     all.each(&:update_extra_counts)
   end
 
+  def merge_metadata_key(key, value)
+    Registry.where(id: id).update_all([
+      "metadata = (COALESCE(metadata, '{}')::jsonb || jsonb_build_object(?::text, ?::jsonb))::json",
+      key.to_s, value.to_json
+    ])
+    reload
+  end
+
+  def update_download_counts(limit: 1000, top: false)
+    return 0 unless ecosystem_instance.respond_to?(:fetch_download_counts)
+    scope = packages.where("status IS NULL OR status <> ?", 'removed')
+    if top
+      batch = scope.order(Arel.sql('downloads DESC NULLS LAST')).limit(limit).pluck(:id, :name)
+    else
+      cursor = (metadata || {})['download_counts_cursor'].to_s
+      batch = scope.where('name > ?', cursor).order(:name).limit(limit).pluck(:id, :name)
+      if batch.empty?
+        merge_metadata_key('download_counts_cursor', '') unless cursor.blank?
+        return 0
+      end
+    end
+    return 0 if batch.empty?
+    counts = ecosystem_instance.fetch_download_counts(batch.map(&:last))
+    now = Time.current
+    Package.where(id: batch.map(&:first)).update_all(downloads_updated_at: now)
+    with_counts = batch.filter_map { |id, name| [Integer(id), Integer(counts[name])] if counts[name] }
+    if with_counts.any?
+      values = with_counts.map { |id, c| "(#{id},#{c})" }.join(',')
+      Package.connection.exec_update(
+        "UPDATE packages SET downloads = v.downloads FROM (VALUES #{values}) AS v(id, downloads) WHERE packages.id = v.id"
+      )
+    end
+    merge_metadata_key('download_counts_cursor', batch.last.last) unless top
+    batch.length
+  end
+
   def self.sync_all_recently_updated_packages_async
     frequently_synced.each(&:sync_recently_updated_packages_async)
   end
