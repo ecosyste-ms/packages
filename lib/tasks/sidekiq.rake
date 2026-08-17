@@ -49,5 +49,19 @@ namespace :sidekiq do
         puts "Done."
       end
     end
+
+    desc "Report indexed and legacy unindexed unique job locks"
+    task audit_locks: :environment do
+      puts LegacyUniqueJobLocks.audit.to_json
+    end
+
+    desc "Inspect or delete one bounded batch of legacy unindexed locks"
+    task clean_legacy_locks: :environment do
+      apply = ENV["APPLY"] == "true"
+      scan_count = ENV.fetch("COUNT", LegacyUniqueJobLocks::DEFAULT_SCAN_COUNT).to_i
+      result = LegacyUniqueJobLocks.new(apply: apply, scan_count: scan_count).call
+
+      puts result.to_json
+    end
   end
 end

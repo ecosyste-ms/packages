@@ -1,4 +1,5 @@
 SidekiqUniqueJobs.configure do |config|
+  config.lock_ttl        = 1.hour.to_i
   config.reaper          = :ruby
   config.reaper_count    = 2_000
   config.reaper_interval = 60
