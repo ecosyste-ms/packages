@@ -11,6 +11,7 @@ class Package < ApplicationRecord
   ].freeze
   REPO_METADATA_REFRESH_CURSOR_KEY = 'packages:update_repo_metadata:cursor'.freeze
   REPO_METADATA_REFRESH_BATCH_SIZE = 400
+  REPO_METADATA_REFRESH_INTERVAL = 5.minutes.to_f / REPO_METADATA_REFRESH_BATCH_SIZE
   REPO_METADATA_REFRESH_SCAN_SIZE = 100_000
   REPO_METADATA_REFRESH_MAX_AGE = 1.month
   
@@ -509,7 +510,9 @@ class Package < ApplicationRecord
   def self.update_repo_metadata_async
     cursor = REDIS.get(REPO_METADATA_REFRESH_CURSOR_KEY).to_i
     packages, next_cursor = repo_metadata_refresh_batch(after_id: cursor)
-    packages.each(&:update_repo_metadata_async)
+    packages.each_with_index do |package, index|
+      package.update_repo_metadata_async(wait: index * REPO_METADATA_REFRESH_INTERVAL)
+    end
     REDIS.set(REPO_METADATA_REFRESH_CURSOR_KEY, next_cursor)
   end
 
@@ -532,9 +535,13 @@ class Package < ApplicationRecord
     [packages, next_cursor]
   end
 
-  def update_repo_metadata_async
+  def update_repo_metadata_async(wait: nil)
     return if repository_or_homepage_url.blank?
-    UpdateRepoMetadataWorker.perform_async(id)
+    if wait
+      UpdateRepoMetadataWorker.perform_in(wait, id)
+    else
+      UpdateRepoMetadataWorker.perform_async(id)
+    end
   end
 
   def update_repo_metadata
