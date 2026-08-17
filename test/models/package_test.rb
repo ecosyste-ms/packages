@@ -253,7 +253,7 @@ class PackageTest < ActiveSupport::TestCase
     assert_in_delta previous_update, @package.reload.repo_metadata_updated_at, 1.second
   end
 
-  test 'update_repo_metadata retries when redirect discovery is temporarily unavailable' do
+  test 'update_repo_metadata treats an unsuccessful fallback request as no metadata' do
     repository_url = 'https://github.com/example/example'
     previous_update = 2.days.ago
     @package.update!(repository_url: repository_url, repo_metadata_updated_at: previous_update)
@@ -263,12 +263,80 @@ class PackageTest < ActiveSupport::TestCase
       .to_return(status: 404)
     stub_request(:head, repository_url).to_return(status: 503)
 
+    @package.update_repo_metadata
+
+    assert_operator @package.reload.repo_metadata_updated_at, :>, previous_update
+  end
+
+  test 'update_repo_metadata treats a fallback connection failure as no metadata' do
+    repository_url = 'https://retired.example.org/project'
+    previous_update = 2.days.ago
+    @package.update!(repository_url: repository_url, repo_metadata_updated_at: previous_update)
+
+    stub_request(:get, 'https://repos.ecosyste.ms/api/v1/repositories/lookup')
+      .with(query: { url: repository_url })
+      .to_return(status: 404)
+    stub_request(:head, repository_url)
+      .to_raise(Faraday::ConnectionFailed.new('Could not resolve hostname'))
+
+    @package.update_repo_metadata
+
+    assert_operator @package.reload.repo_metadata_updated_at, :>, previous_update
+  end
+
+  test 'fetch_repo_metadata does not request invalid fallback urls' do
+    invalid_urls = [
+      'git://git.coding.net/example/project.git',
+      'git@example.org:example/project.git'
+    ]
+    Faraday.expects(:head).never
+
+    invalid_urls.each do |url|
+      @package.repository_url = url
+      stub_request(:get, 'https://repos.ecosyste.ms/api/v1/repositories/lookup')
+        .with(query: { url: url })
+        .to_return(status: 404)
+
+      assert_equal({}, @package.fetch_repo_metadata)
+    end
+  end
+
+  test 'update_repo_metadata retries when the repository lookup cannot connect' do
+    repository_url = 'https://github.com/example/example'
+    previous_update = 2.days.ago
+    @package.update!(repository_url: repository_url, repo_metadata_updated_at: previous_update)
+
+    stub_request(:get, 'https://repos.ecosyste.ms/api/v1/repositories/lookup')
+      .with(query: { url: repository_url })
+      .to_raise(Faraday::ConnectionFailed.new('Could not resolve hostname'))
+
+    assert_raises(Faraday::ConnectionFailed) do
+      @package.update_repo_metadata
+    end
+
+    assert_in_delta previous_update, @package.reload.repo_metadata_updated_at, 1.second
+  end
+
+  test 'update_repo_metadata retries when a redirected repository lookup is unavailable' do
+    repository_url = 'https://example.org/renamed'
+    redirected_url = 'https://github.com/example/renamed'
+    previous_update = 2.days.ago
+    @package.update!(repository_url: repository_url, repo_metadata_updated_at: previous_update)
+
+    stub_request(:get, 'https://repos.ecosyste.ms/api/v1/repositories/lookup')
+      .with(query: { url: repository_url })
+      .to_return(status: 404)
+    stub_request(:head, repository_url)
+      .to_return(status: 301, headers: { 'Location' => redirected_url })
+    stub_request(:get, 'https://repos.ecosyste.ms/api/v1/repositories/lookup')
+      .with(query: { url: redirected_url })
+      .to_return(status: 500)
+
     error = assert_raises(EcosystemsApiClient::RequestError) do
       @package.update_repo_metadata
     end
 
-    assert_equal 503, error.status
-    assert_equal 'HEAD', error.method
+    assert_equal 500, error.status
     assert_in_delta previous_update, @package.reload.repo_metadata_updated_at, 1.second
   end
 

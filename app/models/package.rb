@@ -589,18 +589,16 @@ class Package < ApplicationRecord
   end
 
   def fetch_repo_metadata
-    return if repository_or_homepage_url.blank?
+    url = repository_or_homepage_url
+    return if url.blank?
 
-    json = fetch_repo_metadata_lookup(repository_or_homepage_url)
+    json = fetch_repo_metadata_lookup(url)
     return json if json
-    
-    response = Faraday.head(repository_or_homepage_url)
-    if [301, 302, 307, 308].include?(response.status) && response.headers['location'].present?
-      return fetch_repo_metadata_lookup(response.headers['location']) || {}
-    end
-    return {} if response.success? || [400, 404, 405, 410, 422].include?(response.status)
 
-    raise EcosystemsApiClient::RequestError.new(repository_or_homepage_url, response.status, method: 'HEAD')
+    redirect_url = repo_metadata_redirect_url(url)
+    return {} unless redirect_url
+
+    fetch_repo_metadata_lookup(redirect_url) || {}
   end
 
   def fetch_repo_metadata_lookup(url)
@@ -612,6 +610,23 @@ class Package < ApplicationRecord
   rescue EcosystemsApiClient::RequestError => error
     raise unless [400, 404, 410, 422].include?(error.status)
     nil
+  end
+
+  def repo_metadata_redirect_url(url)
+    return unless repo_metadata_fallback_url?(url)
+
+    response = Faraday.head(url)
+    return unless [301, 302, 307, 308].include?(response.status)
+    response.headers['location'].presence
+  rescue Faraday::Error, URI::InvalidURIError
+    nil
+  end
+
+  def repo_metadata_fallback_url?(url)
+    uri = URI.parse(url)
+    uri.is_a?(URI::HTTP) && uri.host.present?
+  rescue URI::InvalidURIError
+    false
   end
 
   def fetch_tags
