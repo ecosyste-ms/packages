@@ -236,6 +236,129 @@ class PackageTest < ActiveSupport::TestCase
     ], @package.repo_funding_links
   end
 
+  test 'update_repo_metadata preserves its timestamp when the repository lookup is temporarily unavailable' do
+    repository_url = 'https://github.com/example/example'
+    previous_update = 2.days.ago
+    @package.update!(repository_url: repository_url, repo_metadata_updated_at: previous_update)
+
+    stub_request(:get, 'https://repos.ecosyste.ms/api/v1/repositories/lookup')
+      .with(query: { url: repository_url })
+      .to_return(status: 500)
+
+    error = assert_raises(EcosystemsApiClient::RequestError) do
+      @package.update_repo_metadata
+    end
+
+    assert_equal 500, error.status
+    assert_in_delta previous_update, @package.reload.repo_metadata_updated_at, 1.second
+  end
+
+  test 'update_repo_metadata retries when redirect discovery is temporarily unavailable' do
+    repository_url = 'https://github.com/example/example'
+    previous_update = 2.days.ago
+    @package.update!(repository_url: repository_url, repo_metadata_updated_at: previous_update)
+
+    stub_request(:get, 'https://repos.ecosyste.ms/api/v1/repositories/lookup')
+      .with(query: { url: repository_url })
+      .to_return(status: 404)
+    stub_request(:head, repository_url).to_return(status: 503)
+
+    error = assert_raises(EcosystemsApiClient::RequestError) do
+      @package.update_repo_metadata
+    end
+
+    assert_equal 503, error.status
+    assert_equal 'HEAD', error.method
+    assert_in_delta previous_update, @package.reload.repo_metadata_updated_at, 1.second
+  end
+
+  test 'update_repo_metadata stores a successful repository lookup and advances its timestamp' do
+    previous_update = 2.days.ago
+    metadata = {
+      'full_name' => 'example/example',
+      'host' => { 'name' => 'GitHub' }
+    }
+    @package.update!(repository_url: 'https://github.com/example/example', repo_metadata_updated_at: previous_update)
+    @package.stubs(:fetch_repo_metadata).returns(metadata)
+    @package.stubs(:fetch_tags).returns([])
+    @package.stubs(:fetch_owner).returns(nil)
+    @package.stubs(:ping_issues)
+    @package.stubs(:ping_commits)
+    @package.stubs(:update_issue_metadata)
+
+    @package.update_repo_metadata
+
+    assert_equal metadata.merge('tags' => []), @package.reload.repo_metadata
+    assert_operator @package.repo_metadata_updated_at, :>, previous_update
+  end
+
+  test 'repo_metadata_refresh_batch selects old and never-refreshed packages within a bounded id range' do
+    old_package = @registry.packages.create!(
+      name: 'old-repo-metadata',
+      ecosystem: @registry.ecosystem,
+      repository_url: 'https://github.com/example/old',
+      repo_metadata_updated_at: 2.months.ago
+    )
+    never_refreshed_package = @registry.packages.create!(
+      name: 'missing-repo-metadata',
+      ecosystem: @registry.ecosystem,
+      homepage: 'https://github.com/example/missing'
+    )
+    @registry.packages.create!(
+      name: 'fresh-repo-metadata',
+      ecosystem: @registry.ecosystem,
+      repository_url: 'https://github.com/example/fresh',
+      repo_metadata_updated_at: Time.current
+    )
+
+    packages, next_cursor = Package.repo_metadata_refresh_batch(
+      after_id: @package.id,
+      batch_size: 400,
+      scan_size: 100_000
+    )
+
+    assert_equal [old_package.id, never_refreshed_package.id], packages.map(&:id)
+    assert_equal 0, next_cursor
+  end
+
+  test 'repo_metadata_refresh_batch resumes after the last selected package when the batch is full' do
+    first_package = @registry.packages.create!(
+      name: 'first-old-repo-metadata',
+      ecosystem: @registry.ecosystem,
+      repository_url: 'https://github.com/example/first',
+      repo_metadata_updated_at: 2.months.ago
+    )
+    @registry.packages.create!(
+      name: 'second-old-repo-metadata',
+      ecosystem: @registry.ecosystem,
+      repository_url: 'https://github.com/example/second',
+      repo_metadata_updated_at: 2.months.ago
+    )
+
+    packages, next_cursor = Package.repo_metadata_refresh_batch(
+      after_id: @package.id,
+      batch_size: 1,
+      scan_size: 100_000
+    )
+
+    assert_equal [first_package.id], packages.map(&:id)
+    assert_equal first_package.id, next_cursor
+  end
+
+  test 'update_repo_metadata_async persists its scan cursor after enqueueing the batch' do
+    package = @registry.packages.create!(
+      name: 'queued-repo-metadata',
+      ecosystem: @registry.ecosystem,
+      repository_url: 'https://github.com/example/queued'
+    )
+    Package.stubs(:repo_metadata_refresh_batch).with(after_id: 123).returns([[package], 456])
+    REDIS.expects(:get).with(Package::REPO_METADATA_REFRESH_CURSOR_KEY).returns('123')
+    REDIS.expects(:set).with(Package::REPO_METADATA_REFRESH_CURSOR_KEY, 456)
+    package.expects(:update_repo_metadata_async)
+
+    Package.update_repo_metadata_async
+  end
+
   test 'registry_url' do
     assert_equal @package.registry_url, 'https://rubygems.org/gems/foo'
   end

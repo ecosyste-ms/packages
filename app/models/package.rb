@@ -9,6 +9,10 @@ class Package < ApplicationRecord
     stargazers_count
     forks_count
   ].freeze
+  REPO_METADATA_REFRESH_CURSOR_KEY = 'packages:update_repo_metadata:cursor'.freeze
+  REPO_METADATA_REFRESH_BATCH_SIZE = 400
+  REPO_METADATA_REFRESH_SCAN_SIZE = 100_000
+  REPO_METADATA_REFRESH_MAX_AGE = 1.month
   
   # Matches a name where any /-delimited segment is exactly "." or "..".
   # Such names generate URLs that CDNs and browsers normalise into other
@@ -503,7 +507,29 @@ class Package < ApplicationRecord
   end
 
   def self.update_repo_metadata_async
-    Package.with_repository_or_homepage_url.order('repo_metadata_updated_at DESC nulls first').limit(400).select('packages.id, packages.repository_url, packages.homepage').each(&:update_repo_metadata_async)
+    cursor = REDIS.get(REPO_METADATA_REFRESH_CURSOR_KEY).to_i
+    packages, next_cursor = repo_metadata_refresh_batch(after_id: cursor)
+    packages.each(&:update_repo_metadata_async)
+    REDIS.set(REPO_METADATA_REFRESH_CURSOR_KEY, next_cursor)
+  end
+
+  def self.repo_metadata_refresh_batch(after_id:, batch_size: REPO_METADATA_REFRESH_BATCH_SIZE, scan_size: REPO_METADATA_REFRESH_SCAN_SIZE)
+    max_id = maximum(:id)
+    return [[], 0] unless max_id
+
+    after_id = 0 if after_id >= max_id
+    scan_end = [after_id + scan_size, max_id].min
+    packages = with_repository_or_homepage_url
+      .where(id: (after_id + 1)..scan_end)
+      .where('repo_metadata_updated_at IS NULL OR repo_metadata_updated_at < ?', REPO_METADATA_REFRESH_MAX_AGE.ago)
+      .order(:id)
+      .limit(batch_size)
+      .select('packages.id, packages.repository_url, packages.homepage')
+      .to_a
+
+    next_cursor = packages.length == batch_size ? packages.last.id : scan_end
+    next_cursor = 0 if next_cursor >= max_id
+    [packages, next_cursor]
   end
 
   def update_repo_metadata_async
@@ -558,19 +584,27 @@ class Package < ApplicationRecord
   def fetch_repo_metadata
     return if repository_or_homepage_url.blank?
 
-    json = ecosystems_api_get('https://repos.ecosyste.ms/api/v1/repositories/lookup', params: { url: repository_or_homepage_url })
+    json = fetch_repo_metadata_lookup(repository_or_homepage_url)
+    return json if json
     
-    if json.nil?
-      # check for renamed repos
-      resp = Faraday.head(repository_or_homepage_url)
-      if resp.status == 301
-        json = ecosystems_api_get('https://repos.ecosyste.ms/api/v1/repositories/lookup', params: { url: resp.headers['location'] })
-      end
+    response = Faraday.head(repository_or_homepage_url)
+    if [301, 302, 307, 308].include?(response.status) && response.headers['location'].present?
+      return fetch_repo_metadata_lookup(response.headers['location']) || {}
     end
-    
-    json || {}
-  rescue
-    {}
+    return {} if response.success? || [400, 404, 405, 410, 422].include?(response.status)
+
+    raise EcosystemsApiClient::RequestError.new(repository_or_homepage_url, response.status, method: 'HEAD')
+  end
+
+  def fetch_repo_metadata_lookup(url)
+    ecosystems_api_get(
+      'https://repos.ecosyste.ms/api/v1/repositories/lookup',
+      params: { url: url },
+      raise_on_error: true
+    )
+  rescue EcosystemsApiClient::RequestError => error
+    raise unless [400, 404, 410, 422].include?(error.status)
+    nil
   end
 
   def fetch_tags

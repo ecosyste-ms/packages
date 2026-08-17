@@ -25,8 +25,8 @@
       "schedule": "4,24,44 * * * *"
     },
     {
-      "command": "bundle exec rake packages:update_repo_metadata_async",
-      "schedule": "9,39 * * * *"
+      "command": "bundle exec rake packages:update_repo_metadata",
+      "schedule": "4,9,14,19,24,29,34,39,44,49,54,59 * * * *"
     },
     {
       "command": "bundle exec rake packages:check_statuses",

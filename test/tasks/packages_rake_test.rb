@@ -1,5 +1,6 @@
 require 'test_helper'
 require 'rake'
+require 'json'
 
 class PackagesRakeTest < ActiveSupport::TestCase
   setup do
@@ -25,6 +26,22 @@ class PackagesRakeTest < ActiveSupport::TestCase
   test "should sync least recently synced packages" do
     Package.expects(:sync_least_recent_async).returns(:true)
     Rake::Task["packages:sync_least_recent"].invoke
+  end
+
+  test "scheduled rake tasks exist" do
+    app_config = JSON.parse(Rails.root.join('app.json').read)
+    scheduled_tasks = app_config.fetch('cron')
+    task_names = scheduled_tasks.filter_map do |entry|
+      entry.fetch('command')[/bundle exec rake ([^ ]+)/, 1]
+    end
+
+    missing_tasks = task_names.reject { |task_name| Rake::Task.task_defined?(task_name) }
+    repo_metadata_task = scheduled_tasks.find do |entry|
+      entry.fetch('command') == 'bundle exec rake packages:update_repo_metadata'
+    end
+
+    assert_empty missing_tasks
+    assert_equal '4,9,14,19,24,29,34,39,44,49,54,59 * * * *', repo_metadata_task.fetch('schedule')
   end
 
   test "backfills NuGet packages without verified metadata" do

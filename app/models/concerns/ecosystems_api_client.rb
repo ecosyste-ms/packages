@@ -1,6 +1,17 @@
 module EcosystemsApiClient
   extend ActiveSupport::Concern
 
+  class RequestError < StandardError
+    attr_reader :method, :status, :url
+
+    def initialize(url, status, method: 'GET')
+      @url = url
+      @status = status
+      @method = method
+      super("#{method} #{url} returned HTTP #{status}")
+    end
+  end
+
   class_methods do
     def ecosystems_api_get(url, options = {})
       response = Faraday.get(url) do |req|
@@ -10,7 +21,10 @@ module EcosystemsApiClient
         req.params = options[:params] if options[:params]
       end
       
-      return nil unless response.success?
+      unless response.success?
+        raise RequestError.new(url, response.status) if options[:raise_on_error]
+        return nil
+      end
       
       if options[:raw]
         response.body
@@ -18,6 +32,7 @@ module EcosystemsApiClient
         JSON.parse(response.body)
       end
     rescue JSON::ParserError, Faraday::Error
+      raise if options[:raise_on_error]
       nil
     end
 
