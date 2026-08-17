@@ -3,7 +3,7 @@ class SyncPackageVersionWorker
   include Sidekiq::Throttled::Job
   sidekiq_options queue: :low,
                   lock: :until_executed,
-                  lock_expiration: 1.hour.to_i
+                  lock_ttl: 1.hour.to_i
   sidekiq_throttle_as :registry_host
 
   def perform(registry_id, name, version)

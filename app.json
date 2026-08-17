@@ -77,7 +77,7 @@
       "schedule": "0 0 */6 * *"
     },
     {
-      "command": "bundle exec rake packages:clean_up_sidekiq_unique_jobs",
+      "command": "bundle exec rake sidekiq:unique_jobs:audit_locks",
       "schedule": "0 0 * * 0"
     }
   ]

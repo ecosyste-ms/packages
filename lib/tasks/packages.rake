@@ -219,14 +219,6 @@ namespace :packages do
     end
   end
 
-  desc 'clean up sidekiq unique jobs'
-  task clean_up_sidekiq_unique_jobs: :environment do
-    with_rake_lock('packages:clean_up_sidekiq_unique_jobs') do
-      SidekiqUniqueJobs::Digests.new.delete_by_pattern("*", count: 10_000)
-      SidekiqUniqueJobs::ExpiringDigests.new.delete_by_pattern("*", count: 10_000)
-    end
-  end
-
   desc 'report upstream ecosystem groupings for nixpkgs packages'
   task nixpkgs_upstream_ecosystems: :environment do
     registry = Registry.where(ecosystem: 'nixpkgs').order(packages_count: :desc).first
