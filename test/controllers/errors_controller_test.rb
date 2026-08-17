@@ -19,11 +19,10 @@ class ErrorsControllerTest < ActionDispatch::IntegrationTest
     assert_template 'errors/internal'
   end
 
-  test '500 is not publicly cacheable' do
+  test '500 is not cacheable' do
     get '/500'
-    cache_control = response.headers['Cache-Control'].to_s
-    refute_includes cache_control, 'public', "got: #{cache_control}"
-    refute_includes cache_control, 's-maxage', "got: #{cache_control}"
+    assert_equal 'no-store', response.headers['Cache-Control']
+    assert_nil response.headers['CDN-Cache-Control']
   end
 
   test '404 is not publicly cacheable' do
@@ -40,11 +39,10 @@ class ErrorsControllerTest < ActionDispatch::IntegrationTest
     refute_includes cache_control, 's-maxage', "got: #{cache_control}"
   end
 
-  test 'json 500 is not publicly cacheable' do
+  test 'json 500 is not cacheable' do
     get '/500', as: :json
-    cache_control = response.headers['Cache-Control'].to_s
-    refute_includes cache_control, 'public', "got: #{cache_control}"
-    refute_includes cache_control, 's-maxage', "got: #{cache_control}"
+    assert_equal 'no-store', response.headers['Cache-Control']
+    assert_nil response.headers['CDN-Cache-Control']
   end
 
   test 'path traversal renders 404 through exceptions_app' do
