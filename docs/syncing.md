@@ -110,7 +110,7 @@ Beyond core package sync, several jobs enrich packages with data from other sour
 
 | Schedule | Task | What it does |
 |---|---|---|
-| Every 30 min | `packages:update_repo_metadata_async` | [`Package.update_repo_metadata_async`](../app/models/package.rb#L363) -- updates repo metadata for 400 packages (ordered by least recently updated) |
+| Every 5 min | `packages:update_repo_metadata` | [`Package.update_repo_metadata_async`](../app/models/package.rb#L505) scans a bounded ID range, queues up to 400 packages whose repo metadata is missing or over a month old, and stores its cursor in Redis |
 | Every 30 min | `packages:sync_maintainers` | [`Package.sync_maintainers_async`](../app/models/package.rb#L101) -- syncs maintainer data for up to 1000 packages in supported ecosystems |
 | Every 30 min | `packages:update_rankings` | [`Package.update_rankings_async`](../app/models/package.rb#L110) -- calculates ranking percentiles for up to 1000 unranked packages |
 | Hourly | `packages:update_advisories` | [`Package.update_advisories`](../app/models/package.rb#L754) -- fetches recently changed advisories and updates affected packages |
