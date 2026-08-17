@@ -354,9 +354,41 @@ class PackageTest < ActiveSupport::TestCase
     Package.stubs(:repo_metadata_refresh_batch).with(after_id: 123).returns([[package], 456])
     REDIS.expects(:get).with(Package::REPO_METADATA_REFRESH_CURSOR_KEY).returns('123')
     REDIS.expects(:set).with(Package::REPO_METADATA_REFRESH_CURSOR_KEY, 456)
-    package.expects(:update_repo_metadata_async)
+    package.expects(:update_repo_metadata_async).with(wait: 0)
 
     Package.update_repo_metadata_async
+  end
+
+  test 'update_repo_metadata_async spreads the batch across the cron interval' do
+    packages = 3.times.map do |index|
+      @registry.packages.create!(
+        name: "spread-repo-metadata-#{index}",
+        ecosystem: @registry.ecosystem,
+        repository_url: "https://github.com/example/spread-#{index}"
+      )
+    end
+    Package.stubs(:repo_metadata_refresh_batch).returns([packages, 456])
+    REDIS.stubs(:get).returns('123')
+    REDIS.stubs(:set)
+
+    packages.each_with_index do |package, index|
+      package.expects(:update_repo_metadata_async).with(
+        wait: index * Package::REPO_METADATA_REFRESH_INTERVAL
+      )
+    end
+
+    Package.update_repo_metadata_async
+  end
+
+  test 'update_repo_metadata_async schedules a delayed worker when wait is given' do
+    package = @registry.packages.create!(
+      name: 'delayed-repo-metadata',
+      ecosystem: @registry.ecosystem,
+      repository_url: 'https://github.com/example/delayed'
+    )
+    UpdateRepoMetadataWorker.expects(:perform_in).with(2.5, package.id)
+
+    package.update_repo_metadata_async(wait: 2.5)
   end
 
   test 'registry_url' do
