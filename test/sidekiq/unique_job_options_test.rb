@@ -8,6 +8,10 @@ class UniqueJobOptionsTest < ActiveSupport::TestCase
     end
   end
 
+  def throttled_unique_workers
+    unique_workers.select { |worker| worker.ancestors.include?(Sidekiq::Throttled::Job) }
+  end
+
   test "unique jobs have a global lock ttl" do
     assert_equal 1.hour.to_i, SidekiqUniqueJobs.config.lock_ttl
   end
@@ -18,8 +22,21 @@ class UniqueJobOptionsTest < ActiveSupport::TestCase
     unique_workers.each do |worker|
       options = worker.get_sidekiq_options
 
-      assert_equal 1.hour.to_i, options["lock_ttl"], worker.name
       assert_not options.key?("lock_expiration"), worker.name
+    end
+  end
+
+  test "throttled unique workers keep their locks while requeued" do
+    assert_predicate throttled_unique_workers, :any?
+
+    throttled_unique_workers.each do |worker|
+      assert_equal 1.day.to_i, worker.get_sidekiq_options["lock_ttl"], worker.name
+    end
+  end
+
+  test "other unique workers use the global lock ttl" do
+    (unique_workers - throttled_unique_workers).each do |worker|
+      assert_equal SidekiqUniqueJobs.config.lock_ttl, worker.get_sidekiq_options["lock_ttl"], worker.name
     end
   end
 
@@ -34,7 +51,7 @@ class UniqueJobOptionsTest < ActiveSupport::TestCase
 
       SidekiqUniqueJobs::Job.prepare(item)
 
-      assert_equal 1.hour.to_i, item["lock_ttl"], worker.name
+      assert_equal options["lock_ttl"], item["lock_ttl"], worker.name
     end
   end
 end
