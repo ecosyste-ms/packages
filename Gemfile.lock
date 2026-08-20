@@ -265,7 +265,7 @@ GEM
     shoulda-context (3.0.0.rc1)
     shoulda-matchers (8.0.1)
       activesupport (>= 7.2)
-    sidekiq (8.1.6)
+    sidekiq (8.1.7)
       connection_pool (>= 3.0.0)
       json (>= 2.16.0)
       logger (>= 1.7.0)
@@ -285,7 +285,7 @@ GEM
     spdx (2.0.12)
       fuzzy_match (~> 2.1)
       treetop (~> 1.6)
-    sprockets (4.3.0)
+    sprockets (4.4.0)
       concurrent-ruby (~> 1.1)
       logger
       rack (>= 2.2.4, < 4)
@@ -301,7 +301,7 @@ GEM
     sqlite3 (2.9.6-arm64-darwin)
     sqlite3 (2.9.6-x86_64-linux-gnu)
     thor (1.5.0)
-    tilt (2.8.0)
+    tilt (2.9.0)
     timeout (0.6.1)
     toml-rb (4.2.1)
       citrus (~> 3.0, > 3.0)
@@ -415,7 +415,7 @@ CHECKSUMS
   bootstrap-icons (1.0.15) sha256=4a19c2360f88263c1606235813b8575ff3d6c0773174ed4ceb368628e5541ae9
   brotli (0.8.0) sha256=0c5a42046b3b603fb109656881147fd76064c034b7d19c1b4fcc32a093a4d55d
   builder (3.3.0) sha256=497918d2f9dca528fdca4b88d84e4ef4387256d984b8154e9d5d3fe5a9c8835f
-  bundler (4.0.18) sha256=02d9a17429de1847b4e0c9f27a9ee4b20c0a74c0a641b4e77195d6019e3618ac
+  bundler (4.0.19) sha256=b48056e4c77fb3853cc47775b5447ede44aaa4f53c32f168014ab4fe86587d47
   cgi (0.5.2) sha256=61ca30298171190fd4fa0d8018e57ada456eae9b7a2b78526debf7f0a0e6f8bb
   chartkick (5.2.1) sha256=2848d7de87189f30f28d077eb0bbdebc8a1f0f6f81de1ded95008fe564369949
   citrus (3.0.2) sha256=4ec2412fc389ad186735f4baee1460f7900a8e130ffe3f216b30d4f9c684f650
@@ -519,13 +519,13 @@ CHECKSUMS
   semantic_range (3.1.1) sha256=508333196ef0c7ba33e79579d4df7eb0a41080595e6a655c2515b03d634ec4a9
   shoulda-context (3.0.0.rc1) sha256=6e0d9d52ab798c13bc2b490c8537d4bf30cfd318a1ea839c39a66d1d293c6a1a
   shoulda-matchers (8.0.1) sha256=5dbb46e5765b9da225111b085e0819e8c8a121ff94bba430a153eb1ea2c60288
-  sidekiq (8.1.6) sha256=be20cd051124b1a16cf97ea9157137abbd30a515c16a5ae9312d2eadd045e40f
+  sidekiq (8.1.7) sha256=91ad48c7e6c32e1846bf1d5b74c27948758049b93fed0cb539f8d586c7de3415
   sidekiq-throttled (2.1.0) sha256=430d4684b781b37f7f22b9b4a26dadf438b725718ecb821ae8bb8ea66f78fc4c
   sidekiq-unique-jobs (8.1.0) sha256=6a7eaa61ac408197a542350df905687b506acae2f485da03b11d28b1c367dc35
   simple-rss (2.2.0) sha256=77e09f7275cc27912dff58cbdfd6a56d87ab0dae30fad7d86f43cf834855c0c4
   sitemap_generator (7.1.1) sha256=ab2a133d512a7b33ed713a27a9977f61d8379c9943e3b79900243fc1c4f7f81d
   spdx (2.0.12) sha256=c44ad4b9fbfa8138bfc1e8065fc7cf531207b63dccd2b63b0b61df7c5bdf80a6
-  sprockets (4.3.0) sha256=9e162c8332bab700384ae42a0d464c7a852135e5274f3cd064d7d9e515a9257f
+  sprockets (4.4.0) sha256=84d5819b31e65bf3e61d71241465e65b341947322f6bd57400648bb11e6bb024
   sprockets-rails (3.5.2) sha256=a9e88e6ce9f8c912d349aa5401509165ec42326baf9e942a85de4b76dbc4119e
   sqlite3 (2.9.6) sha256=956fe606956420d04ac7157d3ace620c8caba2135b2e05c76e483493da24d08e
   sqlite3 (2.9.6-aarch64-linux-musl) sha256=3579e1c98cdc7ff5c3722847bb63ed4e1efb7ff675cb5e1e48ef2d4da5fb3bc9
@@ -534,7 +534,7 @@ CHECKSUMS
   sqlite3 (2.9.6-arm64-darwin) sha256=849b5d7f795e60fe25076d62c72dd722beb45b3850b516ad978d60ee848ec15b
   sqlite3 (2.9.6-x86_64-linux-gnu) sha256=613188ce02f614126ddbc38c5e217ccffd6306d0dcd9adca9764547aa890a634
   thor (1.5.0) sha256=e3a9e55fe857e44859ce104a84675ab6e8cd59c650a49106a05f55f136425e73
-  tilt (2.8.0) sha256=ba472eb2716fe1e04112d6d219a9dae938ec09a6a1e2ad3ecc7922e79bde3721
+  tilt (2.9.0) sha256=da5735d0280bba96e9a91041bb14aee435ccad5c17b0fa519249ae543d9aa3a5
   timeout (0.6.1) sha256=78f57368a7e7bbadec56971f78a3f5ecbcfb59b7fcbb0a3ed6ddc08a5094accb
   toml-rb (4.2.1) sha256=e6c40e27905e86a7d38cc252eb4bc12d72c61576c826a358390c30f5de0b9dbb
   tomlrb (2.0.4) sha256=262f77947ac3ac9b3366a0a5940ecd238300c553e2e14f22009e2afcd2181b99
@@ -552,4 +552,4 @@ RUBY VERSION
   ruby 4.0.6
 
 BUNDLED WITH
-  4.0.18
+  4.0.19
