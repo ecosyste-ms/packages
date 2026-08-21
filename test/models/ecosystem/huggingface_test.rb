@@ -47,13 +47,13 @@ class HuggingfaceTest < ActiveSupport::TestCase
   end
 
   test "all_package_names follows cursor pagination" do
-    stub_request(:get, "https://huggingface.co/api/models?limit=1000")
+    stub_request(:get, "https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1")
       .to_return(
         status: 200,
-        headers: { "Link" => "<https://huggingface.co/api/models?limit=1000&cursor=next-page>; rel=\"next\"" },
+        headers: { "Link" => "<https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1&cursor=next-page>; rel=\"next\"" },
         body: file_fixture("huggingface/models-page-1.json")
       )
-    stub_request(:get, "https://huggingface.co/api/models?limit=1000&cursor=next-page")
+    stub_request(:get, "https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1&cursor=next-page")
       .to_return(status: 200, body: file_fixture("huggingface/models-page-2.json"))
 
     assert_equal ["openai-community/gpt2", "stabilityai/sdxl-turbo", "sentence-transformers/all-MiniLM-L6-v2"], @ecosystem.all_package_names
@@ -63,10 +63,10 @@ class HuggingfaceTest < ActiveSupport::TestCase
     registry = Registry.create!(default: true, name: "Hugging Face discovery", url: "https://huggingface-discovery.example", ecosystem: "huggingface")
     registry.packages.create!(name: "openai-community/gpt2", ecosystem: "huggingface")
     ecosystem = Ecosystem::Huggingface.new(registry)
-    stub_request(:get, "https://huggingface.co/api/models?limit=1000")
+    stub_request(:get, "https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1")
       .to_return(
         status: 200,
-        headers: { "Link" => "<https://huggingface.co/api/models?limit=1000&cursor=next-page>; rel=\"next\"" },
+        headers: { "Link" => "<https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1&cursor=next-page>; rel=\"next\"" },
         body: file_fixture("huggingface/models-page-1.json")
       )
     SyncPackageWorker.expects(:perform_bulk).with([
@@ -74,7 +74,7 @@ class HuggingfaceTest < ActiveSupport::TestCase
     ])
 
     assert_equal 1, ecosystem.sync_missing_packages_async
-    assert_equal "https://huggingface.co/api/models?limit=1000&cursor=next-page", registry.reload.metadata[Ecosystem::Huggingface::SYNC_MISSING_CURSOR_KEY]
+    assert_equal "https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1&cursor=next-page", registry.reload.metadata[Ecosystem::Huggingface::SYNC_MISSING_CURSOR_KEY]
   end
 
   test "sync_missing_packages_async clears its cursor at the end of the catalogue" do
@@ -83,10 +83,10 @@ class HuggingfaceTest < ActiveSupport::TestCase
       name: "Hugging Face discovery end",
       url: "https://huggingface-discovery-end.example",
       ecosystem: "huggingface",
-      metadata: { Ecosystem::Huggingface::SYNC_MISSING_CURSOR_KEY => "https://huggingface.co/api/models?limit=1000&cursor=last-page" }
+      metadata: { Ecosystem::Huggingface::SYNC_MISSING_CURSOR_KEY => "https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1&cursor=last-page" }
     )
     ecosystem = Ecosystem::Huggingface.new(registry)
-    stub_request(:get, "https://huggingface.co/api/models?limit=1000&cursor=last-page")
+    stub_request(:get, "https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1&cursor=last-page")
       .to_return(status: 200, body: file_fixture("huggingface/models-page-2.json"))
     SyncPackageWorker.expects(:perform_bulk).with([
       [registry.id, "sentence-transformers/all-MiniLM-L6-v2"]
@@ -102,13 +102,13 @@ class HuggingfaceTest < ActiveSupport::TestCase
       name: "Hugging Face discovery failure",
       url: "https://huggingface-discovery-failure.example",
       ecosystem: "huggingface",
-      metadata: { Ecosystem::Huggingface::SYNC_MISSING_CURSOR_KEY => "https://huggingface.co/api/models?limit=1000&cursor=retry" }
+      metadata: { Ecosystem::Huggingface::SYNC_MISSING_CURSOR_KEY => "https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1&cursor=retry" }
     )
     ecosystem = Ecosystem::Huggingface.new(registry)
-    stub_request(:get, "https://huggingface.co/api/models?limit=1000&cursor=retry").to_return(status: 503)
+    stub_request(:get, "https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1&cursor=retry").to_return(status: 503)
 
     assert_equal 0, ecosystem.sync_missing_packages_async
-    assert_equal "https://huggingface.co/api/models?limit=1000&cursor=retry", registry.reload.metadata[Ecosystem::Huggingface::SYNC_MISSING_CURSOR_KEY]
+    assert_equal "https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1&cursor=retry", registry.reload.metadata[Ecosystem::Huggingface::SYNC_MISSING_CURSOR_KEY]
   end
 
   test "recently_updated_package_names" do
