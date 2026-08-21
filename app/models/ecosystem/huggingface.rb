@@ -66,7 +66,7 @@ module Ecosystem
 
     def all_package_names
       names = []
-      url = "#{API_URL}?limit=#{PAGE_SIZE}"
+      url = catalogue_url
 
       while url.present?
         response = request(url)
@@ -161,7 +161,7 @@ module Ecosystem
     end
 
     def sync_missing_packages_cursor
-      @registry.metadata.to_h[SYNC_MISSING_CURSOR_KEY].presence || "#{API_URL}?limit=#{PAGE_SIZE}"
+      @registry.metadata.to_h[SYNC_MISSING_CURSOR_KEY].presence || catalogue_url
     end
 
     def save_sync_missing_packages_cursor(cursor)
@@ -183,6 +183,10 @@ module Ecosystem
 
     def encoded_model_name(name)
       name.to_s.split("/").map { |segment| CGI.escape(segment) }.join("/")
+    end
+
+    def catalogue_url
+      "#{API_URL}?limit=#{PAGE_SIZE}&sort=createdAt&direction=1"
     end
   end
 end
