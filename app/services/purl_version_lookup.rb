@@ -54,11 +54,27 @@ class PurlVersionLookup
     versions = if @purl.version.present?
       Version.where(package: packages).where("LOWER(versions.number) = ?", @purl.version.downcase)
     else
-      version_ids = packages.filter_map { |package| package.latest_version&.id }
-      Version.where(id: version_ids)
+      latest_versions_for(packages)
     end
 
     versions.includes(:dependencies, package: :registry).order(:id).to_a
+  end
+
+  def latest_versions_for(packages)
+    marked_versions = Version.where(package: packages, latest: true).active
+    missing_package_ids = packages.where.not(id: marked_versions.select(:package_id)).pluck(:id)
+    return marked_versions if missing_package_ids.empty?
+
+    fallback_version_ids = Package.where(id: missing_package_ids).preload(:versions).filter_map do |package|
+      latest_version_id_for(package.versions.to_a)
+    end
+
+    Version.where(id: marked_versions.select(:id)).or(Version.where(id: fallback_version_ids))
+  end
+
+  def latest_version_id_for(versions)
+    active_versions = versions.select { |version| version.status.nil? }
+    (active_versions.select(&:stable?).sort.first || active_versions.sort.first)&.id
   end
 
   def normalize_url(url)
