@@ -2029,6 +2029,7 @@ components:
         - codemeta_url
         - related_tag
         - latest
+        - advisories
       type: object
       properties:
         id:
@@ -2076,6 +2077,10 @@ components:
           type: string
         related_tag:
           type: object
+        advisories:
+          type: array
+          items:
+            $ref: '#/components/schemas/VersionAdvisory'
     VersionWithDependencies:
       required:
         - number
@@ -2096,6 +2101,7 @@ components:
         - related_tag
         - latest
         - dependencies
+        - advisories
       type: object
       properties:
           id:
@@ -2149,6 +2155,10 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/Dependency'
+          advisories:
+            type: array
+            items:
+              $ref: '#/components/schemas/VersionAdvisory'
     VersionLookup:
       allOf:
         - $ref: '#/components/schemas/VersionWithDependencies'
@@ -2179,6 +2189,7 @@ components:
         - related_tag
         - latest
         - package_url
+        - advisories
       type: object
       properties:
         id:
@@ -2228,6 +2239,42 @@ components:
           type: string
         package_url:
           type: string
+        advisories:
+          type: array
+          items:
+            $ref: '#/components/schemas/VersionAdvisory'
+    VersionAdvisory:
+      required:
+        - identifiers
+        - affected
+        - fixed
+        - fixed_versions
+      type: object
+      properties:
+        uuid:
+          type: string
+          nullable: true
+        identifiers:
+          type: array
+          items:
+            type: string
+        url:
+          type: string
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        severity:
+          type: string
+          nullable: true
+        affected:
+          type: boolean
+        fixed:
+          type: boolean
+        fixed_versions:
+          type: array
+          items:
+            type: string
     Dependency:
       required:
         - id

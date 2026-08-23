@@ -2,7 +2,7 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
   def index
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = find_package_with_normalization!(@registry, params[:package_id])
-    scope = @package.versions#.includes(:dependencies)
+    scope = @package.versions.includes(package: :registry)
 
     scope = scope.created_after(params[:created_after]) if params[:created_after].present?
     scope = scope.published_after(params[:published_after]) if params[:published_after].present?

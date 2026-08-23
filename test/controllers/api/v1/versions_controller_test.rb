@@ -38,6 +38,56 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response['metadata'], {"foo"=>"bar", "immutable"=>false}
   end
 
+  test 'version responses include only advisories affecting that version' do
+    @package.update!(advisories: [
+      {
+        "uuid" => "GHSA-affected",
+        "identifiers" => ["GHSA-affected"],
+        "packages" => [
+          {
+            "ecosystem" => "cargo",
+            "package_name" => "rand",
+            "versions" => [
+              { "vulnerable_version_range" => ">= 1.0.0, < 2.0.0", "first_patched_version" => "2.0.0" }
+            ]
+          }
+        ]
+      },
+      {
+        "uuid" => "GHSA-fixed",
+        "identifiers" => ["GHSA-fixed"],
+        "packages" => [
+          {
+            "ecosystem" => "cargo",
+            "package_name" => "rand",
+            "versions" => [{ "vulnerable_version_range" => ">= 2.0.0" }]
+          }
+        ]
+      }
+    ])
+
+    get api_v1_registry_package_version_path(registry_id: @registry.name, package_id: @package.name, id: @version.number)
+    assert_response :success
+    assert_equal ["GHSA-affected"], Oj.load(@response.body)["advisories"].pluck("uuid")
+
+    get api_v1_registry_package_versions_path(registry_id: @registry.name, package_id: @package.name)
+    assert_response :success
+    assert_equal ["GHSA-affected"], Oj.load(@response.body).first["advisories"].pluck("uuid")
+
+    get latest_version_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+    assert_equal ["GHSA-affected"], Oj.load(@response.body)["advisories"].pluck("uuid")
+
+    get versions_api_v1_registry_path(id: @registry.name)
+    assert_response :success
+    assert_equal ["GHSA-affected"], Oj.load(@response.body).first["advisories"].pluck("uuid")
+
+    @version.update_column(:integrity, "sha256-#{'a' * 64}")
+    get lookup_api_v1_versions_path(integrity: "sha256-#{'a' * 64}")
+    assert_response :success
+    assert_equal ["GHSA-affected"], Oj.load(@response.body).first["advisories"].pluck("uuid")
+  end
+
   test 'get recent versions' do
     get versions_api_v1_registry_path(id: @registry.name)
     assert_response :success
