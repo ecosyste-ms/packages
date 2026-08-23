@@ -49,10 +49,13 @@ module VersionAdvisories
   end
 
   def vulnerable_version_range?(range)
-    cleaned_version = Vers.clean(number)
-    return false if cleaned_version.blank? || range.blank?
+    return false if range.blank?
 
-    Vers.satisfies?(cleaned_version, range, vers_scheme)
+    if package.ecosystem == "packagist"
+      SemanticRange.satisfies?(number, range)
+    else
+      Vers.satisfies?(number, range, vers_scheme)
+    end
   rescue ArgumentError
     false
   end
