@@ -27,6 +27,8 @@ class ApiV1PurlsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "looks up the latest version when the PURL has no version" do
+    Package.any_instance.expects(:latest_version).never
+
     get lookup_api_v1_purls_path, params: { purl: "pkg:cargo/rand" }
 
     assert_response :success
@@ -35,6 +37,18 @@ class ApiV1PurlsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "matched", response["match_status"]
     assert_equal "0.8.0", response.dig("version", "version")
     assert_equal "serde", response.dig("version", "dependencies", 0, "package_name")
+  end
+
+  test "falls back when a package has no persisted latest version" do
+    package = @registry.packages.create!(ecosystem: "cargo", name: "fallback")
+    package.versions.create!(number: "0.7.0")
+    package.versions.create!(number: "0.8.0")
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:cargo/fallback" }
+
+    assert_response :success
+    assert_equal "matched", Oj.load(@response.body)["match_status"]
+    assert_equal "0.8.0", Oj.load(@response.body).dig("version", "version")
   end
 
   test "returns missing when the PURL does not match a version" do
