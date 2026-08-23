@@ -88,6 +88,28 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal ["GHSA-affected"], Oj.load(@response.body).first["advisories"].pluck("uuid")
   end
 
+  test 'version response cache validators include advisory updates' do
+    get api_v1_registry_package_version_path(registry_id: @registry.name, package_id: @package.name, id: @version.number)
+    assert_response :success
+    etag = @response.headers["ETag"]
+
+    get api_v1_registry_package_version_path(
+      registry_id: @registry.name,
+      package_id: @package.name,
+      id: @version.number
+    ), headers: { "If-None-Match" => etag }
+    assert_response :not_modified
+
+    @package.update!(advisories: [{ "uuid" => "GHSA-cache", "identifiers" => [], "packages" => [] }])
+
+    get api_v1_registry_package_version_path(
+      registry_id: @registry.name,
+      package_id: @package.name,
+      id: @version.number
+    ), headers: { "If-None-Match" => etag }
+    assert_response :success
+  end
+
   test 'get recent versions' do
     get versions_api_v1_registry_path(id: @registry.name)
     assert_response :success

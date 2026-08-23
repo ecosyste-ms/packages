@@ -23,14 +23,14 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     end
 
     @pagy, @versions = pagy_countless(scope)
-    fresh_when @versions, public: true
+    fresh_when [@package, *@versions], public: true
   end
 
   def show
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = find_package_with_normalization!(@registry, params[:package_id])
     @version = @package.versions.find_by_number!(params[:id])
-    fresh_when @version, public: true
+    fresh_when [@package, @version], public: true
   end
 
   def recent
@@ -57,6 +57,7 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     end
 
     @pagy, @versions = pagy_countless(scope)
+    fresh_when [*@versions, *@versions.map(&:package)], public: true
   end
 
   def version_numbers
@@ -87,5 +88,6 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
                    .order('published_at DESC nulls last, created_at DESC, id DESC')
 
     @pagy, @versions = pagy_countless(scope)
+    fresh_when [*@versions, *@versions.map(&:package)], public: true
   end
 end

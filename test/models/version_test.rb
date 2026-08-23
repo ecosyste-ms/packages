@@ -143,6 +143,46 @@ class VersionTest < ActiveSupport::TestCase
     assert_empty @version.version_scoped_advisories
   end
 
+  test 'version scoped advisories support short version numbers' do
+    short_version = @package.versions.create!(number: "1.0")
+    @package.update!(advisories: [
+      {
+        "uuid" => "GHSA-short-version",
+        "identifiers" => ["GHSA-short-version"],
+        "packages" => [
+          {
+            "ecosystem" => "rubygems",
+            "package_name" => "foo",
+            "versions" => [{ "vulnerable_version_range" => ">= 1.0, < 2.0" }]
+          }
+        ]
+      }
+    ])
+
+    assert_equal ["GHSA-short-version"], short_version.version_scoped_advisories.pluck("uuid")
+  end
+
+  test 'version scoped advisories support Composer ranges' do
+    registry = Registry.create!(default: true, name: "packagist.org", url: "https://packagist.org", ecosystem: "packagist")
+    package = registry.packages.create!(name: "vendor/package", ecosystem: "packagist")
+    version = package.versions.create!(number: "1.2.3")
+    package.update!(advisories: [
+      {
+        "uuid" => "GHSA-composer-range",
+        "identifiers" => ["GHSA-composer-range"],
+        "packages" => [
+          {
+            "ecosystem" => "packagist",
+            "package_name" => "vendor/package",
+            "versions" => [{ "vulnerable_version_range" => "^1.0" }]
+          }
+        ]
+      }
+    ])
+
+    assert_equal ["GHSA-composer-range"], version.version_scoped_advisories.pluck("uuid")
+  end
+
   test 'as_live_event_json includes API fields' do
     json = @version.as_live_event_json
 

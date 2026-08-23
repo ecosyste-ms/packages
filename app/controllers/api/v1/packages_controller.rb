@@ -254,7 +254,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     @package = find_package_with_normalization!(@registry, params[:id])
     @version = @package.latest_version
     raise ActiveRecord::RecordNotFound, "No versions found" unless @version
-    fresh_when @version, public: true
+    fresh_when [@package, @version], public: true
   end
 
   def codemeta
