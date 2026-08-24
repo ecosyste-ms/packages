@@ -14,6 +14,13 @@ class OpenapiTest < ActiveSupport::TestCase
     assert document.dig('paths', '/registries/{registryName}/packages/{packageName}/versions/{versionNumber}/artifacts')
     assert document.dig('components', 'schemas', 'Artifact')
     assert document.dig('components', 'schemas', 'ArtifactLookup')
+
+    lookup = document.dig('paths', '/artifacts/lookup', 'get')
+    assert_includes lookup['description'], 'integrity, sha256, sha1, or sha512'
+    assert_equal %w[200 400], lookup.fetch('responses').keys
+
+    nested = document.dig('paths', '/registries/{registryName}/packages/{packageName}/versions/{versionNumber}/artifacts', 'get')
+    assert_equal %w[200 404], nested.fetch('responses').keys
   end
 
   test 'openapi operation ids are unique' do

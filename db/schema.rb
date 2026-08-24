@@ -38,18 +38,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_07_120000) do
   end
 
   create_table "artifacts", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.text "download_url"
-    t.string "filename"
-    t.string "identifier", null: false
-    t.string "integrity"
-    t.string "kind"
-    t.jsonb "metadata"
-    t.datetime "published_at"
-    t.bigint "size"
-    t.string "status"
-    t.datetime "updated_at", null: false
     t.bigint "version_id", null: false
+    t.string "identifier", null: false
+    t.string "filename"
+    t.string "kind"
+    t.text "download_url"
+    t.bigint "size"
+    t.datetime "published_at"
+    t.string "status"
+    t.string "integrity"
+    t.jsonb "metadata"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["integrity"], name: "index_artifacts_on_integrity", where: "(integrity IS NOT NULL)", using: :hash
     t.index ["version_id", "identifier"], name: "index_artifacts_on_version_id_and_identifier", unique: true
     t.index ["version_id"], name: "index_artifacts_on_version_id"

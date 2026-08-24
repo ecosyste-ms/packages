@@ -314,6 +314,7 @@ paths:
   /artifacts/lookup:
     get:
       summary: lookup artifacts by integrity value
+      description: provide integrity, sha256, sha1, or sha512; exact integrity matching runs before known SHA wrapper normalization
       operationId: lookupArtifacts
       tags:
         - artifacts
@@ -364,7 +365,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/ArtifactLookup'
         '400':
-          description: missing integrity parameter
+          description: missing integrity, sha256, sha1, or sha512 parameter
   /artifacts/{artifactId}:
     get:
       summary: get an artifact
@@ -1810,7 +1811,7 @@ paths:
           schema:
             type: integer
       responses:
-        200:
+        '200':
           description: OK
           content:
             application/json:
@@ -1818,7 +1819,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Artifact'
-        404:
+        '404':
           description: registry, package, or version not found
   /registries/{registryName}/packages/{packageName}/versions/{versionNumber}/codemeta:
     get:

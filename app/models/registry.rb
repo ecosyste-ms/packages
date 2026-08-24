@@ -366,6 +366,8 @@ class Registry < ApplicationRecord
       end
     end
 
+    package.sync_artifacts(package_metadata, ecosystem_instance)
+
     package.update(versions_count: package.versions.count, last_synced_at: Time.zone.now)
     package.update_details
     ecosystem_instance.update_dependency_links(package)

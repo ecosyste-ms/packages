@@ -27,6 +27,7 @@ class PypiReleaseSyncTest < ActiveSupport::TestCase
       assert_equal 'yanked', version.status
       assert_equal true, version.metadata['yanked']
       assert_equal 'Broken build', version.metadata['yanked_reason']
+      assert_equal ['yanked'], version.artifacts.pluck(:status)
     end
 
     test "#{mode} sync updates existing releases when yanked and restored" do
@@ -45,9 +46,11 @@ class PypiReleaseSyncTest < ActiveSupport::TestCase
         if yanked
           assert_equal 'yanked', version.status
           assert_equal 'Broken build', version.metadata['yanked_reason']
+          assert_equal ['yanked'], version.artifacts.pluck(:status)
         else
           assert_nil version.status
           assert_nil version.metadata['yanked_reason']
+          assert_equal [nil], version.artifacts.pluck(:status)
         end
         assert_equal yanked, version.metadata['yanked']
         assert_equal original, version.attributes.slice('integrity', 'licenses', 'published_at')
@@ -61,12 +64,17 @@ class PypiReleaseSyncTest < ActiveSupport::TestCase
 
     test "#{mode} sync keeps releases with an unyanked file eligible" do
       sync_package(mode)
-      @releases['7.1.2'] << release_file('7.1.2', '2026-08-25T12:38:42', false)
+      @releases['7.1.2'] << release_file('7.1.2', '2026-08-25T12:38:42', false).merge(
+        'filename' => 'pbr-7.1.2-py3-none-any.whl',
+        'url' => 'https://files.pythonhosted.org/packages/pbr-7.1.2-py3-none-any.whl',
+        'packagetype' => 'bdist_wheel'
+      )
 
       sync_package(mode)
 
       assert_latest_release '7.1.2'
       assert_nil @package.versions.find_by!(number: '7.1.2').status
+      assert_equal [nil, 'yanked'], @package.versions.find_by!(number: '7.1.2').artifacts.order(:filename).pluck(:status)
     end
 
     test "#{mode} sync clears latest when all releases are yanked" do
@@ -108,6 +116,7 @@ class PypiReleaseSyncTest < ActiveSupport::TestCase
 
   def release_file(number, published_at, yanked)
     {
+      'filename' => "pbr-#{number}.tar.gz",
       'upload_time' => published_at,
       'digests' => { 'sha256' => number.delete('.').ljust(64, '0') },
       'url' => "https://files.pythonhosted.org/packages/pbr-#{number}.tar.gz",
