@@ -442,6 +442,7 @@ class Package < ApplicationRecord
 
     created_versions = []
     versions_metadata.each do |version|
+      artifacts_metadata = ecosystem.artifacts_metadata(package_metadata, version)
       if version[:integrity].present?
         v = versions.find{|ver| ver.integrity == version[:integrity] }
       else
@@ -459,7 +460,9 @@ class Package < ApplicationRecord
         else
           created = versions.create(version)
           created_versions << created if created.persisted?
+          v = created
         end
+        v.sync_artifacts(artifacts_metadata) if v&.persisted? && !artifacts_metadata.nil?
       rescue ActiveRecord::RecordNotUnique
         Rails.logger.warn("Version not unique: #{version[:number]}")
       end

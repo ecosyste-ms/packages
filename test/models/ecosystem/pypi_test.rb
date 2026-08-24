@@ -133,6 +133,39 @@ class PypiTest < ActiveSupport::TestCase
     ]
   end
 
+  test 'artifacts_metadata maps every release file' do
+    version_json = JSON.parse(file_fixture('pypi/siuba-0.3.0.json').read)
+    package_metadata = { releases: { '0.3.0' => version_json['urls'] } }
+
+    artifacts = @ecosystem.artifacts_metadata(package_metadata, number: '0.3.0')
+
+    assert_equal 2, artifacts.length
+    wheel = artifacts.find { |artifact| artifact[:kind] == 'wheel' }
+    sdist = artifacts.find { |artifact| artifact[:kind] == 'sdist' }
+    assert_equal 'siuba-0.3.0-py3-none-any.whl', wheel[:identifier]
+    assert_equal "sha256-#{version_json['urls'][0]['digests']['sha256']}", wheel[:integrity]
+    assert_equal({ python: 'py3', abi: 'none', platform: 'any' }, wheel.dig(:metadata, :wheel_tags))
+    assert_equal 'siuba-0.3.0.tar.gz', sdist[:identifier]
+  end
+
+  test 'update_versions stores artifacts idempotently' do
+    registry = Registry.create!(default: true, name: 'Pypi artifacts', url: 'https://pypi.org', ecosystem: 'pypi')
+    ecosystem = Ecosystem::Pypi.new(registry)
+    package = registry.packages.create!(name: 'siuba', ecosystem: 'pypi')
+    version_json = JSON.parse(file_fixture('pypi/siuba-0.3.0.json').read)
+    package_metadata = { name: 'siuba', releases: { '0.3.0' => version_json['urls'] } }
+    registry.stubs(:ecosystem_instance).returns(ecosystem)
+    ecosystem.stubs(:package_metadata).with('siuba').returns(package_metadata)
+    ecosystem.stubs(:version_licenses).returns(nil)
+
+    package.update_versions
+    package.update_versions
+
+    version = package.versions.find_by!(number: '0.3.0')
+    assert_equal 2, version.artifacts.count
+    assert_equal %w[sdist wheel], version.artifacts.order(:kind).pluck(:kind)
+  end
+
   test 'dependencies_metadata' do
     stub_request(:get, "https://pypi.org/pypi/yiban/0.1.2.32/json")
       .to_return({ status: 200, body: file_fixture('pypi/yiban-0.1.2.32.json') })

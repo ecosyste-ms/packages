@@ -9,6 +9,7 @@ class Version < ApplicationRecord
   counter_culture :package
   has_many :dependencies, dependent: :delete_all
   has_many :runtime_dependencies, -> { where kind: %w[runtime normal] }, class_name: "Dependency"
+  has_many :artifacts, dependent: :delete_all
 
   def self.sortable_columns
     {
@@ -62,11 +63,39 @@ class Version < ApplicationRecord
         integrity
       end
     else
-      integrity.sub(/\A(sha256|sha1|sha512)-(.+)\z/i) do
+      integrity.sub(/\A(sha256|sha1|sha512)[-:=](.+)\z/i) do
         digest = Regexp.last_match(2)
         digest = digest.downcase if digest.match?(/\A[a-fA-F0-9]+\z/)
 
         "#{Regexp.last_match(1).downcase}-#{digest}"
+      end
+    end
+  end
+
+  def sync_artifacts(artifacts_metadata)
+    return if artifacts_metadata.nil?
+
+    now = Time.current
+    rows = artifacts_metadata.map do |artifact_metadata|
+      artifact_metadata = artifact_metadata.with_indifferent_access
+      attributes = Artifact::SYNC_ATTRIBUTES.index_with { |attribute| artifact_metadata[attribute] }
+      raise ArgumentError, 'Artifact identifier is required' if attributes[:identifier].blank?
+
+      attributes.merge(version_id: id, created_at: now, updated_at: now)
+    end
+
+    Artifact.transaction do
+      identifiers = rows.pluck(:identifier)
+      missing_artifacts = artifacts.where.not(status: 'removed').or(artifacts.where(status: nil))
+      missing_artifacts = missing_artifacts.where.not(identifier: identifiers) if identifiers.any?
+      missing_artifacts.update_all(status: 'removed', updated_at: now)
+
+      if rows.any?
+        Artifact.upsert_all(
+          rows,
+          unique_by: [:version_id, :identifier],
+          update_only: Artifact::SYNC_ATTRIBUTES - [:identifier]
+        )
       end
     end
   end
