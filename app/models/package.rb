@@ -442,7 +442,6 @@ class Package < ApplicationRecord
 
     created_versions = []
     versions_metadata.each do |version|
-      artifacts_metadata = ecosystem.artifacts_metadata(package_metadata, version)
       if version[:integrity].present?
         v = versions.find{|ver| ver.integrity == version[:integrity] }
       else
@@ -462,13 +461,23 @@ class Package < ApplicationRecord
           created_versions << created if created.persisted?
           v = created
         end
-        v.sync_artifacts(artifacts_metadata) if v&.persisted? && !artifacts_metadata.nil?
       rescue ActiveRecord::RecordNotUnique
         Rails.logger.warn("Version not unique: #{version[:number]}")
       end
     end
+    sync_artifacts(package_metadata, ecosystem)
     update_columns(versions_count: versions.count, versions_updated_at: Time.now)
     emit_new_version_events(created_versions)
+  end
+
+  def sync_artifacts(package_metadata, ecosystem = registry.ecosystem_instance)
+    artifacts_by_version = ecosystem.artifacts_metadata(package_metadata)
+    return if artifacts_by_version.nil?
+
+    versions_by_number = versions.where(number: artifacts_by_version.keys).index_by(&:number)
+    artifacts_by_version.each do |number, artifacts_metadata|
+      versions_by_number[number.to_s]&.sync_artifacts(artifacts_metadata)
+    end
   end
 
   def update_versions_async

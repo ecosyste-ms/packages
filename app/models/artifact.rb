@@ -20,6 +20,7 @@ class Artifact < ApplicationRecord
     exact_integrity = params[:integrity].presence&.to_s
     normalized_integrity = Version.normalize_integrity(params)
     return if exact_integrity.blank? && normalized_integrity.blank?
+    return where(integrity: normalized_integrity) if exact_integrity == normalized_integrity
 
     if exact_integrity.present?
       exact_matches = where(integrity: exact_integrity)

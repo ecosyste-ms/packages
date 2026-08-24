@@ -116,4 +116,14 @@ class VersionTest < ActiveSupport::TestCase
       @version.sync_artifacts([{ filename: 'foo-1.0.0.gem' }])
     end
   end
+
+  test 'sync_artifacts keeps the last duplicate identifier' do
+    @version.sync_artifacts([
+      { identifier: 'foo-1.0.0.gem', size: 100 },
+      { identifier: 'foo-1.0.0.gem', size: 200 }
+    ])
+
+    assert_equal 1, @version.artifacts.count
+    assert_equal 200, @version.artifacts.first.size
+  end
 end

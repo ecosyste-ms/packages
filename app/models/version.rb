@@ -83,6 +83,7 @@ class Version < ApplicationRecord
 
       attributes.merge(version_id: id, created_at: now, updated_at: now)
     end
+    rows = rows.index_by { |row| row[:identifier] }.values
 
     Artifact.transaction do
       identifiers = rows.pluck(:identifier)

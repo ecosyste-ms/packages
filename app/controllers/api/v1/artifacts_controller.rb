@@ -18,11 +18,12 @@ class Api::V1::ArtifactsController < Api::V1::ApplicationController
     scope = Artifact.lookup(params)
 
     if scope.nil?
-      return render json: { error: 'Missing integrity parameter' }, status: :bad_request
+      return render json: { error: 'Missing integrity, sha256, sha1, or sha512 parameter' }, status: :bad_request
     end
 
-    scope = scope.includes(version: [:dependencies, { package: :registry }])
-                 .order('artifacts.published_at DESC nulls last, artifacts.id DESC')
+    scope = scope.includes(
+      version: [:dependencies, { package: [:registry, { maintainerships: :maintainer }] }]
+    ).order('artifacts.published_at DESC nulls last, artifacts.id DESC')
     @pagy, @artifacts = pagy_countless(scope)
   end
 end

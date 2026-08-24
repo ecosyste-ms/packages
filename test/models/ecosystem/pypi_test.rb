@@ -133,37 +133,71 @@ class PypiTest < ActiveSupport::TestCase
     ]
   end
 
-  test 'artifacts_metadata maps every release file' do
-    version_json = JSON.parse(file_fixture('pypi/siuba-0.3.0.json').read)
-    package_metadata = { releases: { '0.3.0' => version_json['urls'] } }
+  test 'artifacts_metadata maps every package response release file' do
+    stub_request(:get, "https://pypistats.org/api/packages/yiban/recent")
+      .to_return({ status: 200, body: file_fixture('pypi/recent.json') })
+    package_json = JSON.parse(file_fixture('pypi/0.1.2.32.json').read)
+    package_metadata = @ecosystem.map_package_metadata(package_json)
 
-    artifacts = @ecosystem.artifacts_metadata(package_metadata, number: '0.3.0')
+    artifacts_by_version = @ecosystem.artifacts_metadata(package_metadata)
+    artifacts = artifacts_by_version.fetch('0.7.0.1')
 
+    assert_equal 5, artifacts_by_version.length
+    assert_equal 6, artifacts_by_version.values.sum(&:length)
     assert_equal 2, artifacts.length
     wheel = artifacts.find { |artifact| artifact[:kind] == 'wheel' }
     sdist = artifacts.find { |artifact| artifact[:kind] == 'sdist' }
-    assert_equal 'siuba-0.3.0-py3-none-any.whl', wheel[:identifier]
-    assert_equal "sha256-#{version_json['urls'][0]['digests']['sha256']}", wheel[:integrity]
+    assert_equal 'yiban-0.7.0.1-py3-none-any.whl', wheel[:identifier]
+    assert_equal "sha256-#{package_json.dig('releases', '0.7.0.1', 0, 'digests', 'sha256')}", wheel[:integrity]
     assert_equal({ python: 'py3', abi: 'none', platform: 'any' }, wheel.dig(:metadata, :wheel_tags))
-    assert_equal 'siuba-0.3.0.tar.gz', sdist[:identifier]
+    assert_equal 'yiban-0.7.0.1.tar.gz', sdist[:identifier]
   end
 
-  test 'update_versions stores artifacts idempotently' do
+  test 'registry sync stores package response artifacts idempotently' do
     registry = Registry.create!(default: true, name: 'Pypi artifacts', url: 'https://pypi.org', ecosystem: 'pypi')
-    ecosystem = Ecosystem::Pypi.new(registry)
-    package = registry.packages.create!(name: 'siuba', ecosystem: 'pypi')
-    version_json = JSON.parse(file_fixture('pypi/siuba-0.3.0.json').read)
-    package_metadata = { name: 'siuba', releases: { '0.3.0' => version_json['urls'] } }
-    registry.stubs(:ecosystem_instance).returns(ecosystem)
-    ecosystem.stubs(:package_metadata).with('siuba').returns(package_metadata)
+    ecosystem = registry.ecosystem_instance
+    stub_request(:get, "https://pypi.org/pypi/yiban/json")
+      .to_return({ status: 200, body: file_fixture('pypi/0.1.2.32.json') })
+    stub_request(:get, "https://pypistats.org/api/packages/yiban/recent")
+      .to_return({ status: 200, body: file_fixture('pypi/recent.json') })
+    ecosystem.stubs(:version_licenses).returns(nil)
+    ecosystem.stubs(:dependencies_metadata).returns([])
+    ecosystem.stubs(:has_dependent_repos?).returns(false)
+    Package.any_instance.stubs(:update_repo_metadata_async)
+    Package.any_instance.stubs(:check_status)
+
+    package = registry.sync_package('yiban', force: true)
+    artifacts = Artifact.joins(:version).where(versions: { package_id: package.id })
+    first_ids = artifacts.order(:identifier).pluck(:id)
+
+    registry.sync_package('yiban', force: true)
+
+    assert_equal 5, package.versions.count
+    assert_equal 6, artifacts.count
+    assert_equal first_ids, artifacts.order(:identifier).pluck(:id)
+    assert_equal %w[sdist wheel], package.versions.find_by!(number: '0.7.0.1').artifacts.order(:kind).pluck(:kind)
+  end
+
+  test 'update_versions stores artifacts from package response metadata' do
+    registry = Registry.create!(default: true, name: 'Pypi version artifacts', url: 'https://pypi.org', ecosystem: 'pypi')
+    ecosystem = registry.ecosystem_instance
+    package = registry.packages.create!(name: 'yiban', ecosystem: 'pypi')
+    stub_request(:get, "https://pypistats.org/api/packages/yiban/recent")
+      .to_return({ status: 200, body: file_fixture('pypi/recent.json') })
+    package_json = JSON.parse(file_fixture('pypi/0.1.2.32.json').read)
+    package_metadata = ecosystem.map_package_metadata(package_json)
+    ecosystem.stubs(:package_metadata).with('yiban').returns(package_metadata)
     ecosystem.stubs(:version_licenses).returns(nil)
 
     package.update_versions
-    package.update_versions
 
-    version = package.versions.find_by!(number: '0.3.0')
-    assert_equal 2, version.artifacts.count
-    assert_equal %w[sdist wheel], version.artifacts.order(:kind).pluck(:kind)
+    artifacts = Artifact.joins(:version).where(versions: { package_id: package.id })
+    assert_equal 5, package.versions.count
+    assert_equal 6, artifacts.count
+  end
+
+  test 'wheel_tags rejects a malformed filename' do
+    assert_nil @ecosystem.wheel_tags('broken.whl')
   end
 
   test 'dependencies_metadata' do

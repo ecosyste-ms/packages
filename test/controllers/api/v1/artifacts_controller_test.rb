@@ -77,10 +77,33 @@ class ApiV1ArtifactsControllerTest < ActionDispatch::IntegrationTest
     assert_equal [artifact.id], Oj.load(@response.body).pluck('id')
   end
 
+  test 'lookup preloads package maintainers' do
+    maintainer = @registry.maintainers.create!(uuid: 'first', login: 'first')
+    @package.maintainerships.create!(maintainer: maintainer)
+    second_package = @registry.packages.create!(ecosystem: 'cargo', name: 'rand-core')
+    second_version = second_package.versions.create!(number: '1.0.0', registry: @registry)
+    second_maintainer = @registry.maintainers.create!(uuid: 'second', login: 'second')
+    second_package.maintainerships.create!(maintainer: second_maintainer)
+    second_version.artifacts.create!(identifier: 'rand-core-1.0.0.crate', integrity: @artifact.integrity)
+    queries = []
+    subscriber = lambda do |_name, _start, _finish, _id, payload|
+      sql = payload[:sql]
+      queries << sql if sql.include?('FROM "maintainerships"') || sql.include?('FROM "maintainers"')
+    end
+
+    ActiveSupport::Notifications.subscribed(subscriber, 'sql.active_record') do
+      get lookup_api_v1_artifacts_path(integrity: @artifact.integrity)
+    end
+
+    assert_response :success
+    assert_equal 2, queries.length
+    assert_equal %w[first second], Oj.load(@response.body).flat_map { |artifact| artifact.dig('version', 'package', 'maintainers') }.pluck('login').sort
+  end
+
   test 'lookup returns bad request without an integrity parameter' do
     get lookup_api_v1_artifacts_path
 
     assert_response :bad_request
-    assert_equal 'Missing integrity parameter', Oj.load(@response.body)['error']
+    assert_equal 'Missing integrity, sha256, sha1, or sha512 parameter', Oj.load(@response.body)['error']
   end
 end

@@ -121,7 +121,7 @@ module Ecosystem
       []
     end
 
-    def artifacts_metadata(_package_metadata, _version_metadata)
+    def artifacts_metadata(_package_metadata)
       nil
     end
 

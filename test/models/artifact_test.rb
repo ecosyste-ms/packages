@@ -33,4 +33,20 @@ class ArtifactTest < ActiveSupport::TestCase
     assert_equal :hash, index.using
     assert_equal '(integrity IS NOT NULL)', index.where
   end
+
+  test 'lookup queries an already normalized integrity once' do
+    artifact = @version.artifacts.create!(identifier: 'module.zip', integrity: "sha256-#{'a' * 64}")
+    queries = []
+    subscriber = lambda do |_name, _start, _finish, _id, payload|
+      sql = payload[:sql]
+      queries << sql if sql.start_with?('SELECT') && sql.include?('"artifacts"')
+    end
+
+    ids = ActiveSupport::Notifications.subscribed(subscriber, 'sql.active_record') do
+      Artifact.lookup(integrity: artifact.integrity).pluck(:id)
+    end
+
+    assert_equal [artifact.id], ids
+    assert_equal 1, queries.length
+  end
 end

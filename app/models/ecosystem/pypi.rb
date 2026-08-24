@@ -187,10 +187,11 @@ module Ecosystem
       end
     end
 
-    def artifacts_metadata(package_metadata, version_metadata)
-      number = version_metadata[:number] || version_metadata['number']
+    def artifacts_metadata(package_metadata)
       releases = package_metadata[:releases] || package_metadata['releases'] || {}
-      Array(releases[number]).map { |file| artifact_metadata(file) }
+      releases.to_h do |number, files|
+        [number.to_s, Array(files).map { |file| artifact_metadata(file) }]
+      end
     end
 
     def artifact_metadata(file)
@@ -201,7 +202,8 @@ module Ecosystem
         python_version: file['python_version'],
         has_sig: file['has_sig']
       }
-      metadata[:wheel_tags] = wheel_tags(file['filename']) if file['packagetype'] == 'bdist_wheel'
+      tags = wheel_tags(file['filename']) if file['packagetype'] == 'bdist_wheel'
+      metadata[:wheel_tags] = tags if tags
 
       {
         identifier: file['filename'],
@@ -218,6 +220,8 @@ module Ecosystem
 
     def wheel_tags(filename)
       parts = File.basename(filename, '.whl').split('-')
+      return if parts.length < 5
+
       {
         python: parts[-3],
         abi: parts[-2],
