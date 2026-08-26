@@ -254,6 +254,63 @@ paths:
         '400':
           description: missing integrity parameter
 
+  /purls/lookup:
+    get:
+      summary: lookup a package version by PURL
+      operationId: lookupPurl
+      tags:
+        - packages
+      parameters:
+        - name: purl
+          in: query
+          description: package URL, with an optional version
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurlLookupResult'
+        '400':
+          description: missing PURL parameter
+
+  /purls/bulk_lookup:
+    post:
+      summary: lookup package versions by PURL
+      operationId: bulkLookupPurls
+      tags:
+        - packages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - purls
+              properties:
+                purls:
+                  type: array
+                  description: package URLs to lookup (maximum 100)
+                  maxItems: 100
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                description: results in the same order as the requested PURLs
+                items:
+                  $ref: '#/components/schemas/PurlLookupResult'
+        '400':
+          description: missing PURLs parameter or too many PURLs
+
   /packages/lookup:
     get:
       summary: lookup a package by repository URL, purl or ecosystem+name
@@ -2158,6 +2215,62 @@ components:
           properties:
             package:
               $ref: '#/components/schemas/PackageWithRegistry'
+    PurlLookupResult:
+      required:
+        - purl
+        - match_status
+      type: object
+      properties:
+        purl:
+          type: string
+        match_status:
+          type: string
+          enum:
+            - matched
+            - missing
+            - ambiguous
+        version:
+          $ref: '#/components/schemas/PurlVersion'
+          nullable: true
+    PurlVersion:
+      required:
+        - name
+        - version
+        - purl
+        - identifiers
+        - artifacts
+        - dependencies
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        purl:
+          type: string
+        license_expression:
+          type: string
+          nullable: true
+        identifiers:
+          type: object
+          properties:
+            purl:
+              type: string
+            integrity:
+              type: string
+        artifacts:
+          type: array
+          items:
+            type: object
+            properties:
+              download_url:
+                type: string
+              integrity:
+                type: string
+        dependencies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dependency'
     VersionWithPackage:
       required:
         - id
