@@ -168,6 +168,31 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.first['name'], @package.name
   end
 
+  test 'lookup by alpm purl drops distro namespace and searches all arch registries' do
+    official = Registry.create(name: 'archlinux.org', url: 'https://archlinux.org', ecosystem: 'arch', default: true, metadata: { 'kind' => 'official' })
+    aur = Registry.create(name: 'aur.archlinux.org', url: 'https://aur.archlinux.org', ecosystem: 'arch', default: false, metadata: { 'kind' => 'aur' })
+    aur.packages.create(ecosystem: 'arch', name: 'yay')
+
+    get lookup_api_v1_packages_path(purl: 'pkg:alpm/arch/yay@12.5.7-1?arch=x86_64')
+    assert_response :success
+    actual_response = Oj.load(@response.body)
+    assert_equal 1, actual_response.length
+    assert_equal 'yay', actual_response.first['name']
+  end
+
+  test 'lookup by deb purl searches debian and ubuntu registries' do
+    debian = Registry.create(name: 'debian', url: 'https://packages.debian.org', ecosystem: 'debian')
+    ubuntu = Registry.create(name: 'ubuntu', url: 'https://packages.ubuntu.com', ecosystem: 'ubuntu')
+    debian.packages.create(ecosystem: 'debian', name: 'curl')
+    ubuntu.packages.create(ecosystem: 'ubuntu', name: 'curl')
+
+    get lookup_api_v1_packages_path(purl: 'pkg:deb/debian/curl@8.5.0-2')
+    assert_response :success
+    actual_response = Oj.load(@response.body)
+    assert_equal 2, actual_response.length
+    assert_equal %w[curl curl], actual_response.map { |p| p['name'] }
+  end
+
   test 'lookup by purl with repository_url qualifier returns only packages from specified registry' do
     # Create two Maven registries
     @maven_central = Registry.create(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven', default: true)
