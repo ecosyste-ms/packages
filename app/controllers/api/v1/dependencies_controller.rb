@@ -20,6 +20,6 @@ class Api::V1::DependenciesController < Api::V1::ApplicationController
     end
 
     @pagy, @dependencies = pagy_countless(scope)
-    fresh_when(etag: @dependencies.map(&:id), public: true)
+    fresh_when(etag: [*@dependencies, *@dependencies.filter_map { |dependency| dependency.version&.package }], public: true)
   end
 end
