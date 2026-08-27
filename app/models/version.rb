@@ -137,7 +137,9 @@ class Version < ApplicationRecord
       return Ecosystem::Opam.compare_versions(other.number, number)
     end
 
-    if parsed_number.is_a?(String) || other.parsed_number.is_a?(String)
+    if bazel? && other.bazel? && bazel_version && other.bazel_version
+      other.bazel_version <=> bazel_version
+    elsif parsed_number.is_a?(String) || other.parsed_number.is_a?(String)
       other.published_at <=> published_at
     else
       begin
@@ -260,6 +262,8 @@ class Version < ApplicationRecord
   end
 
   def valid_number?
+    return !!bazel_version if bazel?
+
     !!semantic_version
   end
 
@@ -270,7 +274,9 @@ class Version < ApplicationRecord
 
   def prerelease?
     return number.include?('~') if package&.ecosystem == 'opam'
-    if semantic_version && semantic_version.pre.present?
+    if bazel?
+      bazel_version&.prerelease? || false
+    elsif semantic_version && semantic_version.pre.present?
       true
     else
       case package.try(:ecosystem)
@@ -282,6 +288,18 @@ class Version < ApplicationRecord
         false
       end
     end
+  end
+
+  def bazel?
+    package.try(:ecosystem).to_s.casecmp?('bazel')
+  end
+
+  def bazel_version
+    return @bazel_version if defined?(@bazel_version)
+
+    @bazel_version = Ecosystem::Bazel::ModuleVersion.new(number) if bazel?
+  rescue ArgumentError
+    @bazel_version = nil
   end
 
 end

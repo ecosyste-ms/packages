@@ -42,6 +42,25 @@ class VersionTest < ActiveSupport::TestCase
     assert_equal @version.semantic_version.class, Semantic::Version
   end
 
+  test 'sorts Bazel module versions by Bazel precedence' do
+    registry = Registry.create!(name: 'registry.bazel.build', url: 'https://registry.bazel.build', ecosystem: 'Bazel')
+    package = registry.packages.create!(name: 'protobuf', ecosystem: 'bazel')
+    versions = ['36.0', '36.0.bcr.10', '36.0-rc2', '36.0.bcr.2'].map do |number|
+      package.versions.create!(number: number)
+    end
+
+    assert_equal ['36.0.bcr.10', '36.0.bcr.2', '36.0', '36.0-rc2'], versions.sort.map(&:number)
+  end
+
+  test 'classifies Bazel module releases and prereleases' do
+    registry = Registry.create!(name: 'registry.bazel.build', url: 'https://registry.bazel.build', ecosystem: 'Bazel')
+    package = registry.packages.create!(name: 'protobuf', ecosystem: 'bazel')
+
+    assert package.versions.build(number: '35.1').stable?
+    assert package.versions.build(number: '36.0.bcr.1').stable?
+    refute package.versions.build(number: '36.0-rc2').stable?
+  end
+
   test 'download_url' do
     assert_equal @version.download_url, 'https://rubygems.org/downloads/foo-1.0.0.gem'
   end
