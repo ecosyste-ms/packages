@@ -2,6 +2,75 @@
 
 module Ecosystem
   class Bazel < Base
+    class ModuleVersion
+      include Comparable
+
+      PATTERN = /\A(?<release>[a-zA-Z0-9.]+)(?:-(?<prerelease>[a-zA-Z0-9.-]+))?(?:\+[a-zA-Z0-9.-]+)?\z/
+      MAX_NUMERIC_IDENTIFIER = (2**64) - 1
+      Identifier = Data.define(:value, :number)
+
+      attr_reader :release, :prerelease
+
+      def initialize(value)
+        match = PATTERN.match(value)
+        raise ArgumentError, "invalid Bazel module version: #{value}" unless match
+
+        @release = parse_identifiers(match[:release])
+        @prerelease = match[:prerelease] ? parse_identifiers(match[:prerelease]) : []
+      end
+
+      def <=>(other)
+        release_comparison = compare_identifiers(release, other.release)
+        return release_comparison unless release_comparison.zero?
+        return 0 if prerelease.empty? && other.prerelease.empty?
+        return 1 if prerelease.empty?
+        return -1 if other.prerelease.empty?
+
+        compare_identifiers(prerelease, other.prerelease)
+      end
+
+      def prerelease?
+        prerelease.any?
+      end
+
+      def parse_identifiers(value)
+        value.split('.', -1).map do |identifier|
+          raise ArgumentError, "invalid Bazel module version: #{value}" if identifier.empty?
+
+          if identifier.match?(/\A\d+\z/)
+            number = Integer(identifier, 10)
+            raise ArgumentError, "invalid Bazel module version: #{value}" if number > MAX_NUMERIC_IDENTIFIER
+
+            Identifier.new(identifier, number)
+          else
+            Identifier.new(identifier, nil)
+          end
+        end
+      end
+
+      def compare_identifiers(left, right)
+        [left.length, right.length].min.times do |index|
+          comparison = compare_identifier(left[index], right[index])
+          return comparison unless comparison.zero?
+        end
+
+        left.length <=> right.length
+      end
+
+      def compare_identifier(left, right)
+        if left.number && right.number
+          number_comparison = left.number <=> right.number
+          return number_comparison unless number_comparison.zero?
+
+          return left.value <=> right.value
+        end
+        return -1 if left.number
+        return 1 if right.number
+
+        left.value <=> right.value
+      end
+    end
+
     def sync_maintainers_inline?
       true
     end
