@@ -15,6 +15,7 @@ RUN apk add --update \
     nodejs \
     postgresql-dev \
     tzdata \
+    curl \
     curl-dev \
     libc6-compat \
     bash \
@@ -28,7 +29,8 @@ ARG POM_VERSION=0.1.7
 ARG TARGETOS=linux
 ARG TARGETARCH=amd64
 RUN curl -fsSL "https://github.com/git-pkgs/pom/releases/download/v${POM_VERSION}/pom_${POM_VERSION}_${TARGETOS}_${TARGETARCH}.tar.gz" \
-    | tar -xz -C /usr/local/bin pom
+    | tar -xz -C /usr/local/bin pom \
+ && pom -version
 
 # Will invalidate cache as soon as the Gemfile changes
 COPY Gemfile Gemfile.lock $APP_ROOT/
