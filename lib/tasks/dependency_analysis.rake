@@ -580,9 +580,11 @@ namespace :dependency_analysis do
     return 0 if version1 == version2
 
     begin
-      return version1 <=> version2 unless Vers.valid?(version1, 'semver') && Vers.valid?(version2, 'semver')
+      clean1 = Vers.clean(version1, 'semver')
+      clean2 = Vers.clean(version2, 'semver')
+      return version1 <=> version2 unless clean1 && clean2
 
-      Vers.compare_with_scheme(version1, version2, 'semver')
+      Vers.compare_with_scheme(clean1, clean2, 'semver')
     rescue ArgumentError
       # Fallback to string comparison if semantic parsing fails
       version1 <=> version2

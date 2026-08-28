@@ -14,9 +14,13 @@ module Ecosystem
       false
     end
 
+    def version_scheme
+      'apk'
+    end
+
     def purl_params(package, version = nil)
       {
-        type: 'apk',
+        type: version_scheme,
         namespace: 'alpine',
         name: package.name.encode('iso-8859-1'),
         version: version.try(:number).try(:encode,'iso-8859-1'),

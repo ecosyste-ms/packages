@@ -165,10 +165,6 @@ class Version < ApplicationRecord
     number
   end
 
-  def clean_number
-    @clean_number ||= (Vers.clean(number, version_scheme) || number)
-  end
-
   def update_integrity_async
     return if integrity.present?
     return if download_url.blank?
@@ -238,7 +234,9 @@ class Version < ApplicationRecord
   end
 
   def valid_number?
-    Vers.valid?(number, version_scheme)
+    return @valid_number if defined?(@valid_number)
+
+    @valid_number = Vers.valid?(number, version_scheme)
   end
 
   def stable?
@@ -250,7 +248,7 @@ class Version < ApplicationRecord
   end
 
   def version_scheme
-    package.registry.ecosystem_instance.purl_params(package).fetch(:type)
+    @version_scheme ||= package.registry.ecosystem_instance.version_scheme
   end
 
 end
