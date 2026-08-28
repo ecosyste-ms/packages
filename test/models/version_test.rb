@@ -42,7 +42,7 @@ class VersionTest < ActiveSupport::TestCase
     cases = [
       { ecosystem: 'pypi', lower: '1.0', higher: '1.0.post1' },
       { ecosystem: 'maven', lower: '1.0', higher: '1.0-sp1' },
-      { ecosystem: 'cargo', lower: '1.0.0+1', higher: '1.0.0+2' },
+      { ecosystem: 'cargo', lower: '1.0.0-alpha.2', higher: '1.0.0-alpha.10' },
       { ecosystem: 'ubuntu', lower: '1.0~rc1', higher: '1.0' },
       { ecosystem: 'postmarketos', lower: '1.0-r2', higher: '1.0-r10' }
     ]
@@ -108,6 +108,21 @@ class VersionTest < ActiveSupport::TestCase
     assert package.versions.build(number: '35.1').stable?
     assert package.versions.build(number: '36.0.bcr.1').stable?
     refute package.versions.build(number: '36.0-rc2').stable?
+  end
+
+  test 'finds the latest stable version for a package with a Unicode name' do
+    registry = Registry.create!(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    package = registry.packages.create!(name: '例', ecosystem: 'npm')
+    version = package.versions.create!(number: '1.0.0')
+
+    assert_equal version, package.latest_stable_version
+  end
+
+  test 'memoizes version validation' do
+    Vers.expects(:valid?).with('1.0.0', 'gem').once.returns(true)
+
+    assert @version.valid_number?
+    assert @version.valid_number?
   end
 
   test 'download_url' do

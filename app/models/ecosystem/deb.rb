@@ -13,9 +13,13 @@ module Ecosystem
       false
     end
 
+    def version_scheme
+      'deb'
+    end
+
     def purl_params(package, version = nil)
       {
-        type: 'deb',
+        type: version_scheme,
         namespace: purl_namespace,
         name: package.name.encode('iso-8859-1'),
         version: version.try(:number).try(:encode, 'iso-8859-1'),
