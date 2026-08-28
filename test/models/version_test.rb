@@ -86,6 +86,21 @@ class VersionTest < ActiveSupport::TestCase
     assert_equal ['36.0.bcr.10', '36.0.bcr.2', '36.0', '36.0-rc2'], versions.sort.map(&:number)
   end
 
+  test 'sorts equivalent versions deterministically' do
+    registry = Registry.create!(name: 'registry.bazel.build', url: 'https://registry.bazel.build', ecosystem: 'Bazel')
+    package = registry.packages.create!(name: 'protobuf', ecosystem: 'bazel')
+    published_at = 1.day.ago
+    versions = [
+      package.versions.create!(number: '1.0+build9', published_at: 2.days.ago),
+      package.versions.create!(number: '1.0+build2', published_at: published_at),
+      package.versions.create!(number: '1.0+build3', published_at: published_at)
+    ]
+    expected = ['1.0+build3', '1.0+build2', '1.0+build9']
+
+    assert_equal expected, versions.sort.map(&:number)
+    assert_equal expected, versions.reverse.sort.map(&:number)
+  end
+
   test 'classifies Bazel module releases and prereleases' do
     registry = Registry.create!(name: 'registry.bazel.build', url: 'https://registry.bazel.build', ecosystem: 'Bazel')
     package = registry.packages.create!(name: 'protobuf', ecosystem: 'bazel')
