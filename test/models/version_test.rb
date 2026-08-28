@@ -38,8 +38,42 @@ class VersionTest < ActiveSupport::TestCase
     assert_equal @version.to_s, @version.number
   end
 
-  test 'semantic_version' do
-    assert_equal @version.semantic_version.class, Semantic::Version
+  test 'sorts versions using package ecosystem precedence' do
+    cases = [
+      { ecosystem: 'pypi', lower: '1.0', higher: '1.0.post1' },
+      { ecosystem: 'maven', lower: '1.0', higher: '1.0-sp1' },
+      { ecosystem: 'cargo', lower: '1.0.0+1', higher: '1.0.0+2' },
+      { ecosystem: 'ubuntu', lower: '1.0~rc1', higher: '1.0' },
+      { ecosystem: 'postmarketos', lower: '1.0-r2', higher: '1.0-r10' }
+    ]
+
+    cases.each do |version_case|
+      ecosystem = version_case.fetch(:ecosystem)
+      registry = Registry.create!(name: "#{ecosystem}.example", url: "https://#{ecosystem}.example", ecosystem: ecosystem)
+      package = registry.packages.create!(name: 'example', ecosystem: ecosystem)
+      versions = [
+        package.versions.create!(number: version_case.fetch(:lower), published_at: 1.day.ago),
+        package.versions.create!(number: version_case.fetch(:higher), published_at: 2.days.ago)
+      ]
+
+      assert_equal [version_case.fetch(:higher), version_case.fetch(:lower)], versions.sort.map(&:number), ecosystem
+    end
+  end
+
+  test 'classifies stable versions using package ecosystem rules' do
+    cases = [
+      { ecosystem: 'pypi', stable: '1.0.post1', prerelease: '1.0rc1' },
+      { ecosystem: 'maven', stable: '1.0-sp1', prerelease: '1.0-rc1' }
+    ]
+
+    cases.each do |version_case|
+      ecosystem = version_case.fetch(:ecosystem)
+      registry = Registry.create!(name: "#{ecosystem}.stable.example", url: "https://#{ecosystem}.stable.example", ecosystem: ecosystem)
+      package = registry.packages.create!(name: 'example', ecosystem: ecosystem)
+
+      assert package.versions.build(number: version_case.fetch(:stable)).stable?, ecosystem
+      refute package.versions.build(number: version_case.fetch(:prerelease)).stable?, ecosystem
+    end
   end
 
   test 'sorts Bazel module versions by Bazel precedence' do

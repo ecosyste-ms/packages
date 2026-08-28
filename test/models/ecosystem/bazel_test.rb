@@ -29,39 +29,6 @@ class BazelTest < ActiveSupport::TestCase
     assert_equal install_command, "bazel_dep(name = \"rules_go\", version = \"0.59.0\")"
   end
 
-  test 'module versions follow Bazel identifier precedence' do
-    ordered_pairs = [
-      ['1.0.1', '1.0'],
-      ['1.0.0', '1.0'],
-      ['1.0.patch.10', '1.0.patch.3'],
-      ['a', '4'],
-      ['1.0', '1.0-pre'],
-      ['1.0-pre.foo', '1.0-pre'],
-      ['1.0-pre.10', '1.0-pre.2'],
-      ['1.0-pre.2a', '1.0-pre.99'],
-      ['2.1.1-develop.bcr.20250113215904', '2.1.1-develop.bcr.20250113215903']
-    ]
-
-    ordered_pairs.each do |higher, lower|
-      assert_operator Ecosystem::Bazel::ModuleVersion.new(higher), :>, Ecosystem::Bazel::ModuleVersion.new(lower)
-    end
-  end
-
-  test 'module version comparison ignores build metadata' do
-    first = Ecosystem::Bazel::ModuleVersion.new('1.0+build2')
-    second = Ecosystem::Bazel::ModuleVersion.new('1.0+build3')
-
-    assert_equal first, second
-  end
-
-  test 'module versions reject invalid identifiers and numeric overflow' do
-    invalid_versions = ['1..0', '1.0-pre..erp', '1_2', '1.0.18446744073709551616']
-
-    invalid_versions.each do |version|
-      assert_raises(ArgumentError) { Ecosystem::Bazel::ModuleVersion.new(version) }
-    end
-  end
-
   test 'download_url' do
     download_url = @ecosystem.download_url(@package, @version)
     assert_equal download_url, "https://github.com/bazel-contrib/rules_go/releases/download/v0.59.0/rules_go-v0.59.0.zip"
