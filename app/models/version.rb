@@ -129,12 +129,20 @@ class Version < ApplicationRecord
 
   def <=>(other)
     if valid_number? && Vers.valid?(other.number, version_scheme)
-      Vers.compare_with_scheme(other.number, number, version_scheme)
-    else
-      other.published_at <=> published_at
+      comparison = Vers.compare_with_scheme(other.number, number, version_scheme)
+      return comparison unless comparison.zero?
     end
+
+    compare_by_published_at_and_number(other)
   rescue ArgumentError
-    other.published_at <=> published_at
+    compare_by_published_at_and_number(other)
+  end
+
+  def compare_by_published_at_and_number(other)
+    comparison = (other.published_at || Time.at(0)) <=> (published_at || Time.at(0))
+    return comparison unless comparison.zero?
+
+    other.number.to_s <=> number.to_s
   end
 
   def related_versions
