@@ -39,7 +39,7 @@ gem 'rack-cors'
 gem 'rswag-api'
 gem 'rswag-ui'
 gem 'spdx', '2.0.12'
-gem "vers", github: "andrew/vers", branch: "expand-version-schemes"
+gem "vers", "~> 2.0"
 gem "sanitize-url"
 gem "toml-rb"
 gem "chartkick"
