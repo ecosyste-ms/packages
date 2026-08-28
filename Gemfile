@@ -39,8 +39,7 @@ gem 'rack-cors'
 gem 'rswag-api'
 gem 'rswag-ui'
 gem 'spdx', '2.0.12'
-gem "semantic"
-gem "semantic_range"
+gem "vers", github: "andrew/vers", branch: "expand-version-schemes"
 gem "sanitize-url"
 gem "toml-rb"
 gem "chartkick"

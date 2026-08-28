@@ -128,17 +128,13 @@ class Version < ApplicationRecord
   end
 
   def <=>(other)
-    if bazel? && other.bazel? && bazel_version && other.bazel_version
-      other.bazel_version <=> bazel_version
-    elsif parsed_number.is_a?(String) || other.parsed_number.is_a?(String)
-      other.published_at <=> published_at
+    if valid_number? && Vers.valid?(other.number, version_scheme)
+      Vers.compare_with_scheme(other.number, number, version_scheme)
     else
-      begin
-        other.parsed_number <=> parsed_number
-      rescue ArgumentError
-        other.published_at <=> published_at
-      end
+      other.published_at <=> published_at
     end
+  rescue ArgumentError
+    other.published_at <=> published_at
   end
 
   def related_versions
@@ -161,20 +157,8 @@ class Version < ApplicationRecord
     number
   end
 
-  def semantic_version
-    @semantic_version ||= begin
-      Semantic::Version.new(clean_number)
-    rescue ArgumentError
-      nil
-    end
-  end
-
-  def parsed_number
-    @parsed_number ||= semantic_version || number
-  end
-
   def clean_number
-    @clean_number ||= (SemanticRange.clean(number) || number)
+    @clean_number ||= (Vers.clean(number, version_scheme) || number)
   end
 
   def update_integrity_async
@@ -246,9 +230,7 @@ class Version < ApplicationRecord
   end
 
   def valid_number?
-    return !!bazel_version if bazel?
-
-    !!semantic_version
+    Vers.valid?(number, version_scheme)
   end
 
   def stable?
@@ -256,32 +238,11 @@ class Version < ApplicationRecord
   end
 
   def prerelease?
-    if bazel?
-      bazel_version&.prerelease? || false
-    elsif semantic_version && semantic_version.pre.present?
-      true
-    else
-      case package.try(:ecosystem)
-      when "rubygems"
-        !!number[/[a-zA-Z]/]
-      when "pypi"
-        !!(number =~ /(a|b|rc|dev)[-_.]?[0-9]*$/)
-      else
-        false
-      end
-    end
+    Vers.prerelease?(number, version_scheme)
   end
 
-  def bazel?
-    package.try(:ecosystem).to_s.casecmp?('bazel')
-  end
-
-  def bazel_version
-    return @bazel_version if defined?(@bazel_version)
-
-    @bazel_version = Ecosystem::Bazel::ModuleVersion.new(number) if bazel?
-  rescue ArgumentError
-    @bazel_version = nil
+  def version_scheme
+    package.registry.ecosystem_instance.purl_params(package).fetch(:type)
   end
 
 end
