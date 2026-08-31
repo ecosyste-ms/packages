@@ -58,4 +58,13 @@ class DockerQuayTest < ActiveSupport::TestCase
 
     assert_equal ['foo/a', 'foo/b'], @ecosystem.namespace_package_names('foo')
   end
+
+  test 'all_package_names crawls public listing via next_page cursor' do
+    stub_request(:get, "https://quay.io/api/v1/repository?public=true")
+      .to_return(status: 200, body: '{"repositories":[{"namespace":"a","name":"x"},{"namespace":"b","name":"y"}],"next_page":"CUR1"}', headers: { 'content-type' => 'application/json' })
+    stub_request(:get, "https://quay.io/api/v1/repository?public=true&next_page=CUR1")
+      .to_return(status: 200, body: '{"repositories":[{"namespace":"c","name":"z"}]}', headers: { 'content-type' => 'application/json' })
+
+    assert_equal ['a/x', 'b/y', 'c/z'], @ecosystem.all_package_names
+  end
 end

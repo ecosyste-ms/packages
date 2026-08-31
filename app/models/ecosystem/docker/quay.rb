@@ -57,11 +57,20 @@ module Ecosystem
         []
       end
 
+      def all_package_names
+        list_repositories
+      end
+
       def namespace_package_names(namespace)
+        list_repositories(namespace: namespace)
+      end
+
+      def list_repositories(namespace: nil)
         names = []
         cursor = nil
-        50.times do
-          url = "https://quay.io/api/v1/repository?public=true&namespace=#{namespace}"
+        loop do
+          url = "https://quay.io/api/v1/repository?public=true"
+          url += "&namespace=#{CGI.escape(namespace)}" if namespace
           url += "&next_page=#{CGI.escape(cursor)}" if cursor
           json = get_json(url)
           break unless json && json['repositories'].present?
