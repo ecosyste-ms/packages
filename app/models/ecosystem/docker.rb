@@ -2,114 +2,103 @@
 
 module Ecosystem
   class Docker < Base
+    def self.for_registry(registry)
+      case URI(registry.url).host
+      when 'hub.docker.com' then Docker::Hub
+      when 'quay.io' then Docker::Quay
+      else self
+      end
+    end
 
-    def registry_url(package, version = nil)
-      if version && version['metadata']['images'].present?
-        "https://hub.docker.com/layers/#{package.name}/#{version['number']}/images/#{version['metadata']['images'].first['digest']}"
-      else
-        "https://hub.docker.com/r/#{package.name}"
-      end      
+    def self.purl_type
+      'docker'
     end
 
     def install_command(package, version = nil)
-      "docker pull #{package.name}" + (version ? ":#{version}" : "")
+      "docker pull #{image_ref(package.name)}" + (version ? ":#{version}" : "")
     end
 
     def check_status(package)
       pkg = fetch_package_metadata(package.name)
       return nil if pkg.present? && pkg.is_a?(Hash) && pkg["name"].present?
 
-      # Fall back to a direct request if not cached
       url = check_status_url(package)
       response = Faraday.head(url)
       return "removed" if [400, 404, 410].include?(response.status)
     end
 
     def check_status_url(package)
-      "https://hub.docker.com/v2/repositories/#{package.name}"
+      "#{@registry_url}/v2/#{package.name}/tags/list"
     end
 
     def fetch_package_metadata_uncached(name)
-      name = "library/#{name}" if name.split('/').length == 1
-      get_json("https://hub.docker.com/v2/repositories/#{name}/")
+      tags = v2_tags(name)
+      return nil unless tags
+      { 'name' => name, 'namespace' => name.split('/')[0..-2].join('/').presence, 'tags' => tags }
     rescue
-      {}
-    end
-
-    def recently_updated_package_names
-      json = get_json("https://hub.docker.com/api/content/v1/products/search/?sort=updated_at&order=desc&page_size=100", headers: {"Search-Version" => "v3"})
-      json['summaries'].map{|s| s['slug'] }
-    rescue
-      []
-    end
-
-    def namespace_package_names(name)
-      page = 1
-      images = []
-      while page < 100
-        r = get("https://hub.docker.com/v2/repositories/#{name}/?page=#{page}&page_size=100")
-        break if r['results'].nil? || r['results'] == []
-
-        images += r['results']
-        break if r['next'].nil?
-        page += 1
-      end
-      images.map{|i| "#{i["namespace"]}/#{i["name"]}" }
-    end
-
-    def all_package_names
-      official_packages = namespace_package_names('library')
-      community_packages = get_json_array("https://repos.ecosyste.ms/api/v1/package_names/docker")
-      (official_packages + community_packages).uniq
-    rescue
-      []
+      nil
     end
 
     def map_package_metadata(package)
-      return nil unless package && package["name"]
-      package_name = "#{package["namespace"]}/#{package["name"]}"
+      return nil unless package && package['name']
       {
-        name: package_name,
-        description: package["description"],
-        repository_url: load_repository_url(package_name),
-        namespace: package["namespace"],
-        downloads: package["pull_count"],
-        downloads_period: "total",
+        name: package['name'],
+        namespace: package['namespace'],
+        tags: package['tags'],
       }
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
-      page = 1
-      tags = []
-      while page < 10
-        r = get("https://hub.docker.com/v2/repositories/#{pkg_metadata[:name]}/tags?page=#{page}&page_size=100")
-        break if r.blank? || r['results'].nil? || r['results'] == []
+      Array(pkg_metadata[:tags]).map { |t| { number: t } }
+    end
 
-        tags += r['results']
-        break if r['next'].nil?
-        page += 1
-      end
-      tags.map do |version|
-        {
-          number: version["name"],
-          published_at: version["last_updated"],
-          metadata: {
-            images: version["images"]
-          }
-        }
-      end.compact
-    rescue 
+    def all_package_names
+      prefix = "#{registry_host}/"
+      get_json_array("https://repos.ecosyste.ms/api/v1/package_names/docker")
+        .select { |n| n.start_with?(prefix) }
+        .map { |n| n.delete_prefix(prefix) }
+    rescue
       []
     end
 
-    def load_repository_url(name)
-      return 'https://github.com/docker-library/official-images' if name.start_with?('library/')
-      json = get("https://hub.docker.com/api/build/v1/source/?image=#{name}")
-      return unless json && json['objects']
-      o = json['objects'].first
-      return unless o
-      return unless o['provider'] == 'Github'
-      "https://github.com/#{o['owner']}/#{o['repository']}"
+    def recently_updated_package_names
+      []
+    end
+
+    def registry_host
+      @registry_host ||= URI(@registry_url).host
+    end
+
+    def image_ref(name)
+      @registry.default ? name : "#{registry_host}/#{name}"
+    end
+
+    def v2_tags(name)
+      tags = []
+      path = "/v2/#{name}/tags/list?n=1000"
+      50.times do
+        resp = v2_get(path)
+        return nil if resp.nil?
+        json = JSON.parse(resp.body)
+        tags.concat(json['tags'] || [])
+        link = resp.headers['link']
+        break unless link && link =~ /<([^>]+)>;\s*rel="next"/
+        path = $1
+      end
+      tags
+    end
+
+    def v2_get(path)
+      resp = Faraday.get("#{@registry_url}#{path}")
+      if resp.status == 401 && (challenge = resp.headers['www-authenticate'])
+        params = challenge.sub(/^Bearer /i, '').scan(/(\w+)="([^"]+)"/).to_h
+        realm = params.delete('realm')
+        return nil unless realm
+        token = get_json("#{realm}?#{params.to_query}")&.dig('token')
+        return nil unless token
+        resp = Faraday.get("#{@registry_url}#{path}", nil, { 'Authorization' => "Bearer #{token}" })
+      end
+      resp.status == 200 ? resp : nil
     end
   end
 end
