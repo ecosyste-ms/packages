@@ -97,6 +97,27 @@ class HexTest < ActiveSupport::TestCase
     assert_equal package_metadata[:downloads_period], "total"
   end
 
+  test 'repository_url scans all link values, not just github key' do
+    pkg = {
+      "name" => "gleam_stdlib",
+      "meta" => {
+        "description" => "stdlib",
+        "licenses" => ["Apache-2.0"],
+        "links" => {
+          "Repository" => "https://github.com/gleam-lang/stdlib",
+          "Sponsor" => "https://github.com/sponsors/lpil",
+          "Website" => "https://gleam.run/",
+        },
+      },
+      "releases" => [],
+      "downloads" => { "all" => 1 },
+    }
+    mapped = @ecosystem.map_package_metadata(pkg)
+
+    assert_equal "https://github.com/gleam-lang/stdlib", mapped[:repository_url]
+    assert_equal "Apache-2.0", mapped[:licenses]
+  end
+
   test 'versions_metadata' do
     stub_request(:get, "https://hex.pm/api/packages/phoenix_copy")
       .to_return({ status: 200, body: file_fixture('hex/phoenix_copy') })

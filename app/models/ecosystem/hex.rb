@@ -69,9 +69,9 @@ module Ecosystem
       {
         name: package["name"],
         homepage: links.except("github").first.try(:last),
-        repository_url: links["github"],
+        repository_url: find_repository_url(links.values),
         description: package["meta"]["description"],
-        licenses: repo_fallback(package["meta"].fetch("licenses", []).join(","), links.except("github").first.try(:last)),
+        licenses: package["meta"].fetch("licenses", []).join(","),
         releases: package['releases'],
         downloads: package['downloads']['all'],
         downloads_period: 'total'

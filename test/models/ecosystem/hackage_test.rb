@@ -92,6 +92,20 @@ class HackageTest < ActiveSupport::TestCase
     assert_equal package_metadata[:downloads_period], 'total'
   end
 
+  test 'repository_url from Source repo and Bug tracker when Home page is not a forge' do
+    stub_request(:get, "https://hackage.haskell.org/package/pandoc")
+      .to_return({ status: 200, body: file_fixture('hackage/pandoc') })
+    package_metadata = @ecosystem.package_metadata('pandoc')
+
+    assert_equal "https://pandoc.org", package_metadata[:homepage]
+    assert_equal "https://github.com/jgm/pandoc", package_metadata[:repository_url]
+  end
+
+  test 'find_attribute matches nbsp headers' do
+    page = Nokogiri::HTML("<div id='content'><table><tr><th>Source&nbsp;repo</th><td>head: git clone https://gitlab.com/foo/bar.git</td></tr></table></div>")
+    assert_equal "head: git clone https://gitlab.com/foo/bar.git", @ecosystem.find_attribute(page, "Source repo")
+  end
+
   test 'versions_metadata' do
     stub_request(:get, "https://hackage.haskell.org/package/blockfrost-client")
       .to_return({ status: 200, body: file_fixture('hackage/blockfrost-client') })
