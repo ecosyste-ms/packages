@@ -89,6 +89,22 @@ class PubTest < ActiveSupport::TestCase
     assert_nil package_metadata[:keywords_array]
   end
 
+  test 'repository_url falls back to issue_tracker' do
+    pkg = {
+      "name" => "foo",
+      "latest" => {
+        "pubspec" => {
+          "homepage" => "https://foo.example.com",
+          "issue_tracker" => "https://github.com/foo/bar/issues",
+        },
+      },
+      "versions" => [],
+    }
+    mapped = @ecosystem.map_package_metadata(pkg)
+
+    assert_equal "https://github.com/foo/bar", mapped[:repository_url]
+  end
+
   test 'versions_metadata' do
     stub_request(:get, "https://pub.dev/api/packages/bloc")
       .to_return({ status: 200, body: file_fixture('pub/bloc') })

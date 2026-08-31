@@ -57,11 +57,12 @@ module Ecosystem
     def map_package_metadata(package)
       latest_version = package["latest"]
       return false if latest_version.nil?
+      pubspec = latest_version["pubspec"]
       {
         name: package["name"],
-        homepage: latest_version["pubspec"]["homepage"],
-        description: latest_version["pubspec"]["description"],
-        repository_url: repo_fallback(latest_version["pubspec"]["repository"], latest_version["pubspec"]["homepage"]),
+        homepage: pubspec["homepage"],
+        description: pubspec["description"],
+        repository_url: find_repository_url([pubspec["repository"], pubspec["issue_tracker"], pubspec["homepage"]].compact) || pubspec["repository"],
         versions: package["versions"],
         status: package['isDiscontinued'] ? 'discontinued' : nil
       }
