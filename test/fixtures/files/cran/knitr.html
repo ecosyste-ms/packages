@@ -1,0 +1,193 @@
+<!DOCTYPE html><html><body><h2>knitr: A General-Purpose Package for Dynamic Report Generation in R</h2>
+<table>
+<tr>
+<td>Version:</td>
+<td>1.51</td>
+</tr>
+<tr>
+<td>Depends:</td>
+<td>R (≥ 3.6.0)</td>
+</tr>
+<tr>
+<td>Imports:</td>
+<td>
+<a href="../evaluate/index.html"><span class="CRAN">evaluate</span></a> (≥ 0.15), <a href="../highr/index.html"><span class="CRAN">highr</span></a> (≥ 0.11), <a href="../../../doc/manuals/r-patched/packages/methods/refman/methods.html" target="_top"><span class="R_base">methods</span></a>, <a href="../../../doc/manuals/r-patched/packages/tools/refman/tools.html" target="_top"><span class="R_base">tools</span></a>, <a href="../xfun/index.html"><span class="CRAN">xfun</span></a> (≥
+0.52), <a href="../yaml/index.html"><span class="CRAN">yaml</span></a> (≥ 2.1.19)</td>
+</tr>
+<tr>
+<td>Suggests:</td>
+<td>
+<a href="../bslib/index.html"><span class="CRAN">bslib</span></a>, <a href="../DBI/index.html"><span class="CRAN">DBI</span></a> (≥ 0.4-1), <a href="../digest/index.html"><span class="CRAN">digest</span></a>, <a href="../formatR/index.html"><span class="CRAN">formatR</span></a>, <a href="../gifski/index.html"><span class="CRAN">gifski</span></a>, <a href="../gridSVG/index.html"><span class="CRAN">gridSVG</span></a>, <a href="../htmlwidgets/index.html"><span class="CRAN">htmlwidgets</span></a> (≥ 0.7), <a href="../jpeg/index.html"><span class="CRAN">jpeg</span></a>, <a href="../JuliaCall/index.html"><span class="CRAN">JuliaCall</span></a> (≥ 0.11.1), <a href="../magick/index.html"><span class="CRAN">magick</span></a>, <a href="../litedown/index.html"><span class="CRAN">litedown</span></a>, <a href="../markdown/index.html"><span class="CRAN">markdown</span></a> (≥ 1.3), <a href="../otel/index.html"><span class="CRAN">otel</span></a>, <a href="../otelsdk/index.html"><span class="CRAN">otelsdk</span></a>, <a href="../png/index.html"><span class="CRAN">png</span></a>, <a href="../ragg/index.html"><span class="CRAN">ragg</span></a>, <a href="../reticulate/index.html"><span class="CRAN">reticulate</span></a> (≥ 1.4), <a href="../rgl/index.html"><span class="CRAN">rgl</span></a> (≥ 0.95.1201), <a href="../rlang/index.html"><span class="CRAN">rlang</span></a>, <a href="../rmarkdown/index.html"><span class="CRAN">rmarkdown</span></a>, <a href="../sass/index.html"><span class="CRAN">sass</span></a>, <a href="../showtext/index.html"><span class="CRAN">showtext</span></a>, <a href="../styler/index.html"><span class="CRAN">styler</span></a> (≥ 1.2.0), <a href="../targets/index.html"><span class="CRAN">targets</span></a> (≥ 0.6.0), <a href="../testit/index.html"><span class="CRAN">testit</span></a>, <a href="../tibble/index.html"><span class="CRAN">tibble</span></a>, <a href="../tikzDevice/index.html"><span class="CRAN">tikzDevice</span></a> (≥ 0.10), <a href="../tinytex/index.html"><span class="CRAN">tinytex</span></a> (≥ 0.56), <a href="../webshot/index.html"><span class="CRAN">webshot</span></a>, <a href="../rstudioapi/index.html"><span class="CRAN">rstudioapi</span></a>, <a href="../svglite/index.html"><span class="CRAN">svglite</span></a>
+</td>
+</tr>
+<tr>
+<td>Published:</td>
+<td>2025-12-20</td>
+</tr>
+<tr>
+<td>DOI:</td>
+<td><a href="https://doi.org/10.32614/CRAN.package.knitr">10.32614/CRAN.package.knitr</a></td>
+</tr>
+<tr>
+<td>Author:</td>
+<td>Yihui Xie <a href="https://orcid.org/0000-0003-0645-5666" target="_top"><img alt="ORCID iD" src="../../orcid.svg" style="width:16px; height:16px; margin-left:4px; margin-right:4px; vertical-align:middle"></a> [aut,
+    cre] (URL: https://yihui.org),
+  Abhraneel Sarma [ctb],
+  Adam Vogt [ctb],
+  Alastair Andrew [ctb],
+  Alex Zvoleff [ctb],
+  Amar Al-Zubaidi [ctb],
+  Andre Simon [ctb] (the CSS files under inst/themes/ were derived from
+    the Highlight package http://www.andre-simon.de),
+  Aron Atkins [ctb],
+  Aaron Wolen [ctb],
+  Ashley Manton [ctb],
+  Atsushi Yasumoto <a href="https://orcid.org/0000-0002-8335-495X" target="_top"><img alt="ORCID iD" src="../../orcid.svg" style="width:16px; height:16px; margin-left:4px; margin-right:4px; vertical-align:middle"></a>
+    [ctb],
+  Ben Baumer [ctb],
+  Brian Diggs [ctb],
+  Brian Zhang [ctb],
+  Bulat Yapparov [ctb],
+  Cassio Pereira [ctb],
+  Christophe Dervieux [ctb],
+  David Hall [ctb],
+  David Hugh-Jones [ctb],
+  David Robinson [ctb],
+  Doug Hemken [ctb],
+  Duncan Murdoch [ctb],
+  Elio Campitelli [ctb],
+  Ellis Hughes [ctb],
+  Emily Riederer [ctb],
+  Fabian Hirschmann [ctb],
+  Fitch Simeon [ctb],
+  Forest Fang [ctb],
+  Frank E Harrell Jr [ctb] (the Sweavel package at inst/misc/Sweavel.sty),
+  Garrick Aden-Buie [ctb],
+  Gregoire Detrez [ctb],
+  Hadley Wickham [ctb],
+  Hao Zhu [ctb],
+  Heewon Jeon [ctb],
+  Henrik Bengtsson [ctb],
+  Hiroaki Yutani [ctb],
+  Ian Lyttle [ctb],
+  Hodges Daniel [ctb],
+  Jacob Bien [ctb],
+  Jake Burkhead [ctb],
+  James Manton [ctb],
+  Jared Lander [ctb],
+  Jason Punyon [ctb],
+  Javier Luraschi [ctb],
+  Jeff Arnold [ctb],
+  Jenny Bryan [ctb],
+  Jeremy Ashkenas [ctb, cph] (the CSS file at
+    inst/misc/docco-classic.css),
+  Jeremy Stephens [ctb],
+  Jim Hester [ctb],
+  Joe Cheng [ctb],
+  Johannes Ranke [ctb],
+  John Honaker [ctb],
+  John Muschelli [ctb],
+  Jonathan Keane [ctb],
+  JJ Allaire [ctb],
+  Johan Toloe [ctb],
+  Jonathan Sidi [ctb],
+  Joseph Larmarange [ctb],
+  Julien Barnier [ctb],
+  Kaiyin Zhong [ctb],
+  Kamil Slowikowski [ctb],
+  Karl Forner [ctb],
+  Kevin K. Smith [ctb],
+  Kirill Mueller [ctb],
+  Kohske Takahashi [ctb],
+  Lorenz Walthert [ctb],
+  Lucas Gallindo [ctb],
+  Marius Hofert [ctb],
+  Martin Modrák [ctb],
+  Michael Chirico [ctb],
+  Michael Friendly [ctb],
+  Michal Bojanowski [ctb],
+  Michel Kuhlmann [ctb],
+  Miller Patrick [ctb],
+  Nacho Caballero [ctb],
+  Nick Salkowski [ctb],
+  Niels Richard Hansen [ctb],
+  Noam Ross [ctb],
+  Obada Mahdi [ctb],
+  Pavel N. Krivitsky
+    <a href="https://orcid.org/0000-0002-9101-3362" target="_top"><img alt="ORCID iD" src="../../orcid.svg" style="width:16px; height:16px; margin-left:4px; margin-right:4px; vertical-align:middle"></a> [ctb],
+  Pedro Faria [ctb],
+  Qiang Li [ctb],
+  Ramnath Vaidyanathan [ctb],
+  Richard Cotton [ctb],
+  Robert Krzyzanowski [ctb],
+  Rodrigo Copetti [ctb],
+  Romain Francois [ctb],
+  Ruaridh Williamson [ctb],
+  Sagiru Mati <a href="https://orcid.org/0000-0003-1413-3974" target="_top"><img alt="ORCID iD" src="../../orcid.svg" style="width:16px; height:16px; margin-left:4px; margin-right:4px; vertical-align:middle"></a> [ctb],
+  Scott Kostyshak [ctb],
+  Sebastian Meyer [ctb],
+  Sietse Brouwer [ctb],
+  Simon de Bernard [ctb],
+  Sylvain Rousseau [ctb],
+  Taiyun Wei [ctb],
+  Thibaut Assus [ctb],
+  Thibaut Lamadon [ctb],
+  Thomas Leeper [ctb],
+  Tim Mastny [ctb],
+  Tom Torsney-Weir [ctb],
+  Trevor Davis [ctb],
+  Viktoras Veitas [ctb],
+  Weicheng Zhu [ctb],
+  Wush Wu [ctb],
+  Zachary Foster [ctb],
+  Zhian N. Kamvar <a href="https://orcid.org/0000-0003-1458-7108" target="_top"><img alt="ORCID iD" src="../../orcid.svg" style="width:16px; height:16px; margin-left:4px; margin-right:4px; vertical-align:middle"></a>
+    [ctb],
+  Posit Software, PBC [cph, fnd]</td>
+</tr>
+<tr>
+<td>Maintainer:</td>
+<td>Yihui Xie  &lt;xie at yihui.name&gt;</td>
+</tr>
+<tr>
+<td>BugReports:</td>
+<td><a href="https://github.com/yihui/knitr/issues" target="_top"><span class="GitHub">https://github.com/yihui/knitr/issues</span></a></td>
+</tr>
+<tr>
+<td>License:</td>
+<td>
+<a href="../../licenses/GPL-2"><span class="CRAN">GPL-2</span></a> | <a href="../../licenses/GPL-3"><span class="CRAN">GPL-3</span></a> [expanded from: GPL]</td>
+</tr>
+<tr>
+<td>URL:</td>
+<td><a href="https://yihui.org/knitr/" target="_top">https://yihui.org/knitr/</a></td>
+</tr>
+<tr>
+<td>NeedsCompilation:</td>
+<td>no</td>
+</tr>
+<tr>
+<td>SystemRequirements:</td>
+<td>Package vignettes based on R Markdown v2 or
+reStructuredText require Pandoc (http://pandoc.org). The
+function rst2pdf() requires rst2pdf
+(https://github.com/rst2pdf/rst2pdf).</td>
+</tr>
+<tr>
+<td>Citation:</td>
+<td>
+<a href="citation.html"><span class="CRAN">knitr citation info</span></a> </td>
+</tr>
+<tr>
+<td>Materials:</td>
+<td>
+<a href="news.html"><span class="CRAN">NEWS</span></a> </td>
+</tr>
+<tr>
+<td>In views:</td>
+<td><a href="../../views/ReproducibleResearch.html"><span class="CRAN">ReproducibleResearch</span></a></td>
+</tr>
+<tr>
+<td>CRAN checks:</td>
+<td><a href="../../checks/check_results_knitr.html"><span class="CRAN">knitr results</span></a></td>
+</tr>
+</table></body></html>
