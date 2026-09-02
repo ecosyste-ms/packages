@@ -68,7 +68,7 @@ module Ecosystem
       def list_repositories(namespace: nil)
         names = []
         cursor = nil
-        loop do
+        10_000.times do
           url = "https://quay.io/api/v1/repository?public=true"
           url += "&namespace=#{CGI.escape(namespace)}" if namespace
           url += "&next_page=#{CGI.escape(cursor)}" if cursor

@@ -73,4 +73,27 @@ class DockerTest < ActiveSupport::TestCase
       .to_return(status: 200, body: '{"tags":["b"]}', headers: {})
     assert_equal ['a', 'b'], eco.v2_tags('foo/bar')
   end
+
+  test 'v2_tags follows absolute Link URL' do
+    eco = Ecosystem::Docker.new(@ghcr)
+    stub_request(:get, "https://ghcr.io/v2/foo/bar/tags/list?n=1000")
+      .to_return(status: 200, body: '{"tags":["a"]}', headers: { 'link' => '<https://ghcr.io/v2/foo/bar/tags/list?n=1000&last=a>; rel="next"' })
+    stub_request(:get, "https://ghcr.io/v2/foo/bar/tags/list?n=1000&last=a")
+      .to_return(status: 200, body: '{"tags":["b"]}', headers: {})
+    assert_equal ['a', 'b'], eco.v2_tags('foo/bar')
+  end
+
+  test 'check_status marks removed when token flow yields 404' do
+    eco = @ghcr.ecosystem_instance
+    eco.stubs(:fetch_package_metadata).returns(nil)
+    stub_request(:get, "https://ghcr.io/v2/foo/gone/tags/list")
+      .to_return(status: 401, headers: { 'www-authenticate' => 'Bearer realm="https://ghcr.io/token",service="ghcr.io",scope="repository:foo/gone:pull"' })
+    stub_request(:get, "https://ghcr.io/token?scope=repository:foo/gone:pull&service=ghcr.io")
+      .to_return(status: 200, body: '{"token":"abc"}', headers: { 'content-type' => 'application/json' })
+    stub_request(:get, "https://ghcr.io/v2/foo/gone/tags/list")
+      .with(headers: { 'Authorization' => 'Bearer abc' })
+      .to_return(status: 404, body: '{"errors":[{"code":"NAME_UNKNOWN"}]}')
+
+    assert_equal 'removed', eco.check_status(Package.new(name: 'foo/gone'))
+  end
 end

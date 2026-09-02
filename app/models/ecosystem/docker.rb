@@ -22,9 +22,10 @@ module Ecosystem
       pkg = fetch_package_metadata(package.name)
       return nil if pkg.present? && pkg.is_a?(Hash) && pkg["name"].present?
 
-      url = check_status_url(package)
-      response = Faraday.head(url)
-      return "removed" if [400, 404, 410].include?(response.status)
+      resp = v2_request(check_status_url(package))
+      return "removed" if [400, 404, 410].include?(resp.status)
+    rescue
+      nil
     end
 
     def check_status_url(package)
@@ -82,23 +83,27 @@ module Ecosystem
         json = JSON.parse(resp.body)
         tags.concat(json['tags'] || [])
         link = resp.headers['link']
-        break unless link && link =~ /<([^>]+)>;\s*rel="next"/
-        path = $1
+        break unless link && (m = link.match(/<([^>]+)>;\s*rel="next"/))
+        path = m[1]
       end
       tags
     end
 
     def v2_get(path)
-      resp = Faraday.get("#{@registry_url}#{path}")
-      if resp.status == 401 && (challenge = resp.headers['www-authenticate'])
-        params = challenge.sub(/^Bearer /i, '').scan(/(\w+)="([^"]+)"/).to_h
-        realm = params.delete('realm')
-        return nil unless realm
-        token = get_json("#{realm}?#{params.to_query}")&.dig('token')
-        return nil unless token
-        resp = Faraday.get("#{@registry_url}#{path}", nil, { 'Authorization' => "Bearer #{token}" })
-      end
-      resp.status == 200 ? resp : nil
+      url = path.start_with?('http') ? path : "#{@registry_url}#{path}"
+      resp = v2_request(url)
+      resp if resp.status == 200
+    end
+
+    def v2_request(url)
+      resp = request(url)
+      return resp unless resp.status == 401 && (challenge = resp.headers['www-authenticate'])
+      params = challenge.sub(/^Bearer /i, '').scan(/(\w+)="([^"]+)"/).to_h
+      realm = params.delete('realm')
+      return resp unless realm
+      token = get_json("#{realm}?#{params.to_query}")&.dig('token')
+      return resp unless token
+      request(url, headers: { 'Authorization' => "Bearer #{token}" })
     end
   end
 end
