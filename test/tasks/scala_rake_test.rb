@@ -6,7 +6,7 @@ class ScalaRakeTest < ActiveSupport::TestCase
     if Rake::Task.tasks.empty?
       silence_warnings { Packages::Application.load_tasks }
     end
-    @registry = Registry.create!(name: 'maven', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
+    @registry = Registry.create!(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
   end
 
   teardown do
@@ -46,7 +46,6 @@ class ScalaRakeTest < ActiveSupport::TestCase
     Dependency.create!(version_id: v_zio.id,  ecosystem: 'maven', package_name: 'org.slf4j:slf4j-api', requirements: '1.7.0')
     Dependency.create!(version_id: v_zio.id,  ecosystem: 'maven', package_name: 'org.scalatest:scalatest_3', requirements: '3.2.0')
 
-    ENV['REGISTRY'] = 'maven'
     out, _ = capture_io { Rake::Task['scala:export_dependencies'].execute }
     rows = CSV.parse(out, headers: true)
 
@@ -77,7 +76,6 @@ class ScalaRakeTest < ActiveSupport::TestCase
                                repository_url: 'https://github.com/example/java',
                                repo_metadata: { 'language' => 'Java' })
 
-    ENV['REGISTRY'] = 'maven'
     out, _ = capture_io { Rake::Task['scala:export_projects'].execute }
     rows = CSV.parse(out, headers: true)
 

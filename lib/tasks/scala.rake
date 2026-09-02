@@ -10,7 +10,7 @@ def scala_strip_suffix(name)
 end
 
 def scala_registry
-  Registry.find_by_name!(ENV['REGISTRY'] || 'maven')
+  Registry.find_by_name!(ENV['REGISTRY'] || 'repo1.maven.org')
 end
 
 def scala_packages(registry)
