@@ -254,6 +254,84 @@ paths:
         '400':
           description: missing integrity parameter
 
+  /artifacts/lookup:
+    get:
+      summary: lookup artifacts by integrity value
+      description: provide integrity, sha256, sha1, or sha512; exact integrity matching runs before known SHA wrapper normalization
+      operationId: lookupArtifacts
+      tags:
+        - artifacts
+      parameters:
+        - name: integrity
+          in: query
+          description: integrity value from a lockfile or registry
+          required: false
+          schema:
+            type: string
+        - name: sha256
+          in: query
+          description: sha256 hash in hex
+          required: false
+          schema:
+            type: string
+        - name: sha1
+          in: query
+          description: sha1 hash in hex
+          required: false
+          schema:
+            type: string
+        - name: sha512
+          in: query
+          description: sha512 hash in hex
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: page number
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: number of records to return
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ArtifactLookup'
+        '400':
+          description: missing integrity, sha256, sha1, or sha512 parameter
+  /artifacts/{artifactId}:
+    get:
+      summary: get an artifact
+      operationId: getArtifact
+      tags:
+        - artifacts
+      parameters:
+        - in: path
+          name: artifactId
+          schema:
+            type: integer
+          required: true
+          description: artifact id
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+        '404':
+          description: artifact not found
+
   /packages/lookup:
     get:
       summary: lookup a package by repository URL, purl or ecosystem+name
@@ -1636,6 +1714,54 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VersionWithDependencies'
+  /registries/{registryName}/packages/{packageName}/versions/{versionNumber}/artifacts:
+    get:
+      summary: get artifacts for a package version
+      operationId: getRegistryPackageVersionArtifacts
+      tags:
+        - artifacts
+      parameters:
+        - in: path
+          name: registryName
+          schema:
+            type: string
+          required: true
+          description: name of registry
+        - in: path
+          name: packageName
+          schema:
+            type: string
+          required: true
+          description: name of package
+        - in: path
+          name: versionNumber
+          schema:
+            type: string
+          required: true
+          description: number of version
+        - name: page
+          in: query
+          description: page number
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: number of records to return
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Artifact'
+        '404':
+          description: registry, package, or version not found
   /registries/{registryName}/packages/{packageName}/versions/{versionNumber}/codemeta:
     get:
       summary: get CodeMeta metadata for a version
@@ -2009,6 +2135,64 @@ components:
               $ref: '#/components/schemas/Registry'
           required:
             - registry
+    Artifact:
+      required:
+        - id
+        - identifier
+        - filename
+        - kind
+        - download_url
+        - size
+        - published_at
+        - status
+        - integrity
+        - metadata
+        - created_at
+        - updated_at
+        - artifact_url
+        - version_url
+      type: object
+      properties:
+        id:
+          type: integer
+        identifier:
+          type: string
+        filename:
+          type: string
+          nullable: true
+        kind:
+          type: string
+          nullable: true
+        download_url:
+          type: string
+          nullable: true
+        size:
+          type: integer
+          format: int64
+          nullable: true
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        integrity:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        artifact_url:
+          type: string
+        version_url:
+          type: string
     Version:
       required:
         - id
@@ -2158,6 +2342,15 @@ components:
           properties:
             package:
               $ref: '#/components/schemas/PackageWithRegistry'
+    ArtifactLookup:
+      allOf:
+        - $ref: '#/components/schemas/Artifact'
+        - type: object
+          required:
+            - version
+          properties:
+            version:
+              $ref: '#/components/schemas/VersionLookup'
     VersionWithPackage:
       required:
         - id

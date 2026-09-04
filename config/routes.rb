@@ -23,6 +23,12 @@ Rails.application.routes.draw do
         end
       end
 
+      resources :artifacts, only: [:show] do
+        collection do
+          get :lookup
+        end
+      end
+
       resources :keywords, only: [:index, :show], constraints: { id: /.*/ }, defaults: { format: :json }
 
       resources :critical, only: [:index] do
@@ -57,6 +63,7 @@ Rails.application.routes.draw do
 
         resources :packages, constraints: { id: /.*/ }, only: [:index, :show] do
           resources :versions, only: [:index, :show], constraints: { id: /.*/ } do
+            resources :artifacts, only: [:index]
             member do
               get :codemeta, to: 'versions#codemeta'
             end
