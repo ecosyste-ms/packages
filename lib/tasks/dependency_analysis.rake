@@ -580,14 +580,11 @@ namespace :dependency_analysis do
     return 0 if version1 == version2
 
     begin
-      # Try semantic version comparison first
-      clean1 = SemanticRange.clean(version1) || version1
-      clean2 = SemanticRange.clean(version2) || version2
+      clean1 = Vers.clean(version1, 'semver')
+      clean2 = Vers.clean(version2, 'semver')
+      return version1 <=> version2 unless clean1 && clean2
 
-      sem1 = Semantic::Version.new(clean1)
-      sem2 = Semantic::Version.new(clean2)
-
-      sem1 <=> sem2
+      Vers.compare_with_scheme(clean1, clean2, 'semver')
     rescue ArgumentError
       # Fallback to string comparison if semantic parsing fails
       version1 <=> version2

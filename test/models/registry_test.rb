@@ -190,6 +190,31 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal package.versions.sort.last.dependencies.length, 1
   end
 
+  test 'sync_package selects the latest active Bazel release' do
+    registry = Registry.create!(name: 'registry.bazel.build', url: 'https://registry.bazel.build', ecosystem: 'Bazel')
+    ecosystem = registry.ecosystem_instance
+    ecosystem.stubs(:package_metadata).with('protobuf').returns(
+      name: 'protobuf',
+      versions: ['3.19.6', '35.1', '36.0-rc2', '36.0', '36.0.bcr.1']
+    )
+    ecosystem.stubs(:versions_metadata).returns([
+      { number: '3.19.6', status: nil, published_at: 1.day.ago },
+      { number: '35.1', status: nil, published_at: 2.days.ago },
+      { number: '36.0-rc2', status: nil, published_at: 3.days.ago },
+      { number: '36.0', status: 'yanked', published_at: 4.days.ago },
+      { number: '36.0.bcr.1', status: nil, published_at: 1.month.ago }
+    ])
+    ecosystem.stubs(:dependencies_metadata).returns([])
+    registry.stubs(:sync_maintainers)
+    Package.any_instance.stubs(:check_status)
+    Package.any_instance.stubs(:update_repo_metadata_async)
+
+    package = registry.sync_package('protobuf')
+
+    assert_equal '36.0.bcr.1', package.reload.latest_release_number
+    assert_equal '36.0.bcr.1', package.versions.find_by!(latest: true).number
+  end
+
   test 'sync_package returns false when package_metadata name is blank' do
     ecosystem = @registry.ecosystem_instance
     ecosystem.stubs(:package_metadata).returns({ name: '', description: 'Test' })
