@@ -360,6 +360,7 @@ DEPENDENCIES
   groupdate
   jbuilder
   jquery-rails
+  json (< 3)
   lograge
   matrix
   mocha
