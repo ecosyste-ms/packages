@@ -70,6 +70,9 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       scope = scope.repository_url(params[:repository_url])
       scope = scope.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
     elsif params[:purl].present?
+      unless params[:purl].is_a?(String)
+        render json: { error: "purl must be a single string; use POST /api/v1/packages/bulk_lookup for multiple purls" }, status: :unprocessable_content and return
+      end
       scope = lookup_by_purl(params[:purl])
     else
       params[:name] = "library/#{params[:name]}" if params[:ecosystem] == 'docker' && !params[:name].include?('/')

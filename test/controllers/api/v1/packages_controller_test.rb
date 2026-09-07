@@ -129,6 +129,13 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.first['name'], @package.name
   end
 
+  test 'lookup by purl with array returns 422' do
+    get lookup_api_v1_packages_path(purl: ['pkg:npm/lodash', 'pkg:gem/rails'])
+    assert_response :unprocessable_content
+    actual_response = Oj.load(@response.body)
+    assert_match 'bulk_lookup', actual_response['error']
+  end
+
   test 'lookup by purl with missing type' do
     invalid_purl = 'pkg:/software.amazon.awssdk%3Ametrics-spi'
   

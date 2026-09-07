@@ -256,7 +256,7 @@ paths:
 
   /packages/lookup:
     get:
-      summary: lookup a package by repository URL, purl or ecosystem+name
+      summary: lookup a single package by repository URL, purl or ecosystem+name. For multiple packages use POST /packages/bulk_lookup.
       operationId: lookupPackage
       tags:
         - packages
@@ -269,7 +269,7 @@ paths:
             type: string
         - name: purl
           in: query
-          description: package URL
+          description: single package URL. For multiple purls use POST /packages/bulk_lookup.
           required: false
           schema:
             type: string
@@ -606,7 +606,7 @@ paths:
             type: string
         - name: purl
           in: query
-          description: package URL
+          description: single package URL. For multiple purls use POST /packages/bulk_lookup.
           required: false
           schema:
             type: string
