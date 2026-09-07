@@ -6,7 +6,7 @@ require 'webmock/minitest'
 require 'mocha/minitest'
 
 require 'sidekiq_unique_jobs/testing'
-Sidekiq::Testing.fake!
+Sidekiq.testing!(:fake)
 
 class ActiveSupport::TestCase
   Shoulda::Matchers.configure do |config|
