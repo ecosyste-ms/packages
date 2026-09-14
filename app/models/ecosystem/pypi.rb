@@ -187,6 +187,48 @@ module Ecosystem
       end
     end
 
+    def artifacts_metadata(package_metadata)
+      releases = package_metadata[:releases] || package_metadata['releases'] || {}
+      releases.to_h do |number, files|
+        [number.to_s, Array(files).map { |file| artifact_metadata(file) }]
+      end
+    end
+
+    def artifact_metadata(file)
+      metadata = {
+        digests: file['digests'],
+        requires_python: file['requires_python'],
+        yanked_reason: file['yanked_reason'],
+        python_version: file['python_version'],
+        has_sig: file['has_sig']
+      }
+      tags = wheel_tags(file['filename']) if file['packagetype'] == 'bdist_wheel'
+      metadata[:wheel_tags] = tags if tags
+
+      {
+        identifier: file['filename'],
+        filename: file['filename'],
+        kind: file['packagetype'] == 'bdist_wheel' ? 'wheel' : file['packagetype'],
+        download_url: file['url'],
+        size: file['size'],
+        published_at: file['upload_time_iso_8601'] || file['upload_time'],
+        status: file['yanked'] ? 'yanked' : nil,
+        integrity: file.dig('digests', 'sha256').presence&.then { |digest| "sha256-#{digest}" },
+        metadata: metadata
+      }
+    end
+
+    def wheel_tags(filename)
+      parts = File.basename(filename, '.whl').split('-')
+      return if parts.length < 5
+
+      {
+        python: parts[-3],
+        abi: parts[-2],
+        platform: parts[-1]
+      }
+    end
+
     def parse_pep_508_dep_spec(dep)
       name, requirement = dep.split(PEP_508_NAME_WITH_EXTRAS_REGEX, 2).last(2)
       version, environment_markers = requirement.split(";").map(&:strip)

@@ -4,6 +4,7 @@ class VersionTest < ActiveSupport::TestCase
   context 'associations' do
     should belong_to(:package)
     should have_many(:dependencies)
+    should have_many(:artifacts)
   end
 
   context 'validations' do
@@ -74,5 +75,55 @@ class VersionTest < ActiveSupport::TestCase
     assert json.key?('integrity')
     assert json.key?('status')
     refute json.key?('dependencies')
+  end
+
+  test 'sync_artifacts upserts by identifier' do
+    artifacts_metadata = [
+      {
+        identifier: 'foo-1.0.0.gem',
+        filename: 'foo-1.0.0.gem',
+        kind: 'gem',
+        integrity: "sha256-#{'a' * 64}"
+      }
+    ]
+
+    @version.sync_artifacts(artifacts_metadata)
+    @version.sync_artifacts(artifacts_metadata.first.merge(size: 123).then { |artifact| [artifact] })
+
+    assert_equal 1, @version.artifacts.count
+    assert_equal 123, @version.artifacts.first.size
+  end
+
+  test 'sync_artifacts marks missing artifacts as removed' do
+    @version.sync_artifacts([{ identifier: 'old.gem' }, { identifier: 'current.gem' }])
+
+    @version.sync_artifacts([{ identifier: 'current.gem' }])
+
+    assert_equal 'removed', @version.artifacts.find_by!(identifier: 'old.gem').status
+    assert_nil @version.artifacts.find_by!(identifier: 'current.gem').status
+  end
+
+  test 'sync_artifacts leaves artifacts unchanged when metadata is unsupported' do
+    artifact = @version.artifacts.create!(identifier: 'foo-1.0.0.gem')
+
+    @version.sync_artifacts(nil)
+
+    assert_nil artifact.reload.status
+  end
+
+  test 'sync_artifacts requires an identifier' do
+    assert_raises ArgumentError do
+      @version.sync_artifacts([{ filename: 'foo-1.0.0.gem' }])
+    end
+  end
+
+  test 'sync_artifacts keeps the last duplicate identifier' do
+    @version.sync_artifacts([
+      { identifier: 'foo-1.0.0.gem', size: 100 },
+      { identifier: 'foo-1.0.0.gem', size: 200 }
+    ])
+
+    assert_equal 1, @version.artifacts.count
+    assert_equal 200, @version.artifacts.first.size
   end
 end
