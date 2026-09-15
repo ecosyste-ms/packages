@@ -822,4 +822,14 @@ class PackageTest < ActiveSupport::TestCase
 
     assert_equal TopDependentPackage::SORTS.size, @package.top_dependent_packages.reload.count
   end
+
+  test 'keywords includes active packages and excludes inactive ones' do
+    @registry.packages.create!(name: 'active-gem', ecosystem: @registry.ecosystem, status: 'active', keywords: ['audit-keyword'])
+    @registry.packages.create!(name: 'removed-gem', ecosystem: @registry.ecosystem, status: 'removed', keywords: ['removed-keyword'])
+
+    keywords = Package.keywords.to_h { |keyword, count| [keyword, count.to_i] }
+
+    assert_equal 1, keywords['audit-keyword']
+    assert_nil keywords['removed-keyword']
+  end
 end
