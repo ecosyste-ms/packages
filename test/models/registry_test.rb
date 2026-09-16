@@ -497,4 +497,15 @@ class RegistryTest < ActiveSupport::TestCase
     Registry.any_instance.expects(:sync_one_percent_of_packages).never
     Registry.sync_worst_one_percent
   end
+
+  test 'keywords includes active packages and excludes inactive ones' do
+    Rails.cache.delete("registries_keywords/#{@registry.id}")
+    @registry.packages.create!(name: 'active-gem', ecosystem: @registry.ecosystem, status: 'active', keywords: ['audit-keyword'])
+    @registry.packages.create!(name: 'removed-gem', ecosystem: @registry.ecosystem, status: 'removed', keywords: ['removed-keyword'])
+
+    keywords = @registry.keywords.to_h { |keyword, count| [keyword, count.to_i] }
+
+    assert_equal 1, keywords['audit-keyword']
+    assert_nil keywords['removed-keyword']
+  end
 end
