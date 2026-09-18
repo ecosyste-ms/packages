@@ -47,7 +47,7 @@ module Ecosystem
 
     def download_url(package, version)
       return nil unless version.present?
-      "#{proxy_url}/#{encode_for_proxy(package.name)}/@v/#{encode_for_proxy(version.to_s)}.zip"
+      "#{proxy_url}/#{encode_for_proxy(module_path_for(package))}/@v/#{encode_for_proxy(version.to_s)}.zip"
     end
 
     def sync_missing_packages_incrementally?
@@ -179,10 +179,25 @@ module Ecosystem
 
     def fetch_package_metadata_from_pkgsite(name)
       resp = request("#{PKGSITE_API}/module/#{name}?licenses=true")
+      if resp.success?
+        mod = Oj.load(resp.body)
+        return { name: name, module: mod, synopsis: fetch_synopsis(name) }
+      end
+
+      package = fetch_pkgsite_package(name)
+      module_path = package&.fetch('modulePath', nil)
+      return nil if module_path.blank? || module_path == name
+
+      resp = request("#{PKGSITE_API}/module/#{module_path}?licenses=true")
       return nil unless resp.success?
 
-      mod = Oj.load(resp.body)
-      { name: name, module: mod, synopsis: fetch_synopsis(name) }
+      {
+        name: name,
+        module: Oj.load(resp.body),
+        module_path: module_path,
+        synopsis: package['synopsis'],
+        version: package['version']
+      }
     rescue
       nil
     end
@@ -216,9 +231,13 @@ module Ecosystem
     end
 
     def fetch_synopsis(name)
+      fetch_pkgsite_package(name)&.fetch('synopsis', nil)
+    end
+
+    def fetch_pkgsite_package(name)
       resp = request("#{PKGSITE_API}/package/#{name}")
       return nil unless resp.success?
-      Oj.load(resp.body)['synopsis']
+      Oj.load(resp.body)
     rescue
       nil
     end
@@ -241,20 +260,31 @@ module Ecosystem
                  else
                    { name: package[:name], repository_url: UrlParser.try_all(package[:name]) }
                  end
+      if package[:module_path].present? && package[:module_path] != package[:name]
+        metadata[:metadata] = { 'module_path' => package[:module_path] }
+      end
       metadata[:version] = package[:version] if package[:version].present?
       metadata
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
-      name = pkg_metadata[:name]
+      name = module_path_for(pkg_metadata)
+      subpackage = name != pkg_metadata[:name]
+      relevant_versions = Set.new(existing_version_numbers)
+      relevant_versions << pkg_metadata[:version] if pkg_metadata[:version].present?
       items = fetch_all_versions(name)
       versions = if items.empty?
-                   versions_from_proxy(name, existing_version_numbers)
+                   versions_from_proxy(
+                     name,
+                     subpackage ? [] : existing_version_numbers,
+                     only: subpackage ? relevant_versions : nil
+                   )
                  else
                    items.filter_map do |item|
                      next unless item['modulePath'] == name
+                     next if subpackage && !relevant_versions.include?(item['version'])
                      status = version_status(item)
-                     next if existing_version_numbers.include?(item['version']) && status.nil?
+                     next if !subpackage && existing_version_numbers.include?(item['version']) && status.nil?
 
                      {
                        number: item['version'],
@@ -266,7 +296,7 @@ module Ecosystem
 
       discovered_version = pkg_metadata[:version]
       if discovered_version.present? &&
-          !existing_version_numbers.include?(discovered_version) &&
+          (subpackage || !existing_version_numbers.include?(discovered_version)) &&
           versions.none? { |item| item[:number] == discovered_version }
         versions << {
           number: discovered_version,
@@ -277,6 +307,19 @@ module Ecosystem
       versions
     rescue StandardError
       []
+    end
+
+    def update_existing_versions(package, versions_metadata)
+      return if package.metadata.to_h['module_path'].blank?
+
+      active_numbers = versions_metadata.filter_map do |version|
+        version = version.with_indifferent_access
+        version[:number].to_s if version[:status].nil?
+      end
+      return if active_numbers.empty?
+
+      package.versions.where(number: active_numbers, status: 'removed')
+        .update_all(status: nil, updated_at: Time.current)
     end
 
     def fetch_all_versions(name)
@@ -301,11 +344,12 @@ module Ecosystem
       nil
     end
 
-    def versions_from_proxy(name, existing_version_numbers)
+    def versions_from_proxy(name, existing_version_numbers, only: nil)
       resp = request("#{proxy_url}/#{encode_for_proxy(name)}/@v/list")
       return [] unless resp.success?
 
       resp.body.split("\n").map(&:strip).reject(&:empty?)
+        .select { |v| only.nil? || only.include?(v) }
         .reject { |v| existing_version_numbers.include?(v) }
         .sort.reverse.first(50).map do |v|
           {
@@ -316,8 +360,9 @@ module Ecosystem
         end
     end
 
-    def dependencies_metadata(name, version, _package)
+    def dependencies_metadata(name, version, package_metadata)
       # Go proxy spec: https://golang.org/cmd/go/#hdr-Module_proxy_protocol
+      name = module_path_for(package_metadata) if package_metadata
       resp = request("#{proxy_url}/#{encode_for_proxy(name)}/@v/#{encode_for_proxy(version)}.mod")
       if resp.status == 200
         go_mod_file = resp.body
@@ -339,6 +384,10 @@ module Ecosystem
 
     def get_version(package_name, version)
       get_json("#{proxy_url}/#{encode_for_proxy(package_name)}/@v/#{encode_for_proxy(version)}.info") rescue {}
+    end
+
+    def module_path_for(package)
+      package[:metadata].to_h['module_path'].presence || package[:name]
     end
 
     # will convert a string with capital letters and replace with a "!" prepended to the lowercase letter

@@ -213,6 +213,8 @@ class GoTest < ActiveSupport::TestCase
   test 'package_metadata falls back to proxy when API misses' do
     stub_request(:get, "https://pkg.go.dev/v1beta/module/github.com/aws/smithy-go?licenses=true")
       .to_return({ status: 404, body: '{"code":404,"message":"not found"}' })
+    stub_request(:get, "https://pkg.go.dev/v1beta/package/github.com/aws/smithy-go")
+      .to_return({ status: 404, body: '{"code":404,"message":"not found"}' })
     stub_request(:get, "https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/list")
       .to_return({ status: 200, body: file_fixture('go/list') })
     package_metadata = @ecosystem.package_metadata('github.com/aws/smithy-go')
@@ -236,6 +238,8 @@ class GoTest < ActiveSupport::TestCase
     stub_request(:get, "https://proxy.golang.org/cached-only/#{name}/@v/#{version}.mod")
       .to_return(status: 200, body: "module #{name}\n")
     stub_request(:get, "https://pkg.go.dev/v1beta/module/#{name}?licenses=true")
+      .to_return(status: 404, body: '{"code":404,"message":"not found"}')
+    stub_request(:get, "https://pkg.go.dev/v1beta/package/#{name}")
       .to_return(status: 404, body: '{"code":404,"message":"not found"}')
 
     package_metadata = @ecosystem.package_metadata(name, version: version)
