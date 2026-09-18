@@ -261,6 +261,31 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal ['v1.41.6', 'v1.47.0'], package.versions.active.order(:number).pluck(:number)
   end
 
+  test 'sync_package clears stale module_path when Go package resolves as its own module' do
+    registry = Registry.create!(default: true, name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go')
+    name = 'github.com/aws/aws-sdk-go-v2/service/s3'
+    package = registry.packages.create!(
+      name: name,
+      ecosystem: 'go',
+      metadata: { 'module_path' => 'github.com/aws/aws-sdk-go-v2' },
+      last_synced_at: 2.days.ago
+    )
+    stub_request(:get, "https://pkg.go.dev/v1beta/module/#{name}?licenses=true")
+      .to_return(status: 200, body: Oj.dump(path: name, version: 'v1.0.0', repoUrl: 'https://github.com/aws/aws-sdk-go-v2', licenses: [{ types: ['Apache-2.0'] }]))
+    stub_request(:get, "https://pkg.go.dev/v1beta/package/#{name}")
+      .to_return(status: 200, body: Oj.dump(modulePath: name, version: 'v1.0.0', path: name, synopsis: 'Package s3'))
+    stub_request(:get, "https://pkg.go.dev/v1beta/versions/#{name}?limit=1000")
+      .to_return(status: 200, body: Oj.dump(items: [{ modulePath: name, version: 'v1.0.0', commitTime: Time.utc(2026, 9, 9).iso8601, retracted: false, deprecated: false }]))
+    stub_request(:get, "https://proxy.golang.org/cached-only/#{name}/@v/v1.0.0.mod")
+      .to_return(status: 200, body: "module #{name}\n")
+
+    registry.sync_package(name)
+
+    package.reload
+    assert_nil package.metadata
+    assert_equal "https://proxy.golang.org/cached-only/#{name}/@v/v1.0.0.zip", package.latest_version.download_url
+  end
+
   test 'sync_package_async' do
     SyncPackageWorker.expects(:perform_async).with(@registry.id, 'split')
     @registry.sync_package_async('split')

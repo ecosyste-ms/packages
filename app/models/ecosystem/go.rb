@@ -262,6 +262,8 @@ module Ecosystem
                  end
       if package[:module_path].present? && package[:module_path] != package[:name]
         metadata[:metadata] = { 'module_path' => package[:module_path] }
+      elsif package[:module]
+        metadata[:metadata] = nil
       end
       metadata[:version] = package[:version] if package[:version].present?
       metadata
