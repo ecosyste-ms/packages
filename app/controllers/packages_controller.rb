@@ -102,6 +102,10 @@ class PackagesController < ApplicationController
   end
 
   def lookup
+    unless params[:repository_url].present? || params[:purl].present? || params[:name].present?
+      return render plain: 'Missing repository_url, purl or name parameter', status: :bad_request
+    end
+
     if params[:repository_url].present?
       scope = Package.repository_url(params[:repository_url])
     elsif params[:purl].present?

@@ -60,6 +60,10 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
   end
 
   def lookup
+    unless params[:repository_url].present? || params[:purl].present? || params[:name].present?
+      return render json: { error: 'Missing repository_url, purl or name parameter' }, status: :bad_request
+    end
+
     scope = Package.all
     if params[:id].present?
       @registry = Registry.find_by_name!(params[:id])

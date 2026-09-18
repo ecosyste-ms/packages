@@ -19,6 +19,12 @@ class PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_template 'packages/show', file: 'packages/show.html.erb'
   end
 
+  test 'lookup returns bad request without a package selector' do
+    get packages_lookup_path(ecosystem: 'docker')
+    assert_response :bad_request
+    assert_equal 'Missing repository_url, purl or name parameter', response.body
+  end
+
   test 'package name with path traversal segments returns 404' do
     # A package named "./../../../" generates a URL that CDNs normalise to "/",
     # so serving it as 200 with public cache headers poisons the homepage cache.
