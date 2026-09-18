@@ -225,6 +225,21 @@ class RegistryTest < ActiveSupport::TestCase
     @registry.sync_package_async('split')
   end
 
+  test 'sync_maintainers skips hidden identities and syncs visible maintainers' do
+    package = @registry.packages.create!(name: 'some-package', ecosystem: @registry.ecosystem)
+    @registry.maintainers.create!(uuid: 'old-uuid', login: 'blockeduser', packages_count: Maintainer::TOMBSTONE_PACKAGES_COUNT)
+    @registry.ecosystem_instance.expects(:maintainers_metadata).with(package.name).returns([
+      {uuid: 'new-uuid', login: 'blockeduser'},
+      {uuid: 'visible-uuid', login: 'visibleuser'}
+    ])
+
+    @registry.sync_maintainers(package)
+
+    assert_equal ['visibleuser'], package.maintainers.reload.pluck(:login)
+    assert_nil @registry.maintainers.find_by(uuid: 'new-uuid')
+    assert_equal 1, package.reload.maintainers_count
+  end
+
   test 'sync_package emits package.created and version.created for new package' do
     LiveEvent.stubs(:enabled?).returns(true)
 

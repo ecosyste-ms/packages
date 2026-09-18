@@ -2,7 +2,7 @@ class MaintainersController < ApplicationController
   def index
     @registry = Registry.find_by_name!(params[:registry_id])
 
-    scope = @registry.maintainers
+    scope = @registry.maintainers.visible
 
     if params[:sort].present? || params[:order].present?
       sort = sanitize_sort(Maintainer.sortable_columns, default: 'packages_count')
@@ -20,7 +20,8 @@ class MaintainersController < ApplicationController
 
   def show
     @registry = Registry.find_by_name!(params[:registry_id])
-    @maintainer = @registry.maintainers.find_by(login: params[:id]) || @registry.maintainers.find_by!(uuid: params[:id])
+    maintainers = @registry.maintainers.visible
+    @maintainer = maintainers.find_by(login: params[:id]) || maintainers.find_by!(uuid: params[:id])
 
     raise ActiveRecord::RecordNotFound if @maintainer.blank?
 
@@ -37,7 +38,8 @@ class MaintainersController < ApplicationController
 
   def namespaces
     @registry = Registry.find_by_name!(params[:registry_id])
-    @maintainer = @registry.maintainers.find_by(login: params[:id]) || @registry.maintainers.find_by!(uuid: params[:id])
+    maintainers = @registry.maintainers.visible
+    @maintainer = maintainers.find_by(login: params[:id]) || maintainers.find_by!(uuid: params[:id])
     @pagy, @namespaces = pagy_array(@maintainer.namespaces)
   end
 end

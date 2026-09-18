@@ -39,4 +39,23 @@ class ApiV1MaintainerControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal actual_response[0]["name"], @package.name
   end
+
+  test 'hidden maintainers are omitted from the registry list' do
+    @registry.maintainers.create!(uuid: 'hidden-uuid', login: 'hidden-user', packages_count: Maintainer::TOMBSTONE_PACKAGES_COUNT)
+
+    get api_v1_registry_maintainers_path(registry_id: @registry.name)
+
+    assert_response :success
+    assert_equal ['rand'], Oj.load(response.body).pluck('login')
+  end
+
+  test 'hidden maintainer endpoints return not found' do
+    @maintainer.update!(packages_count: Maintainer::TOMBSTONE_PACKAGES_COUNT)
+
+    get api_v1_registry_maintainer_path(registry_id: @registry.name, id: @maintainer.login)
+    assert_response :not_found
+
+    get packages_api_v1_registry_maintainer_path(registry_id: @registry.name, id: @maintainer.login)
+    assert_response :not_found
+  end
 end
