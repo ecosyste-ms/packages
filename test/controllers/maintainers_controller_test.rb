@@ -20,4 +20,21 @@ class MaintainersControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_template 'maintainers/show', file: 'maintainers/show.json.jbuilder'
   end
+
+  test 'hidden maintainers are omitted from the registry list' do
+    hidden = @registry.maintainers.create!(uuid: 'hidden-uuid', login: 'hidden-user', packages_count: Maintainer::TOMBSTONE_PACKAGES_COUNT)
+
+    get registry_maintainers_path(registry_id: @registry.name)
+
+    assert_response :success
+    assert_not_includes response.body, hidden.login
+  end
+
+  test 'hidden maintainer pages return not found' do
+    @maintainer.update!(packages_count: Maintainer::TOMBSTONE_PACKAGES_COUNT)
+
+    get registry_maintainer_path(registry_id: @registry.name, id: @maintainer.login)
+
+    assert_response :not_found
+  end
 end

@@ -427,7 +427,26 @@ class Registry < ApplicationRecord
 
     return unless maintainers_json.present?
 
+    identity_candidates = maintainers_json.flat_map do |maintainer|
+      maintainer.values_at(:uuid, :login).compact.flat_map do |identifier|
+        [identifier.to_s, identifier.to_s.downcase]
+      end
+    end.uniq
+    hidden_identifiers = maintainers.hidden
+                                    .where(uuid: identity_candidates)
+                                    .or(maintainers.hidden.where(login: identity_candidates))
+                                    .pluck(:uuid, :login)
+                                    .flatten
+                                    .compact
+                                    .map(&:downcase)
+                                    .to_set
+
     maintainers_json.each do |maintainer|
+      identifiers = maintainer.values_at(:uuid, :login).compact.flat_map do |identifier|
+        [identifier.to_s, identifier.to_s.downcase]
+      end
+      next if identifiers.any? { |identifier| hidden_identifiers.include?(identifier) }
+
       m = maintainers.find_or_create_by(uuid: maintainer[:uuid])
       m.email = maintainer[:email]
       m.login = maintainer[:login]
