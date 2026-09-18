@@ -50,17 +50,21 @@ module Ecosystem
       "https://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/#{pkgpath}/"
     end
 
-    def download_url(package, _version = nil)
-      metadata = fetch_package_metadata(package.name)
-      return nil if metadata.blank?
-
-      fullpkgname = metadata["FULLPKGNAME"]
+    def download_url(package, version = nil)
+      fullpkgname = stored_fullpkgname(version) || stored_fullpkgname(package)
       return nil if fullpkgname.blank?
+
       "#{packages_base_url}/#{ERB::Util.url_encode("#{fullpkgname}.tgz")}"
     end
 
-    def install_command(package, _version = nil)
-      "pkg_add #{fetch_package_metadata(package.name)&.dig("FULLPKGNAME") || package.name}"
+    def install_command(package, version = nil)
+      "pkg_add #{stored_fullpkgname(version) || stored_fullpkgname(package) || package.name}"
+    end
+
+    def stored_fullpkgname(record)
+      return unless record.respond_to?(:metadata) && record.metadata.is_a?(Hash)
+
+      record.metadata["fullpkgname"] || record.metadata[:fullpkgname]
     end
 
     def check_status(package)

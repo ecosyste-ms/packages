@@ -35,8 +35,7 @@ module Ecosystem
     end
 
     def registry_url(package, _version = nil)
-      origin = package.metadata&.dig('origin').presence ||
-               packages_by_name[package.name]&.dig('origin')
+      origin = package.metadata&.dig('origin').presence
 
       if origin.blank?
         return "https://ports.freebsd.org/cgi/ports.cgi?query=#{ERB::Util.url_encode(package.name)}&stype=name"
@@ -52,10 +51,10 @@ module Ecosystem
     def download_url(package, version)
       return nil unless version.present?
 
-      rec = record_for(package.name, version.number)
-      return nil if rec.blank? || rec['repopath'].blank?
+      repopath = version.metadata&.dig('repopath').presence
+      return nil if repopath.blank?
 
-      "#{@registry_url.chomp('/')}/#{rec['repopath']}"
+      "#{@registry_url.chomp('/')}/#{repopath}"
     end
 
     def install_command(package, _version = nil)
@@ -195,14 +194,28 @@ module Ecosystem
       }
     end
 
-    def versions_metadata(pkg_metadata, existing_version_numbers = [])
+    def versions_metadata(pkg_metadata, _existing_version_numbers = [])
       record = fetch_package_metadata(pkg_metadata[:name] || pkg_metadata['name'])
       return [] if record.blank?
 
       number = record['version']
-      return [] if number.blank? || existing_version_numbers.include?(number.to_s)
+      return [] if number.blank?
 
       [version_hash_for_record(record)]
+    end
+
+    def update_existing_versions(package, versions_metadata)
+      metadata_by_number = versions_metadata.each_with_object({}) do |version, result|
+        version = version.with_indifferent_access
+        result[version[:number].to_s] = (version[:metadata] || {}).stringify_keys
+      end
+
+      package.versions.where(number: metadata_by_number.keys).find_each do |version|
+        metadata = (version.metadata || {}).merge(metadata_by_number.fetch(version.number))
+        next if metadata == version.metadata
+
+        version.update_columns(metadata: metadata, updated_at: Time.current)
+      end
     end
 
     def dependencies_metadata(name, version, _pkg_metadata)
@@ -231,13 +244,6 @@ module Ecosystem
       parsed_maintainer(record['maintainer'])
     end
 
-    def record_for(pkg_name, version_number)
-      record = packages_by_name[pkg_name]
-      return nil if record.blank?
-
-      record['version'].to_s == version_number.to_s ? record : nil
-    end
-
     def parse_build_timestamp(value)
       return nil if value.blank?
 
@@ -255,6 +261,7 @@ module Ecosystem
         metadata: {
           arch: rec['arch'],
           abi: rec['abi'],
+          repopath: rec['repopath'],
         }.compact
       }
       h.compact
