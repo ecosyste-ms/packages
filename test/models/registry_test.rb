@@ -220,6 +220,72 @@ class RegistryTest < ActiveSupport::TestCase
     assert package.last_synced_at
   end
 
+  test 'sync_package resolves a Go subpackage through its containing module' do
+    registry = Registry.create!(default: true, name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go')
+    subpackage = 'github.com/aws/aws-sdk-go-v2/internal/rand'
+    module_path = 'github.com/aws/aws-sdk-go-v2'
+    stub_go_subpackage(subpackage, module_path, ['v1.47.0'])
+
+    package = registry.sync_package(subpackage)
+
+    assert package.persisted?
+    assert_equal subpackage, package.name
+    assert_equal module_path, package.metadata['module_path']
+    assert_equal 'active', package.read_attribute(:status)
+    assert_equal 'v1.47.0', package.latest_release_number
+    assert_equal 'v1.47.0', package.latest_version.number
+    assert_equal ['v1.47.0'], package.versions.pluck(:number)
+    assert_equal "https://proxy.golang.org/cached-only/#{module_path}/@v/v1.47.0.zip",
+      package.latest_version.download_url
+  end
+
+  test 'sync_package restores removed versions for a Go subpackage' do
+    registry = Registry.create!(default: true, name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go')
+    subpackage = 'github.com/aws/aws-sdk-go-v2/internal/rand'
+    module_path = 'github.com/aws/aws-sdk-go-v2'
+    package = registry.packages.create!(
+      name: subpackage,
+      ecosystem: 'go',
+      status: 'removed',
+      last_synced_at: 2.days.ago
+    )
+    old_version = package.versions.create!(number: 'v1.41.6', status: 'removed', registry: registry)
+    stub_go_subpackage(subpackage, module_path, ['v1.47.0', 'v1.41.6'])
+
+    registry.sync_package(subpackage)
+
+    assert_equal 'active', package.reload.read_attribute(:status)
+    assert_equal module_path, package.metadata['module_path']
+    assert_nil old_version.reload.status
+    assert_equal 'v1.47.0', package.latest_release_number
+    assert_equal ['v1.41.6', 'v1.47.0'], package.versions.active.order(:number).pluck(:number)
+  end
+
+  test 'sync_package clears stale module_path when Go package resolves as its own module' do
+    registry = Registry.create!(default: true, name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go')
+    name = 'github.com/aws/aws-sdk-go-v2/service/s3'
+    package = registry.packages.create!(
+      name: name,
+      ecosystem: 'go',
+      metadata: { 'module_path' => 'github.com/aws/aws-sdk-go-v2' },
+      last_synced_at: 2.days.ago
+    )
+    stub_request(:get, "https://pkg.go.dev/v1beta/module/#{name}?licenses=true")
+      .to_return(status: 200, body: Oj.dump(path: name, version: 'v1.0.0', repoUrl: 'https://github.com/aws/aws-sdk-go-v2', licenses: [{ types: ['Apache-2.0'] }]))
+    stub_request(:get, "https://pkg.go.dev/v1beta/package/#{name}")
+      .to_return(status: 200, body: Oj.dump(modulePath: name, version: 'v1.0.0', path: name, synopsis: 'Package s3'))
+    stub_request(:get, "https://pkg.go.dev/v1beta/versions/#{name}?limit=1000")
+      .to_return(status: 200, body: Oj.dump(items: [{ modulePath: name, version: 'v1.0.0', commitTime: Time.utc(2026, 9, 9).iso8601, retracted: false, deprecated: false }]))
+    stub_request(:get, "https://proxy.golang.org/cached-only/#{name}/@v/v1.0.0.mod")
+      .to_return(status: 200, body: "module #{name}\n")
+
+    registry.sync_package(name)
+
+    package.reload
+    assert_nil package.metadata
+    assert_equal "https://proxy.golang.org/cached-only/#{name}/@v/v1.0.0.zip", package.latest_version.download_url
+  end
+
   test 'sync_package_async' do
     SyncPackageWorker.expects(:perform_async).with(@registry.id, 'split')
     @registry.sync_package_async('split')
@@ -507,5 +573,41 @@ class RegistryTest < ActiveSupport::TestCase
 
     assert_equal 1, keywords['audit-keyword']
     assert_nil keywords['removed-keyword']
+  end
+
+  def stub_go_subpackage(subpackage, module_path, versions)
+    available_versions = (versions + ['v1.0.0']).uniq
+    stub_request(:get, "https://pkg.go.dev/v1beta/module/#{subpackage}?licenses=true")
+      .to_return(status: 400, body: Oj.dump(code: 400, message: "#{subpackage} is a package, not a module"))
+    stub_request(:get, "https://pkg.go.dev/v1beta/package/#{subpackage}")
+      .to_return(status: 200, body: Oj.dump(
+        modulePath: module_path,
+        version: versions.first,
+        path: subpackage,
+        synopsis: 'Package rand provides random number utilities.'
+      ))
+    stub_request(:get, "https://pkg.go.dev/v1beta/module/#{module_path}?licenses=true")
+      .to_return(status: 200, body: Oj.dump(
+        path: module_path,
+        version: versions.first,
+        repoUrl: 'https://github.com/aws/aws-sdk-go-v2',
+        licenses: [{ types: ['Apache-2.0'] }]
+      ))
+    stub_request(:get, "https://pkg.go.dev/v1beta/versions/#{module_path}?limit=1000")
+      .to_return(status: 200, body: Oj.dump(
+        items: available_versions.map.with_index do |version, index|
+          {
+            modulePath: module_path,
+            version: version,
+            commitTime: (Time.utc(2026, 9, 9) - index.days).iso8601,
+            retracted: false,
+            deprecated: false
+          }
+        end
+      ))
+    versions.each do |version|
+      stub_request(:get, "https://proxy.golang.org/cached-only/#{module_path}/@v/#{version}.mod")
+        .to_return(status: 200, body: "module #{module_path}\n")
+    end
   end
 end
