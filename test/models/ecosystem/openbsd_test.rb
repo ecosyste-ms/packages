@@ -24,8 +24,15 @@ class OpenbsdTest < ActiveSupport::TestCase
       nil
     end
 
-    @package = Package.new(ecosystem: "openbsd", name: "devel/git")
-    @version = @package.versions.build(number: "2.49.0")
+    @package = Package.new(
+      ecosystem: "openbsd",
+      name: "devel/git",
+      metadata: { "fullpkgname" => "git-2.49.0" }
+    )
+    @version = @package.versions.build(
+      number: "2.49.0",
+      metadata: { "fullpkgname" => "git-2.49.0" }
+    )
     @row = @ecosystem.fetch_package_metadata_uncached("devel/git")
   end
 
@@ -34,6 +41,8 @@ class OpenbsdTest < ActiveSupport::TestCase
   end
 
   test "download_url with version uses FULLPKGNAME" do
+    @ecosystem.expects(:fetch_package_metadata).never
+
     download_url = @ecosystem.download_url(@package, @version)
     assert_equal(
       "https://cdn.openbsd.org/pub/OpenBSD/7.9/packages/amd64/git-2.49.0.tgz",
@@ -42,6 +51,8 @@ class OpenbsdTest < ActiveSupport::TestCase
   end
 
   test "install_command uses FULLPKGNAME when available" do
+    @ecosystem.expects(:fetch_package_metadata).never
+
     assert_equal "pkg_add git-2.49.0", @ecosystem.install_command(@package)
   end
 

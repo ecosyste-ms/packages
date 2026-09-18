@@ -29,6 +29,7 @@ class FreebsdTest < ActiveSupport::TestCase
 
   test 'registry_url falls back to ports.cgi without origin' do
     pkg = Package.new(ecosystem: 'freebsd', name: 'wget')
+    @ecosystem.expects(:packages_by_name).never
 
     url = @ecosystem.registry_url(pkg)
 
@@ -45,7 +46,11 @@ class FreebsdTest < ActiveSupport::TestCase
         'abi' => 'FreeBSD:14:amd64'
       }
     )
-    version = pkg.versions.build(number: '1.10.0')
+    version = pkg.versions.build(
+      number: '1.10.0',
+      metadata: { 'repopath' => 'All/Hashed/zsh.pkg' }
+    )
+    @ecosystem.expects(:packages_by_name).never
 
     expected = 'https://pkg.freebsd.org/FreeBSD:14:amd64/latest/All/Hashed/zsh.pkg'
 
@@ -110,6 +115,37 @@ class FreebsdTest < ActiveSupport::TestCase
     assert_equal ['0.1.0'], versions.map { |v| v[:number] }
 
     assert versions.all? { |v| v[:integrity].start_with?('sha256-') }
+    assert_equal 'All/Hashed/pkg-a.pkg', versions.first.dig(:metadata, :repopath)
+  end
+
+  test 'sync_package stores repopath on an existing version' do
+    registry = Registry.create!(
+      default: true,
+      name: 'freebsd-sync-test',
+      url: 'https://pkg.freebsd.org/FreeBSD:14:amd64/latest',
+      ecosystem: 'freebsd'
+    )
+    package = registry.packages.create!(
+      ecosystem: 'freebsd',
+      name: 'zsh-you-should-use',
+      metadata: { 'origin' => 'shells/zsh-you-should-use' }
+    )
+    version = package.versions.create!(number: '1.10.0', registry_id: registry.id)
+    ecosystem = registry.ecosystem_instance
+    ecosystem.stubs(:package_metadata).returns(
+      name: package.name,
+      metadata: package.metadata
+    )
+    ecosystem.stubs(:versions_metadata).returns([
+      {
+        number: version.number,
+        metadata: { repopath: 'All/Hashed/zsh.pkg' }
+      }
+    ])
+
+    registry.sync_package(package.name, force: true)
+
+    assert_equal 'All/Hashed/zsh.pkg', version.reload.metadata['repopath']
   end
 
   test 'dependencies_metadata maps pkg deps' do

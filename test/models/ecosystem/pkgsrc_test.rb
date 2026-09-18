@@ -25,15 +25,28 @@ class PkgsrcTest < ActiveSupport::TestCase
   end
 
   test "install_command with and without version" do
-    pkg = Package.new(ecosystem: "pkgsrc", name: "games/hello-kitty")
+    pkg = Package.new(
+      ecosystem: "pkgsrc",
+      name: "games/hello-kitty",
+      metadata: { "pkgbase" => "hello-kitty" }
+    )
+    @ecosystem.expects(:fetch_package_metadata).never
 
     assert_equal "pkg_add hello-kitty", @ecosystem.install_command(pkg)
     assert_equal "pkg_add hello-kitty-2.6", @ecosystem.install_command(pkg, "2.6")
   end
 
   test "install_command uses PKGNAME base when it differs from PKGPATH slug" do
-    pkg = Package.new(ecosystem: "pkgsrc", name: "www/p5-Apache-Gallery")
-    ver = pkg.versions.build(number: "1.0.2nb8")
+    pkg = Package.new(
+      ecosystem: "pkgsrc",
+      name: "www/p5-Apache-Gallery",
+      metadata: { "pkgbase" => "Apache-Gallery" }
+    )
+    ver = pkg.versions.build(
+      number: "1.0.2nb8",
+      metadata: { "pkgname" => "Apache-Gallery-1.0.2nb8" }
+    )
+    @ecosystem.expects(:fetch_package_metadata).never
 
     assert_equal "pkg_add Apache-Gallery", @ecosystem.install_command(pkg)
     assert_equal "pkg_add Apache-Gallery-1.0.2nb8", @ecosystem.install_command(pkg, ver)
@@ -41,7 +54,11 @@ class PkgsrcTest < ActiveSupport::TestCase
 
   test "download_url builds All URL from FILE_NAME" do
     pkg = Package.new(ecosystem: "pkgsrc", name: "games/hello-kitty")
-    ver = pkg.versions.build(number: "2.5")
+    ver = pkg.versions.build(
+      number: "2.5",
+      metadata: { "file_name" => "hello-kitty-2.5.tgz" }
+    )
+    @ecosystem.expects(:fetch_package_metadata).never
 
     assert_equal "https://cdn.example.test/pkgs/All/hello-kitty-2.5.tgz",
                  @ecosystem.download_url(pkg, ver)

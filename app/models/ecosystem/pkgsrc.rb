@@ -64,11 +64,10 @@ module Ecosystem
       registry_url(package, version)
     end
 
-    def download_url(package, version)
+    def download_url(_package, version)
       return nil unless version.present?
 
-      rec = record_matching_version(package.name, version.number)
-      fn = rec&.fetch("FILE_NAME", nil).presence
+      fn = stored_metadata_value(version, "file_name").presence
 
       fn.present? ? "#{@registry_url.chomp('/')}/#{fn}" : nil
     end
@@ -76,22 +75,20 @@ module Ecosystem
     def install_command(package, version = nil)
       version_number = version.respond_to?(:number) ? version.number : version
 
-      rec = if version_number.present?
-        record_matching_version(package.name, version_number)
-      else
-        raw = fetch_package_metadata(package.name)
-        primary_record(raw["records"]) if raw.present?
-      end
-
-      pkgbase = pkgbase_from_record(rec) ||
-        package.metadata&.dig("pkgbase") ||
+      pkgbase = package.metadata&.dig("pkgbase") ||
         package.metadata&.dig(:pkgbase) ||
         pkg_slug(package.name.to_s)
 
       return "pkg_add #{pkgbase}" if version_number.blank?
 
-      pkgname = rec&.fetch("PKGNAME", nil)
+      pkgname = stored_metadata_value(version, "pkgname")
       pkgname.present? ? "pkg_add #{pkgname}" : "pkg_add #{pkgbase}-#{version_number}"
+    end
+
+    def stored_metadata_value(record, key)
+      return unless record.respond_to?(:metadata) && record.metadata.is_a?(Hash)
+
+      record.metadata[key] || record.metadata[key.to_sym]
     end
 
     def check_status(package)
@@ -281,13 +278,6 @@ module Ecosystem
       records.max_by do |rec|
         parsed_build_date(rec["BUILD_DATE"]) || Time.zone.at(0)
       end || records.first
-    end
-
-    def record_matching_version(pkgpath, version_number)
-      raw = fetch_package_metadata_uncached(pkgpath)
-      return nil if raw.blank?
-
-      raw["records"].find { |r| version_string_for(r) == version_number.to_s }
     end
 
     def version_string_for(record)

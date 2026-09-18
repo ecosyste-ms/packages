@@ -25,6 +25,91 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.length, 1
   end
 
+  test 'list OpenBSD versions without downloading registry metadata' do
+    registry = Registry.create!(
+      default: true,
+      name: 'openbsd-7.9-amd64',
+      url: 'https://cdn.openbsd.org/pub/OpenBSD/7.9/packages/amd64',
+      ecosystem: 'openbsd',
+      metadata: { 'arch' => 'amd64', 'sqlports_tgz' => 'sqlports-7.54.tgz' }
+    )
+    package = registry.packages.create!(
+      ecosystem: 'openbsd',
+      name: 'devel/protobuf-c',
+      metadata: { 'fullpkgname' => 'protobuf-c-1.5.2' }
+    )
+    package.versions.create!(
+      number: '1.5.2',
+      metadata: { 'fullpkgname' => 'protobuf-c-1.5.2' },
+      registry_id: registry.id
+    )
+    Ecosystem::Openbsd.any_instance.expects(:download_and_cache).never
+
+    get api_v1_registry_package_versions_path(registry_id: registry.name, package_id: package.name)
+
+    assert_response :success
+    version = response.parsed_body.first
+    assert_equal 'https://cdn.openbsd.org/pub/OpenBSD/7.9/packages/amd64/protobuf-c-1.5.2.tgz', version['download_url']
+    assert_equal 'pkg_add protobuf-c-1.5.2', version['install_command']
+  end
+
+  test 'list FreeBSD versions without downloading registry metadata' do
+    registry = Registry.create!(
+      default: true,
+      name: 'freebsd-14-amd64-latest',
+      url: 'https://pkg.freebsd.org/FreeBSD:14:amd64/latest',
+      ecosystem: 'freebsd'
+    )
+    package = registry.packages.create!(
+      ecosystem: 'freebsd',
+      name: 'zsh-you-should-use',
+      metadata: { 'origin' => 'shells/zsh-you-should-use', 'abi' => 'FreeBSD:14:amd64' }
+    )
+    package.versions.create!(
+      number: '1.10.0',
+      metadata: { 'repopath' => 'All/Hashed/zsh.pkg' },
+      registry_id: registry.id
+    )
+    Ecosystem::Freebsd.any_instance.expects(:download_and_cache).never
+
+    get api_v1_registry_package_versions_path(registry_id: registry.name, package_id: package.name)
+
+    assert_response :success
+    version = response.parsed_body.first
+    assert_equal 'https://pkg.freebsd.org/FreeBSD:14:amd64/latest/All/Hashed/zsh.pkg', version['download_url']
+    assert_equal 'pkg install zsh-you-should-use', version['install_command']
+  end
+
+  test 'list pkgsrc versions without downloading registry metadata' do
+    registry = Registry.create!(
+      default: true,
+      name: 'pkgsrc-test',
+      url: 'https://cdn.example.test/pkgs/All',
+      ecosystem: 'pkgsrc'
+    )
+    package = registry.packages.create!(
+      ecosystem: 'pkgsrc',
+      name: 'games/hello-kitty',
+      metadata: { 'pkgbase' => 'hello-kitty' }
+    )
+    package.versions.create!(
+      number: '2.6',
+      metadata: {
+        'file_name' => 'hello-kitty-2.6.tgz',
+        'pkgname' => 'hello-kitty-2.6'
+      },
+      registry_id: registry.id
+    )
+    Ecosystem::Pkgsrc.any_instance.expects(:download_and_cache).never
+
+    get api_v1_registry_package_versions_path(registry_id: registry.name, package_id: package.name)
+
+    assert_response :success
+    version = response.parsed_body.first
+    assert_equal 'https://cdn.example.test/pkgs/All/hello-kitty-2.6.tgz', version['download_url']
+    assert_equal 'pkg_add hello-kitty-2.6', version['install_command']
+  end
+
   test 'get version of a package' do
     @version.update!(metadata: { foo: 'bar', immutable: false })
     get api_v1_registry_package_version_path(registry_id: @registry.name, package_id: @package.name, id: '1.0.0')
