@@ -320,6 +320,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/PackageWithRegistry'
+        '400':
+          description: missing repository_url, purl or name parameter
   /packages/critical:
     get:
       summary: list all critical packages

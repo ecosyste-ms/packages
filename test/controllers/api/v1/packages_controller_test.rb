@@ -129,6 +129,15 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.first['name'], @package.name
   end
 
+  test 'lookup returns bad request without a package selector' do
+    get lookup_api_v1_packages_path(ecosystem: 'docker')
+    assert_response :bad_request
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 'Missing repository_url, purl or name parameter', actual_response['error']
+  end
+
   test 'lookup by purl with array returns 422' do
     get lookup_api_v1_packages_path(purl: ['pkg:npm/lodash', 'pkg:gem/rails'])
     assert_response :unprocessable_content
