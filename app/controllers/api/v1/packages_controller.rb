@@ -80,7 +80,9 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       scope = lookup_by_purl(params[:purl])
     else
       params[:name] = "library/#{params[:name]}" if params[:ecosystem] == 'docker' && !params[:name].include?('/')
-      scope = scope.where(name: params[:name])
+      name = params[:name]
+      name = name.downcase if (@registry&.ecosystem || params[:ecosystem]) == 'nuget'
+      scope = scope.where(name: name)
       scope = scope.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
     end
 
