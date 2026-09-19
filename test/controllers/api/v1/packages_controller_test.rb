@@ -170,6 +170,37 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.first['name'], @package.name
   end
 
+  test 'generated PURLs resolve back to distinct nested GitHub Actions packages' do
+    registry = Registry.create!(name: 'github actions', url: 'https://actions.io', ecosystem: 'actions', default: true)
+    packages = ['github/gh-aw/actions/setup', 'github/gh-aw-actions/setup'].map do |name|
+      registry.packages.create!(ecosystem: 'actions', name: name)
+    end
+
+    packages.each do |package|
+      get lookup_api_v1_registry_path(id: registry.name), params: { ecosystem: 'actions', name: package.name }
+      assert_response :success
+      result = Oj.load(response.body).sole
+      assert_equal package.id, result['id']
+      assert_equal "pkg:githubactions/#{package.name}", result['purl']
+
+      get lookup_api_v1_packages_path, params: { purl: result['purl'] }
+      assert_response :success
+      assert_equal [package.id], Oj.load(response.body).pluck('id')
+    end
+  end
+
+  test 'bulk PURL lookup resolves distinct nested GitHub Actions packages' do
+    registry = Registry.create!(name: 'github actions', url: 'https://actions.io', ecosystem: 'actions', default: true)
+    packages = ['github/gh-aw/actions/setup', 'github/gh-aw-actions/setup'].map do |name|
+      registry.packages.create!(ecosystem: 'actions', name: name)
+    end
+
+    post bulk_lookup_api_v1_packages_path, params: { purls: packages.map(&:purl) }
+
+    assert_response :success
+    assert_equal packages.map(&:id).sort, Oj.load(response.body).pluck('id').sort
+  end
+
   test 'lookup by purl maven' do
     @registry = Registry.create(name: 'maven', url: 'https://mvnrepository.com/', ecosystem: 'maven')
     @package = @registry.packages.create(ecosystem: 'maven', name: 'org.apache.commons:commons-lang3')
