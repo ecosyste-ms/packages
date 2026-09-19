@@ -1121,6 +1121,7 @@ class Package < ApplicationRecord
     else
       name = [namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
       ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type)
+      name = name.downcase if ecosystem == 'nuget'
       registry_ids = registry_ids_cache[ecosystem] ||= Registry.where(ecosystem: ecosystem).pluck(:id)
       where(name: name, registry_id: registry_ids)
     end
