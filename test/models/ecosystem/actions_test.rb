@@ -298,4 +298,26 @@ class ActionsTest < ActiveSupport::TestCase
     assert_equal purl, 'pkg:githubactions/getsentry/action-git-diff-suggestions@v1'
     assert Purl.parse(purl)
   end
+
+  test 'purl preserves nested actions with the same owner and final path segment' do
+    names = ['github/gh-aw/actions/setup', 'github/gh-aw-actions/setup']
+    purls = names.map do |name|
+      package = @registry.packages.build(ecosystem: 'actions', name: name)
+      @ecosystem.purl(package)
+    end
+
+    assert_equal ['pkg:githubactions/github/gh-aw/actions/setup', 'pkg:githubactions/github/gh-aw-actions/setup'], purls
+    reconstructed_names = purls.map do |purl|
+      parsed = Purl.parse(purl)
+      [parsed.namespace, parsed.name].join('/')
+    end
+    assert_equal names, reconstructed_names
+  end
+
+  test 'versioned purl preserves the full nested action path and its casing' do
+    package = @registry.packages.build(ecosystem: 'actions', name: 'example/repository/Actions/Setup')
+    version = package.versions.build(number: 'v1')
+
+    assert_equal 'pkg:githubactions/example/repository/Actions/Setup@v1', @ecosystem.purl(package, version)
+  end
 end

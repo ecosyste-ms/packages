@@ -8,10 +8,11 @@ module Ecosystem
     end
 
     def purl_params(package, version = nil)
+      parts = package.name.split('/')
       {
         type: purl_type,
-        namespace: package.name.split('/').first,
-        name: package.name.split('/').last,
+        namespace: parts[0...-1].join('/'),
+        name: parts.last,
         version: version.try(:number).try(:encode, 'iso-8859-1', invalid: :replace, undef: :replace, replace: '')
       }
     end
