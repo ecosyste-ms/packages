@@ -1,7 +1,7 @@
 class SyncPackageVersionWorker
   include Sidekiq::Worker
   include Sidekiq::Throttled::Job
-  sidekiq_options queue: :low,
+  sidekiq_options queue: :versions,
                   lock: :until_executed,
                   lock_ttl: 1.day.to_i
   sidekiq_throttle_as :registry_host

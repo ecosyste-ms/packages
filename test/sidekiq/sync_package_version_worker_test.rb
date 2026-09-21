@@ -1,6 +1,10 @@
 require "test_helper"
 
 class SyncPackageVersionWorkerTest < ActiveSupport::TestCase
+  test 'runs on its own queue' do
+    assert_equal 'versions', SyncPackageVersionWorker.get_sidekiq_options['queue'].to_s
+  end
+
   test 'perform syncs a missing package with its indexed version' do
     registry = Registry.create!(name: 'Go modules', url: 'https://go.example', ecosystem: 'Go')
     registry.expects(:sync_package).with('example.com/module', force: false, version: 'v1.2.3')

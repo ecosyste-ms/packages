@@ -10,8 +10,12 @@ class UpdateRepoMetadataWorkerTest < ActiveSupport::TestCase
     @strategy.reset!
   end
 
+  test "runs on its own queue" do
+    assert_equal "repo_metadata", UpdateRepoMetadataWorker.get_sidekiq_options["queue"].to_s
+  end
+
   test "limits concurrent repository metadata updates" do
-    jids = 5.times.map { SecureRandom.hex }
+    jids = 25.times.map { SecureRandom.hex }
 
     jids.each do |jid|
       refute @strategy.throttled?(jid, 1)
