@@ -83,6 +83,9 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       name = params[:name]
       ecosystem = @registry&.ecosystem || params[:ecosystem]
       name = name.downcase if ecosystem == 'nuget'
+      if @registry.nil? && params[:ecosystem].present?
+        scope = scope.where(registry_id: Registry.where(ecosystem: params[:ecosystem]).pluck(:id))
+      end
       scope = ecosystem == 'pypi' ? scope.with_pypi_name(name) : scope.where(name: name)
       scope = scope.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
     end
