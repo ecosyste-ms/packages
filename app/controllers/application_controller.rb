@@ -53,7 +53,8 @@ class ApplicationController < ActionController::Base
         registry_ids = Registry.where(ecosystem: ecosystem).pluck(:id)
       end
 
-      Package.where(name: name, registry_id: registry_ids)
+      scope = Package.where(registry_id: registry_ids)
+      ecosystem == 'pypi' ? scope.with_pypi_name(name) : scope.where(name: name)
     end
   rescue
     Package.none

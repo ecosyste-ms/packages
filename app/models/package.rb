@@ -115,6 +115,11 @@ class Package < ApplicationRecord
   after_create :update_rankings_async
   after_update :mark_versions_removed, if: :saved_change_to_removed_status?
 
+  def self.with_pypi_name(name)
+    normalized_name = name.downcase.gsub(/[-_.]+/, '-')
+    where(name: [name, normalized_name]).or(where("metadata->>'normalized_name' = ?", normalized_name))
+  end
+
   def self.find_by_normalized_name(name)
     normalized_name = name.downcase.gsub('_', '-').gsub('.', '-')
     pkg = where(name: name).limit(1).take
@@ -1123,7 +1128,8 @@ class Package < ApplicationRecord
       ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type)
       name = name.downcase if ecosystem == 'nuget'
       registry_ids = registry_ids_cache[ecosystem] ||= Registry.where(ecosystem: ecosystem).pluck(:id)
-      where(name: name, registry_id: registry_ids)
+      scope = where(registry_id: registry_ids)
+      ecosystem == 'pypi' ? scope.with_pypi_name(name) : scope.where(name: name)
     end
   rescue => e
     Rails.logger.warn("Invalid PURL in bulk lookup: #{purl_string} - #{e.message}")
