@@ -72,7 +72,7 @@ module Ecosystem
           "funding" => fetch_funding_link(package.dig("info", "project_urls") || {}, %w[donate donation funding sponsor]),
           "documentation" => package.dig("info", "project_urls", "Documentation"),
           "classifiers" => package["info"]["classifiers"],
-          "normalized_name" => package["info"]["name"].downcase.gsub('_', '-').gsub('.', '-'),
+          "normalized_name" => package["info"]["name"].downcase.gsub(/[-_.]+/, '-'),
           "project_status" => package["project-status"]
         }
       }

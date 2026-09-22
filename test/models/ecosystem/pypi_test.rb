@@ -85,6 +85,18 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal recently_updated_package_names.last, 'lgy'
   end
 
+  test 'normalized_name collapses separator runs' do
+    body = JSON.parse(file_fixture('pypi/yiban.json').read)
+    body['info']['name'] = 'Foo__Bar.-baz'
+    stub_request(:get, "https://pypi.org/pypi/Foo__Bar.-baz/json")
+      .to_return({ status: 200, body: body.to_json })
+    stub_request(:get, "https://pypistats.org/api/packages/foo__bar.-baz/recent")
+      .to_return({ status: 200, body: file_fixture('pypi/recent.json') })
+    package_metadata = @ecosystem.package_metadata('Foo__Bar.-baz')
+
+    assert_equal 'foo-bar-baz', package_metadata[:metadata]['normalized_name']
+  end
+
   test 'package_metadata' do
     stub_request(:get, "https://pypi.org/pypi/yiban/json")
       .to_return({ status: 200, body: file_fixture('pypi/yiban.json') })

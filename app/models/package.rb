@@ -121,11 +121,11 @@ class Package < ApplicationRecord
   end
 
   def self.find_by_normalized_name(name)
-    normalized_name = name.downcase.gsub('_', '-').gsub('.', '-')
+    normalized_name = name.downcase.gsub(/[-_.]+/, '-')
     pkg = where(name: name).limit(1).take
     pkg = where(name: normalized_name).limit(1).take if pkg.nil?
     # for pypi
-    pkg = where("metadata->>'normalized_name' = ?", name.downcase.gsub('_', '-').gsub('.', '-')).limit(1).take if pkg.nil?
+    pkg = where("metadata->>'normalized_name' = ?", normalized_name).limit(1).take if pkg.nil?
     pkg
   end
 

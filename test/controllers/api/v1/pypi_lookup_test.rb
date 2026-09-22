@@ -112,6 +112,16 @@ class ApiV1PypiLookupTest < ActionDispatch::IntegrationTest
     assert_equal [canonical.id], Oj.load(response.body).pluck('id')
   end
 
+  test 'names with separator runs resolve through their canonical PURL' do
+    package = @registry.packages.create!(ecosystem: 'pypi', name: 'foo__bar', metadata: { normalized_name: 'foo-bar' })
+
+    get lookup_api_v1_packages_path, params: { purl: 'pkg:pypi/foo-bar' }
+    assert_response :success
+    assert_equal [package.id], Oj.load(response.body).pluck('id')
+
+    assert_equal package, @registry.packages.find_by_normalized_name('foo-bar')
+  end
+
   test 'PyPI normalization does not broaden lookups for missing packages' do
     get lookup_api_v1_packages_path, params: { ecosystem: 'pypi', name: 'Does.Not.Exist' }
     assert_response :success
