@@ -1,6 +1,8 @@
 require 'test_helper'
 
 class OpamTest < ActiveSupport::TestCase
+  include ActiveRecord::Assertions::QueryAssertions
+
   setup do
     @registry = Registry.create!(default: true, name: 'opam.ocaml.org', url: 'https://opam.ocaml.org', ecosystem: 'opam')
     @ecosystem = @registry.ecosystem_instance
@@ -240,7 +242,7 @@ class OpamTest < ActiveSupport::TestCase
     }.to_json)
 
     assert_equal %w[lwt old-package], @registry.all_package_names
-    assert_equal %w[lwt old-package], @registry.recently_updated_package_names
+    assert_equal %w[lwt], @registry.recently_updated_package_names
   end
 
   test 'sync imports archived releases alongside current releases' do
@@ -352,6 +354,24 @@ class OpamTest < ActiveSupport::TestCase
     assert_equal published_at, version.read_attribute(:published_at)
     assert_equal '5.10.1', package.reload.latest_release_number
     assert_equal '>= "4.14" & < "5.0"', version.dependencies.find_by!(package_name: 'ocaml').requirements
+  end
+
+  test 'rendering helpers read archival state without extra queries' do
+    stub_archive_index('lwt' => ['4.1.0'])
+    stub_archived_manifest('4.1.0', file_fixture('opam/lwt.4.1.0.archived.opam').read)
+    stub_request(:post, Ecosystem::Opam::API_URL).to_return(status: 200, body: @response.to_json)
+
+    package = @registry.sync_package('lwt').reload
+    version = package.versions.find_by!(number: '4.1.0')
+    version.install_command
+    version.documentation_url
+
+    assert_no_queries do
+      Version.uncached do
+        assert_includes version.install_command, 'opam repository add archive'
+        assert_nil version.documentation_url
+      end
+    end
   end
 
   test 'incomplete archive discovery aborts sync without changing stored records' do

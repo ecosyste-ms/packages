@@ -446,7 +446,7 @@ class Package < ApplicationRecord
     package_metadata = ecosystem.package_metadata(name)
     return false unless package_metadata
     versions_metadata = ecosystem.versions_metadata(package_metadata)
-    ecosystem.update_existing_versions(self, versions_metadata) if self.ecosystem == 'opam'
+    ecosystem.update_existing_versions(self, versions_metadata)
 
     created_versions = []
     versions_metadata.each do |version|

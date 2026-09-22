@@ -84,7 +84,7 @@ class Version < ApplicationRecord
   end
 
   def install_command
-    package.registry.ecosystem_instance.install_command(package, number)
+    package.registry.ecosystem_instance.install_command(package, self)
   end
 
   def registry_url
@@ -92,7 +92,7 @@ class Version < ApplicationRecord
   end
 
   def documentation_url
-    package.registry.ecosystem_instance.documentation_url(package, number)
+    package.registry.ecosystem_instance.documentation_url(package, self)
   end
 
   def published_at

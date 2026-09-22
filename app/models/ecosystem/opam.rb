@@ -74,9 +74,7 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      recent = package_index.sort_by { |package| package['publication'].to_f }.reverse.first(100).map { |package| package.fetch('name') }
-      # The archive has no update timestamps, so revisit its packages too.
-      (recent + archive_index.keys).uniq
+      package_index.sort_by { |package| package['publication'].to_f }.reverse.first(100).map { |package| package.fetch('name') }
     end
 
     def archive_index

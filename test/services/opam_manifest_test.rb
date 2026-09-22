@@ -37,6 +37,12 @@ class OpamManifestTest < ActiveSupport::TestCase
     assert_equal ["René", "line\nquote\"", 'hex!'], manifest.strings('authors')
   end
 
+  test 'triple-quoted strings may contain quotes and escaped quotes' do
+    manifest = OpamManifest.new(%q{description: """say "hi" or ""hey"" then\"quote"""})
+
+    assert_equal ['say "hi" or ""hey"" then"quote'], manifest.strings('description')
+  end
+
   test 'retains platform filters and system dependencies as raw metadata' do
     manifest = OpamManifest.new(<<~'OPAM')
       available: [os != "win32"]

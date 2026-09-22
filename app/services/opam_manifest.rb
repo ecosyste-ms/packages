@@ -52,7 +52,7 @@ class OpamManifest
       end
 
       start = @scanner.pos
-      if @scanner.scan(/"""(?:\\.|(?!""").)*"""|"(?:\\.|[^"\\])*"/m)
+      if @scanner.scan(/"""(?:[^"\\]|\\.|"(?!""))*"""|"(?:\\.|[^"\\])*"/m)
         nodes << { type: :string, text: @scanner.matched, start: start, finish: @scanner.pos }
       elsif @scanner.scan(/[\[({]/)
         delimiter = @scanner.matched
