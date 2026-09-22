@@ -122,6 +122,32 @@ class ApiV1PypiLookupTest < ActionDispatch::IntegrationTest
     assert_equal package, @registry.packages.find_by_normalized_name('foo-bar')
   end
 
+  test 'package URLs resolve separator aliases before and after metadata normalization' do
+    package = @registry.packages.create!(ecosystem: 'pypi', name: 'foo__bar', metadata: { normalized_name: 'foo--bar' })
+    alternate = Registry.create!(name: 'alternate-pypi', url: 'https://pypi.example', ecosystem: 'pypi')
+    alternate.packages.create!(ecosystem: 'pypi', name: package.name, metadata: package.metadata)
+
+    ['foo--bar', 'foo-bar'].each do |normalized_name|
+      package.update_column(:metadata, { 'normalized_name' => normalized_name })
+
+      ['foo__bar', 'foo--bar', 'Foo..Bar'].each do |name|
+        get api_v1_registry_package_path(registry_id: @registry.name, id: name)
+
+        assert_response :success
+        assert_equal package.id, Oj.load(response.body)['id']
+      end
+    end
+  end
+
+  test 'package URLs retain legacy normalized name matches without metadata' do
+    package = @registry.packages.create!(ecosystem: 'pypi', name: 'foo--bar')
+
+    get api_v1_registry_package_path(registry_id: @registry.name, id: 'Foo__Bar')
+
+    assert_response :success
+    assert_equal package.id, Oj.load(response.body)['id']
+  end
+
   test 'PyPI normalization does not broaden lookups for missing packages' do
     get lookup_api_v1_packages_path, params: { ecosystem: 'pypi', name: 'Does.Not.Exist' }
     assert_response :success

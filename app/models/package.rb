@@ -126,6 +126,11 @@ class Package < ApplicationRecord
     pkg = where(name: normalized_name).limit(1).take if pkg.nil?
     # for pypi
     pkg = where("metadata->>'normalized_name' = ?", normalized_name).limit(1).take if pkg.nil?
+    legacy_normalized_name = name.downcase.tr('_.', '--')
+    if pkg.nil? && legacy_normalized_name != normalized_name
+      pkg = where(name: legacy_normalized_name).limit(1).take
+      pkg = where("metadata->>'normalized_name' = ?", legacy_normalized_name).limit(1).take if pkg.nil?
+    end
     pkg
   end
 
