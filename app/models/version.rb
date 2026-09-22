@@ -32,6 +32,10 @@ class Version < ApplicationRecord
     metadata['immutable'] if metadata.is_a?(Hash)
   end
 
+  def opam_archived?
+    package&.ecosystem == 'opam' && metadata&.dig('archived') == true
+  end
+
   def self.normalize_integrity(params)
     integrity = params[:integrity]
 
@@ -80,7 +84,7 @@ class Version < ApplicationRecord
   end
 
   def install_command
-    package.registry.ecosystem_instance.install_command(package, number)
+    package.registry.ecosystem_instance.install_command(package, self)
   end
 
   def registry_url
@@ -88,7 +92,7 @@ class Version < ApplicationRecord
   end
 
   def documentation_url
-    package.registry.ecosystem_instance.documentation_url(package, number)
+    package.registry.ecosystem_instance.documentation_url(package, self)
   end
 
   def published_at
@@ -128,6 +132,10 @@ class Version < ApplicationRecord
   end
 
   def <=>(other)
+    if package&.ecosystem == 'opam'
+      return Ecosystem::Opam.compare_versions(other.number, number)
+    end
+
     if parsed_number.is_a?(String) || other.parsed_number.is_a?(String)
       other.published_at <=> published_at
     else
@@ -248,10 +256,12 @@ class Version < ApplicationRecord
   end
 
   def stable?
+    return !prerelease? if package&.ecosystem == 'opam'
     valid_number? && !prerelease?
   end
 
   def prerelease?
+    return number.include?('~') if package&.ecosystem == 'opam'
     if semantic_version && semantic_version.pre.present?
       true
     else

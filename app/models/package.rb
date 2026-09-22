@@ -341,11 +341,11 @@ class Package < ApplicationRecord
   end
 
   def latest_version
-    @latest_version ||= (latest_stable_version || versions.active.sort.first)
+    @latest_version ||= (latest_stable_version || versions.active.reject(&:opam_archived?).sort.first)
   end
 
   def latest_stable_version
-    @latest_stable_version ||= versions.active.select(&:stable?).sort.first
+    @latest_stable_version ||= versions.active.reject(&:opam_archived?).select(&:stable?).sort.first
   end
 
   def set_latest_release_published_at
@@ -446,6 +446,7 @@ class Package < ApplicationRecord
     package_metadata = ecosystem.package_metadata(name)
     return false unless package_metadata
     versions_metadata = ecosystem.versions_metadata(package_metadata)
+    ecosystem.update_existing_versions(self, versions_metadata)
 
     created_versions = []
     versions_metadata.each do |version|
@@ -456,6 +457,7 @@ class Package < ApplicationRecord
       end
       begin
         if v
+          version = version.except(:published_at) if self.ecosystem == 'opam' && version[:published_at].nil?
           v.registry_id = registry_id
           metadata_key = version.key?(:metadata) ? :metadata : 'metadata'
           if version.key?(metadata_key)
@@ -472,6 +474,10 @@ class Package < ApplicationRecord
       end
     end
     update_columns(versions_count: versions.count, versions_updated_at: Time.now)
+    if self.ecosystem == 'opam'
+      update_columns(metadata: (metadata || {}).merge('archived' => package_metadata.dig(:metadata, :archived)))
+      update_details
+    end
     emit_new_version_events(created_versions)
   end
 
