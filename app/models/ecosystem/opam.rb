@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+require 'rubygems/package'
+
 module Ecosystem
   class Opam < Base
     API_URL = 'https://ocaml.org/graphql'.freeze
     ARCHIVE_URL = 'https://github.com/ocaml/opam-repository-archive'.freeze
-    ARCHIVE_INDEX_URL = 'https://api.github.com/repos/ocaml/opam-repository-archive/git/trees/main?recursive=1'.freeze
+    ARCHIVE_INDEX_URL = 'https://github.com/ocaml/opam-repository-archive/archive/refs/heads/main.tar.gz'.freeze
     ARCHIVE_RAW_URL = 'https://raw.githubusercontent.com/ocaml/opam-repository-archive/main'.freeze
     class PackageNotFound < RuntimeError; end
     PAGE_SIZE = 500
@@ -81,13 +83,13 @@ module Ecosystem
       @archive_index ||= Rails.cache.fetch('opam/archive-index/v1', expires_in: 1.hour) do
         response = request(ARCHIVE_INDEX_URL)
         raise "Opam archive index unavailable (HTTP #{response.status})" unless response.success?
-        data = JSON.parse(response.body)
-        raise 'Opam archive index is truncated' if data['truncated']
-        data.fetch('tree').each_with_object({}) do |entry, index|
-          match = entry['path'].match(%r{\Apackages/([^/]+)/\1\.([^/]+)/opam\z})
-          next unless entry['type'] == 'blob' && match
+        index = {}
+        Gem::Package::TarReader.new(Zlib::GzipReader.new(StringIO.new(response.body))).each do |entry|
+          match = entry.full_name.match(%r{/packages/([^/]+)/\1\.([^/]+)/opam\z})
+          next unless entry.file? && match
           (index[match[1]] ||= []) << match[2]
         end
+        index
       end
     end
 
