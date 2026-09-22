@@ -1,0 +1,259 @@
+{
+  "data": {
+    "package": {
+      "name": "lwt",
+      "version": "6.1.2",
+      "synopsis": "Promises and event-driven I/O",
+      "description": "A promise is a value that may become determined in the future.\n\nLwt provides typed, composable promises. Promises that are resolved by I/O are\nresolved by Lwt in parallel.\n\nMeanwhile, OCaml code, including code creating and waiting on promises, runs in\na single thread by default. This reduces the need for locks or other\nsynchronization primitives. Code can be run in parallel on an opt-in basis.",
+      "license": "MIT",
+      "homepage": [
+        "https://github.com/ocsigen/lwt"
+      ],
+      "tags": [],
+      "authors": [
+        "Jérôme Vouillon",
+        "Jérémie Dimino"
+      ],
+      "maintainers": [
+        "Raphaël Proust <code@bnwr.net>",
+        "Anton Bachin <antonbachin@yahoo.com>"
+      ],
+      "dependencies": [
+        {
+          "name": "ocplib-endian",
+          "constraints": null
+        },
+        {
+          "name": "dune-configurator",
+          "constraints": null
+        },
+        {
+          "name": "odoc",
+          "constraints": "with-doc & >= \"2.3\""
+        },
+        {
+          "name": "ocamlfind",
+          "constraints": "dev & >= \"1.7.3-1\""
+        },
+        {
+          "name": "cppo",
+          "constraints": "build & >= \"1.1\""
+        },
+        {
+          "name": "ocaml",
+          "constraints": ">= \"4.14\""
+        },
+        {
+          "name": "dune",
+          "constraints": ">= \"3.18\""
+        }
+      ],
+      "optionalDependencies": [
+        {
+          "name": "lwt_runtime_events",
+          "constraints": null
+        },
+        {
+          "name": "conf-libev",
+          "constraints": null
+        },
+        {
+          "name": "base-unix",
+          "constraints": null
+        },
+        {
+          "name": "base-threads",
+          "constraints": null
+        }
+      ],
+      "conflicts": [],
+      "url": {
+        "uri": "https://github.com/ocsigen/lwt/archive/refs/tags/6.1.2.tar.gz",
+        "checksum": [
+          "md5=00bc7eb2772a28530f7365a7040f0c4f",
+          "sha512=a4737a2fc44aaeedca46ec6134c07013d5cf44039a988a6e79a40715a53e43601d4c91bbf11a8e89540528d912b8fa487e3068465c136c1156a872258eb3443b"
+        ]
+      },
+      "publication": 1777422722.0
+    },
+    "packgeByVersions": {
+      "packages": [
+        {
+          "name": "lwt",
+          "version": "5.9.2",
+          "license": "MIT",
+          "publication": 1756310969.0,
+          "dependencies": [
+            {
+              "name": "ocplib-endian",
+              "constraints": null
+            },
+            {
+              "name": "dune-configurator",
+              "constraints": null
+            },
+            {
+              "name": "odoc",
+              "constraints": "with-doc & >= \"2.3\""
+            },
+            {
+              "name": "ocamlfind",
+              "constraints": "with-dev-setup & >= \"1.7.3-1\""
+            },
+            {
+              "name": "cppo",
+              "constraints": "build & >= \"1.1\""
+            },
+            {
+              "name": "ocaml",
+              "constraints": ">= \"4.08\" & < \"5.5\""
+            },
+            {
+              "name": "dune",
+              "constraints": ">= \"3.15\""
+            }
+          ],
+          "optionalDependencies": [
+            {
+              "name": "conf-libev",
+              "constraints": null
+            },
+            {
+              "name": "base-unix",
+              "constraints": null
+            },
+            {
+              "name": "base-threads",
+              "constraints": null
+            }
+          ],
+          "url": {
+            "uri": "https://github.com/ocsigen/lwt/archive/refs/tags/5.9.2.tar.gz",
+            "checksum": [
+              "md5=9687c14532a90af1098b646bde219a70",
+              "sha512=44ad793741a3ba52dfc07a190790d6e3207f146c42a4e1e11adc76f9d7fc9bee93d7fe18376882bb27e7e7e286be5807498884367b172a4ebc067028fa0c824c"
+            ]
+          }
+        },
+        {
+          "name": "lwt",
+          "version": "5.10.1",
+          "license": "MIT",
+          "publication": 1782715283.0,
+          "dependencies": [
+            {
+              "name": "ocplib-endian",
+              "constraints": null
+            },
+            {
+              "name": "dune-configurator",
+              "constraints": null
+            },
+            {
+              "name": "odoc",
+              "constraints": "with-doc & >= \"2.3\""
+            },
+            {
+              "name": "ocamlfind",
+              "constraints": "dev & >= \"1.7.3-1\""
+            },
+            {
+              "name": "cppo",
+              "constraints": "build & >= \"1.1\""
+            },
+            {
+              "name": "ocaml",
+              "constraints": ">= \"4.08\""
+            },
+            {
+              "name": "dune",
+              "constraints": ">= \"3.15\""
+            }
+          ],
+          "optionalDependencies": [
+            {
+              "name": "conf-libev",
+              "constraints": null
+            },
+            {
+              "name": "base-unix",
+              "constraints": null
+            },
+            {
+              "name": "base-threads",
+              "constraints": null
+            }
+          ],
+          "url": {
+            "uri": "https://github.com/ocsigen/lwt/archive/refs/tags/5.10.1.tar.gz",
+            "checksum": [
+              "md5=3550f2448bf94379ecd3d480eb8cb070",
+              "sha512=361b4fe8b1613683a0cd89fea08d9ae1615f84e771363ba97843c2dda5c3f45b4a4b6c048c8d79fa58d609c45a7e1dfa2b3e9873d02bac82934fd892f8f4fce1"
+            ]
+          }
+        },
+        {
+          "name": "lwt",
+          "version": "6.1.2",
+          "license": "MIT",
+          "publication": 1777422722.0,
+          "dependencies": [
+            {
+              "name": "ocplib-endian",
+              "constraints": null
+            },
+            {
+              "name": "dune-configurator",
+              "constraints": null
+            },
+            {
+              "name": "odoc",
+              "constraints": "with-doc & >= \"2.3\""
+            },
+            {
+              "name": "ocamlfind",
+              "constraints": "dev & >= \"1.7.3-1\""
+            },
+            {
+              "name": "cppo",
+              "constraints": "build & >= \"1.1\""
+            },
+            {
+              "name": "ocaml",
+              "constraints": ">= \"4.14\""
+            },
+            {
+              "name": "dune",
+              "constraints": ">= \"3.18\""
+            }
+          ],
+          "optionalDependencies": [
+            {
+              "name": "lwt_runtime_events",
+              "constraints": null
+            },
+            {
+              "name": "conf-libev",
+              "constraints": null
+            },
+            {
+              "name": "base-unix",
+              "constraints": null
+            },
+            {
+              "name": "base-threads",
+              "constraints": null
+            }
+          ],
+          "url": {
+            "uri": "https://github.com/ocsigen/lwt/archive/refs/tags/6.1.2.tar.gz",
+            "checksum": [
+              "md5=00bc7eb2772a28530f7365a7040f0c4f",
+              "sha512=a4737a2fc44aaeedca46ec6134c07013d5cf44039a988a6e79a40715a53e43601d4c91bbf11a8e89540528d912b8fa487e3068465c136c1156a872258eb3443b"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
