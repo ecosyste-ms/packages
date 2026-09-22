@@ -83,6 +83,9 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       name = params[:name]
       ecosystem = @registry&.ecosystem || params[:ecosystem]
       name = name.downcase if ecosystem == 'nuget'
+      if @registry.nil? && params[:ecosystem].present?
+        scope = scope.where(registry_id: Registry.where(ecosystem: params[:ecosystem]).pluck(:id))
+      end
       scope = ecosystem == 'pypi' ? scope.with_pypi_name(name) : scope.where(name: name)
       scope = scope.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
     end
@@ -133,7 +136,9 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     elsif params[:purls].present?
       @packages = Package.purl(params[:purls]).limit(1000)
     else
-      @packages = Package.where(name: params[:names]).limit(1000)
+      @packages = Package.where(name: params[:names])
+      @packages = @packages.where(registry_id: Registry.where(ecosystem: params[:ecosystem]).pluck(:id)) if params[:ecosystem].present?
+      @packages = @packages.limit(1000)
     end
     @packages = @packages.includes(:registry, {maintainers: :registry})
     @packages = @packages.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?

@@ -129,6 +129,19 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.first['name'], @package.name
   end
 
+  test 'lookup by name and ecosystem only matches packages in that ecosystem' do
+    other = Registry.create(name: 'npmjs.org', url: 'https://npmjs.org', ecosystem: 'npm')
+    other.packages.create(ecosystem: 'npm', name: 'rand')
+
+    get lookup_api_v1_packages_path, params: { ecosystem: 'cargo', name: 'rand' }
+    assert_response :success
+    assert_equal [@package.id], Oj.load(@response.body).pluck('id')
+
+    get lookup_api_v1_packages_path, params: { ecosystem: 'unknown', name: 'rand' }
+    assert_response :success
+    assert_empty Oj.load(@response.body)
+  end
+
   test 'lookup returns bad request without a package selector' do
     get lookup_api_v1_packages_path(ecosystem: 'docker')
     assert_response :bad_request
