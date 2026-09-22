@@ -104,7 +104,7 @@ class UrlParser
   end
 
   def remove_anchors
-    self.url = url.dup.gsub(/(#\S*)$/i, '')
+    self.url = url.dup.sub(/#.*\z/m, '')
   end
 
   def remove_auth_user
@@ -136,15 +136,15 @@ class UrlParser
   end
 
   def remove_querystring
-    self.url = url.dup.gsub(/(\?\S*)$/i, '')
+    self.url = url.dup.sub(/\?.*\z/m, '')
   end
 
   def remove_scheme
-    self.url = url.dup.gsub(/(((git\+https|git|ssh|hg|svn|scm|http|https)+?:)+?)/i, '')
+    self.url = url.dup.gsub(/(?:git\+https|git|ssh|hg|svn|scm|http|https):/i, '')
   end
 
   def remove_subdomain
-    self.url = url.dup.gsub(/(www|ssh|raw|git|wiki)+?\./i, '')
+    self.url = url.dup.gsub(/(?:www|ssh|raw|git|wiki)\./i, '')
   end
 
   def remove_whitespace

@@ -94,6 +94,12 @@ class GithubUrlParserTest < ActiveSupport::TestCase
     end
   end
 
+  test 'handles long anchor and querystring runs' do
+    assert_nil GithubUrlParser.parse('#' * 20_000)
+    assert_equal 'foo/bar', GithubUrlParser.parse('https://github.com/foo/bar' + '#' * 20_000)
+    assert_equal 'foo/bar', GithubUrlParser.parse('https://github.com/foo/bar?' + '?' * 20_000)
+  end
+
   test 'doesnt parses non-github urls' do
     [
       'https://google.com',
