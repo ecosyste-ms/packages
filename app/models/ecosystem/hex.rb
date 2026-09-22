@@ -20,7 +20,7 @@ module Ecosystem
     end
 
     def install_command(package, version = nil)
-      "mix hex.package fetch #{package.name} #{version}"
+      "mix hex.package fetch #{package.name}#{" #{version}" if version}"
     end
 
     def check_status(package)

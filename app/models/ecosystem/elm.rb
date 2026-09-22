@@ -9,7 +9,7 @@ module Ecosystem
     end
 
     def install_command(package, version = nil)
-      "elm-package install #{package.name} #{version}"
+      "elm-package install #{package.name}#{" #{version}" if version}"
     end
 
     def check_status(package)

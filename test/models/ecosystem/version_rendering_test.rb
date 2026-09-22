@@ -49,7 +49,7 @@ class EcosystemVersionRenderingTest < ActiveSupport::TestCase
       documentation: ['https://doc.deno.land/https://deno.land/x/oak/mod.ts', 'https://doc.deno.land/https://deno.land/x/oak@1.2.3/mod.ts']
     },
     'docker' => { name: 'library/redis', install: ['docker pull library/redis', 'docker pull library/redis:1.2.3'], documentation: nil },
-    'elm' => { name: 'elm/core', install: ['elm-package install elm/core ', 'elm-package install elm/core 1.2.3'], documentation: nil },
+    'elm' => { name: 'elm/core', install: ['elm-package install elm/core', 'elm-package install elm/core 1.2.3'], documentation: nil },
     'elpa' => { name: 'magit', install: 'M-x package-install RET magit RET', documentation: nil },
     'fdroid' => { name: 'org.fdroid.fdroid', install: 'fdroidcl install org.fdroid.fdroid', documentation: nil },
     'freebsd' => {
@@ -77,7 +77,7 @@ class EcosystemVersionRenderingTest < ActiveSupport::TestCase
       documentation: 'https://artifacthub.io/packages/helm/bitnami/redis'
     },
     'hex' => {
-      name: 'phoenix', install: ['mix hex.package fetch phoenix ', 'mix hex.package fetch phoenix 1.2.3'],
+      name: 'phoenix', install: ['mix hex.package fetch phoenix', 'mix hex.package fetch phoenix 1.2.3'],
       documentation: ['http://hexdocs.pm/phoenix/', 'http://hexdocs.pm/phoenix/1.2.3']
     },
     'homebrew' => { name: 'wget', install: 'brew install wget', documentation: nil },
@@ -142,7 +142,7 @@ class EcosystemVersionRenderingTest < ActiveSupport::TestCase
       documentation: 'https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws'
     },
     'ubuntu' => { name: 'curl', install: 'apt-get install curl', documentation: nil },
-    'vcpkg' => { name: 'zlib', install: ".\vcpkg install zlib", documentation: nil }
+    'vcpkg' => { name: 'zlib', install: '.\vcpkg install zlib', documentation: nil }
   }.freeze
 
   test 'rendering cases cover every ecosystem' do
