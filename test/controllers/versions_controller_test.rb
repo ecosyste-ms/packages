@@ -22,6 +22,17 @@ class VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_template 'versions/recent', file: 'versions/recent.html.erb'
   end
 
+  test 'show a SwiftPM version with its documentation link' do
+    registry = Registry.create!(name: 'swiftpackageindex.com', url: 'https://swiftpackageindex.com', ecosystem: 'swiftpm')
+    package = registry.packages.create!(name: 'github.com/vishalkevin11/TTDateFormatter', ecosystem: 'swiftpm')
+    version = package.versions.create!(number: '1.0.0', registry: registry)
+
+    get registry_package_version_path(registry_id: registry.name, package_id: package.name, id: version.number)
+
+    assert_response :success
+    assert_select 'a[href=?]', 'https://swiftpackageindex.com/vishalkevin11/TTDateFormatter/1.0.0/documentation', text: 'Documentation'
+  end
+
   test 'get version with dependencies containing nil kind' do
     @version.dependencies.create(package_name: 'dep1', ecosystem: 'cargo', requirements: '>= 1.0', kind: 'runtime')
     @version.dependencies.create(package_name: 'dep2', ecosystem: 'cargo', requirements: '>= 2.0', kind: nil)

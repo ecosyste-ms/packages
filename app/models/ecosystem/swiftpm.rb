@@ -47,7 +47,7 @@ module Ecosystem
 
     def documentation_url(package, version = nil)
       if package['name'].starts_with?('github.com')
-        "https://swiftpackageindex.com/#{package['name'].gsub('github.com/', '')}#{ version ? "/"+version : '' }/documentation"
+        "https://swiftpackageindex.com/#{package['name'].gsub('github.com/', '')}#{"/#{version}" if version}/documentation"
       else
         nil
       end

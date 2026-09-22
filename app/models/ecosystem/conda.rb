@@ -17,7 +17,7 @@ module Ecosystem
     end
 
     def install_command(package, version = nil)
-      "conda install -c #{@registry.metadata['kind']} #{package.name}#{version ? "=" + version : ""}"
+      "conda install -c #{@registry.metadata['kind']} #{package.name}#{"=#{version}" if version}"
     end
 
     def check_status(package)
