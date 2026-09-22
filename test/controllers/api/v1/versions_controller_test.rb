@@ -25,6 +25,28 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.length, 1
   end
 
+  test 'list Conda versions with install commands' do
+    registry = Registry.create!(name: 'anaconda.org', url: 'https://anaconda.org', ecosystem: 'conda', metadata: { kind: 'conda-forge' })
+    package = registry.packages.create!(name: 'llama.cpp', ecosystem: 'conda')
+    package.versions.create!(number: '1.0.0', registry: registry)
+
+    get api_v1_registry_package_versions_path(registry_id: registry.name, package_id: package.name)
+
+    assert_response :success
+    assert_equal 'conda install -c conda-forge llama.cpp=1.0.0', response.parsed_body.sole['install_command']
+  end
+
+  test 'list recent SwiftPM versions with documentation links' do
+    registry = Registry.create!(name: 'swiftpackageindex.com', url: 'https://swiftpackageindex.com', ecosystem: 'swiftpm')
+    package = registry.packages.create!(name: 'github.com/vishalkevin11/TTDateFormatter', ecosystem: 'swiftpm')
+    package.versions.create!(number: '1.0.0', registry: registry)
+
+    get versions_api_v1_registry_path(id: registry.name)
+
+    assert_response :success
+    assert_equal 'https://swiftpackageindex.com/vishalkevin11/TTDateFormatter/1.0.0/documentation', response.parsed_body.sole['documentation_url']
+  end
+
   test 'list OpenBSD versions without downloading registry metadata' do
     registry = Registry.create!(
       default: true,

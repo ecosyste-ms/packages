@@ -36,7 +36,7 @@ class HexTest < ActiveSupport::TestCase
 
   test 'install_command' do
     install_command = @ecosystem.install_command(@package)
-    assert_equal install_command, 'mix hex.package fetch rand '
+    assert_equal install_command, 'mix hex.package fetch rand'
   end
 
   test 'install_command with version' do
