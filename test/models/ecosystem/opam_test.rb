@@ -228,11 +228,15 @@ class OpamTest < ActiveSupport::TestCase
   end
 
   def stub_archive_index(packages)
-    entries = packages.flat_map do |name, versions|
-      versions.map { |version| { type: 'blob', path: "packages/#{name}/#{name}.#{version}/opam" } }
+    buffer = StringIO.new
+    gzip = Zlib::GzipWriter.new(buffer)
+    Gem::Package::TarWriter.new(gzip) do |tar|
+      packages.each do |name, versions|
+        versions.each { |version| tar.add_file_simple("opam-repository-archive-main/packages/#{name}/#{name}.#{version}/opam", 0o644, 0) }
+      end
     end
-    stub_request(:get, Ecosystem::Opam::ARCHIVE_INDEX_URL)
-      .to_return(status: 200, body: { truncated: false, tree: entries }.to_json)
+    gzip.close
+    stub_request(:get, Ecosystem::Opam::ARCHIVE_INDEX_URL).to_return(status: 200, body: buffer.string)
   end
 
   test 'discovery includes packages found only in the archive' do
@@ -374,9 +378,8 @@ class OpamTest < ActiveSupport::TestCase
     end
   end
 
-  test 'incomplete archive discovery aborts sync without changing stored records' do
-    stub_request(:get, Ecosystem::Opam::ARCHIVE_INDEX_URL)
-      .to_return(status: 200, body: { truncated: true, tree: [] }.to_json)
+  test 'archive index fetch failure aborts sync without changing stored records' do
+    stub_request(:get, Ecosystem::Opam::ARCHIVE_INDEX_URL).to_return(status: 500)
 
     assert_no_difference ['Package.count', 'Version.count'] do
       assert_raises(RuntimeError) { @registry.sync_package('lwt') }
