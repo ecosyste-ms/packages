@@ -15,8 +15,8 @@ module Ecosystem
     end
 
     def purl_params(package, version = nil)
-      namespace = encode_for_proxy package.name.split('/')[0..-2].join('/')
-      name = encode_for_proxy package.name.split('/').last
+      namespace = package.name.split('/')[0..-2].join('/')
+      name = package.name.split('/').last
       {
         type: purl_type,
         namespace: namespace,
