@@ -4,3 +4,4 @@ json.codemeta_url codemeta_api_v1_registry_package_version_url(version.package.r
 json.dependencies version.dependencies do |dependency|
   json.extract! dependency, :id, :ecosystem, :package_name, :requirements, :kind, :optional
 end
+json.advisories version.version_scoped_advisories
