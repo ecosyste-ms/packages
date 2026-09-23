@@ -8,11 +8,11 @@ module Ecosystem
 
     def download_url(package, version)
       return nil unless version.present?
-      "#{@registry_url}/packages/#{package.name}/versions/#{version}.tar.gz"
+      "#{@registry_url}/api/archives/#{package.name}-#{version}.tar.gz"
     end
 
     def documentation_url(package, version = nil)
-      "#{@registry_url}/documentation/#{package.name}/#{version}"
+      "#{@registry_url}/documentation/#{package.name}/#{version.presence || 'latest'}/"
     end
 
     def install_command(package, version = nil)

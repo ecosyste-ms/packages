@@ -116,7 +116,7 @@ class EcosystemVersionRenderingTest < ActiveSupport::TestCase
     'postmarketos' => { name: 'curl', install: 'apk add curl', documentation: nil },
     'pub' => {
       name: 'http', url: 'https://pub.dev', install: ['dart pub add http', 'dart pub add http:1.2.3'],
-      documentation: ['https://pub.dev/documentation/http/', 'https://pub.dev/documentation/http/1.2.3']
+      documentation: ['https://pub.dev/documentation/http/latest/', 'https://pub.dev/documentation/http/1.2.3/']
     },
     'puppet' => { name: 'puppetlabs-stdlib', install: ['puppet module install puppetlabs-stdlib', 'puppet module install puppetlabs-stdlib --version 1.2.3'], documentation: nil },
     'pypi' => {

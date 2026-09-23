@@ -19,18 +19,48 @@ class PubTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    download_url = @ecosystem.download_url(@package, @version)
-    assert_equal download_url, 'https://pub.dev/packages/bloc/versions/8.0.3.tar.gz'
+    [@version, @version.number].each do |version|
+      assert_equal 'https://pub.dev/api/archives/bloc-8.0.3.tar.gz', @ecosystem.download_url(@package, version)
+    end
+  end
+
+  test 'download_url without a version' do
+    [nil, '', ' '].each do |version|
+      assert_nil @ecosystem.download_url(@package, version)
+    end
   end
 
   test 'documentation_url' do
     documentation_url = @ecosystem.documentation_url(@package)
-    assert_equal documentation_url, 'https://pub.dev/documentation/bloc/'
+    assert_equal 'https://pub.dev/documentation/bloc/latest/', documentation_url
   end
 
   test 'documentation_url with version' do
-    documentation_url = @ecosystem.documentation_url(@package, @version.number)
-    assert_equal documentation_url, 'https://pub.dev/documentation/bloc/8.0.3'
+    [@version, @version.number].each do |version|
+      assert_equal 'https://pub.dev/documentation/bloc/8.0.3/', @ecosystem.documentation_url(@package, version)
+    end
+  end
+
+  test 'documentation_url with a blank version uses latest' do
+    [nil, '', ' '].each do |version|
+      assert_equal 'https://pub.dev/documentation/bloc/latest/', @ecosystem.documentation_url(@package, version)
+    end
+  end
+
+  test 'archive and documentation URLs preserve prerelease versions' do
+    version = @package.versions.build(number: '9.0.0-dev.1')
+
+    assert_equal 'https://pub.dev/api/archives/bloc-9.0.0-dev.1.tar.gz', @ecosystem.download_url(@package, version)
+    assert_equal 'https://pub.dev/documentation/bloc/9.0.0-dev.1/', @ecosystem.documentation_url(@package, version)
+  end
+
+  test 'archive and documentation URLs use the configured registry URL' do
+    @registry.url = 'https://pub.example/dart'
+    ecosystem = Ecosystem::Pub.new(@registry)
+
+    assert_equal 'https://pub.example/dart/api/archives/bloc-8.0.3.tar.gz', ecosystem.download_url(@package, @version)
+    assert_equal 'https://pub.example/dart/documentation/bloc/latest/', ecosystem.documentation_url(@package)
+    assert_equal 'https://pub.example/dart/documentation/bloc/8.0.3/', ecosystem.documentation_url(@package, @version)
   end
 
   test 'install_command' do
