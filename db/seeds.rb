@@ -40,6 +40,7 @@ default_registries = [
   {name: 'conan.io', url: 'https://conan.io/center', ecosystem: 'conan', github: 'conan-io', default: true},
   {name: "carthage", url: "https://github.com/Carthage/Carthage", ecosystem: "carthage", github: "Carthage", default: true},
   {name: 'github actions', url: 'https://github.com/marketplace/actions/', ecosystem: 'actions', github: 'actions', default: true},
+  {name: 'huggingface.co', url: 'https://huggingface.co', ecosystem: 'huggingface', github: 'huggingface', default: true, rate_limit: 1},
   {name: 'pkg.adelielinux.org', url: "https://pkg.adelielinux.org/current", ecosystem: "adelie", github: "AdelieLinux", default: true, metadata: {repos: ['system', 'user']}},
   {name: 'bioconductor.org', url: 'https://bioconductor.org', ecosystem: 'bioconductor', github: 'Bioconductor', default: true},
   {name: 'open-vsx.org', url: 'https://open-vsx.org', ecosystem: 'openvsx', default: true, github: 'open-vsx'},

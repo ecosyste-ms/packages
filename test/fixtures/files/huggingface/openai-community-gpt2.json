@@ -1,0 +1,21 @@
+{
+  "id": "openai-community/gpt2",
+  "author": "openai-community",
+  "sha": "0123456789abcdef0123456789abcdef01234567",
+  "createdAt": "2022-11-23T17:29:44.000Z",
+  "lastModified": "2026-08-19T12:34:56.000Z",
+  "downloads": 123456,
+  "likes": 420,
+  "gated": false,
+  "private": false,
+  "disabled": false,
+  "pipeline_tag": "text-generation",
+  "library_name": "transformers",
+  "tags": ["transformers", "pytorch", "license:mit", "text-generation"],
+  "cardData": {
+    "license": "mit"
+  },
+  "siblings": [
+    { "rfilename": "pytorch_model.bin" }
+  ]
+}
