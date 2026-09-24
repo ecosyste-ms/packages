@@ -22,14 +22,17 @@ class RegistriesController < ApplicationController
   def keyword
     @registry = Registry.find_by_name!(params[:id])
     @keyword = params[:keyword]
-    scope = @registry.packages.where('keywords @> ARRAY[?]::varchar[]', @keyword)
+
+    @related_keywords = Rails.cache.fetch(["related_keywords", @registry.id, @keyword], expires_in: 1.day) do
+      @registry.packages.related_keywords(@keyword)
+    end
+
+    scope = @registry.packages.keyword(@keyword)
     if params[:sort].present? || params[:order].present?
       scope = scope.order(package_sort_order)
     else
       scope = scope.order('updated_at desc')
     end
-    
     @pagy, @packages = pagy_countless(scope)
-    @related_keywords = (scope.pluck(:keywords).flatten - [@keyword]).inject(Hash.new(0)) { |h, e| h[e] += 1; h }.sort_by { |_, v| -v }.first(100)
   end
 end
