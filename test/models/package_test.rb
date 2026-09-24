@@ -521,6 +521,42 @@ class PackageTest < ActiveSupport::TestCase
     assert_includes result, scoped_package
   end
 
+  test 'Package.purl class method handles mixed-ecosystem purls in one call' do
+    npm_registry = Registry.create(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    npm_package = npm_registry.packages.create(name: 'react', ecosystem: 'npm')
+    pypi_registry = Registry.create(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    pypi_package = pypi_registry.packages.create(name: 'requests', ecosystem: 'pypi', metadata: { 'normalized_name' => 'requests' })
+    @package.update(repository_url: 'https://github.com/rails/rails')
+
+    result = Package.purl(['pkg:npm/react', 'pkg:pypi/requests', 'pkg:gem/foo', 'pkg:github/rails/rails'])
+
+    assert_includes result, npm_package
+    assert_includes result, pypi_package
+    assert_includes result, @package
+    assert_equal 3, result.distinct.count
+  end
+
+  test 'Package.purl class method finds pypi package via normalized_name fallback' do
+    pypi_registry = Registry.create(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    pypi_package = pypi_registry.packages.create(name: 'Foo_Bar.Baz', ecosystem: 'pypi', metadata: { 'normalized_name' => 'foo-bar-baz' })
+
+    result = Package.purl(['pkg:pypi/FOO__bar.baz'])
+
+    assert_includes result, pypi_package
+  end
+
+  test 'Package.purl class method returns pypi normalized matches even when an exact match exists elsewhere' do
+    pypi_a = Registry.create(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    pypi_b = Registry.create(name: 'pypi-mirror', url: 'https://mirror.example/pypi', ecosystem: 'pypi')
+    exact = pypi_a.packages.create(name: 'typing-extensions', ecosystem: 'pypi', metadata: { 'normalized_name' => 'typing-extensions' })
+    underscored = pypi_b.packages.create(name: 'typing_extensions', ecosystem: 'pypi', metadata: { 'normalized_name' => 'typing-extensions' })
+
+    result = Package.purl(['pkg:pypi/typing-extensions'])
+
+    assert_includes result, exact
+    assert_includes result, underscored
+  end
+
   test 'sync_async enqueues SyncPackageByIdWorker' do
     @package.update(last_synced_at: 2.days.ago)
     SyncPackageByIdWorker.expects(:perform_async).with(@package.registry_id, @package.id).once

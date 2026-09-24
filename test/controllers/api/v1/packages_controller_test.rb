@@ -393,6 +393,23 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal @package.name, actual_response.first['name']
   end
 
+  test 'bulk_lookup by github purl with ecosystem filter narrows results' do
+    npm_registry = Registry.create(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    npm_package = npm_registry.packages.create(name: 'rand-js', ecosystem: 'npm', repository_url: 'https://github.com/rust-random/rand')
+    @package.update(repository_url: 'https://github.com/rust-random/rand')
+
+    now = Time.current
+    rows = (1..1000).map { |i| { registry_id: npm_registry.id, ecosystem: 'npm', name: "rand-fork-#{i}", repository_url: 'https://github.com/rust-random/rand', created_at: now, updated_at: now } }
+    Package.insert_all(rows)
+
+    post bulk_lookup_api_v1_packages_path, params: { purls: ['pkg:github/rust-random/rand'], ecosystem: 'cargo' }
+    assert_response :success
+
+    ids = Oj.load(@response.body).pluck('id')
+    assert_includes ids, @package.id
+    refute_includes ids, npm_package.id
+  end
+
   test 'bulk_lookup with invalid purls returns empty result' do
     post bulk_lookup_api_v1_packages_path, params: { purls: ['invalid-purl'] }
     assert_response :success
