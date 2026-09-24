@@ -10,7 +10,6 @@ gem "actionpack", "~> 8.1.1"
 gem "actionview", "~> 8.1.1"
 gem "activesupport", "~> 8.1.1"
 gem "railties", "~> 8.1.1"
-gem "json", "< 3" # rails/rails#58601
 
 gem "secure_headers"
 gem "sprockets-rails"
