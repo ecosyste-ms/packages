@@ -832,4 +832,32 @@ class PackageTest < ActiveSupport::TestCase
     assert_equal 1, keywords['audit-keyword']
     assert_nil keywords['removed-keyword']
   end
+
+  test 'related_keywords tallies co-occurring keywords excluding the input' do
+    @registry.packages.create!(name: 'a', ecosystem: @registry.ecosystem, keywords: %w[cli json fast])
+    @registry.packages.create!(name: 'b', ecosystem: @registry.ecosystem, keywords: %w[cli json])
+    @registry.packages.create!(name: 'c', ecosystem: @registry.ecosystem, keywords: %w[cli yaml])
+
+    result = Package.related_keywords('cli')
+
+    assert_equal [['json', 2], ['fast', 1], ['yaml', 1]].to_h, result.to_h
+    refute_includes result.map(&:first), 'cli'
+  end
+
+  test 'related_keywords respects the relation it is called on' do
+    other = Registry.create(name: 'other.example', url: 'https://other.example', ecosystem: @registry.ecosystem)
+    @registry.packages.create!(name: 'a', ecosystem: @registry.ecosystem, keywords: %w[cli local])
+    other.packages.create!(name: 'b', ecosystem: other.ecosystem, keywords: %w[cli elsewhere])
+
+    result = @registry.packages.related_keywords('cli')
+
+    assert_equal({ 'local' => 1 }, result.to_h)
+  end
+
+  test 'related_keywords plucks without joining preloaded associations' do
+    @registry.packages.create!(name: 'a', ecosystem: @registry.ecosystem, keywords: %w[cli json])
+
+    sql = Package.keyword('cli').limit(5000).select(:keywords).to_sql
+    refute_match(/JOIN/i, sql)
+  end
 end
