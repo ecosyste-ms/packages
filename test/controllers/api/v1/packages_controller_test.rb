@@ -383,6 +383,19 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal @package.name, actual_response.first['name']
   end
 
+  test 'bulk_lookup by repository_urls array' do
+    @package.update(repository_url: 'https://github.com/rust-random/rand')
+    other = @registry.packages.create(ecosystem: @registry.ecosystem, name: 'serde', repository_url: 'https://github.com/Serde-rs/Serde')
+
+    post bulk_lookup_api_v1_packages_path, params: { repository_urls: ['https://github.com/rust-random/rand', 'https://github.com/serde-rs/serde'] }
+    assert_response :success
+
+    names = Oj.load(@response.body).pluck('name')
+    assert_equal 2, names.length
+    assert_includes names, @package.name
+    assert_includes names, other.name
+  end
+
   test 'bulk_lookup by names' do
     post bulk_lookup_api_v1_packages_path, params: { names: ['rand'] }
     assert_response :success
@@ -391,6 +404,23 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal 1, actual_response.length
     assert_equal @package.name, actual_response.first['name']
+  end
+
+  test 'bulk_lookup by github purl with ecosystem filter narrows results' do
+    npm_registry = Registry.create(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    npm_package = npm_registry.packages.create(name: 'rand-js', ecosystem: 'npm', repository_url: 'https://github.com/rust-random/rand')
+    @package.update(repository_url: 'https://github.com/rust-random/rand')
+
+    now = Time.current
+    rows = (1..1000).map { |i| { registry_id: npm_registry.id, ecosystem: 'npm', name: "rand-fork-#{i}", repository_url: 'https://github.com/rust-random/rand', created_at: now, updated_at: now } }
+    Package.insert_all(rows)
+
+    post bulk_lookup_api_v1_packages_path, params: { purls: ['pkg:github/rust-random/rand'], ecosystem: 'cargo' }
+    assert_response :success
+
+    ids = Oj.load(@response.body).pluck('id')
+    assert_includes ids, @package.id
+    refute_includes ids, npm_package.id
   end
 
   test 'bulk_lookup with invalid purls returns empty result' do

@@ -84,7 +84,7 @@ class Package < ApplicationRecord
   scope :without_rankings, -> { where('length(rankings::text) = 2') }
   scope :top, -> (percent = 1) { where("(rankings->>'average')::text::float < ?", percent) }
  
-  scope :repository_url, ->(repository_url) { where("lower(repository_url) = ?", repository_url.try(:downcase)) }
+  scope :repository_url, ->(url) { where("lower(repository_url) IN (?)", Array(url).compact.map { |u| u.to_s.downcase }) }
 
   scope :name_prefix, ->(prefix) { where("lower(name) LIKE ?", "#{prefix.downcase}%") }
   scope :name_postfix, ->(postfix) { where("lower(name) LIKE ?", "%#{postfix.downcase}") }
@@ -1113,42 +1113,39 @@ class Package < ApplicationRecord
     purl_strings = Array(purl_strings)
     return none if purl_strings.empty?
 
-    registry_ids_cache = {}
+    by_ecosystem = Hash.new { |h, k| h[k] = [] }
+    repo_urls = []
 
-    scopes = purl_strings.filter_map do |purl_string|
-      lookup_scope_for_purl(purl_string, registry_ids_cache)
-    end
-
-    return none if scopes.empty?
-    return scopes.first if scopes.length == 1
-
-    scopes.reduce { |result, scope| result.or(scope) }
-  end
-
-  def self.lookup_scope_for_purl(purl_string, registry_ids_cache = {})
-    purl_param = purl_string.gsub('npm/@', 'npm/%40')
-    purl = Purl.parse(purl_param)
-
-    if purl.type == 'docker' && purl.namespace.nil?
-      namespace = 'library'
-    else
-      namespace = purl.namespace
-    end
-
-    if purl.type == 'github'
-      repository_url = "https://github.com/#{purl.namespace}/#{purl.name}"
-      where("lower(repository_url) = ?", repository_url.downcase)
-    else
-      name = [namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
+    purl_strings.each do |purl_string|
+      purl = Purl.parse(purl_string.gsub('npm/@', 'npm/%40'))
+      if purl.type == 'github'
+        repo_urls << "https://github.com/#{purl.namespace}/#{purl.name}".downcase
+        next
+      end
+      namespace = (purl.type == 'docker' && purl.namespace.nil?) ? 'library' : purl.namespace
       ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type)
+      name = [namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
       name = name.downcase if ecosystem == 'nuget'
-      registry_ids = registry_ids_cache[ecosystem] ||= Registry.where(ecosystem: ecosystem).pluck(:id)
-      scope = where(registry_id: registry_ids)
-      ecosystem == 'pypi' ? scope.with_pypi_name(name) : scope.where(name: name)
+      by_ecosystem[ecosystem] << name
+    rescue => e
+      Rails.logger.warn("Invalid PURL in bulk lookup: #{purl_string} - #{e.message}")
     end
-  rescue => e
-    Rails.logger.warn("Invalid PURL in bulk lookup: #{purl_string} - #{e.message}")
-    nil
+
+    ids = []
+    by_ecosystem.each do |ecosystem, names|
+      registry_ids = Registry.where(ecosystem: ecosystem).pluck(:id)
+      next if registry_ids.empty?
+      if ecosystem == 'pypi'
+        normalized = names.map { |n| n.downcase.gsub(/[-_.]+/, '-') }.uniq
+        ids.concat(where(registry_id: registry_ids, name: (names + normalized).uniq).pluck(:id))
+        ids.concat(where(registry_id: registry_ids).where("metadata->>'normalized_name' IN (?)", normalized).pluck(:id))
+      else
+        ids.concat(where(registry_id: registry_ids, name: names.uniq).pluck(:id))
+      end
+    end
+    ids.concat(where("lower(repository_url) IN (?)", repo_urls.uniq).pluck(:id)) if repo_urls.any?
+
+    ids.empty? ? none : where(id: ids.uniq)
   end
 
   def self.funding_domains
