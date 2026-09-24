@@ -84,7 +84,7 @@ class Package < ApplicationRecord
   scope :without_rankings, -> { where('length(rankings::text) = 2') }
   scope :top, -> (percent = 1) { where("(rankings->>'average')::text::float < ?", percent) }
  
-  scope :repository_url, ->(repository_url) { where("lower(repository_url) = ?", repository_url.try(:downcase)) }
+  scope :repository_url, ->(url) { where("lower(repository_url) IN (?)", Array(url).compact.map { |u| u.to_s.downcase }) }
 
   scope :name_prefix, ->(prefix) { where("lower(name) LIKE ?", "#{prefix.downcase}%") }
   scope :name_postfix, ->(postfix) { where("lower(name) LIKE ?", "%#{postfix.downcase}") }

@@ -383,6 +383,19 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal @package.name, actual_response.first['name']
   end
 
+  test 'bulk_lookup by repository_urls array' do
+    @package.update(repository_url: 'https://github.com/rust-random/rand')
+    other = @registry.packages.create(ecosystem: @registry.ecosystem, name: 'serde', repository_url: 'https://github.com/Serde-rs/Serde')
+
+    post bulk_lookup_api_v1_packages_path, params: { repository_urls: ['https://github.com/rust-random/rand', 'https://github.com/serde-rs/serde'] }
+    assert_response :success
+
+    names = Oj.load(@response.body).pluck('name')
+    assert_equal 2, names.length
+    assert_includes names, @package.name
+    assert_includes names, other.name
+  end
+
   test 'bulk_lookup by names' do
     post bulk_lookup_api_v1_packages_path, params: { names: ['rand'] }
     assert_response :success
