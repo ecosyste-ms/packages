@@ -200,7 +200,10 @@ class Package < ApplicationRecord
   end
 
   def update_dependent_package_ids
-    Dependency.where(package_id: nil, ecosystem: registry.ecosystem, package_name: name).in_batches.update_all(package_id: id)
+    version_ids = Version.joins(:package).where(packages: { registry_id: registry_id }).select(:id)
+    Dependency.where(package_id: nil, ecosystem: registry.ecosystem, package_name: name)
+      .where(version_id: version_ids)
+      .in_batches.update_all(package_id: id)
   end
 
   def update_dependent_packages_count
