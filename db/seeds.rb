@@ -17,6 +17,7 @@ default_registries = [
   {name: 'cran.r-project.org', url: 'https://cran.r-project.org', ecosystem: 'cran', github: 'r-project-org', metadata: {'icon_url' => 'https://cran.r-project.org/CRANlogo.png'}, default: true},
   {name: 'f-droid.org', url: 'https://f-droid.org', ecosystem: 'fdroid', github: 'f-droid', default: true},
   {name: 'formulae.brew.sh', url: 'https://formulae.brew.sh', ecosystem: 'homebrew', github: 'homebrew', default: true},
+  {name: 'community.chocolatey.org', url: 'https://community.chocolatey.org', ecosystem: 'chocolatey', github: 'chocolatey', default: true},
   {name: 'forge.puppet.com', url: 'https://forge.puppet.com', ecosystem: 'puppet', github: 'puppet', default: true},
   {name: 'juliahub.com', url: 'https://juliahub.com', ecosystem: 'julia', github: 'JuliaRegistries', default: true},
   {name: 'package.elm-lang.org', url: 'https://package.elm-lang.org', ecosystem: 'elm', github: 'elm', default: true},
