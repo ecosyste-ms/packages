@@ -21,8 +21,8 @@ class Dependency < ApplicationRecord
   scope :without_package, -> { where(package_id: nil) }
 
   def find_package_id
-    registry = Registry.find_by_ecosystem(ecosystem)
-    return unless registry
+    registry = version&.package&.registry
+    return unless registry && registry.ecosystem == ecosystem
     registry.packages.find_by(name: package_name).try(:id)
   end
 
@@ -33,18 +33,13 @@ class Dependency < ApplicationRecord
   end
 
   def self.update_missing_package_ids
-    registries = Registry.all.order('packages_count DESC').to_a
     processed_packages = {}
-    without_package.find_each(order: :desc) do |dependency|
-      registry = registries.select { |r| r.ecosystem == dependency.ecosystem }.first
-      next unless registry
+    without_package.includes(version: { package: :registry }).find_each(order: :desc) do |dependency|
+      registry_id = dependency.version&.package&.registry_id
+      cache_key = [registry_id, dependency.ecosystem, dependency.package_name]
 
-      # Modify the cache key to include both the registry id and the package name
-      cache_key = "#{registry.id}_#{dependency.package_name}"
-
-      # Directly assign the result of the lookup to the cache, caching nil results as well
       package_id = processed_packages[cache_key] = processed_packages.fetch(cache_key) do
-        registry.packages.find_by(name: dependency.package_name)&.id
+        dependency.find_package_id
       end
 
       next unless package_id
