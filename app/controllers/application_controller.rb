@@ -92,10 +92,12 @@ class ApplicationController < ActionController::Base
     url.to_s.downcase.sub(/\/+$/, '')
   end
 
-  def sanitize_sort(allowed_columns, default: 'updated_at')
+  def sanitize_sort(model, default: 'updated_at')
     sort_param = params[:sort].presence || default
+    allowed_columns = model.sortable_columns
     sql = allowed_columns[sort_param] || allowed_columns[default] || default
-    Arel.sql(sql)
+    direction = params[:order] == 'asc' ? :asc : :desc
+    model.column_sort_order(sql, direction)
   end
 
   def package_sort_order(default: 'updated_at')

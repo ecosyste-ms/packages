@@ -62,8 +62,7 @@ class Package < ApplicationRecord
       raise UnsupportedSortDirection, "#{sort_name} only supports descending order"
     end
 
-    ordering = Arel.sql(sortable_columns.fetch(sort_key)).public_send(direction)
-    sort_key == 'updated_at' ? ordering : ordering.nulls_last
+    column_sort_order(sortable_columns.fetch(sort_key), direction)
   end
 
   scope :ecosystem, ->(ecosystem) { where(ecosystem: ecosystem.downcase) }

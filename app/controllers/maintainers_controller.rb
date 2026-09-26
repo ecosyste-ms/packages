@@ -5,12 +5,7 @@ class MaintainersController < ApplicationController
     scope = @registry.maintainers.visible
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Maintainer.sortable_columns, default: 'packages_count')
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(sanitize_sort(Maintainer, default: 'packages_count'))
     else
       scope = scope.order('packages_count desc')
     end
