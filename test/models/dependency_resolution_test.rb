@@ -101,7 +101,7 @@ class DependencyResolutionTest < ActiveSupport::TestCase
     assert_equal @other_library.id, dependency.reload.package_id
   end
 
-  test 'bulk backfill caches missing lookups across batches and preloads owner context' do
+  test 'bulk backfill caches missing lookups across batches with plucked owner context' do
     Dependency.insert_all(Array.new(1001) do
       { version_id: @source_version.id, package_name: 'com.example:missing', ecosystem: 'maven', requirements: '*' }
     end)
@@ -113,7 +113,7 @@ class DependencyResolutionTest < ActiveSupport::TestCase
     assert_equal 1001, Dependency.without_package.count
   end
 
-  test 'bulk backfill caches successful lookups and preloads owner context' do
+  test 'bulk backfill caches successful lookups with plucked owner context' do
     dependencies = Array.new(3) { create_dependency(@source_version) }
 
     assert_queries_match(/\ASELECT .* FROM "packages".*"packages"\."name"/, count: 1) do
@@ -121,6 +121,22 @@ class DependencyResolutionTest < ActiveSupport::TestCase
     end
 
     assert_equal [@source_library.id], dependencies.map { |dependency| dependency.reload.package_id }.uniq
+  end
+
+  test 'bulk backfill selects only the columns needed for registry scoping' do
+    dependencies = [create_dependency(@source_version), create_dependency(@other_version)]
+    selects = []
+    callback = ->(*, payload) { selects << payload[:sql] if payload[:sql].start_with?('SELECT') }
+
+    ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+      Dependency.update_missing_package_ids
+    end
+
+    assert_not_empty selects
+    selects.each do |sql|
+      assert_no_match(/metadata|\.\*|SELECT \*/, sql)
+    end
+    assert_equal [@source_library.id, @other_library.id], dependencies.map { |dependency| dependency.reload.package_id }
   end
 
   test 'package driven backfill links only dependencies from its own registry' do
