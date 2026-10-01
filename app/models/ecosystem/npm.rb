@@ -122,19 +122,34 @@ module Ecosystem
     end
 
     def repository_url(package, latest_version)
-      repo = latest_version.fetch("repository", {})
-      repo = repo[0] if repo.is_a?(Array)
-      repo_url = repo.try(:fetch, "url", nil)
-
-      if repo_url.blank?
-        repo = package.fetch("repository", {})
-        repo = repo[0] if repo.is_a?(Array)
-        repo_url = repo.try(:fetch, "url", nil)
-      end
+      repo_url = extract_repository_url(latest_version.fetch("repository", {}))
+      repo_url = extract_repository_url(package.fetch("repository", {})) if repo_url.blank?
 
       url = repo_fallback(repo_url, package["homepage"])
       return nil if ['https://github.com/npm/deprecate-holder',"https://github.com/npm/security-holder"].include?(url)
       url
+    end
+
+    # npm metadata supplies `repository` as an object (`{"type":"git","url":...}`),
+    # a plain string, or an array of either. The value itself can also use npm's
+    # `github:owner/repo` or bare `owner/repo` GitHub shorthand, which is expanded
+    # to a full URL before it reaches the generic URL parser.
+    def extract_repository_url(repo)
+      repo = repo[0] if repo.is_a?(Array)
+      url = repo.is_a?(String) ? repo : repo.try(:fetch, "url", nil)
+      expand_repository_shorthand(url)
+    end
+
+    def expand_repository_shorthand(url)
+      return url if url.blank?
+
+      if (match = url.match(/\Agithub:([\w.-]+\/[\w.-]+)\z/i))
+        "https://github.com/#{match[1]}"
+      elsif (match = url.match(/\A(?!.*[@:])([\w.-]+\/[\w.-]+)\z/))
+        "https://github.com/#{match[1]}"
+      else
+        url
+      end
     end
 
     def homepage(package)

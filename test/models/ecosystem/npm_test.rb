@@ -185,4 +185,60 @@ class NpmTest < ActiveSupport::TestCase
     assert_equal first_version[:metadata]["contentPolicy"], {"class"=>"dual-use"}
     assert_equal package_metadata[:metadata]["contentPolicy"], {"class"=>"dual-use"}
   end
+
+  test 'repository_url with string repository in latest version' do
+    url = @ecosystem.repository_url({}, { "repository" => "https://github.com/foo/bar" })
+    assert_equal "https://github.com/foo/bar", url
+  end
+
+  test 'repository_url expands github shorthand in latest version' do
+    url = @ecosystem.repository_url({}, { "repository" => { "type" => "git", "url" => "github:foo/bar" } })
+    assert_equal "https://github.com/foo/bar", url
+  end
+
+  test 'repository_url expands bare owner/repo shorthand in latest version' do
+    url = @ecosystem.repository_url({}, { "repository" => "foo/bar" })
+    assert_equal "https://github.com/foo/bar", url
+  end
+
+  test 'repository_url falls back to package level repository' do
+    package = { "repository" => { "type" => "git", "url" => "https://github.com/foo/package" } }
+    url = @ecosystem.repository_url(package, {})
+    assert_equal "https://github.com/foo/package", url
+  end
+
+  test 'repository_url unwraps repository arrays' do
+    url = @ecosystem.repository_url({}, { "repository" => [{ "type" => "git", "url" => "https://github.com/foo/arr" }] })
+    assert_equal "https://github.com/foo/arr", url
+  end
+
+  test 'repository_url keeps placeholder exclusions' do
+    package = { "repository" => "npm/security-holder" }
+    url = @ecosystem.repository_url(package, {})
+    assert_nil url
+  end
+
+  test 'repository metadata imports string, object, shorthand, fallback, array and placeholder forms' do
+    {
+      'string-version' => 'https://github.com/date-fns/date-fns',
+      'github-object' => 'https://github.com/moment/moment',
+      'bare-string' => 'https://github.com/foo/bar',
+      'package-fallback' => 'https://github.com/foo/package',
+      'array' => 'https://github.com/foo/arr',
+      'placeholder' => nil
+    }.each do |fixture, expected|
+      stub_request(:get, 'https://registry.npmjs.org/fixture-repo')
+        .to_return(status: 200, body: file_fixture("npm/repository-#{fixture}.json"))
+      stub_request(:get, 'https://api.npmjs.org/downloads/point/last-month/fixture-repo')
+        .to_return(status: 200, body: '{"downloads":1}')
+      @ecosystem = Ecosystem::Npm.new(@registry)
+      actual = @ecosystem.package_metadata('fixture-repo')[:repository_url]
+      if expected.nil?
+        assert_nil actual, fixture
+      else
+        assert_equal expected, actual, fixture
+      end
+    end
+  end
+
 end
