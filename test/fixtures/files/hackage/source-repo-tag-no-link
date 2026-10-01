@@ -1,0 +1,14 @@
+<html><body>
+<div id="content">
+<div><a href="/packages/tag/test">test</a></div>
+<p>Test package</p>
+<hr>
+<table>
+<tr><th>Home page</th><td>https://example.com</td></tr>
+<tr><th>Source repo</th><td>head: git clone https://gitlab.com/foo/bar.git -t v1.2</td></tr>
+
+<tr><th>License</th><td>MIT</td></tr>
+<tr><th>Downloads</th><td>123 total (4 in the last 30 days)</td></tr>
+</table>
+</div>
+</body></html>
