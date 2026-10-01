@@ -1695,6 +1695,12 @@ paths:
           required: false
           schema:
             type: string
+        - name: version_id
+          in: query
+          description: id of the version that declares the dependencies
+          required: false
+          schema:
+            type: integer
         - name: package_name
           in: query
           description: package name
