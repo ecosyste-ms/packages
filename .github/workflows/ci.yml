@@ -1,6 +1,9 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -12,6 +15,7 @@ jobs:
   verify:
     name: Build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
 
@@ -32,25 +36,32 @@ jobs:
         image: redis@sha256:43355efd22490e31ca14b9d569367d05121e2be61fd8e47937563ae2a80952ae
         ports:
         - 6379:6379
-        options: --entrypoint redis-server
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Install dependent libraries
-        run: sudo apt-get install libpq-dev
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libpq-dev
       - name: Set up Ruby
-        uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8
+        uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1.327.0
         with:
           bundler-cache: true
 
       - name: Install pom
+        working-directory: ${{ runner.temp }}
         env:
           POM_VERSION: 0.1.7
+          POM_SHA256: 7a71810ac4ace04573e57303e5a775de538f7aa8bd745ba855b2fe0e2cb620a7
         run: |
-          curl -fsSL "https://github.com/git-pkgs/pom/releases/download/v${POM_VERSION}/pom_${POM_VERSION}_linux_amd64.tar.gz" \
-            | sudo tar -xz -C /usr/local/bin pom
+          curl -fsSL --output pom.tar.gz "https://github.com/git-pkgs/pom/releases/download/v${POM_VERSION}/pom_${POM_VERSION}_linux_amd64.tar.gz"
+          echo "${POM_SHA256}  pom.tar.gz" | sha256sum --check
+          sudo tar -xz -f pom.tar.gz -C /usr/local/bin pom
           pom -version
 
       - name: Run tests
@@ -60,5 +71,5 @@ jobs:
           POSTGRES_USER: packages
           POSTGRES_PASSWORD: postgres
           POSTGRES_HOST: localhost
-          POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
+          POSTGRES_PORT: ${{ job.services.postgres.ports['5432'] }}
         run: bundle exec rake db:schema:load test

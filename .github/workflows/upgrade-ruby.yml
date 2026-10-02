@@ -3,7 +3,7 @@ name: Upgrade Ruby
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 0 * * 0" # Runs weekly
+    - cron: "0 0 * * 0"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,11 +15,12 @@ jobs:
   upgrade-ruby:
     name: Upgrade Ruby version
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
-      contents: write # Needed to update .ruby-version and other files
-      pull-requests: write # Needed to create pull requests with Ruby upgrades
+      contents: write
+      pull-requests: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - uses: andrew/ruby-upgrade-action@220de19770d37201cea7ab7b69983f0670db7b6e
