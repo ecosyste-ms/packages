@@ -125,6 +125,75 @@ class NugetTest < ActiveSupport::TestCase
     assert_equal({}, @ecosystem.verified_metadata({ "data" => [{ "totalDownloads" => 0 }] }))
   end
 
+  test 'sync ignores NuGet search results for other package IDs' do
+    registry = Registry.create!(name: 'NuGet.org', url: 'https://www.nuget.org', ecosystem: 'nuget')
+
+    %w[not or].each do |name|
+      stub_nuget_search_import(name, [
+        { id: 'Newtonsoft.Json', totalDownloads: 9_325_394_018, verified: true,
+          owners: %w[dotnetfoundation jamesnk newtonsoft], versions: [{ version: '1.0.0', downloads: 1234 }] },
+        { id: "#{name}.Extensions", totalDownloads: 200, verified: true,
+          owners: ['other-owner'], versions: [{ version: '1.0.0', downloads: 200 }] }
+      ])
+
+      package = registry.sync_package(name).reload
+      SyncMaintainersWorker.new.perform(package.id)
+
+      assert_nil package.downloads
+      assert_not package.metadata.key?('verified')
+      assert_nil package.versions.find_by!(number: '1.0.0').metadata['downloads']
+      assert_empty package.maintainers.reload
+    end
+  end
+
+  test 'sync uses a case-insensitive exact NuGet search match after unrelated results' do
+    registry = Registry.create!(name: 'NuGet.org', url: 'https://www.nuget.org', ecosystem: 'nuget')
+    stub_nuget_search_import('not', [
+      { id: 'Not.Extensions', totalDownloads: 5000, verified: true,
+        owners: ['other-owner'], versions: [{ version: '1.0.0', downloads: 5000 }] },
+      { id: 'Not', totalDownloads: 855, verified: false,
+        owners: ['UthmanRahimi'], versions: [{ version: '1.0.0', downloads: 855 }] }
+    ])
+
+    package = registry.sync_package('not').reload
+    SyncMaintainersWorker.new.perform(package.id)
+
+    assert_equal 855, package.downloads
+    assert_equal false, package.metadata['verified']
+    assert_equal 855, package.versions.find_by!(number: '1.0.0').metadata['downloads']
+    assert_equal ['UthmanRahimi'], package.maintainers.reload.pluck(:login)
+  end
+
+  test 'sync handles an empty NuGet search response' do
+    registry = Registry.create!(name: 'NuGet.org', url: 'https://www.nuget.org', ecosystem: 'nuget')
+    stub_nuget_search_import('not', [])
+
+    package = registry.sync_package('not').reload
+    SyncMaintainersWorker.new.perform(package.id)
+
+    assert_nil package.downloads
+    assert_not package.metadata.key?('verified')
+    assert_nil package.versions.find_by!(number: '1.0.0').metadata['downloads']
+    assert_empty package.maintainers.reload
+  end
+
+  def stub_nuget_search_import(name, results)
+    registration = { items: [{ items: [{ catalogEntry: {
+      id: name, version: '1.0.0', description: "#{name} package",
+      published: '2018-12-17T13:00:31Z', listed: true, dependencyGroups: []
+    } }] }] }
+    stub_request(:get, "https://api.nuget.org/v3/registration5-gz-semver2/#{name}/index.json")
+      .to_return(status: 200, body: registration.to_json)
+    stub_request(:get, "https://azuresearch-usnc.nuget.org/query?q=packageid:#{name}")
+      .to_return(status: 200, body: { data: results }.to_json)
+    stub_request(:get, "https://api.nuget.org/v3-flatcontainer/#{name}/1.0.0/#{name}.nuspec")
+      .to_return(status: 404)
+    stub_request(:get, "https://api.nuget.org/v3-flatcontainer/#{name}/index.json")
+      .to_return(status: 200, body: { versions: ['1.0.0'] }.to_json)
+    stub_request(:get, "https://www.nuget.org/packages/#{name}/")
+      .to_return(status: 200)
+  end
+
   test 'versions_metadata' do
     stub_request(:get, "https://api.nuget.org/v3/registration5-gz-semver2/ogcapi.net.sqlserver/index.json")
       .to_return({ status: 200, body: file_fixture('nuget/ogcapi.net.sqlserver') })
