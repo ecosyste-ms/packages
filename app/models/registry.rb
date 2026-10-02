@@ -194,7 +194,7 @@ class Registry < ApplicationRecord
   end
 
   def sync_recently_updated_packages
-    sync_packages(recently_updated_package_names_excluding_recently_synced)
+    sync_packages(recently_updated_package_names_excluding_recently_synced, force: true)
   end
 
   def sync_all_packages_async
@@ -211,13 +211,13 @@ class Registry < ApplicationRecord
 
   def sync_recently_updated_packages_async(period: 15.minutes)
     return if sync_in_batches?
-    sync_packages_async(recently_updated_package_names_excluding_recently_synced, period: period)
+    sync_packages_async(recently_updated_package_names_excluding_recently_synced, period: period, force: true)
   end
 
-  def sync_packages(package_names)
+  def sync_packages(package_names, force: false)
     package_names.each_with_index do |name, index|
       begin
-        sync_package(name)
+        sync_package(name, force: force)
 
         # Force garbage collection every 100 packages for system package managers
         # to prevent memory buildup from memoized package indexes
@@ -232,11 +232,11 @@ class Registry < ApplicationRecord
     end
   end
 
-  def sync_packages_async(package_names, period: 15.minutes)
+  def sync_packages_async(package_names, period: 15.minutes, force: false)
     budget = sync_budget(period)
     package_names = package_names.first(budget) if budget
     package_names.each_slice(1_000) do |batch|
-      SyncPackageWorker.perform_bulk(batch.map{|name| [id, name]})
+      SyncPackageWorker.perform_bulk(batch.map{|name| force ? [id, name, true] : [id, name]})
     end
   end
 

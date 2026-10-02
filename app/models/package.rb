@@ -493,8 +493,10 @@ class Package < ApplicationRecord
     update_columns(versions_count: versions.count, versions_updated_at: Time.now)
     if self.ecosystem == 'opam'
       update_columns(metadata: (metadata || {}).merge('archived' => package_metadata.dig(:metadata, :archived)))
-      update_details
+    elsif self.ecosystem == 'npm'
+      update_columns(metadata: (metadata || {}).merge('dist-tags' => package_metadata.dig(:metadata, 'dist-tags')))
     end
+    update_details
     emit_new_version_events(created_versions)
   end
 
