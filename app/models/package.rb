@@ -349,7 +349,16 @@ class Package < ApplicationRecord
   end
 
   def latest_version
-    @latest_version ||= (latest_stable_version || versions.active.reject(&:opam_archived?).sort.first)
+    @latest_version ||= (dist_tag_latest_version || latest_stable_version || versions.active.reject(&:opam_archived?).sort.first)
+  end
+
+  def dist_tag_latest_version
+    return unless metadata.is_a?(Hash)
+
+    tag = metadata.dig('dist-tags', 'latest')
+    return if tag.blank?
+
+    versions.active.find_by(number: tag)
   end
 
   def latest_stable_version

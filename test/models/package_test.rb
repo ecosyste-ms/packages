@@ -178,6 +178,28 @@ class PackageTest < ActiveSupport::TestCase
     assert_equal @package.latest_release_number, '2.0.0'
   end
 
+  test 'set_latest_release_number follows the npm dist-tag latest' do
+    registry = Registry.create(name: 'registry.npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    package = registry.packages.create(name: 'fresh', ecosystem: 'npm', metadata: { 'dist-tags' => { 'latest' => '0.5.2' } })
+    package.versions.create(number: '0.5.2', published_at: 6.years.ago)
+    package.versions.create(number: '2.0.0', published_at: 2.months.ago)
+
+    package.set_latest_release_number
+
+    assert_equal '0.5.2', package.latest_release_number
+  end
+
+  test 'set_latest_release_number accepts two-component versions' do
+    registry = Registry.create!(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    package = registry.packages.create!(name: 'pytz', ecosystem: 'pypi')
+    package.versions.create(number: '2022.7.1', published_at: 3.years.ago)
+    package.versions.create(number: '2026.4', published_at: 1.week.ago)
+
+    package.set_latest_release_number
+
+    assert_equal '2026.4', package.latest_release_number
+  end
+
   test 'install_command' do
     assert_equal @package.install_command, 'gem install foo -s https://rubygems.org'
   end

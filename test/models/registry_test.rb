@@ -190,6 +190,68 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal package.versions.sort.last.dependencies.length, 1
   end
 
+  test 'sync_package persists the npm latest dist-tag on initial sync and resync' do
+    registry = Registry.create!(name: 'registry.npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    metadata = {
+      '_id' => 'fresh',
+      'dist-tags' => { 'latest' => '0.5.2' },
+      'versions' => {
+        '0.5.2' => { 'name' => 'fresh', 'version' => '0.5.2', 'license' => 'MIT' },
+        '2.0.0' => { 'name' => 'fresh', 'version' => '2.0.0', 'license' => 'MIT' }
+      },
+      'time' => { '0.5.2' => '2017-09-24T00:00:00Z', '2.0.0' => '2024-08-31T00:00:00Z' }
+    }
+    stub_request(:get, 'https://api.npmjs.org/downloads/point/last-month/fresh')
+      .to_return(status: 200, body: { downloads: 100 }.to_json)
+
+    %w[0.5.2 2.0.0].each do |latest|
+      metadata['dist-tags']['latest'] = latest
+      stub_request(:get, 'https://registry.npmjs.org/fresh')
+        .to_return(status: 200, body: metadata.to_json)
+
+      package = Registry.find(registry.id).sync_package('fresh', force: true).reload
+
+      assert_equal latest, package.latest_release_number
+      assert_equal Time.iso8601(metadata['time'][latest]), package.latest_release_published_at
+      assert_equal [latest], package.versions.where(latest: true).pluck(:number)
+      assert_equal 2, package.versions.count
+    end
+  end
+
+  test 'sync_package persists two-component PyPI releases on initial sync and resync' do
+    registry = Registry.create!(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    releases = {
+      '2022.7.1' => '2023-01-01T00:00:00Z',
+      '2026.4' => '2026-09-01T00:00:00Z'
+    }
+    metadata = { 'info' => { 'name' => 'pytz', 'license' => 'MIT' }, 'releases' => {} }
+    stub_request(:get, 'https://pypistats.org/api/packages/pytz/recent')
+      .to_return(status: 200, body: { data: { last_month: 100 } }.to_json)
+
+    releases.each do |number, published_at|
+      metadata['releases'][number] = [{
+        'upload_time' => published_at,
+        'digests' => { 'sha256' => 'a' * 64 },
+        'url' => "https://files.pythonhosted.org/packages/pytz-#{number}.tar.gz",
+        'yanked' => false,
+        'packagetype' => 'sdist',
+        'python_version' => 'source'
+      }]
+      stub_request(:get, "https://pypi.org/pypi/pytz/#{number}/json")
+        .to_return(status: 200, body: { info: { name: 'pytz', version: number, license: 'MIT', requires_dist: [] } }.to_json)
+      stub_request(:get, 'https://pypi.org/pypi/pytz/json')
+        .to_return(status: 200, body: metadata.to_json)
+
+      package = Registry.find(registry.id).sync_package('pytz', force: true).reload
+
+      assert_equal 'pypi', package.ecosystem
+      assert_equal number, package.latest_release_number
+      assert_equal Time.iso8601(published_at), package.latest_release_published_at
+      assert_equal [number], package.versions.where(latest: true).pluck(:number)
+      assert_equal metadata['releases'].length, package.versions.count
+    end
+  end
+
   test 'sync_package returns false when package_metadata name is blank' do
     ecosystem = @registry.ecosystem_instance
     ecosystem.stubs(:package_metadata).returns({ name: '', description: 'Test' })

@@ -180,7 +180,14 @@ class Version < ApplicationRecord
   end
 
   def clean_number
-    @clean_number ||= (SemanticRange.clean(number) || number)
+    @clean_number ||= (SemanticRange.clean(number) || two_component_number || number)
+  end
+
+  # Some ecosystems publish calendar versions like "2026.4" with only two
+  # components. Semantic::Version rejects them, which drops every such release
+  # from stable-version selection. Pad them to a valid "major.minor.patch".
+  def two_component_number
+    number.match(/\A(\d+)\.(\d+)\z/) { "#{Regexp.last_match(1)}.#{Regexp.last_match(2)}.0" }
   end
 
   def update_integrity_async
