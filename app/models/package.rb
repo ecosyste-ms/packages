@@ -341,7 +341,9 @@ class Package < ApplicationRecord
     set_latest_release_number
     set_first_release_published_at
     combine_keywords_and_topics
-    save if changed?
+    saved = save if changed?
+    registry.ecosystem_instance.sync_subpackages_async(self) if saved && saved_change_to_latest_release_number?
+    saved
   end
 
   def update_details_async

@@ -163,6 +163,32 @@ module Ecosystem
       []
     end
 
+    def sync_subpackages_async(package)
+      return if package.repository_url.blank? || package.latest_release_number.blank?
+      return if package.metadata.to_h['module_path'].present?
+
+      scope = @registry.packages.active
+        .where('LOWER(repository_url) = ?', package.repository_url.downcase)
+        .where("metadata->>'module_path' = ?", package.name)
+        .where.not(id: package.id)
+        .where('latest_release_number IS DISTINCT FROM ?', package.latest_release_number)
+
+      batch_size = [[@registry.sync_budget(15.minutes) || 25, 25].min, 1].max
+      spacing = [15.minutes.to_f / batch_size, @registry.rate_limit ? 1.0 / @registry.rate_limit : 0].max
+      next_sync_at = Time.now.to_f
+      scope.in_batches(of: batch_size) do |batch|
+        args = batch.pluck(:name).map { |name| [@registry.id, name, true] }
+        next if args.empty?
+
+        times = args.map do
+          scheduled_at = next_sync_at
+          next_sync_at += spacing
+          scheduled_at
+        end
+        SyncPackageWorker.perform_bulk(args, at: times)
+      end
+    end
+
     def fetch_package_metadata_uncached(name)
       package = fetch_package_metadata_from_pkgsite(name)
       return package if package

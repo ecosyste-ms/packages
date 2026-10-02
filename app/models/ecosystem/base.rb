@@ -22,6 +22,9 @@ module Ecosystem
       false
     end
 
+    def sync_subpackages_async(_package)
+    end
+
     def has_dependent_repos?
       true
     end
