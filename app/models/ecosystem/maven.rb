@@ -320,7 +320,8 @@ module Ecosystem
       child = {
         description: extract_pom_value(xml, "description", parent[:properties]),
         homepage: extract_pom_value(xml, "url", parent[:properties])&.strip,
-        repository_url: repo_fallback(
+        repository_url: scm_repository_url(
+          extract_pom_value(xml, "scm/connection", parent[:properties])&.strip,
           extract_pom_value(xml, "scm/url", parent[:properties])&.strip,
           extract_pom_value(xml, "url", parent[:properties])&.strip
         ),
@@ -333,6 +334,41 @@ module Ecosystem
       }.select { |_k, v| v.present? }
 
       parent.merge(child)
+    end
+
+    APACHE_GIT_HOSTS = %w[git-wip-us.apache.org git.apache.org gitbox.apache.org].freeze
+
+    # Prefer the Git clone URL in scm/connection, then scm/url, then the homepage.
+    def scm_repository_url(connection, scm_url, homepage)
+      [scm_connection_clone_url(connection), scm_url].each do |candidate|
+        found = apache_git_repository_url(candidate) || (UrlParser.try_all(candidate) rescue nil)
+        return found if found.present?
+      end
+      repo_fallback(scm_url, homepage)
+    end
+
+    # "scm:git:https://host/org/repo.git/module" -> "https://host/org/repo.git"
+    def scm_connection_clone_url(connection)
+      return nil if connection.blank?
+      return nil if connection.match?(/\Ascm[:|]/i) && !connection.match?(/\Ascm[:|]git[:|]/i)
+      url = connection.sub(/\Ascm[:|]git[:|]/i, "")
+      url.sub(%r{(\.git)/.*\z}i, '\1')
+    end
+
+    # Apache Git locations moved to GitBox. Handles /repos/asf/<name>.git paths
+    # and Gitweb query URLs (/repos/asf?p=<name>.git;a=summary), keeping the repository root.
+    def apache_git_repository_url(url)
+      return nil if url.blank?
+      uri = URI.parse(url)
+      return nil unless APACHE_GIT_HOSTS.include?(uri.host)
+      name = if uri.query
+        Rack::Utils.parse_query(uri.query.tr(";", "&"))["p"].to_s[%r{\A([^/]+\.git)}i, 1]
+      else
+        uri.path.to_s[%r{\A/(?:repos/asf/)?([^/]+\.git)}i, 1]
+      end
+      name.present? ? "https://gitbox.apache.org/repos/asf/#{name}" : nil
+    rescue URI::InvalidURIError
+      nil
     end
 
     def extract_pom_value(xml, location, parent_properties = {})

@@ -738,4 +738,105 @@ class MavenTest < ActiveSupport::TestCase
     assert_equal ['1.0'], package_metadata[:versions]
     assert_not_requested :get, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/"
   end
+
+  def stub_scm_pom(group_path, artifact, scm_xml, parent_xml: '')
+    stub_request(:get, "https://repo1.maven.org/maven2/#{group_path}/#{artifact}/maven-metadata.xml")
+      .to_return(status: 200, body: "<metadata><versioning><versions><version>1.0</version></versions></versioning></metadata>")
+    stub_request(:get, "https://repo1.maven.org/maven2/#{group_path}/#{artifact}/1.0/#{artifact}-1.0.pom")
+      .to_return(status: 200, body: "<project><modelVersion>4.0.0</modelVersion>#{parent_xml}<groupId>#{group_path.tr('/', '.')}</groupId><artifactId>#{artifact}</artifactId><version>1.0</version>#{scm_xml}</project>")
+  end
+
+  test 'repository_url uses scm connection with Gitweb scm url' do
+    stub_scm_pom('org/apache/commons', 'commons-math3', <<~XML)
+      <scm>
+        <connection>scm:git:http://git-wip-us.apache.org/repos/asf/commons-math.git</connection>
+        <url>https://git-wip-us.apache.org/repos/asf?p=commons-math.git</url>
+      </scm>
+    XML
+
+    metadata = @ecosystem.package_metadata('org.apache.commons:commons-math3')
+
+    assert_equal 'https://gitbox.apache.org/repos/asf/commons-math.git', metadata[:repository_url]
+  end
+
+  test 'repository_url keeps the repository root when scm connection has a module path' do
+    stub_scm_pom('org/apache/hbase', 'hbase-client', <<~XML)
+      <scm>
+        <connection>scm:git:git://gitbox.apache.org/repos/asf/hbase.git/hbase-build-configuration/hbase-client</connection>
+        <url>https://gitbox.apache.org/repos/asf?p=hbase.git/hbase-build-configuration/hbase-client</url>
+      </scm>
+    XML
+
+    metadata = @ecosystem.package_metadata('org.apache.hbase:hbase-client')
+
+    assert_equal 'https://gitbox.apache.org/repos/asf/hbase.git', metadata[:repository_url]
+  end
+
+  test 'repository_url keeps the repository name from a Gitweb scm url without a connection' do
+    stub_scm_pom('org/apache/commons', 'commons-text', <<~XML)
+      <scm>
+        <url>https://gitbox.apache.org/repos/asf?p=commons-text.git;a=summary</url>
+      </scm>
+    XML
+
+    metadata = @ecosystem.package_metadata('org.apache.commons:commons-text')
+
+    assert_equal 'https://gitbox.apache.org/repos/asf/commons-text.git', metadata[:repository_url]
+  end
+
+  test 'repository_url strips the scm transport prefix from a GitHub connection' do
+    stub_scm_pom('com/example', 'github-connection', <<~XML)
+      <scm>
+        <connection>scm:git:https://github.com/example/widgets.git/widgets-core</connection>
+      </scm>
+    XML
+
+    metadata = @ecosystem.package_metadata('com.example:github-connection')
+
+    assert_equal 'https://github.com/example/widgets', metadata[:repository_url]
+  end
+
+  test 'repository_url prefers the child scm over the parent scm' do
+    stub_scm_pom('org/apache/hbase', 'hbase', <<~XML)
+      <scm>
+        <connection>scm:git:git://gitbox.apache.org/repos/asf/hbase.git</connection>
+        <url>https://gitbox.apache.org/repos/asf?p=hbase.git</url>
+      </scm>
+    XML
+    stub_scm_pom('org/apache/hbase', 'hbase-thirdparty', <<~XML, parent_xml: '<parent><groupId>org.apache.hbase</groupId><artifactId>hbase</artifactId><version>1.0</version></parent>')
+      <scm>
+        <connection>scm:git:https://github.com/apache/hbase-thirdparty.git</connection>
+      </scm>
+    XML
+
+    metadata = @ecosystem.package_metadata('org.apache.hbase:hbase-thirdparty')
+
+    assert_equal 'https://github.com/apache/hbase-thirdparty', metadata[:repository_url]
+  end
+
+  test 'repository_url uses the parent scm when the child has none and no homepage' do
+    stub_scm_pom('org/apache/hbase', 'hbase', <<~XML)
+      <scm>
+        <connection>scm:git:git://gitbox.apache.org/repos/asf/hbase.git</connection>
+      </scm>
+    XML
+    stub_scm_pom('org/apache/hbase', 'hbase-common', '', parent_xml: '<parent><groupId>org.apache.hbase</groupId><artifactId>hbase</artifactId><version>1.0</version></parent>')
+
+    metadata = @ecosystem.package_metadata('org.apache.hbase:hbase-common')
+
+    assert_equal 'https://gitbox.apache.org/repos/asf/hbase.git', metadata[:repository_url]
+  end
+
+  test 'repository_url ignores non-Git scm connections' do
+    stub_scm_pom('com/example', 'svn-project', <<~XML)
+      <scm>
+        <connection>scm:svn:https://svn.example.com/repos/project/trunk</connection>
+        <url>https://github.com/example/svn-project</url>
+      </scm>
+    XML
+
+    metadata = @ecosystem.package_metadata('com.example:svn-project')
+
+    assert_equal 'https://github.com/example/svn-project', metadata[:repository_url]
+  end
 end
