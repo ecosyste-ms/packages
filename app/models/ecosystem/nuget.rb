@@ -88,7 +88,11 @@ module Ecosystem
     end
 
     def download_stats(name)
-      get_json("https://azuresearch-usnc.nuget.org/query?q=packageid:#{name.downcase}")
+      json = get_json("https://azuresearch-usnc.nuget.org/query?q=packageid:#{name.downcase}")
+      json['data'] = Array(json['data']).select do |result|
+        result.is_a?(Hash) && result['id'].to_s.casecmp?(name)
+      end
+      json
     rescue
       {}
     end
@@ -568,7 +572,7 @@ module Ecosystem
     end
 
     def maintainers_metadata(name)
-      json = get_json("https://azuresearch-usnc.nuget.org/query?q=packageid:#{name.downcase}")
+      json = download_stats(name)
       json['data'][0]['owners'].map do |user|
         {
           uuid: user,
