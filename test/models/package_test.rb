@@ -190,7 +190,8 @@ class PackageTest < ActiveSupport::TestCase
   end
 
   test 'set_latest_release_number accepts two-component versions' do
-    package = @registry.packages.create(name: 'pytz', ecosystem: @registry.ecosystem)
+    registry = Registry.create!(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    package = registry.packages.create!(name: 'pytz', ecosystem: 'pypi')
     package.versions.create(number: '2022.7.1', published_at: 3.years.ago)
     package.versions.create(number: '2026.4', published_at: 1.week.ago)
 
