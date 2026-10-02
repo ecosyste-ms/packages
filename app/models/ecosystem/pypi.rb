@@ -160,6 +160,7 @@ module Ecosystem
           {
             number: k,
             published_at: nil,
+            status: nil,
             integrity: nil,
             licenses: nil,
             metadata: {
@@ -170,6 +171,7 @@ module Ecosystem
           {
             number: k,
             published_at: v[0]["upload_time"],
+            status: v.all? { |file| file['yanked'] } ? 'yanked' : nil,
             integrity: 'sha256-' + v[0]['digests']['sha256'],
             licenses: version_licenses(name, k),
             metadata: {
@@ -184,6 +186,21 @@ module Ecosystem
             }
           }
         end
+      end
+    end
+
+    def update_existing_versions(package, _versions_metadata)
+      releases = fetch_package_metadata(package.name).fetch('releases', {})
+      yanked, available = releases.reject { |_, files| files.blank? }
+                                  .partition { |_, files| files.all? { |file| file['yanked'] } }
+      newly_yanked = package.versions.where(number: yanked.map(&:first)).where("status IS DISTINCT FROM 'yanked'")
+      restored = package.versions.where(number: available.map(&:first), status: 'yanked')
+
+      newly_yanked.or(restored).select(:id, :number, :metadata).find_each do |version|
+        files = releases[version.number]
+        status = files.all? { |file| file['yanked'] } ? 'yanked' : nil
+        metadata = (version.metadata || {}).merge(files.first.slice('yanked', 'yanked_reason'))
+        version.update_columns(status: status, metadata: metadata, updated_at: Time.current)
       end
     end
 

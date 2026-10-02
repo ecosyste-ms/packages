@@ -129,6 +129,7 @@ class PypiTest < ActiveSupport::TestCase
       {
         :number=>"0.1.2.32",
         :published_at=>"2019-11-05T15:06:04",
+        :status=>nil,
         :integrity=>"sha256-29ffb8f9b1d6114757a53a1a713a4e07ce4e1c4c50d31332644593db208f30e7",
         :licenses=>nil,
         :metadata=>{
