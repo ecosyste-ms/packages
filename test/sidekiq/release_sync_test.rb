@@ -76,6 +76,42 @@ class ReleaseSyncTest < ActiveSupport::TestCase
     assert_equal 'yanked', @package.versions.find_by!(number: '1.5.1').status
   end
 
+  test 'version update worker refreshes npm dist-tags before selecting the latest release' do
+    registry = Registry.create!(name: 'registry.npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    funding = { 'url' => 'https://example.com/funding' }
+    package = registry.packages.create!(name: 'fresh', ecosystem: 'npm',
+      metadata: { 'dist-tags' => { 'latest' => '1.0.0' }, 'funding' => funding },
+      latest_release_number: '1.0.0', latest_release_published_at: 1.year.ago)
+    package.versions.create!(number: '1.0.0', published_at: 1.year.ago, latest: true)
+    metadata = {
+      '_id' => 'fresh',
+      'versions' => {
+        '1.0.0' => { 'name' => 'fresh', 'version' => '1.0.0', 'license' => 'MIT' },
+        '2.0.0' => { 'name' => 'fresh', 'version' => '2.0.0', 'license' => 'MIT' }
+      },
+      'time' => { '1.0.0' => 1.year.ago.iso8601, '2.0.0' => @published_at.iso8601 }
+    }
+    stub_request(:get, 'https://api.npmjs.org/downloads/point/last-month/fresh')
+      .to_return(status: 200, body: { downloads: 100 }.to_json)
+
+    ['2.0.0', '1.0.0', nil].each do |tag|
+      metadata['dist-tags'] = tag ? { 'latest' => tag } : nil
+      stub_request(:get, 'https://registry.npmjs.org/fresh')
+        .to_return(status: 200, body: metadata.to_json)
+
+      UpdateVersionsWorker.new.perform(package.id)
+
+      package.reload
+      expected_latest = tag || '2.0.0'
+      assert_equal expected_latest, package.latest_release_number
+      assert_equal Time.iso8601(metadata['time'][expected_latest]), package.latest_release_published_at
+      assert_equal [expected_latest], package.versions.where(latest: true).pluck(:number)
+      assert_equal metadata['dist-tags'] || {}, package.metadata['dist-tags'] || {}
+      assert_equal funding, package.metadata['funding']
+      assert_equal 2, package.versions_count
+    end
+  end
+
   def assert_latest_release(number, published_at)
     @package.reload
     assert_equal number, @package.latest_release_number
