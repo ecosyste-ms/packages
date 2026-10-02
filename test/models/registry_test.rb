@@ -95,7 +95,9 @@ class RegistryTest < ActiveSupport::TestCase
   
   test 'sync_recently_updated_packages' do
     @registry.expects(:recently_updated_package_names_excluding_recently_synced).returns(['foo', 'bar', 'baz'])
-    @registry.expects(:sync_packages).with(['foo', 'bar', 'baz'])
+    @registry.expects(:sync_package).with('foo', force: true)
+    @registry.expects(:sync_package).with('bar', force: true)
+    @registry.expects(:sync_package).with('baz', force: true)
     @registry.sync_recently_updated_packages
   end
 
@@ -121,13 +123,13 @@ class RegistryTest < ActiveSupport::TestCase
   
   test 'sync_recently_updated_packages_async' do
     @registry.expects(:recently_updated_package_names_excluding_recently_synced).returns(['foo', 'bar', 'baz'])
-    @registry.expects(:sync_packages_async).with(['foo', 'bar', 'baz'], period: 15.minutes)
+    @registry.expects(:sync_packages_async).with(['foo', 'bar', 'baz'], period: 15.minutes, force: true)
     @registry.sync_recently_updated_packages_async
   end
 
   test 'sync_recently_updated_packages_async passes period through' do
     @registry.expects(:recently_updated_package_names_excluding_recently_synced).returns(['foo'])
-    @registry.expects(:sync_packages_async).with(['foo'], period: 5.minutes)
+    @registry.expects(:sync_packages_async).with(['foo'], period: 5.minutes, force: true)
     @registry.sync_recently_updated_packages_async(period: 5.minutes)
   end
 
@@ -139,8 +141,8 @@ class RegistryTest < ActiveSupport::TestCase
   end
   
   test 'sync_packages' do
-    @registry.expects(:sync_package).with('foo')
-    @registry.expects(:sync_package).with('bar')
+    @registry.expects(:sync_package).with('foo', force: false)
+    @registry.expects(:sync_package).with('bar', force: false)
     @registry.sync_packages(['foo', 'bar'])
   end
 
@@ -153,6 +155,14 @@ class RegistryTest < ActiveSupport::TestCase
     @registry.rate_limit = 1
     SyncPackageWorker.expects(:perform_bulk).with([[@registry.id, "a"], [@registry.id, "b"]])
     @registry.sync_packages_async(%w[a b c d], period: 2.seconds)
+  end
+
+  test 'recent update syncs retain the registry budget when forcing workers' do
+    @registry.rate_limit = 1
+    @registry.expects(:recently_updated_package_names_excluding_recently_synced).returns(%w[a b c d])
+    SyncPackageWorker.expects(:perform_bulk).with([[@registry.id, 'a', true], [@registry.id, 'b', true]])
+
+    @registry.sync_recently_updated_packages_async(period: 2.seconds)
   end
 
   test 'sync_packages_async is uncapped when rate_limit is nil' do
