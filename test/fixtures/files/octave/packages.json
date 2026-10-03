@@ -1,0 +1,308 @@
+{
+  "apa": {
+    "name": "apa",
+    "description": "Arbitrary Precision Arithmetic (APA) package for Octave/Matlab.\nThis package is a wrapper around the MPFR library, which provides arbitrary precision floating-point arithmetic.\nThe package allows users to perform calculations with a precision that can be set at runtime, making it suitable for applications that require high precision, such as numerical analysis and scientific computing.",
+    "icon": "https://raw.githubusercontent.com/gnu-octave/pkg-apa/refs/heads/main/doc/apa.png",
+    "links": [
+      {
+        "icon": "far fa-copyright",
+        "label": "GPL-3.0-or-later",
+        "url": "https://github.com/gnu-octave/pkg-apa/blob/main/COPYING"
+      },
+      {
+        "icon": "fas fa-rss",
+        "label": "news",
+        "url": "https://github.com/gnu-octave/pkg-apa/releases/"
+      },
+      {
+        "icon": "fas fa-code-branch",
+        "label": "repository",
+        "url": "https://github.com/gnu-octave/pkg-apa/"
+      },
+      {
+        "icon": "fas fa-book",
+        "label": "package documentation",
+        "url": "https://github.com/gnu-octave/pkg-apa/blob/main/README.md"
+      },
+      {
+        "icon": "fas fa-bug",
+        "label": "report a problem",
+        "url": "https://github.com/gnu-octave/pkg-apa/issues"
+      }
+    ],
+    "maintainers": [
+      {
+        "name": "Kai T. Ohlhus",
+        "contact": "kai.ohlhus@gmail.com"
+      }
+    ],
+    "versions": [
+      {
+        "id": "1.2.2",
+        "date": "2026-05-03",
+        "sha256": "1df4afc7db1a3f425c22d9d50f864f75f6bff4d3d7dbccce0b6622b29b13bb96",
+        "url": "https://github.com/gnu-octave/pkg-apa/archive/refs/tags/v1.2.2.tar.gz",
+        "depends": [
+          "octave (>= 9.1.0)",
+          "pkg"
+        ],
+        "ubuntu2604": [
+          "libmpfr-dev"
+        ]
+      },
+      {
+        "id": "dev",
+        "date": null,
+        "sha256": null,
+        "url": "https://downloads.sourceforge.net/project/octave/Octave%20Forge%20Packages/Individual%20Package%20Releases/interval-3.2.1.tar.gz",
+        "depends": [
+          "octave (>= 9.1.0)",
+          "pkg"
+        ],
+        "ubuntu2604": [
+          "libmpfr-dev"
+        ]
+      }
+    ]
+  },
+  "coder": {
+    "name": "coder",
+    "description": "Coder is an Octave code generator and build system that, given a function name translates the function and all of its dependencies to C++ and builds a .oct shared module.",
+    "icon": "https://raw.githubusercontent.com/shsajjadi/OctaveCoder/dev/doc/icon.png",
+    "links": [
+      {
+        "icon": "far fa-copyright",
+        "label": "AGPL-3.0-or-later",
+        "url": "https://github.com/shsajjadi/OctaveCoder/blob/dev/COPYING"
+      },
+      {
+        "icon": "fas fa-rss",
+        "label": "news",
+        "url": "https://github.com/shsajjadi/OctaveCoder/blob/dev/NEWS"
+      },
+      {
+        "icon": "fas fa-code-branch",
+        "label": "repository",
+        "url": "https://github.com/shsajjadi/OctaveCoder"
+      },
+      {
+        "icon": "fas fa-book",
+        "label": "package documentation",
+        "url": "https://github.com/shsajjadi/OctaveCoder/blob/dev/README.md"
+      },
+      {
+        "icon": "fas fa-bug",
+        "label": "report a problem",
+        "url": "https://github.com/shsajjadi/OctaveCoder/issues"
+      }
+    ],
+    "maintainers": [
+      {
+        "name": "Seyyed Hossein Sajjadi",
+        "contact": "https://github.com/shsajjadi"
+      }
+    ],
+    "versions": [
+      {
+        "id": "1.11.1",
+        "date": "2026-02-15",
+        "sha256": "919d82a6b3c63d1e11a533bb287217bbf672c2429f2c4bf6a60b58fa664ab42b",
+        "url": "https://github.com/shsajjadi/OctaveCoder/releases/download/coder-1.11.1/coder-1.11.1.tar.gz",
+        "depends": [
+          "octave (>= 4.4.0)",
+          "pkg"
+        ]
+      }
+    ]
+  },
+  "csg-toolkit": {
+    "name": "csg-toolkit",
+    "description": "The present set of GNU Octave functions provides a novel and robust algorithm for analyzing the diaphyseal cross-sectional geometric properties of long bones, which can be applied to any 3D digital model of a humerus, ulna, femur or tibia bone represented as a triangular mesh in a Wavefront OBJ file format.",
+    "icon": "https://raw.githubusercontent.com/pr0m1th3as/csg-toolkit/main/doc/csg-toolkit.png",
+    "links": [
+      {
+        "icon": "far fa-copyright",
+        "label": "GPL-3.0-or-later",
+        "url": "https://github.com/pr0m1th3as/csg-toolkit/blob/main/LICENSE"
+      },
+      {
+        "icon": "fas fa-rss",
+        "label": "news",
+        "url": "https://github.com/pr0m1th3as/csg-toolkit/releases"
+      },
+      {
+        "icon": "fas fa-code-branch",
+        "label": "repository",
+        "url": "https://github.com/pr0m1th3as/csg-toolkit"
+      },
+      {
+        "icon": "fas fa-book",
+        "label": "package documentation",
+        "url": "https://pr0m1th3as.github.io/csg-toolkit/"
+      },
+      {
+        "icon": "fas fa-bug",
+        "label": "report a problem",
+        "url": "https://github.com/pr0m1th3as/csg-toolkit/issues"
+      }
+    ],
+    "maintainers": [
+      {
+        "name": "Andreas Bertsatos",
+        "contact": "abertsatos@biol.uoa.gr"
+      }
+    ],
+    "versions": [
+      {
+        "id": "1.4.3",
+        "date": "2025-07-18",
+        "sha256": "cc65e5d6b14f6678739f59119a726dbe0545da8ee662052f6adb3a02ad72ca44",
+        "url": "https://github.com/pr0m1th3as/csg-toolkit/releases/download/v1.4.3/csg-toolkit-1.4.3.tar.gz",
+        "depends": [
+          "octave (>= 9.1.0)",
+          "statistics (>= 1.7.4)",
+          "datatypes (>= 1.0.1)",
+          "io (>= 2.6.4)",
+          "pkg"
+        ]
+      },
+      {
+        "id": "1.4.2",
+        "date": "2025-05-20",
+        "sha256": "56fabd89edb550166aaeb7322b678721ad33864fe60b9e8602f596c91207e3b9",
+        "url": "https://github.com/pr0m1th3as/csg-toolkit/archive/refs/tags/v1.4.2.tar.gz",
+        "depends": [
+          "octave (>= 9.1.0)",
+          "statistics (>= 1.7.4)",
+          "datatypes (>= 1.0.1)",
+          "io (>= 2.6.4)",
+          "pkg"
+        ]
+      }
+    ]
+  },
+  "dynare": {
+    "name": "dynare",
+    "description": "Dynare is a software platform for handling a wide class of economic models, in particular dynamic stochastic general equilibrium (DSGE) and overlapping generations (OLG) models. The models solved by Dynare include those relying on the rational expectations hypothesis, wherein agents form their expectations about the future in a way consistent with the model. But Dynare is also able to handle models where expectations are formed differently: on one extreme, models where agents perfectly anticipate the future; on the other extreme, models where agents have limited rationality or imperfect knowledge of the state of the economy and, hence, form their expectations through a learning process. In terms of types of agents, models solved by Dynare can incorporate consumers, productive firms, governments, monetary authorities, investors and financial intermediaries. Some degree of heterogeneity can be achieved by including several distinct classes of agents in each of the aforementioned agent categories.\nDynare offers a user-friendly and intuitive way of describing these models. It is able to perform simulations of the model given a calibration of the model parameters and is also able to estimate these parameters given a dataset. In practice, the user will write a text file containing the list of model variables, the dynamic equations linking these variables together, the computing tasks to be performed and the desired graphical or numerical outputs.",
+    "icon": "https://www.dynare.org/assets/images/logo/dlogo.svg",
+    "links": [
+      {
+        "icon": "far fa-copyright",
+        "label": "GPL-3.0-or-later",
+        "url": "https://git.dynare.org/Dynare/dynare/-/blob/master/COPYING"
+      },
+      {
+        "icon": "fas fa-rss",
+        "label": "news",
+        "url": "https://www.dynare.org/news/"
+      },
+      {
+        "icon": "fas fa-code-branch",
+        "label": "repository",
+        "url": "https://git.dynare.org/Dynare/dynare"
+      },
+      {
+        "icon": "fas fa-book",
+        "label": "package documentation",
+        "url": "https://www.dynare.org/manual/"
+      },
+      {
+        "icon": "fas fa-bug",
+        "label": "report a problem",
+        "url": "https://git.dynare.org/Dynare/dynare/-/issues/new"
+      }
+    ],
+    "maintainers": [
+      {
+        "name": "Dynare Team",
+        "contact": "dev@dynare.org"
+      }
+    ],
+    "versions": [
+      {
+        "id": "7.2",
+        "date": "2026-09-11",
+        "sha256": "",
+        "url": "https://www.dynare.org/download/",
+        "depends": [
+          "octave (>= 8.4.0)"
+        ]
+      },
+      {
+        "id": "7.1",
+        "date": "2026-05-28",
+        "sha256": "",
+        "url": "https://www.dynare.org/download/",
+        "depends": [
+          "octave (>= 8.4.0)"
+        ]
+      }
+    ]
+  },
+  "json": {
+    "name": "json",
+    "description": "JSON support by Matlab compatible (jsondecode / jsonencode) functions. Included in Octave core since version 7.1.0. No need to install this package in recent Octave versions.",
+    "icon": "https://raw.githubusercontent.com/gnu-octave/pkg-json/main/doc/JSON.png",
+    "links": [
+      {
+        "icon": "far fa-copyright",
+        "label": "GPL-3.0-or-later",
+        "url": "https://github.com/gnu-octave/pkg-json/blob/main/COPYING"
+      },
+      {
+        "icon": "fas fa-rss",
+        "label": "news",
+        "url": "https://github.com/gnu-octave/pkg-json/releases/"
+      },
+      {
+        "icon": "fas fa-code-branch",
+        "label": "repository",
+        "url": "https://github.com/gnu-octave/pkg-json/"
+      },
+      {
+        "icon": "fas fa-book",
+        "label": "package documentation",
+        "url": "https://github.com/gnu-octave/pkg-json/blob/main/README.md"
+      },
+      {
+        "icon": "fas fa-bug",
+        "label": "report a problem",
+        "url": "https://github.com/gnu-octave/pkg-json/issues"
+      }
+    ],
+    "maintainers": [
+      {
+        "name": "Kai T. Ohlhus",
+        "contact": "k.ohlhus@gmail.com"
+      },
+      {
+        "name": "Abdallah Elshamy",
+        "contact": "abdallah.k.elshamy@gmail.com"
+      }
+    ],
+    "versions": [
+      {
+        "id": "1.6.0",
+        "date": "2025-03-23",
+        "sha256": "f27e407998f980f7150cbb007da000034bb7c2e381205bae5afe3d2943785482",
+        "url": "https://github.com/gnu-octave/pkg-json/archive/v1.6.0.tar.gz",
+        "depends": [
+          "octave (>= 5.1.0)",
+          "octave (< 7.0.0)",
+          "pkg"
+        ]
+      },
+      {
+        "id": "dev",
+        "date": null,
+        "sha256": null,
+        "url": "https://github.com/gnu-octave/pkg-json/archive/main.tar.gz",
+        "depends": [
+          "octave (>= 5.1.0)",
+          "octave (< 7.0.0)",
+          "pkg"
+        ]
+      }
+    ]
+  }
+}

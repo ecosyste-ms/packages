@@ -98,6 +98,10 @@ class EcosystemVersionRenderingTest < ActiveSupport::TestCase
     },
     'npm' => { name: '@babel/core', install: ['npm install @babel/core', 'npm install @babel/core@1.2.3'], documentation: nil },
     'nuget' => { name: 'Newtonsoft.Json', install: ['Install-Package Newtonsoft.Json', 'Install-Package Newtonsoft.Json -Version 1.2.3'], documentation: nil },
+    'octave' => {
+      name: 'statistics', version_metadata: { download_url: 'https://github.com/gnu-octave/statistics/releases/download/release-1.2.3/statistics-1.2.3.tar.gz' },
+      install: [nil, 'pkg install "https://github.com/gnu-octave/statistics/releases/download/release-1.2.3/statistics-1.2.3.tar.gz"'], documentation: nil
+    },
     'opam' => {
       name: 'lwt', install: ['opam install lwt', 'opam install lwt.1.2.3'],
       documentation: ['https://ocaml.org/p/lwt/latest/doc/index.html', 'https://ocaml.org/p/lwt/1.2.3/doc/index.html']
