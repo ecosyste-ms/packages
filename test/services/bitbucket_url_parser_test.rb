@@ -65,6 +65,12 @@ class BitbucketUrlParserTest < ActiveSupport::TestCase
     end
   end
 
+  test 'preserves domain-like owner and repository names' do
+    %w[bitbucket-org/client team/bitbucket-community-client team/bitbucket.org].each do |name|
+      assert_equal name, BitbucketUrlParser.parse("https://bitbucket.org/#{name}")
+    end
+  end
+
   test "handles anchors" do
     full_name = 'michaelkrog/filter4j'
     url       = 'scm:git:https://michaelkrog@bitbucket.com/michaelkrog/filter4j.git#anchor'

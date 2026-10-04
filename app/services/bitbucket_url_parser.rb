@@ -14,6 +14,6 @@ class BitbucketUrlParser < UrlParser
   end
 
   def remove_domain
-    url.gsub!(/(bitbucket.com|bitbucket.org)+?(:|\/)?/i, '')
+    url.sub!(/(bitbucket\.com|bitbucket\.org)(:|\/)?/i, '')
   end
 end

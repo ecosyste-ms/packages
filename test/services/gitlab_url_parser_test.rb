@@ -63,6 +63,12 @@ class GitlabUrlParserTest < ActiveSupport::TestCase
     end
   end
 
+  test 'preserves domain-like group and repository names' do
+    %w[gitlab-community-projects/client team/gitlab-community-client team/gitlab.com group/gitlab-community/subgroup/project].each do |name|
+      assert_equal name, GitlabUrlParser.parse("https://gitlab.com/#{name}")
+    end
+  end
+
   test "handles anchors" do
     full_name = 'michaelkrog/filter4j'
     url       = 'scm:git:https://michaelkrog@gitlab.com/michaelkrog/filter4j.git#anchor'
