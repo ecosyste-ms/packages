@@ -52,6 +52,29 @@ class SyncPackageWorkerTest < ActiveSupport::TestCase
     end
   end
 
+  test 'forced CPAN sync preserves the repository URL with repeated hosts in metadata' do
+    registry = Registry.create!(name: 'cpan.org', url: 'https://cpan.org', ecosystem: 'cpan')
+    name = 'DBIx-Class-FilterColumn-ByType'
+    expected = "https://github.com/mattp-/#{name}"
+    package = registry.packages.create!(name: name, ecosystem: 'cpan', repository_url: expected, last_synced_at: Time.current)
+    stub_request(:get, "https://fastapi.metacpan.org/v1/release/#{name}")
+      .to_return(status: 200, body: {
+        distribution: name,
+        resources: {
+          repository: { url: "git://github.com///github.com/mattp-/#{name}.git" },
+          homepage: "https://github.com///github.com/mattp-/#{name}/wiki",
+          bugtracker: { web: "https://github.com///github.com/mattp-/#{name}/issues" }
+        }
+      }.to_json)
+    stub_request(:get, 'https://fastapi.metacpan.org/v1/release/_search')
+      .with(query: { q: "distribution:#{name}", size: '5000' })
+      .to_return(status: 200, body: { hits: { hits: [] } }.to_json)
+
+    SyncPackageWorker.new.perform(registry.id, name, true)
+
+    assert_equal expected, package.reload.repository_url
+  end
+
   test 'perform' do
     @registry = Registry.create(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
     @registry.expects(:sync_package).with('foo', force: false)

@@ -142,6 +142,7 @@ class UrlParser
   def remove_scheme
     self.url = url.sub(%r{\A(https?://[^/]+/)(?:\1)+}i, '\1')
     self.url = url.dup.gsub(/(?:git\+https|git|ssh|hg|svn|scm|http|https):/i, '')
+    self.url = url.sub(%r{\A(/*)([^/]+)/{2,}\2/}i, '\1\2/')
   end
 
   def remove_subdomain

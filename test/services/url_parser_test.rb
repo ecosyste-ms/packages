@@ -25,6 +25,20 @@ class UrlParserTest < ActiveSupport::TestCase
     end
   end
 
+  test 'collapses repeated leading hosts separated by extra slashes' do
+    {
+      'https://github.com///github.com/mattp-/DBIx-Class-FilterColumn-ByType/wiki' => 'https://github.com/mattp-/DBIx-Class-FilterColumn-ByType',
+      'git://github.com///github.com/mattp-/DBIx-Class-FilterColumn-ByType.git' => 'https://github.com/mattp-/DBIx-Class-FilterColumn-ByType',
+      'https://github.com///git@github.com/jhthorsen/app-screenorama' => 'https://github.com/jhthorsen/app-screenorama',
+      'https://gitlab.com///gitlab.com/group/subgroup/gitlab.com' => 'https://gitlab.com/group/subgroup/gitlab.com',
+      'https://bitbucket.org///bitbucket.org/owner/bitbucket.org' => 'https://bitbucket.org/owner/bitbucket.org',
+      'https://gitlab.com/gitlab.com/project' => 'https://gitlab.com/gitlab.com/project',
+      'https://github.com/owner/github.com' => 'https://github.com/owner/github.com'
+    }.each do |url, expected|
+      assert_equal expected, UrlParser.try_all(url)
+    end
+  end
+
   test 'parses gitlab urls' do
     [
       ['https://gitlab.com/maxcdn/shml/', 'https://gitlab.com/maxcdn/shml'],
