@@ -1,6 +1,39 @@
 require "test_helper"
 
 class UrlParserTest < ActiveSupport::TestCase
+  test 'does not combine multiple homepages into a repository URL' do
+    urls = 'https://github.com/smartinsightsfromdata, http://smartinsightsfromdata.github.io'
+    assert_nil UrlParser.try_all(urls)
+    assert_nil GithubUrlParser.parse(urls)
+    assert_nil GithubUrlParser.parse_to_full_url(urls)
+  end
+
+  test 'parses each URL in a list separately across supported hosts' do
+    %w[github.com gitlab.com bitbucket.org codeberg.org].each do |host|
+      [', ', ',', '; ', ' ', "\n"].each do |separator|
+        urls = "https://#{host}/owner#{separator}https://#{host}/owner/project"
+        assert_equal "https://#{host}/owner/project", UrlParser.try_all(urls)
+      end
+    end
+  end
+
+  test 'selects the first parseable repository in URL order' do
+    urls = 'https://example.com/docs, https://gitlab.com/group/project, https://github.com/other/project'
+    assert_equal 'https://gitlab.com/group/project', UrlParser.try_all(urls)
+  end
+
+  test 'host-specific parsers handle URL lists' do
+    urls = 'https://github.com/owner, git@github.com:owner/project.git'
+    assert_equal 'owner/project', GithubUrlParser.parse(urls)
+    assert_equal 'https://github.com/owner/project', GithubUrlParser.parse_to_full_url(urls)
+    assert_equal 'https://gitea.com/owner/project', ForgeUrlParser.parse_to_full_url('https://codeberg.org/owner, https://gitea.com/owner/project')
+  end
+
+  test 'preserves single URLs containing commas or nested URL parameters' do
+    assert_equal 'https://gitlab.com/group/project', UrlParser.try_all('https://gitlab.com/group/project/-/tree/a,b')
+    assert_equal 'https://github.com/owner/project', UrlParser.try_all('https://github.com/owner/project?redirect=https://example.com')
+  end
+
   test 'rejects documentation URLs containing domain-like package names' do
     %w[github_commenter gitlab-community-client bitbucket-org].each do |name|
       assert_nil UrlParser.try_all("https://rubydoc.info/gems/#{name}")

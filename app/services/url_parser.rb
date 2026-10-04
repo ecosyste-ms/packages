@@ -1,6 +1,6 @@
 class UrlParser
   def self.parse(url)
-    new(url).parse
+    url_candidates(url).lazy.map { |candidate| new(candidate).parse }.find(&:present?)
   end
 
   def initialize(url)
@@ -19,14 +19,20 @@ class UrlParser
   end
 
   def self.parse_to_full_url(url)
-    new(url).parse_to_full_url
+    url_candidates(url).lazy.map { |candidate| new(candidate).parse_to_full_url }.find(&:present?)
   end
 
   def self.try_all(url)
-    GithubUrlParser.parse_to_full_url(url) ||
-    GitlabUrlParser.parse_to_full_url(url) ||
-    BitbucketUrlParser.parse_to_full_url(url) ||
-    ForgeUrlParser.parse_to_full_url(url)
+    url_candidates(url).lazy.map do |candidate|
+      GithubUrlParser.parse_to_full_url(candidate) ||
+      GitlabUrlParser.parse_to_full_url(candidate) ||
+      BitbucketUrlParser.parse_to_full_url(candidate) ||
+      ForgeUrlParser.parse_to_full_url(candidate)
+    end.find(&:present?)
+  end
+
+  def self.url_candidates(url)
+    url.to_s.split(%r{[,;\s]+(?=(?:[a-z][a-z0-9+.-]*://|git@))}i)
   end
 
   def parse_to_full_url
