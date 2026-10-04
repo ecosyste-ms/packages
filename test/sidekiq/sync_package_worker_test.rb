@@ -22,6 +22,36 @@ class SyncPackageWorkerTest < ActiveSupport::TestCase
     end
   end
 
+  {
+    'github_commenter' => {
+      homepage: 'https://github.com/okitan/github_commenter',
+      documentation: 'https://rubydoc.info/gems/github_commenter',
+      stored: 'https://github.com/rubydoc.info/gems',
+      expected: 'https://github.com/okitan/github_commenter'
+    },
+    'duplicate-homepage' => {
+      homepage: 'https://github.com/https://github.com/isovector/type-sets/tree/master/magic-tyfams#readme',
+      stored: 'https://github.com/github.com/isovector',
+      expected: 'https://github.com/isovector/type-sets'
+    }
+  }.each do |name, urls|
+    test "forced sync repairs the repository URL for #{name}" do
+      registry = Registry.create!(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
+      package = registry.packages.create!(name: name, ecosystem: 'rubygems', repository_url: urls[:stored], last_synced_at: Time.current)
+      stub_request(:get, "https://rubygems.org/api/v1/gems/#{name}.json")
+        .to_return(status: 200, body: {
+          name: name, homepage_uri: urls[:homepage], documentation_uri: urls[:documentation], licenses: ['MIT']
+        }.to_json)
+      stub_request(:get, "https://rubygems.org/api/v1/versions/#{name}.json")
+        .to_return(status: 200, body: '[]')
+      UpdateRepoMetadataWorker.expects(:perform_async).with(package.id)
+
+      SyncPackageWorker.new.perform(registry.id, name, true)
+
+      assert_equal urls[:expected], package.reload.repository_url
+    end
+  end
+
   test 'perform' do
     @registry = Registry.create(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
     @registry.expects(:sync_package).with('foo', force: false)

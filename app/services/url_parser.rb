@@ -81,7 +81,7 @@ class UrlParser
   end
 
   def domain_regex
-    "#{domain}\.(#{tlds.join('|')})"
+    "#{domain}[.](#{tlds.join('|')})"
   end
 
   def website_url?
@@ -140,6 +140,7 @@ class UrlParser
   end
 
   def remove_scheme
+    self.url = url.sub(%r{\A(https?://[^/]+/)(?:\1)+}i, '\1')
     self.url = url.dup.gsub(/(?:git\+https|git|ssh|hg|svn|scm|http|https):/i, '')
   end
 

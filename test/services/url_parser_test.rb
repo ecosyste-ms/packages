@@ -1,6 +1,30 @@
 require "test_helper"
 
 class UrlParserTest < ActiveSupport::TestCase
+  test 'rejects documentation URLs containing domain-like package names' do
+    %w[github_commenter gitlab-community-client bitbucket-org].each do |name|
+      assert_nil UrlParser.try_all("https://rubydoc.info/gems/#{name}")
+    end
+  end
+
+  test 'requires literal dots in forge domains' do
+    %w[github-com gitlab-com bitbucket-org].each do |host|
+      assert_nil UrlParser.try_all("https://#{host}/owner/project")
+    end
+  end
+
+  test 'collapses duplicated URL prefixes without removing repository name fragments' do
+    {
+      'https://github.com/' => ['isovector/type-sets/tree/master/magic-tyfams#readme', 'https://github.com/isovector/type-sets'],
+      'https://gitlab.com/' => ['group/subgroup/gitlab.com', 'https://gitlab.com/group/subgroup/gitlab.com'],
+      'https://bitbucket.org/' => ['owner/bitbucket.org', 'https://bitbucket.org/owner/bitbucket.org']
+    }.each do |prefix, (path, expected)|
+      [2, 3].each do |copies|
+        assert_equal expected, UrlParser.try_all("#{prefix * copies}#{path}")
+      end
+    end
+  end
+
   test 'parses gitlab urls' do
     [
       ['https://gitlab.com/maxcdn/shml/', 'https://gitlab.com/maxcdn/shml'],
