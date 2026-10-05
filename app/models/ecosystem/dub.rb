@@ -8,6 +8,7 @@ module Ecosystem
       'bitbucket' => 'https://bitbucket.org',
       'forgejo' => 'https://codeberg.org',
     }.freeze
+    VERSION_METADATA_KEYS = %w[commit_id branch configurations subpackages system_dependencies].freeze
 
     def registry_url(package, version = nil)
       url = "#{@registry_url}/packages/#{package.name}"
@@ -81,6 +82,37 @@ module Ecosystem
             system_dependencies: version['systemDependencies'].presence,
           }.compact
         }
+      end
+    end
+
+    # Branch versions such as ~master move with their branch, so existing rows are refreshed on each sync
+    def update_existing_versions(package, versions_metadata)
+      incoming = versions_metadata.select { |version| version.dig(:metadata, :branch) }.index_by { |version| version[:number] }
+      return if incoming.empty?
+
+      pkg_metadata = map_package_metadata(fetch_package_metadata(package.name))
+      return unless pkg_metadata
+
+      package.versions.where(number: incoming.keys).find_each do |version|
+        attributes = incoming.fetch(version.number)
+        updates = {
+          published_at: attributes[:published_at].presence && Time.zone.parse(attributes[:published_at]),
+          licenses: attributes[:licenses],
+          metadata: (version.metadata || {}).except(*VERSION_METADATA_KEYS).merge(attributes[:metadata].deep_stringify_keys),
+        }
+        dependencies = dependencies_metadata(package.name, version.number, pkg_metadata)
+        current_dependencies = version.dependencies.pluck(:package_name, :requirements, :kind, :optional).sort
+        changed_dependencies = current_dependencies != dependencies.map { |dependency| dependency.values_at(:package_name, :requirements, :kind, :optional) }.sort
+        changed_attributes = updates.any? { |key, value| version.read_attribute(key) != value }
+        next unless changed_attributes || changed_dependencies
+
+        version.transaction do
+          version.update_columns(updates.merge(updated_at: Time.current)) if changed_attributes
+          if changed_dependencies
+            version.dependencies.delete_all
+            Dependency.insert_all(dependencies.map { |dependency| dependency.merge(version_id: version.id) }) if dependencies.any?
+          end
+        end
       end
     end
 

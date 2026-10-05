@@ -163,6 +163,57 @@ class DubTest < ActiveSupport::TestCase
     assert_equal [], @ecosystem.dependencies_metadata('dwt', '9.9.9', package_metadata('dwt'))
   end
 
+  def sync_dwt(registry_id, info)
+    stub_request(:get, 'https://code.dlang.org/api/packages/dwt/info').to_return(status: 200, body: info.to_json)
+    stub_request(:head, 'https://code.dlang.org/packages/dwt').to_return(status: 200)
+    Registry.find(registry_id).sync_package('dwt', force: true)
+  end
+
+  test 'sync_package refreshes an existing branch version when upstream changes' do
+    registry = Registry.create!(default: true, name: 'code.dlang.org', url: 'https://code.dlang.org', ecosystem: 'dub')
+    info = JSON.parse(file_fixture('dub/dwt.json').read)
+    sync_dwt(registry.id, info)
+
+    package = registry.packages.find_by!(name: 'dwt')
+    branch = package.versions.find_by!(number: '~master')
+    release = package.versions.find_by!(number: '1.0.5+swt-3.4.1')
+    branch.update_columns(metadata: branch.metadata.merge('dist_tag' => 'kept'))
+    assert_equal ['dwt:base'], branch.dependencies.pluck(:package_name)
+    release_state = [release.reload.attributes.slice('metadata', 'published_at', 'licenses'), release.dependencies.pluck(:id)]
+
+    master = info['versions'].find { |version| version['version'] == '~master' }
+    master['commitID'] = '0123456789abcdef0123456789abcdef01234567'
+    master['date'] = '2026-10-04T12:00:00Z'
+    master['license'] = 'BSL-1.0'
+    master['dependencies'] = { 'bindbc-gtk' => '~>0.3.0' }
+    master.delete('configurations')
+    master.delete('subPackages')
+    sync_dwt(registry.id, info)
+
+    branch.reload
+    assert_equal '0123456789abcdef0123456789abcdef01234567', branch.metadata['commit_id']
+    assert_equal Time.utc(2026, 10, 4, 12), branch.read_attribute(:published_at)
+    assert_equal 'BSL-1.0', branch.licenses
+    assert_equal true, branch.metadata['branch']
+    assert_equal 'kept', branch.metadata['dist_tag']
+    refute branch.metadata.key?('configurations')
+    refute branch.metadata.key?('subpackages')
+    assert_equal [['bindbc-gtk', '~>0.3.0', 'runtime', false]], branch.dependencies.pluck(:package_name, :requirements, :kind, :optional)
+    assert_equal release_state, [release.reload.attributes.slice('metadata', 'published_at', 'licenses'), release.dependencies.pluck(:id)]
+  end
+
+  test 'sync_package leaves an unchanged branch version untouched' do
+    registry = Registry.create!(default: true, name: 'code.dlang.org', url: 'https://code.dlang.org', ecosystem: 'dub')
+    info = JSON.parse(file_fixture('dub/dwt.json').read)
+    sync_dwt(registry.id, info)
+    branch = registry.packages.find_by!(name: 'dwt').versions.find_by!(number: '~master')
+    state = [branch.updated_at, branch.dependencies.pluck(:id)]
+
+    sync_dwt(registry.id, info)
+
+    assert_equal state, [branch.reload.updated_at, branch.dependencies.pluck(:id)]
+  end
+
   test 'sync_package stores releases, branches and dependencies' do
     registry = Registry.create!(default: true, name: 'code.dlang.org', url: 'https://code.dlang.org', ecosystem: 'dub')
     stub_info('sily-terminal')
