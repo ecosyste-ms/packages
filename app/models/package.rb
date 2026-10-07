@@ -285,7 +285,7 @@ class Package < ApplicationRecord
 
   LIVE_EVENT_ATTRS = [:id, :name, :ecosystem, :description, :homepage, :licenses, :normalized_licenses,
                       :repository_url, :keywords_array, :namespace, :versions_count, :first_release_published_at,
-                      :latest_release_published_at, :latest_release_number, :last_synced_at, :created_at,
+                      :latest_release_published_at, :latest_release_number, :latest_published_release_number, :last_synced_at, :created_at,
                       :updated_at, :dependent_packages_count, :downloads, :downloads_period,
                       :dependent_repos_count, :rankings, :docker_dependents_count, :docker_downloads_count,
                       :status, :critical].freeze
@@ -339,6 +339,7 @@ class Package < ApplicationRecord
     normalize_licenses
     set_latest_release_published_at
     set_latest_release_number
+    set_latest_published_release_number
     set_first_release_published_at
     combine_keywords_and_topics
     saved = save if changed?
@@ -352,6 +353,10 @@ class Package < ApplicationRecord
 
   def latest_version
     @latest_version ||= (dist_tag_latest_version || latest_stable_version || versions.active.reject(&:opam_archived?).sort.first)
+  end
+
+  def latest_published_version
+    @latest_published_version ||= versions.reject(&:opam_archived?).sort.first
   end
 
   def dist_tag_latest_version
@@ -373,6 +378,10 @@ class Package < ApplicationRecord
 
   def set_latest_release_number
     self.latest_release_number = latest_version.try(:number)
+  end
+
+  def set_latest_published_release_number
+    self.latest_published_release_number = latest_published_version.try(:number)
   end
 
   def set_latest_on_latest_version

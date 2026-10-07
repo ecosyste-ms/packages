@@ -200,6 +200,48 @@ class PackageTest < ActiveSupport::TestCase
     assert_equal '2026.4', package.latest_release_number
   end
 
+  test 'set_latest_published_release_number exposes the newest version when all versions are deprecated' do
+    package = @registry.packages.create!(name: 'all-deprecated', ecosystem: 'rubygems')
+    package.versions.create!(number: '1.0.0', published_at: 2.years.ago, status: 'deprecated')
+    package.versions.create!(number: '2.0.0', published_at: 1.year.ago, status: 'deprecated')
+
+    package.set_latest_published_release_number
+
+    assert_nil package.latest_release_number
+    assert_equal '2.0.0', package.latest_published_release_number
+  end
+
+  test 'set_latest_published_release_number keeps pointing at the active latest version for mixed packages' do
+    package = @registry.packages.create!(name: 'mixed', ecosystem: 'rubygems')
+    package.versions.create!(number: '1.0.0', published_at: 3.years.ago, status: 'deprecated')
+    package.versions.create!(number: '2.0.0', published_at: 1.month.ago)
+
+    package.set_latest_published_release_number
+    package.set_latest_release_number
+
+    assert_equal '2.0.0', package.latest_release_number
+    assert_equal '2.0.0', package.latest_published_release_number
+  end
+
+  test 'set_latest_published_release_number stays nil for packages with no versions' do
+    package = @registry.packages.create!(name: 'empty', ecosystem: 'rubygems')
+
+    package.set_latest_published_release_number
+
+    assert_nil package.latest_published_release_number
+  end
+
+  test 'set_latest_published_release_number skips opam archived versions' do
+    registry = Registry.create!(name: 'opam.ocaml.org', url: 'https://opam.ocaml.org', ecosystem: 'opam')
+    package = registry.packages.create!(name: 'archived-pkg', ecosystem: 'opam')
+    package.versions.create!(number: '1.0.0', published_at: 2.years.ago, metadata: { 'archived' => true })
+    package.versions.create!(number: '0.9.0', published_at: 3.years.ago)
+
+    package.set_latest_published_release_number
+
+    assert_equal '0.9.0', package.latest_published_release_number
+  end
+
   test 'install_command' do
     assert_equal @package.install_command, 'gem install foo -s https://rubygems.org'
   end
