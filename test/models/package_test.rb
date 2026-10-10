@@ -918,4 +918,33 @@ class PackageTest < ActiveSupport::TestCase
     sql = Package.keyword('cli').limit(5000).select(:keywords).to_sql
     refute_match(/JOIN/i, sql)
   end
+
+  test "update_rankings gives the sole package in a registry the top average" do
+    registry = Registry.create!(name: "rank-sole.example", url: "https://rank-sole.example", ecosystem: "huggingface")
+    package = registry.packages.create!(name: "org/model", ecosystem: "huggingface", downloads: 100)
+
+    package.reload.update_rankings
+
+    assert_equal 0, package.reload.rankings["average"]
+  end
+
+  test "update_rankings averages only fields that rank the package" do
+    registry = Registry.create!(name: "rank-leader.example", url: "https://rank-leader.example", ecosystem: "huggingface")
+    leader = registry.packages.create!(name: "org/leader", ecosystem: "huggingface", downloads: 100)
+    other = registry.packages.create!(name: "org/other", ecosystem: "huggingface", downloads: 10)
+
+    [leader, other].each { |package| package.reload.update_rankings }
+
+    assert_equal 0, leader.reload.rankings["average"]
+    assert_equal 50, other.reload.rankings["average"]
+  end
+
+  test "update_rankings gives the bottom average when every field ties at zero" do
+    registry = Registry.create!(name: "rank-zero.example", url: "https://rank-zero.example", ecosystem: "huggingface")
+    packages = 2.times.map { |i| registry.packages.create!(name: "org/zero-#{i}", ecosystem: "huggingface", downloads: 0) }
+
+    packages.each { |package| package.reload.update_rankings }
+
+    packages.each { |package| assert_equal 100, package.reload.rankings["average"] }
+  end
 end

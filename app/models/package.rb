@@ -767,11 +767,12 @@ class Package < ApplicationRecord
       forks_count: registry.top_percentage_for_json(self, 'forks_count'),
       docker_downloads_count: registry.top_percentage_for(self, :docker_downloads_count)
     }
-    if rankings.values.compact.any? && rankings.values.compact.any?{|v| v > 0 }
-      rankings[:average] = rankings.values.compact.sum / rankings.values.compact.length.to_f
-    else
-      rankings[:average] = 100
+    # 0% with a zero value means every package ties at zero, which says nothing about this one
+    scored = rankings.reject do |field, percentage|
+      value = %i[stargazers_count forks_count].include?(field) ? repo_metadata&.dig(field.to_s) : send(field)
+      percentage.nil? || (percentage.zero? && value.to_i.zero?)
     end
+    rankings[:average] = scored.any? ? scored.values.sum / scored.length.to_f : 100
     rankings
   rescue 
     nil # handle database query error
