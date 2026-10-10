@@ -1,0 +1,10 @@
+[
+  {
+    "id": "openai-community/gpt2",
+    "sha": "0123456789abcdef0123456789abcdef01234567"
+  },
+  {
+    "modelId": "stabilityai/sdxl-turbo",
+    "sha": "abcdef0123456789abcdef0123456789abcdef01"
+  }
+]
