@@ -149,7 +149,8 @@ module Ecosystem
           library_name: model["library_name"],
           gated: model["gated"],
           private: model["private"],
-          disabled: model["disabled"]
+          disabled: model["disabled"],
+          card_data: model["cardData"]
         }.compact
       }
     end

@@ -168,6 +168,7 @@ class HuggingfaceTest < ActiveSupport::TestCase
     assert_equal "last-month", metadata[:downloads_period]
     assert_equal 420, metadata[:metadata][:likes]
     assert_equal false, metadata[:metadata][:gated]
+    assert_equal({ "license" => "mit" }, metadata[:metadata][:card_data])
   end
 
   test "versions_metadata uses the model revision without treating it as an integrity hash" do
