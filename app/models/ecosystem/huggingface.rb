@@ -135,7 +135,6 @@ module Ecosystem
       {
         name: name,
         namespace: namespace,
-        homepage: "#{@registry_url}/#{name}",
         licenses: license_for(model),
         keywords_array: Array(model["tags"]).reject(&:blank?),
         downloads: model["downloads"],

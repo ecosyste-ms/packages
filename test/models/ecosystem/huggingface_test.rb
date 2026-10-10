@@ -160,7 +160,6 @@ class HuggingfaceTest < ActiveSupport::TestCase
 
     assert_equal "openai-community/gpt2", metadata[:name]
     assert_equal "openai-community", metadata[:namespace]
-    assert_equal "https://huggingface.co/openai-community/gpt2", metadata[:homepage]
     assert_nil metadata[:repository_url]
     assert_nil metadata[:description]
     assert_equal "mit", metadata[:licenses]
