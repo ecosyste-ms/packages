@@ -51,6 +51,7 @@ default_registries = [
   {name: 'ctan.org', url: 'https://ctan.org', ecosystem: 'ctan', github: 'TeX-82', default: true},
   {name: 'reservoir.lean-lang.org', url: 'https://reservoir.lean-lang.org', ecosystem: 'lean', github: 'leanprover', default: true},
   {name: 'opam.ocaml.org', url: 'https://opam.ocaml.org', ecosystem: 'opam', github: 'ocaml', default: true},
+  {name: 'code.dlang.org', url: 'https://code.dlang.org', ecosystem: 'dub', github: 'dlang', default: true},
 ]
 
 default_registries.each do |data|
