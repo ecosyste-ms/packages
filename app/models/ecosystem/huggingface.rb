@@ -150,9 +150,32 @@ module Ecosystem
           gated: model["gated"],
           private: model["private"],
           disabled: model["disabled"],
-          card_data: model["cardData"]
+          card_data: model["cardData"],
+          files: Array(model["siblings"]).filter_map { |file| file["rfilename"] }.presence
         }.compact
       }
+    end
+
+    def dependencies_metadata(_name, version, package)
+      model = Array(package[:versions]).first
+      return [] unless model.is_a?(Hash) && model["sha"] == version
+
+      # Tags are "base_model:<id>" or "base_model:<relation>:<id>"
+      base_models = {}
+      Array(model["tags"]).each do |tag|
+        prefix, *rest = tag.split(":")
+        next unless prefix == "base_model"
+
+        if rest.length == 2
+          base_models[rest[1]] = rest[0]
+        elsif rest.length == 1
+          base_models[rest[0]] ||= "base_model"
+        end
+      end
+
+      base_models.map do |base_model, relation|
+        { package_name: base_model, requirements: "*", kind: relation, optional: false, ecosystem: "huggingface" }
+      end
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])

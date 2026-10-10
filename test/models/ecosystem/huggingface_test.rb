@@ -169,6 +169,23 @@ class HuggingfaceTest < ActiveSupport::TestCase
     assert_equal 420, metadata[:metadata][:likes]
     assert_equal false, metadata[:metadata][:gated]
     assert_equal({ "license" => "mit" }, metadata[:metadata][:card_data])
+    assert_equal ["pytorch_model.bin"], metadata[:metadata][:files]
+  end
+
+  test "sync_package records base models as dependencies of the current revision" do
+    registry = Registry.create!(default: true, name: "Hugging Face deps", url: "https://huggingface.co", ecosystem: "huggingface")
+    stub_request(:get, "https://huggingface.co/api/models/unsloth/Qwen3-8B-GGUF")
+      .to_return(status: 200, body: {
+        id: "unsloth/Qwen3-8B-GGUF",
+        sha: "a6adef130ffb23ddaf1a62fec9dced968c9bc482",
+        tags: ["gguf", "base_model:Qwen/Qwen3-8B", "base_model:quantized:Qwen/Qwen3-8B", "base_model:Qwen/Qwen3-8B-Base"]
+      }.to_json)
+
+    package = registry.sync_package("unsloth/Qwen3-8B-GGUF")
+
+    deps = package.versions.find_by!(number: "a6adef130ffb23ddaf1a62fec9dced968c9bc482").dependencies.order(:package_name)
+    assert_equal [["Qwen/Qwen3-8B", "quantized"], ["Qwen/Qwen3-8B-Base", "base_model"]], deps.pluck(:package_name, :kind)
+    assert deps.all? { |dep| dep.ecosystem == "huggingface" && dep.requirements == "*" }
   end
 
   test "versions_metadata uses the model revision without treating it as an integrity hash" do
