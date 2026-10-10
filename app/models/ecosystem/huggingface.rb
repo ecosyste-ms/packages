@@ -4,6 +4,7 @@ module Ecosystem
   class Huggingface < Base
     API_URL = "https://huggingface.co/api/models"
     PAGE_SIZE = 1_000
+    MAX_PAGES_PER_SYNC = 50
     SYNC_MISSING_CURSOR_KEY = "sync_missing_packages_cursor"
 
     def has_dependent_repos?
@@ -15,19 +16,40 @@ module Ecosystem
     end
 
     def sync_missing_packages_async
-      response = request(sync_missing_packages_cursor)
-      raise "Hugging Face models API returned #{response.status}" unless response.success?
+      url = sync_missing_packages_cursor
+      enqueued = 0
 
-      names = Oj.load(response.body).filter_map { |model| model["id"].presence || model["modelId"].presence }.uniq
-      existing_names = @registry.packages.where(name: names).pluck(:name).to_set
-      jobs = names.reject { |name| existing_names.include?(name) }.map { |name| [@registry.id, name] }
-      jobs.each_slice(1_000) { |batch| SyncPackageWorker.perform_bulk(batch) }
+      MAX_PAGES_PER_SYNC.times do
+        response = request(url)
+        raise "Hugging Face models API returned #{response.status}" unless response.success?
 
-      save_sync_missing_packages_cursor(next_page_url(response.headers["link"]))
-      jobs.length
+        names = Oj.load(response.body).filter_map { |model| model["id"].presence || model["modelId"].presence }.uniq
+        existing_names = @registry.packages.where(name: names).pluck(:name).to_set
+        jobs = names.reject { |name| existing_names.include?(name) }.map { |name| [@registry.id, name] }
+        jobs.each_slice(1_000) { |batch| SyncPackageWorker.perform_bulk(batch) }
+        enqueued += jobs.length
+
+        # The last page has no next link; staying on it picks up models created after it.
+        next_url = next_page_url(response.headers["link"])
+        break if next_url.blank?
+
+        url = next_url
+        save_sync_missing_packages_cursor(url)
+      end
+
+      enqueued
     rescue => e
       Rails.logger.error("Error syncing missing Hugging Face models for registry #{@registry.id}: #{e.message}")
-      0
+      enqueued.to_i
+    end
+
+    def request(url, options = {})
+      token = ENV["HF_TOKEN"]
+      if token.present? && URI.parse(url).host == "huggingface.co"
+        options[:headers] ||= {}
+        options[:headers]["Authorization"] = "Bearer #{token}"
+      end
+      super
     end
 
     def purl_params(package, version = nil)
@@ -83,7 +105,7 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      get_json_array("#{API_URL}?limit=100&sort=lastModified&direction=-1")
+      get_json_array("#{API_URL}?limit=300&sort=lastModified&direction=-1")
         .filter_map { |model| model["id"].presence || model["modelId"].presence }
     rescue => e
       Rails.logger.warn("Error listing recently updated Hugging Face models: #{e.message}")
@@ -92,7 +114,8 @@ module Ecosystem
 
     def fetch_package_metadata_uncached(name)
       response = request("#{API_URL}/#{encoded_model_name(name)}")
-      return false if [400, 404, 410].include?(response.status)
+      # Anonymous requests for missing or private models get 401, not 404
+      return false if [400, 401, 404, 410].include?(response.status)
       return nil unless response.success?
 
       Oj.load(response.body)
@@ -165,13 +188,7 @@ module Ecosystem
     end
 
     def save_sync_missing_packages_cursor(cursor)
-      metadata = @registry.metadata.to_h
-      if cursor.present?
-        metadata[SYNC_MISSING_CURSOR_KEY] = cursor
-      else
-        metadata.delete(SYNC_MISSING_CURSOR_KEY)
-      end
-      @registry.update!(metadata: metadata)
+      @registry.update!(metadata: @registry.metadata.to_h.merge(SYNC_MISSING_CURSOR_KEY => cursor))
     end
 
     def license_for(model)

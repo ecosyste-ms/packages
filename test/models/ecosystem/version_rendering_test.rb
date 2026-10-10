@@ -81,6 +81,11 @@ class EcosystemVersionRenderingTest < ActiveSupport::TestCase
       documentation: ['http://hexdocs.pm/phoenix/', 'http://hexdocs.pm/phoenix/1.2.3']
     },
     'homebrew' => { name: 'wget', install: 'brew install wget', documentation: nil },
+    'huggingface' => {
+      name: 'openai-community/gpt2', url: 'https://huggingface.co',
+      install: ['hf download openai-community/gpt2', 'hf download openai-community/gpt2 --revision 1.2.3'],
+      documentation: ['https://huggingface.co/openai-community/gpt2', 'https://huggingface.co/openai-community/gpt2/tree/1.2.3']
+    },
     'ips' => { name: 'web/curl', install: 'pkg install web/curl', documentation: nil },
     'julia' => {
       name: 'JSON', install: ['Pkg.add("JSON")', 'Pkg.add("JSON@1.2.3")'],

@@ -59,7 +59,7 @@ class HuggingfaceTest < ActiveSupport::TestCase
     assert_equal ["openai-community/gpt2", "stabilityai/sdxl-turbo", "sentence-transformers/all-MiniLM-L6-v2"], @ecosystem.all_package_names
   end
 
-  test "sync_missing_packages_async enqueues missing models and saves the next cursor" do
+  test "sync_missing_packages_async enqueues missing models across pages" do
     registry = Registry.create!(default: true, name: "Hugging Face discovery", url: "https://huggingface-discovery.example", ecosystem: "huggingface")
     registry.packages.create!(name: "openai-community/gpt2", ecosystem: "huggingface")
     ecosystem = Ecosystem::Huggingface.new(registry)
@@ -69,15 +69,50 @@ class HuggingfaceTest < ActiveSupport::TestCase
         headers: { "Link" => "<https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1&cursor=next-page>; rel=\"next\"" },
         body: file_fixture("huggingface/models-page-1.json")
       )
-    SyncPackageWorker.expects(:perform_bulk).with([
-      [registry.id, "stabilityai/sdxl-turbo"]
-    ])
+    stub_request(:get, "https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1&cursor=next-page")
+      .to_return(status: 200, body: file_fixture("huggingface/models-page-2.json"))
+    SyncPackageWorker.expects(:perform_bulk).with([[registry.id, "stabilityai/sdxl-turbo"]])
+    SyncPackageWorker.expects(:perform_bulk).with([[registry.id, "sentence-transformers/all-MiniLM-L6-v2"]])
 
-    assert_equal 1, ecosystem.sync_missing_packages_async
+    assert_equal 2, ecosystem.sync_missing_packages_async
     assert_equal "https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1&cursor=next-page", registry.reload.metadata[Ecosystem::Huggingface::SYNC_MISSING_CURSOR_KEY]
   end
 
-  test "sync_missing_packages_async clears its cursor at the end of the catalogue" do
+  test "sync_missing_packages_async stops after MAX_PAGES_PER_SYNC pages" do
+    registry = Registry.create!(default: true, name: "Hugging Face discovery cap", url: "https://huggingface-discovery-cap.example", ecosystem: "huggingface")
+    ecosystem = Ecosystem::Huggingface.new(registry)
+    stub_request(:get, %r{\Ahttps://huggingface\.co/api/models\?}).to_return do |request|
+      page = request.uri.query_values["cursor"].to_i
+      {
+        status: 200,
+        headers: { "Link" => "<https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1&cursor=#{page + 1}>; rel=\"next\"" },
+        body: [{ id: "org/model-#{page}" }].to_json
+      }
+    end
+    SyncPackageWorker.stubs(:perform_bulk)
+
+    assert_equal Ecosystem::Huggingface::MAX_PAGES_PER_SYNC, ecosystem.sync_missing_packages_async
+    assert_requested :get, %r{huggingface\.co/api/models}, times: Ecosystem::Huggingface::MAX_PAGES_PER_SYNC
+    assert_equal "https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1&cursor=#{Ecosystem::Huggingface::MAX_PAGES_PER_SYNC}", registry.reload.metadata[Ecosystem::Huggingface::SYNC_MISSING_CURSOR_KEY]
+  end
+
+  test "sync_missing_packages_async keeps progress when a later page fails" do
+    registry = Registry.create!(default: true, name: "Hugging Face discovery partial", url: "https://huggingface-discovery-partial.example", ecosystem: "huggingface")
+    ecosystem = Ecosystem::Huggingface.new(registry)
+    stub_request(:get, "https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1")
+      .to_return(
+        status: 200,
+        headers: { "Link" => "<https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1&cursor=next-page>; rel=\"next\"" },
+        body: file_fixture("huggingface/models-page-1.json")
+      )
+    stub_request(:get, "https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1&cursor=next-page").to_return(status: 503)
+    SyncPackageWorker.expects(:perform_bulk).once
+
+    assert_equal 2, ecosystem.sync_missing_packages_async
+    assert_equal "https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1&cursor=next-page", registry.reload.metadata[Ecosystem::Huggingface::SYNC_MISSING_CURSOR_KEY]
+  end
+
+  test "sync_missing_packages_async stays on the last page at the end of the catalogue" do
     registry = Registry.create!(
       default: true,
       name: "Hugging Face discovery end",
@@ -93,7 +128,7 @@ class HuggingfaceTest < ActiveSupport::TestCase
     ])
 
     assert_equal 1, ecosystem.sync_missing_packages_async
-    assert_nil registry.reload.metadata[Ecosystem::Huggingface::SYNC_MISSING_CURSOR_KEY]
+    assert_equal "https://huggingface.co/api/models?limit=1000&sort=createdAt&direction=1&cursor=last-page", registry.reload.metadata[Ecosystem::Huggingface::SYNC_MISSING_CURSOR_KEY]
   end
 
   test "sync_missing_packages_async keeps its cursor when the API fails" do
@@ -112,7 +147,7 @@ class HuggingfaceTest < ActiveSupport::TestCase
   end
 
   test "recently_updated_package_names" do
-    stub_request(:get, "https://huggingface.co/api/models?limit=100&sort=lastModified&direction=-1")
+    stub_request(:get, "https://huggingface.co/api/models?limit=300&sort=lastModified&direction=-1")
       .to_return(status: 200, body: file_fixture("huggingface/models-page-1.json"))
 
     assert_equal ["openai-community/gpt2", "stabilityai/sdxl-turbo"], @ecosystem.recently_updated_package_names
@@ -157,6 +192,33 @@ class HuggingfaceTest < ActiveSupport::TestCase
     stub_request(:get, "https://huggingface.co/api/models/openai-community/gpt2").to_return(status: 404)
 
     assert_equal "removed", @ecosystem.check_status(@package)
+  end
+
+  test "check_status returns removed for the 401 anonymous requests get for missing models" do
+    stub_request(:get, "https://huggingface.co/api/models/openai-community/gpt2")
+      .to_return(status: 401, body: { error: "Invalid username or password." }.to_json)
+
+    assert_equal "removed", @ecosystem.check_status(@package)
+  end
+
+  test "requests send HF_TOKEN as a bearer token" do
+    ENV.stubs(:[]).returns(nil)
+    ENV.stubs(:[]).with("HF_TOKEN").returns("hf_test")
+    stub_request(:get, "https://huggingface.co/api/models/openai-community/gpt2")
+      .with(headers: { "Authorization" => "Bearer hf_test" })
+      .to_return(status: 200, body: file_fixture("huggingface/openai-community-gpt2.json"))
+
+    assert_equal "openai-community/gpt2", @ecosystem.package_metadata(@package.name)[:name]
+  end
+
+  test "requests omit the token for other hosts" do
+    ENV.stubs(:[]).returns(nil)
+    ENV.stubs(:[]).with("HF_TOKEN").returns("hf_test")
+    stub_request(:get, "https://example.com/models").to_return(status: 200, body: "[]")
+
+    @ecosystem.request("https://example.com/models")
+
+    assert_requested(:get, "https://example.com/models") { |req| !req.headers.key?("Authorization") }
   end
 
   test "check_status does not mark a model removed when the API errors" do
