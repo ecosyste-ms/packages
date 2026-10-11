@@ -393,6 +393,39 @@ class Registry < ApplicationRecord
     end
   end
 
+  RANKINGS_BATCH_SIZE = 1000
+
+  # Re-ranks every package in one pass with the same rules as Package#load_rankings.
+  # Each field counts active packages with a strictly greater value through a window
+  # function, so the cost is one sort per field rather than a count query per package.
+  # Results go into a temporary table first, so writes run in short batches instead of
+  # holding row locks for a whole registry.
+  def update_rankings(batch_size: RANKINGS_BATCH_SIZE)
+    return 0 if packages_count.zero?
+
+    table = "registry_rankings_#{id.to_i}"
+    connection = self.class.connection
+    connection.execute("DROP TABLE IF EXISTS #{table}")
+    connection.execute(rankings_snapshot_sql(table))
+    connection.execute("CREATE INDEX ON #{table} (id)")
+
+    updated = 0
+    last_id = 0
+    loop do
+      rows = connection.select_all("SELECT * FROM #{table} WHERE id > #{last_id.to_i} ORDER BY id LIMIT #{batch_size.to_i}").to_a
+      break if rows.empty?
+      last_id = rows.last['id'].to_i
+      updated += write_rankings(rows.filter_map { |row| ranking_change(row) })
+    end
+    updated
+  ensure
+    connection.execute("DROP TABLE IF EXISTS #{table}") if table && connection
+  end
+
+  def update_rankings_async
+    UpdateRegistryRankingsWorker.perform_async(id)
+  end
+
   def update_extra_counts
     self.active_packages_count = packages.active.count
     self.namespaces_count = packages.where.not(namespace: nil).distinct.count(:namespace)
@@ -708,5 +741,57 @@ class Registry < ApplicationRecord
         Package.where(id: group).update_all(critical: true)
       end
     end
+  end
+
+  private
+
+  # Repo metadata counts are cast the same way as top_percentage_for_json
+  def rankings_snapshot_sql(table)
+    columns = Package::RANKED_FIELDS.map do |field|
+      next "packages.#{field}" unless Package::REPO_METADATA_RANKED_FIELDS.include?(field)
+      "(packages.repo_metadata ->> '#{field}')::text::integer AS #{field}"
+    end
+    counts = Package::RANKED_FIELDS.map do |field|
+      "count(*) FILTER (WHERE status = 'active') OVER (ORDER BY #{field} DESC NULLS LAST RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE GROUP) AS #{field}_above"
+    end
+    <<~SQL
+      CREATE TEMPORARY TABLE #{table} AS
+      SELECT id, rankings::text AS rankings, #{Package::RANKED_FIELDS.join(', ')}, #{counts.join(', ')}
+      FROM (
+        SELECT packages.id, packages.status, packages.rankings, #{columns.join(', ')}
+        FROM packages
+        WHERE packages.registry_id = #{id.to_i}
+      ) ranked
+    SQL
+  end
+
+  # Keys other than the ranked fields, such as underproduction, are kept
+  def ranking_change(row)
+    values = Package::RANKED_FIELDS.index_with { |field| row[field.to_s]&.to_i }
+    rankings = Package::RANKED_FIELDS.index_with do |field|
+      values[field].nil? ? nil : row["#{field}_above"].to_i.to_f / packages_count * 100
+    end
+    existing = begin
+      JSON.parse(row['rankings'].presence || '{}')
+    rescue JSON::ParserError
+      {}
+    end
+    existing = {} unless existing.is_a?(Hash)
+    merged = existing.merge(Package.with_average_ranking(rankings, values).stringify_keys)
+    [row['id'].to_i, merged] unless merged == existing
+  end
+
+  def write_rankings(changes)
+    return 0 if changes.empty?
+
+    connection = self.class.connection
+    values = changes.map { |package_id, rankings| "(#{package_id.to_i}, #{connection.quote(rankings.to_json)})" }
+    connection.exec_update(<<~SQL)
+      UPDATE packages
+      SET rankings = changes.rankings::json, updated_at = #{connection.quote(Time.current)}
+      FROM (VALUES #{values.join(', ')}) AS changes(id, rankings)
+      WHERE packages.id = changes.id
+    SQL
+    changes.length
   end
 end
