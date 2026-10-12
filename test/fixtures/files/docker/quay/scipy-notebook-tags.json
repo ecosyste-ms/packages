@@ -1,0 +1,54 @@
+{
+  "tags": [
+    {
+      "name": "hub-5.5.1",
+      "reversion": false,
+      "start_ts": 1788148151,
+      "manifest_digest": "sha256:1412102995de77c90586ad1a8003fb28769d9ecfb005e901ea7461dc1d1d2821",
+      "is_manifest_list": true,
+      "size": null,
+      "last_modified": "Mon, 31 Aug 2026 03:49:11 -0000",
+      "is_sparse": false,
+      "child_manifest_count": 2,
+      "present_child_count": 2,
+      "child_manifests_presence": {
+        "sha256:ce2bc41da1fba4f19bcd32864e85977ea94044c19497eb0a658adf54a01e6f59": true,
+        "sha256:c3d4967bb8ada8a2e5c36b8bbccd01d3367e1463c7d12f046234ef77f189cd10": true
+      }
+    },
+    {
+      "name": "lab-4.6.3",
+      "reversion": false,
+      "start_ts": 1788148148,
+      "manifest_digest": "sha256:1412102995de77c90586ad1a8003fb28769d9ecfb005e901ea7461dc1d1d2821",
+      "is_manifest_list": true,
+      "size": null,
+      "last_modified": "Mon, 31 Aug 2026 03:49:08 -0000",
+      "is_sparse": false,
+      "child_manifest_count": 2,
+      "present_child_count": 2,
+      "child_manifests_presence": {
+        "sha256:ce2bc41da1fba4f19bcd32864e85977ea94044c19497eb0a658adf54a01e6f59": true,
+        "sha256:c3d4967bb8ada8a2e5c36b8bbccd01d3367e1463c7d12f046234ef77f189cd10": true
+      }
+    },
+    {
+      "name": "notebook-7.6.2",
+      "reversion": false,
+      "start_ts": 1788148146,
+      "manifest_digest": "sha256:1412102995de77c90586ad1a8003fb28769d9ecfb005e901ea7461dc1d1d2821",
+      "is_manifest_list": true,
+      "size": null,
+      "last_modified": "Mon, 31 Aug 2026 03:49:06 -0000",
+      "is_sparse": false,
+      "child_manifest_count": 2,
+      "present_child_count": 2,
+      "child_manifests_presence": {
+        "sha256:ce2bc41da1fba4f19bcd32864e85977ea94044c19497eb0a658adf54a01e6f59": true,
+        "sha256:c3d4967bb8ada8a2e5c36b8bbccd01d3367e1463c7d12f046234ef77f189cd10": true
+      }
+    }
+  ],
+  "page": 1,
+  "has_additional": false
+}

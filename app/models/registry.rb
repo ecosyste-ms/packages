@@ -366,7 +366,7 @@ class Registry < ApplicationRecord
   end
 
   def ecosystem_class
-    Ecosystem::Base.find(ecosystem)
+    Ecosystem::Base.find(ecosystem).for_registry(self)
   end
 
   def purl(package, version = nil)

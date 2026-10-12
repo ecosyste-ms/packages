@@ -51,6 +51,10 @@ module Ecosystem
       list.find { |p| p.lowercase_name == ecosystem.downcase }
     end
 
+    def self.for_registry(_registry)
+      self
+    end
+
     def self.formatted_name
       to_s.demodulize
     end
