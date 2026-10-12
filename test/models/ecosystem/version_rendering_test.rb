@@ -49,6 +49,7 @@ class EcosystemVersionRenderingTest < ActiveSupport::TestCase
       documentation: ['https://doc.deno.land/https://deno.land/x/oak/mod.ts', 'https://doc.deno.land/https://deno.land/x/oak@1.2.3/mod.ts']
     },
     'docker' => { name: 'library/redis', install: ['docker pull library/redis', 'docker pull library/redis:1.2.3'], documentation: nil },
+    'dub' => { name: 'vibe-d', install: ['dub add vibe-d', 'dub add vibe-d@1.2.3'], documentation: nil },
     'elm' => { name: 'elm/core', install: ['elm-package install elm/core', 'elm-package install elm/core 1.2.3'], documentation: nil },
     'elpa' => { name: 'magit', install: 'M-x package-install RET magit RET', documentation: nil },
     'fdroid' => { name: 'org.fdroid.fdroid', install: 'fdroidcl install org.fdroid.fdroid', documentation: nil },
