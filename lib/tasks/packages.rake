@@ -153,6 +153,13 @@ namespace :packages do
     end
   end
 
+  desc 'recompute rankings for every registry'
+  task update_registry_rankings: :environment do
+    with_rake_lock('packages:update_registry_rankings') do
+      Registry.find_each(&:update_rankings_async)
+    end
+  end
+
   desc 'update advisories'
   task update_advisories: :environment do
     with_rake_lock('packages:update_advisories') do
