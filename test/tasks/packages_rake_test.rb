@@ -54,6 +54,23 @@ class PackagesRakeTest < ActiveSupport::TestCase
     Rake::Task["packages:backfill_nuget_verified"].invoke
   end
 
+  test "backfills latest_published_release_number for existing packages" do
+    registry = Registry.create(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
+    all_deprecated = registry.packages.create!(name: 'all-deprecated', ecosystem: 'rubygems')
+    all_deprecated.versions.create!(number: '2.0.0', published_at: 1.year.ago, status: 'deprecated')
+    deprecated_package = registry.packages.create!(name: 'deprecated-package', ecosystem: 'rubygems', status: 'deprecated')
+    deprecated_package.versions.create!(number: '1.0.0', published_at: 2.years.ago)
+    populated = registry.packages.create!(name: 'populated', ecosystem: 'rubygems', latest_published_release_number: '1.0.0')
+
+    expected = [[all_deprecated.id], [deprecated_package.id]]
+
+    UpdateDetailsWorker.expects(:perform_bulk).with { |arg| arg.sort == expected.sort }
+
+    task = Rake::Task["packages:backfill_latest_published_release_number"]
+    task.reenable
+    task.invoke
+  end
+
   test "backfills GitHub Actions release immutability" do
     registry = Registry.create(name: 'GitHub Actions', url: 'https://github.com', ecosystem: 'actions')
     first_package = registry.packages.create!(name: 'actions/checkout', ecosystem: 'actions')
