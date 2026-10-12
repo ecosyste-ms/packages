@@ -83,6 +83,55 @@ class SyncPackageWorkerTest < ActiveSupport::TestCase
     job.perform(@registry.id, 'foo')
   end
 
+  test 'sync persists the latest published release number for an all-deprecated package' do
+    registry = Registry.create!(name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go')
+    module_path = 'github.com/example/all-deprecated'
+    stub_request(:get, "https://pkg.go.dev/v1beta/module/#{module_path}?licenses=true")
+      .to_return(body: { path: module_path, version: 'v2.0.0', repoUrl: 'https://github.com/example/all-deprecated', licenses: [{ types: ['MIT'] }] }.to_json)
+    stub_request(:get, "https://pkg.go.dev/v1beta/package/#{module_path}")
+      .to_return(body: { modulePath: module_path, version: 'v2.0.0', path: module_path, synopsis: 'Deprecated module' }.to_json)
+    stub_request(:get, "https://pkg.go.dev/v1beta/versions/#{module_path}?limit=1000")
+      .to_return(body: { items: [
+        { modulePath: module_path, version: 'v2.0.0', commitTime: '2025-01-01T00:00:00Z', retracted: false, deprecated: true },
+        { modulePath: module_path, version: 'v1.0.0', commitTime: '2024-01-01T00:00:00Z', retracted: false, deprecated: true }
+      ] }.to_json)
+    %w[v1.0.0 v2.0.0].each do |version|
+      stub_request(:get, "https://proxy.golang.org/cached-only/#{module_path}/@v/#{version}.mod")
+        .to_return(body: "module #{module_path}\n\ngo 1.24\n")
+    end
+
+    SyncPackageWorker.new.perform(registry.id, module_path, true)
+
+    package = registry.packages.find_by!(name: module_path)
+    assert_nil package.reload.latest_release_number
+    assert_equal 'v2.0.0', package.latest_published_release_number
+    assert_equal 'v2.0.0', package.versions.order(number: :desc).first.try(:number)
+  end
+
+  test 'sync persists both release numbers for a mixed package whose highest version is deprecated' do
+    registry = Registry.create!(name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go')
+    module_path = 'github.com/example/mixed'
+    stub_request(:get, "https://pkg.go.dev/v1beta/module/#{module_path}?licenses=true")
+      .to_return(body: { path: module_path, version: 'v2.0.0', repoUrl: 'https://github.com/example/mixed', licenses: [{ types: ['MIT'] }] }.to_json)
+    stub_request(:get, "https://pkg.go.dev/v1beta/package/#{module_path}")
+      .to_return(body: { modulePath: module_path, version: 'v2.0.0', path: module_path, synopsis: 'Mixed module' }.to_json)
+    stub_request(:get, "https://pkg.go.dev/v1beta/versions/#{module_path}?limit=1000")
+      .to_return(body: { items: [
+        { modulePath: module_path, version: 'v2.0.0', commitTime: '2025-01-01T00:00:00Z', retracted: false, deprecated: true },
+        { modulePath: module_path, version: 'v1.0.0', commitTime: '2024-01-01T00:00:00Z', retracted: false, deprecated: false }
+      ] }.to_json)
+    %w[v1.0.0 v2.0.0].each do |version|
+      stub_request(:get, "https://proxy.golang.org/cached-only/#{module_path}/@v/#{version}.mod")
+        .to_return(body: "module #{module_path}\n\ngo 1.24\n")
+    end
+
+    SyncPackageWorker.new.perform(registry.id, module_path, true)
+
+    package = registry.packages.find_by!(name: module_path)
+    assert_equal 'v1.0.0', package.reload.latest_release_number
+    assert_equal 'v2.0.0', package.latest_published_release_number
+  end
+
   test 'perform force sync' do
     @registry = Registry.create(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
     @registry.expects(:sync_package).with('foo', force: true)

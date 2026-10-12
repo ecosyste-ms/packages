@@ -62,6 +62,15 @@ namespace :packages do
     end
   end
 
+  desc 'backfill latest_published_release_number'
+  task backfill_latest_published_release_number: :environment do
+    with_rake_lock('packages:backfill_latest_published_release_number', ttl: 24.hours.to_i) do
+      Package.where(latest_published_release_number: nil).in_batches(of: 10_000) do |batch|
+        UpdateDetailsWorker.perform_bulk(batch.pluck(:id).map { |id| [id] })
+      end
+    end
+  end
+
   desc 'backfill GitHub Actions release immutability'
   task backfill_github_actions_immutability: :environment do
     with_rake_lock('packages:backfill_github_actions_immutability', ttl: 24.hours.to_i) do
