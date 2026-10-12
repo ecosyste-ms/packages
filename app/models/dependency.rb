@@ -21,9 +21,9 @@ class Dependency < ApplicationRecord
   scope :without_package, -> { where(package_id: nil) }
 
   def find_package_id
-    registry = Registry.find_by_ecosystem(ecosystem)
-    return unless registry
-    registry.packages.find_by(name: package_name).try(:id)
+    registry_id, registry_ecosystem = Version.joins(package: :registry).where(id: version_id).pick('packages.registry_id', 'registries.ecosystem')
+    return unless registry_id && registry_ecosystem == ecosystem
+    Package.where(registry_id: registry_id, name: package_name).pick(:id)
   end
 
   def update_package_id
@@ -32,23 +32,24 @@ class Dependency < ApplicationRecord
     update_column(:package_id, p_id) if p_id.present?
   end
 
-  def self.update_missing_package_ids
-    registries = Registry.all.order('packages_count DESC').to_a
+  def self.update_missing_package_ids(batch_size: 1000)
+    registry_ecosystems = Registry.pluck(:id, :ecosystem).to_h
     processed_packages = {}
-    without_package.find_each(order: :desc) do |dependency|
-      registry = registries.select { |r| r.ecosystem == dependency.ecosystem }.first
-      next unless registry
+    without_package.select(:id, :version_id, :ecosystem, :package_name).find_in_batches(batch_size: batch_size, order: :desc) do |dependencies|
+      version_registry_ids = Version.joins(:package).where(id: dependencies.map(&:version_id).uniq).pluck(:id, 'packages.registry_id').to_h
 
-      # Modify the cache key to include both the registry id and the package name
-      cache_key = "#{registry.id}_#{dependency.package_name}"
+      dependencies.each do |dependency|
+        registry_id = version_registry_ids[dependency.version_id]
+        next unless registry_id && registry_ecosystems[registry_id] == dependency.ecosystem
 
-      # Directly assign the result of the lookup to the cache, caching nil results as well
-      package_id = processed_packages[cache_key] = processed_packages.fetch(cache_key) do
-        registry.packages.find_by(name: dependency.package_name)&.id
+        cache_key = [registry_id, dependency.package_name]
+        package_id = processed_packages[cache_key] = processed_packages.fetch(cache_key) do
+          Package.where(registry_id: registry_id, name: dependency.package_name).pick(:id)
+        end
+
+        next unless package_id
+        dependency.update_column(:package_id, package_id)
       end
-
-      next unless package_id
-      dependency.update_column(:package_id, package_id)
     end
   end
 end
