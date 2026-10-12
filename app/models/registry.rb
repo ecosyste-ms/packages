@@ -751,8 +751,12 @@ class Registry < ApplicationRecord
       next "packages.#{field}" unless Package::REPO_METADATA_RANKED_FIELDS.include?(field)
       "(packages.repo_metadata ->> '#{field}')::text::integer AS #{field}"
     end
+    # Active packages up to and including this value, minus the active packages tied at it.
+    # Frame exclusion (EXCLUDE GROUP) would do the same but scales quadratically.
     counts = Package::RANKED_FIELDS.map do |field|
-      "count(*) FILTER (WHERE status = 'active') OVER (ORDER BY #{field} DESC NULLS LAST RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE GROUP) AS #{field}_above"
+      active = "count(*) FILTER (WHERE status = 'active')"
+      "#{active} OVER (ORDER BY #{field} DESC NULLS LAST RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) - " \
+        "#{active} OVER (PARTITION BY #{field}) AS #{field}_above"
     end
     <<~SQL
       CREATE TEMPORARY TABLE #{table} AS

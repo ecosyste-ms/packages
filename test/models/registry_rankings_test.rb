@@ -129,6 +129,28 @@ class RegistryRankingsTest < ActiveSupport::TestCase
     assert_equal({}, outsider.reload.rankings)
   end
 
+  test 'ranks a large registry in linear time and still matches load_rankings' do
+    size = 50_000
+    Package.connection.execute(<<~SQL)
+      INSERT INTO packages (registry_id, name, ecosystem, status, downloads, dependent_repos_count, dependent_packages_count,
+                            docker_downloads_count, repo_metadata, created_at, updated_at)
+      SELECT #{@registry.id}, 'org/bench-' || n, 'huggingface', CASE WHEN n % 10 = 0 THEN 'removed' ELSE 'active' END,
+             n, n % 100, n % 7, CASE WHEN n % 3 = 0 THEN NULL ELSE n % 50 END,
+             json_build_object('stargazers_count', n % 1000, 'forks_count', n % 20), now(), now()
+      FROM generate_series(1, #{size}) AS n
+    SQL
+    @registry.update_column(:packages_count, size)
+
+    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    assert_equal size, @registry.update_rankings
+    elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
+
+    # EXCLUDE GROUP took minutes at this size, so a quadratic regression fails here
+    assert_operator elapsed, :<, 60, "ranking #{size} packages took #{elapsed.round(2)}s"
+    sample = @registry.packages.where(name: %w[org/bench-1 org/bench-30 org/bench-12345 org/bench-49999 org/bench-50000]).to_a
+    assert_equal expected_rankings(sample), stored_rankings(sample)
+  end
+
   test 'does nothing for an empty registry' do
     assert_equal 0, @registry.update_rankings
   end
