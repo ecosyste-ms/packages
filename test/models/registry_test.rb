@@ -821,4 +821,30 @@ class RegistryTest < ActiveSupport::TestCase
 
     assert_equal 2, registry.reload.rate_limit
   end
+
+  test 'declared_dependency_names matches packages that declare a registry alias' do
+    central = Registry.create!(name: 'repo1.maven.org', url: 'https://maven-central.storage-download.googleapis.com/maven2', ecosystem: 'maven',
+                               metadata: { 'aliases' => ['https://repo.maven.apache.org/maven2', 'https://repo1.maven.org/maven2'] })
+    declaring_package(central, 'com.example:app', ['https://repo.maven.apache.org/maven2/'], ['org.example:from-alias'])
+    declaring_package(central, 'com.example:other', ['https://repo1.maven.org/maven2'], ['org.example:from-repo1'])
+
+    assert_equal ['org.example:from-alias', 'org.example:from-repo1'], central.declared_dependency_names.sort
+  end
+
+  test 'print_declared_repositories lists aliases under their registry' do
+    central = Registry.create!(name: 'repo1.maven.org', url: 'https://maven-central.storage-download.googleapis.com/maven2', ecosystem: 'maven',
+                               metadata: { 'aliases' => ['https://repo.maven.apache.org/maven2'] })
+    declaring_package(central, 'com.example:app', ['https://repo.maven.apache.org/maven2'], ['org.example:from-alias'])
+
+    io = StringIO.new
+    Registry.print_declared_repositories('maven', io: io)
+
+    assert_equal [
+      '=== tracked registries ===',
+      "namespaces\tunresolved\tregistry\trepo",
+      "1\t1\trepo1.maven.org\trepo.maven.apache.org/maven2",
+      '=== untracked repositories ===',
+      "namespaces\tunresolved\trepo"
+    ], io.string.lines.map(&:chomp)
+  end
 end

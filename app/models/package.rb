@@ -73,9 +73,9 @@ class Package < ApplicationRecord
   end
 
   scope :ecosystem, ->(ecosystem) { where(ecosystem: ecosystem.downcase) }
-  scope :declaring_repository, ->(key, url) {
-    where("json_typeof(packages.metadata->:key) = 'array' AND EXISTS (SELECT 1 FROM json_array_elements_text(packages.metadata->:key) u WHERE #{normalized_repository_sql} = :url)",
-          key: key, url: Ecosystem::Base.normalize_repository_url(url))
+  scope :declaring_repository, ->(key, urls) {
+    where("json_typeof(packages.metadata->:key) = 'array' AND EXISTS (SELECT 1 FROM json_array_elements_text(packages.metadata->:key) u WHERE #{normalized_repository_sql} IN (:urls))",
+          key: key, urls: Array(urls).map { |url| Ecosystem::Base.normalize_repository_url(url) })
   }
   scope :namespace, ->(namespace) { where(namespace: namespace) }
   scope :created_after, ->(created_at) { where('created_at > ?', created_at) }

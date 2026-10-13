@@ -565,7 +565,9 @@ class Registry < ApplicationRecord
   end
 
   def self.print_declared_repositories(ecosystem, limit: 50, io: $stdout)
-    registries = where(ecosystem: ecosystem).to_h { |registry| [Ecosystem::Base.normalize_repository_url(registry.url), registry.name] }
+    registries = where(ecosystem: ecosystem).each_with_object({}) do |registry, h|
+      registry.repository_urls.each { |url| h[Ecosystem::Base.normalize_repository_url(url)] = registry.name }
+    end
     tracked, untracked = declared_repositories(ecosystem).partition { |row| registries.key?(row[:repo]) }
 
     io.puts "=== tracked registries ==="
@@ -584,7 +586,12 @@ class Registry < ApplicationRecord
   def declaring_package_ids
     key = ecosystem_class.declared_repositories_key
     return [] unless key
-    Package.where(registry_id: Registry.where(ecosystem: ecosystem).select(:id)).declaring_repository(key, url).pluck(:id)
+    Package.where(registry_id: Registry.where(ecosystem: ecosystem).select(:id)).declaring_repository(key, repository_urls).pluck(:id)
+  end
+
+  # Other URLs that serve this registry's packages, such as Central's repo1 and repo.maven.apache.org.
+  def repository_urls
+    [url] + Array(metadata.to_h['aliases'])
   end
 
   def declared_dependency_names
