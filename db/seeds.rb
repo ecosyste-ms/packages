@@ -28,7 +28,7 @@ default_registries = [
   {name: 'repository.apache.org-releases', url: 'https://repository.apache.org/content/repositories/releases', ecosystem: 'maven', github: 'apache', default: false, metadata: {'archetype_catalog' => true}},
   {name: 'repository.apache.org-snapshots', url: 'https://repository.apache.org/content/repositories/snapshots', ecosystem: 'maven', github: 'apache', default: false, metadata: {'archetype_catalog' => true}},
   {name: 'artifacts.alfresco.com', url: 'https://artifacts.alfresco.com/nexus/content/repositories/public', ecosystem: 'maven', github: 'alfresco', default: false, metadata: {'archetype_catalog' => true}},
-  {name: 'repository.cloudera.com', url: 'https://repository.cloudera.com/content/repositories/public', ecosystem: 'maven', github: 'cloudera', default: false, metadata: {'archetype_catalog' => true}},
+  {name: 'repository.cloudera.com', url: 'https://repository.cloudera.com/repository/cloudera-repos', ecosystem: 'maven', github: 'cloudera', default: false, rate_limit: 2},
   {name: 'pkgs.racket-lang.org', url: 'https://pkgs.racket-lang.org', ecosystem: 'racket', github: 'racket-lang', default: true},
   {name: 'elpa.gnu.org', url: 'https://elpa.gnu.org/packages', ecosystem: 'elpa', github: 'emacs', default: true},
   {name: 'elpa.nongnu.org', url: 'https://elpa.nongnu.org/nongnu', ecosystem: 'elpa', github: 'emacs', default: false},
