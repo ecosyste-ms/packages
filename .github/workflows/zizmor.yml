@@ -1,10 +1,11 @@
-name: Zizmor Security Audit
+name: Workflow checks
 
 on:
   pull_request:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,14 +17,36 @@ jobs:
   zizmor:
     name: Audit GitHub Actions
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
-      security-events: write # Needed to upload SARIF results to GitHub Security
-      contents: read # Needed to checkout repository
-      actions: read # Needed to analyze workflow files
+      contents: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482
+      - uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
         with:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          advanced-security: false
+          annotations: true
+
+  actionlint:
+    name: Lint GitHub Actions
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install actionlint
+        working-directory: ${{ runner.temp }}
+        env:
+          ACTIONLINT_VERSION: 1.7.12
+          ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+        run: |
+          curl -fsSL --output actionlint.tar.gz "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          echo "${ACTIONLINT_SHA256}  actionlint.tar.gz" | sha256sum --check
+          sudo tar -xz -f actionlint.tar.gz -C /usr/local/bin actionlint
+      - name: Check workflows
+        run: actionlint

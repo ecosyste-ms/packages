@@ -40,6 +40,7 @@ default_registries = [
   {name: 'conan.io', url: 'https://conan.io/center', ecosystem: 'conan', github: 'conan-io', default: true},
   {name: "carthage", url: "https://github.com/Carthage/Carthage", ecosystem: "carthage", github: "Carthage", default: true},
   {name: 'github actions', url: 'https://github.com/marketplace/actions/', ecosystem: 'actions', github: 'actions', default: true},
+  {name: 'huggingface.co', url: 'https://huggingface.co', ecosystem: 'huggingface', github: 'huggingface', default: true, rate_limit: 3},
   {name: 'pkg.adelielinux.org', url: "https://pkg.adelielinux.org/current", ecosystem: "adelie", github: "AdelieLinux", default: true, metadata: {repos: ['system', 'user']}},
   {name: 'bioconductor.org', url: 'https://bioconductor.org', ecosystem: 'bioconductor', github: 'Bioconductor', default: true},
   {name: 'open-vsx.org', url: 'https://open-vsx.org', ecosystem: 'openvsx', default: true, github: 'open-vsx'},
@@ -51,6 +52,7 @@ default_registries = [
   {name: 'ctan.org', url: 'https://ctan.org', ecosystem: 'ctan', github: 'TeX-82', default: true},
   {name: 'reservoir.lean-lang.org', url: 'https://reservoir.lean-lang.org', ecosystem: 'lean', github: 'leanprover', default: true},
   {name: 'opam.ocaml.org', url: 'https://opam.ocaml.org', ecosystem: 'opam', github: 'ocaml', default: true},
+  {name: 'code.dlang.org', url: 'https://code.dlang.org', ecosystem: 'dub', github: 'dlang', default: true},
   {name: 'packages.octave.org', url: 'https://packages.octave.org', ecosystem: 'octave', github: 'gnu-octave', default: true},
 ]
 

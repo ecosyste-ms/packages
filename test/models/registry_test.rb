@@ -1,6 +1,24 @@
 require "test_helper"
 
 class RegistryTest < ActiveSupport::TestCase
+  test 'forced Conda sync clears a repository fabricated from multiple homepages' do
+    registry = Registry.create!(name: 'conda-forge.org', url: 'https://conda-forge.org', ecosystem: 'conda', metadata: { kind: 'conda-forge', key: 'CondaForge' })
+    name = 'r-rpivottable'
+    source = JSON.parse(file_fixture('conda/r-rpivottable.json').read)
+    package = registry.packages.create!(name: name, ecosystem: 'conda', repository_url: 'https://github.com/smartinsightsfromdata,/smartinsightsfromdata.github.io', last_synced_at: Time.current)
+    stub_request(:get, 'https://conda.ecosyste.ms/CondaForge/')
+      .to_return(status: 200, body: { name => source }.to_json)
+    stub_request(:get, "https://api.anaconda.org/package/conda-forge/#{name}")
+      .to_return(status: 200, body: { ndownloads: 100 }.to_json)
+    UpdateRepoMetadataWorker.expects(:perform_async).with(package.id)
+
+    registry.sync_package(name, force: true)
+
+    assert_equal '', package.reload.repository_url
+    assert_equal source.fetch('homepage'), package.homepage
+    assert_equal ['0.3.0'], package.versions.pluck(:number)
+  end
+
   context 'associations' do
     should have_many(:packages)
     should have_many(:versions)

@@ -14,6 +14,8 @@ class Package < ApplicationRecord
   REPO_METADATA_REFRESH_INTERVAL = 5.minutes.to_f / REPO_METADATA_REFRESH_BATCH_SIZE
   REPO_METADATA_REFRESH_SCAN_SIZE = 100_000
   REPO_METADATA_REFRESH_MAX_AGE = 1.month
+  RANKED_FIELDS = %i[downloads dependent_repos_count dependent_packages_count stargazers_count forks_count docker_downloads_count].freeze
+  REPO_METADATA_RANKED_FIELDS = %i[stargazers_count forks_count].freeze
   
   # Matches a name where any /-delimited segment is exactly "." or "..".
   # Such names generate URLs that CDNs and browsers normalise into other
@@ -199,7 +201,10 @@ class Package < ApplicationRecord
   end
 
   def update_dependent_package_ids
-    Dependency.where(package_id: nil, ecosystem: registry.ecosystem, package_name: name).in_batches.update_all(package_id: id)
+    version_ids = Version.joins(:package).where(packages: { registry_id: registry_id }).select(:id)
+    Dependency.where(package_id: nil, ecosystem: registry.ecosystem, package_name: name)
+      .where(version_id: version_ids)
+      .in_batches.update_all(package_id: id)
   end
 
   def update_dependent_packages_count
@@ -767,14 +772,21 @@ class Package < ApplicationRecord
       forks_count: registry.top_percentage_for_json(self, 'forks_count'),
       docker_downloads_count: registry.top_percentage_for(self, :docker_downloads_count)
     }
-    if rankings.values.compact.any? && rankings.values.compact.any?{|v| v > 0 }
-      rankings[:average] = rankings.values.compact.sum / rankings.values.compact.length.to_f
-    else
-      rankings[:average] = 100
+    values = rankings.keys.index_with do |field|
+      REPO_METADATA_RANKED_FIELDS.include?(field) ? repo_metadata&.dig(field.to_s) : send(field)
     end
-    rankings
+    self.class.with_average_ranking(rankings, values)
   rescue 
     nil # handle database query error
+  end
+
+  # Shared with Registry#update_rankings so both paths average the same way
+  def self.with_average_ranking(rankings, values)
+    # 0% with a zero value means every package ties at zero, which says nothing about this one
+    scored = rankings.reject do |field, percentage|
+      percentage.nil? || (percentage.zero? && values[field].to_i.zero?)
+    end
+    rankings.merge(average: scored.any? ? scored.values.sum / scored.length.to_f : 100)
   end
 
   def update_rankings

@@ -1,0 +1,159 @@
+{
+  "id": "5a7a215e0b8075a662a14235",
+  "owner": "523019a3a03f069a24000311",
+  "dateAdded": "2018-02-06T22:42:54",
+  "versions": [
+    {
+      "version": "~master",
+      "date": "2026-05-02T20:19:26Z",
+      "commitID": "3287055b2dd2392b1ca23b434e71460f29abbe29",
+      "license": "EPL-1.0",
+      "description": "A library for creating cross-platform GUI applications.",
+      "homepage": "https://github.com/d-widget-toolkit/dwt",
+      "authors": [
+        "Frank Benoit",
+        "Jacob Carlborg",
+        "kntroh",
+        "JJR"
+      ],
+      "configurations": [
+        {
+          "name": "linux-gtk",
+          "platforms": [
+            "linux"
+          ],
+          "dependencies": {
+            "dwt:base": "*"
+          },
+          "targetType": "library"
+        },
+        {
+          "name": "windows-win32",
+          "platforms": [
+            "windows"
+          ],
+          "dependencies": {
+            "dwt:base": "*"
+          },
+          "targetType": "library"
+        },
+        {
+          "name": "unittest-gtk",
+          "platforms": [
+            "linux"
+          ],
+          "dependencies": {
+            "dwt:base": "*"
+          },
+          "targetType": "library"
+        }
+      ],
+      "subPackages": [
+        {
+          "name": "base",
+          "targetType": "library"
+        }
+      ],
+      "packageDescriptionFile": "dub.sdl",
+      "name": "dwt"
+    },
+    {
+      "version": "1.0.4+swt-3.4.1",
+      "date": "2020-03-19T06:15:23Z",
+      "commitID": "e7b2c857a8ddc9fe4f06e183fc595e26e8972753",
+      "license": "EPL-1.0",
+      "description": "A library for creating cross-platform GUI applications.",
+      "homepage": "https://github.com/d-widget-toolkit/dwt",
+      "authors": [
+        "Frank Benoit",
+        "Jacob Carlborg",
+        "kntroh",
+        "JJR"
+      ],
+      "configurations": [
+        {
+          "name": "linux-gtk",
+          "platforms": [
+            "linux"
+          ],
+          "dependencies": {
+            "dwt:base": "*"
+          },
+          "targetType": "library"
+        },
+        {
+          "name": "windows-win32",
+          "platforms": [
+            "windows"
+          ],
+          "dependencies": {
+            "dwt:base": "*"
+          },
+          "targetType": "library"
+        }
+      ],
+      "subPackages": [
+        {
+          "name": "base",
+          "targetType": "library"
+        }
+      ],
+      "packageDescriptionFile": "dub.sdl",
+      "name": "dwt"
+    },
+    {
+      "version": "1.0.5+swt-3.4.1",
+      "date": "2020-08-13T11:37:35Z",
+      "commitID": "c4e35860fbe55718050eb9a6d32b8b18a4c9c89b",
+      "license": "EPL-1.0",
+      "description": "A library for creating cross-platform GUI applications.",
+      "homepage": "https://github.com/d-widget-toolkit/dwt",
+      "authors": [
+        "Frank Benoit",
+        "Jacob Carlborg",
+        "kntroh",
+        "JJR"
+      ],
+      "configurations": [
+        {
+          "name": "linux-gtk",
+          "platforms": [
+            "linux"
+          ],
+          "dependencies": {
+            "dwt:base": "*"
+          },
+          "targetType": "library"
+        },
+        {
+          "name": "windows-win32",
+          "platforms": [
+            "windows"
+          ],
+          "dependencies": {
+            "dwt:base": "*"
+          },
+          "targetType": "library"
+        }
+      ],
+      "subPackages": [
+        {
+          "name": "base",
+          "targetType": "library"
+        }
+      ],
+      "packageDescriptionFile": "dub.sdl",
+      "name": "dwt"
+    }
+  ],
+  "categories": [
+    "library.gui"
+  ],
+  "name": "dwt",
+  "documentationURL": "",
+  "repository": {
+    "kind": "github",
+    "owner": "d-widget-toolkit",
+    "project": "dwt"
+  }
+}
