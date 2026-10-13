@@ -63,9 +63,28 @@ module Ecosystem
       end.compact
     end
 
+    # Multi-module releases publish many artifacts at once and the recent feed
+    # only catches some, so list the namespace to queue the siblings we lack.
+    def sync_subpackages_async(package)
+      namespace = package.namespace
+      return if namespace.blank? || !is_maven_central?
+      return unless Rails.cache.write("maven_namespace_listing/#{@registry.id}/#{namespace}", true, expires_in: 1.day, unless_exist: true)
+
+      names = namespace_package_names(namespace)
+      names -= @registry.packages.where(name: names).pluck(:name)
+      # Listings mix sub-groups in with artifacts; skip children we already know as namespaces.
+      sub_groups = @registry.packages.where(namespace: names.map { |name| name.sub(':', '.') }).distinct.pluck(:namespace).to_set
+      names = names.reject { |name| sub_groups.include?(name.sub(':', '.')) }
+      @registry.sync_packages_async(names)
+    rescue => e
+      Rails.logger.error("Error syncing namespace siblings for #{package.name}: #{e.class} #{e.message}")
+    end
+
     def recently_updated_package_names
       if is_maven_central?
-        (recently_updated_package_names_from_sonatype + recently_updated_package_names_from_libraries_io).uniq
+        # maven.libraries.io/mavenCentral/recent stopped updating on 2026-09-24
+        # (recently_updated_package_names_from_sonatype + recently_updated_package_names_from_libraries_io).uniq
+        recently_updated_package_names_from_sonatype.uniq
       elsif supports_archetype_catalog?
         recently_updated_package_names_from_archetype_catalog
       else
@@ -84,19 +103,26 @@ module Ecosystem
         builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
       end
 
-      response = connection.post do |req|
-        req.body = {
-          size: 20,
-          sortField: "publishedDate",
-          sortDirection: "desc"
-        }.to_json
-      end
+      names = []
+      # The API caps size at 20, so page to see more than one release burst.
+      SONATYPE_RECENT_PAGES.times do |page|
+        response = connection.post do |req|
+          req.body = {
+            size: 20,
+            page: page,
+            sortField: "publishedDate",
+            sortDirection: "desc"
+          }.to_json
+        end
 
-      json = JSON.parse(response.body)
-      json.dig("components")&.map { |c| c["id"].gsub('pkg:maven/', '').gsub('/', ':') } || []
+        components = JSON.parse(response.body)["components"]
+        break if components.blank?
+        names.concat(components.map { |c| c["id"].gsub('pkg:maven/', '').gsub('/', ':') })
+      end
+      names
     rescue => e
       Rails.logger.error("Error fetching recently updated from Sonatype: #{e}")
-      []
+      Array(names)
     end
 
     def recently_updated_package_names_from_libraries_io
@@ -653,6 +679,8 @@ module Ecosystem
     ].freeze
 
     MAVEN_CENTRAL_GCS_MIRROR = "https://maven-central.storage-download.googleapis.com/maven2"
+
+    SONATYPE_RECENT_PAGES = 5
 
     def directory_listing_url(group_id, artifact_id)
       listing_url("#{group_id.gsub(".", "/")}/#{artifact_id}")

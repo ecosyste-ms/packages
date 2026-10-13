@@ -70,20 +70,33 @@ class MavenTest < ActiveSupport::TestCase
     assert_equal all_package_names.last, 'am.ik.archetype:elm-spring-boot-blank-archetype'
   end
 
-  test 'recently_updated_package_names' do
-    stub_request(:post, "https://central.sonatype.com/api/internal/browse/components?repository=maven-central")
-      .with(
-        body: "{\"size\":20,\"sortField\":\"publishedDate\",\"sortDirection\":\"desc\"}",
-        headers: {
-          'Content-Type'=>'application/json',
-          'Expect'=>'',
-          'User-Agent'=>'packages.ecosyste.ms'
-        })
-      .to_return(status: 200, body: '{"items":[]}', headers: {})
-    stub_request(:get, "https://maven.libraries.io/mavenCentral/recent")
-      .to_return({ status: 200, body: file_fixture('maven/recent') })
-    recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 20
+  test 'recently_updated_package_names pages through the Sonatype feed' do
+    sonatype = "https://central.sonatype.com/api/internal/browse/components?repository=maven-central"
+    stub_request(:post, sonatype)
+      .with(body: { size: 20, page: 0, sortField: 'publishedDate', sortDirection: 'desc' }.to_json)
+      .to_return(status: 200, body: { components: [{ id: 'pkg:maven/com.bucket4j/bucket4j_jdk17-core' }, { id: 'pkg:maven/com.bucket4j/bucket4j_jdk17-jcache' }] }.to_json)
+    stub_request(:post, sonatype)
+      .with(body: { size: 20, page: 1, sortField: 'publishedDate', sortDirection: 'desc' }.to_json)
+      .to_return(status: 200, body: { components: [{ id: 'pkg:maven/net.serenity-bdd/serenity-core' }] }.to_json)
+    stub_request(:post, sonatype)
+      .with(body: { size: 20, page: 2, sortField: 'publishedDate', sortDirection: 'desc' }.to_json)
+      .to_return(status: 200, body: { components: [] }.to_json)
+
+    assert_equal ['com.bucket4j:bucket4j_jdk17-core', 'com.bucket4j:bucket4j_jdk17-jcache', 'net.serenity-bdd:serenity-core'], @ecosystem.recently_updated_package_names
+    assert_not_requested :post, sonatype, body: { size: 20, page: 3, sortField: 'publishedDate', sortDirection: 'desc' }.to_json
+    assert_not_requested :get, "https://maven.libraries.io/mavenCentral/recent"
+  end
+
+  test 'recently_updated_package_names keeps earlier Sonatype pages when a later one fails' do
+    sonatype = "https://central.sonatype.com/api/internal/browse/components?repository=maven-central"
+    stub_request(:post, sonatype)
+      .with(body: { size: 20, page: 0, sortField: 'publishedDate', sortDirection: 'desc' }.to_json)
+      .to_return(status: 200, body: { components: [{ id: 'pkg:maven/com.bucket4j/bucket4j_jdk17-core' }] }.to_json)
+    stub_request(:post, sonatype)
+      .with(body: { size: 20, page: 1, sortField: 'publishedDate', sortDirection: 'desc' }.to_json)
+      .to_return(status: 200, body: 'not json')
+
+    assert_equal ['com.bucket4j:bucket4j_jdk17-core'], @ecosystem.recently_updated_package_names
   end
 
   test 'package_metadata' do
@@ -756,6 +769,51 @@ class MavenTest < ActiveSupport::TestCase
 
     assert_equal ['com.bucket4j:bucket4j_jdk17-core'], @ecosystem.namespace_package_names('com.bucket4j')
     assert_not_requested :get, "https://repo1.maven.org/maven2/com/bucket4j/index.html"
+  end
+
+  test 'syncing a new package queues its missing namespace siblings' do
+    r = Registry.create!(url: 'https://maven-central.storage-download.googleapis.com/maven2', name: 'repo1.maven.org', ecosystem: 'maven')
+    r.packages.create!(name: 'net.jcip:jcip-existing', namespace: 'net.jcip', ecosystem: 'maven')
+    r.packages.create!(name: 'net.jcip.sub:thing', namespace: 'net.jcip.sub', ecosystem: 'maven')
+
+    stub_request(:get, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/maven-metadata.xml")
+      .to_return(status: 200, body: "<metadata><versioning><versions><version>1.0</version></versions></versioning></metadata>")
+    stub_request(:get, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/1.0/jcip-annotations-1.0.pom")
+      .to_return(status: 200, body: file_fixture('maven/jcip-annotations-1.0.pom'), headers: { 'last-modified' => 'Thu, 14 Aug 2008 02:49:00 GMT' })
+    stub_request(:head, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/index.html")
+      .to_return(status: 200)
+    listing = stub_request(:get, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/index.html")
+      .to_return(status: 200, body: '<html><body><pre><a href="../">../</a><a href="jcip-annotations/">jcip-annotations/</a><a href="jcip-existing/">jcip-existing/</a><a href="jcip-missing/">jcip-missing/</a><a href="sub/">sub/</a></pre></body></html>')
+
+    Registry.any_instance.expects(:sync_packages_async).with(['net.jcip:jcip-missing'])
+    r.sync_package('net.jcip:jcip-annotations')
+
+    assert r.packages.find_by(name: 'net.jcip:jcip-annotations')
+    assert_requested listing, times: 1
+  end
+
+  test 'sync_subpackages_async lists each namespace at most once a day' do
+    Rails.stubs(:cache).returns(ActiveSupport::Cache::MemoryStore.new)
+    r = Registry.create!(url: 'https://repo1.maven.org/maven2', name: 'repo1.maven.org', ecosystem: 'maven')
+    package = r.packages.create!(name: 'com.bucket4j:bucket4j_jdk17-caffeine', namespace: 'com.bucket4j', ecosystem: 'maven')
+    listing = stub_request(:get, "https://repo1.maven.org/maven2/com/bucket4j/")
+      .to_return(status: 200, body: '<html><body><pre><a href="bucket4j_jdk17-caffeine/">bucket4j_jdk17-caffeine/</a><a href="bucket4j_jdk17-core/">bucket4j_jdk17-core/</a></pre></body></html>')
+    r.stubs(:sync_packages_async)
+
+    eco = Ecosystem::Maven.new(r)
+    eco.sync_subpackages_async(package)
+    eco.sync_subpackages_async(package)
+
+    assert_requested listing, times: 1
+  end
+
+  test 'sync_subpackages_async skips registries other than Maven Central' do
+    r = Registry.create!(url: 'https://repo.jenkins-ci.org/public', name: 'repo.jenkins-ci.org', ecosystem: 'maven')
+    package = r.packages.create!(name: 'org.jenkins-ci:foo', namespace: 'org.jenkins-ci', ecosystem: 'maven')
+
+    Ecosystem::Maven.new(r).sync_subpackages_async(package)
+
+    assert_not_requested :get, "https://repo.jenkins-ci.org/public/org/jenkins-ci/"
   end
 
   test 'sync_missing_namespace_packages on the Google mirror queues artifacts missing from the namespace' do
