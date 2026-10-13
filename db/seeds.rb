@@ -24,11 +24,11 @@ default_registries = [
   {name: 'clojars.org', url: 'https://repo.clojars.org', ecosystem: 'clojars', github: 'clojars', default: true},
   {name: 'registry.bazel.build', url: 'https://registry.bazel.build', ecosystem: 'bazel', github: 'bazelbuild', default: true},
   {name: 'repo1.maven.org', url: 'https://maven-central.storage-download.googleapis.com/maven2', ecosystem: 'maven', github: 'maven-central', default: true, rate_limit: 2},
-  {name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven', github: 'jboss-eap', default: false},
-  {name: 'repository.apache.org-releases', url: 'https://repository.apache.org/content/repositories/releases', ecosystem: 'maven', github: 'apache', default: false},
-  {name: 'repository.apache.org-snapshots', url: 'https://repository.apache.org/content/repositories/snapshots', ecosystem: 'maven', github: 'apache', default: false},
-  {name: 'artifacts.alfresco.com', url: 'https://artifacts.alfresco.com/nexus/content/repositories/public', ecosystem: 'maven', github: 'alfresco', default: false},
-  {name: 'repository.cloudera.com', url: 'https://repository.cloudera.com/content/repositories/public', ecosystem: 'maven', github: 'cloudera', default: false},
+  {name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven', github: 'jboss-eap', default: false, metadata: {'archetype_catalog' => true}},
+  {name: 'repository.apache.org-releases', url: 'https://repository.apache.org/content/repositories/releases', ecosystem: 'maven', github: 'apache', default: false, metadata: {'archetype_catalog' => true}},
+  {name: 'repository.apache.org-snapshots', url: 'https://repository.apache.org/content/repositories/snapshots', ecosystem: 'maven', github: 'apache', default: false, metadata: {'archetype_catalog' => true}},
+  {name: 'artifacts.alfresco.com', url: 'https://artifacts.alfresco.com/nexus/content/repositories/public', ecosystem: 'maven', github: 'alfresco', default: false, metadata: {'archetype_catalog' => true}},
+  {name: 'repository.cloudera.com', url: 'https://repository.cloudera.com/content/repositories/public', ecosystem: 'maven', github: 'cloudera', default: false, metadata: {'archetype_catalog' => true}},
   {name: 'pkgs.racket-lang.org', url: 'https://pkgs.racket-lang.org', ecosystem: 'racket', github: 'racket-lang', default: true},
   {name: 'elpa.gnu.org', url: 'https://elpa.gnu.org/packages', ecosystem: 'elpa', github: 'emacs', default: true},
   {name: 'elpa.nongnu.org', url: 'https://elpa.nongnu.org/nongnu', ecosystem: 'elpa', github: 'emacs', default: false},
@@ -56,9 +56,7 @@ default_registries = [
 ]
 
 default_registries.each do |data|
-  r = Registry.find_or_initialize_by(url: data[:url])
-  r.assign_attributes(data)
-  r.save
+  Registry.seed(data)
 end
 
 alpine_registries = []
@@ -82,9 +80,7 @@ alpine_versions.each do |version|
 end
 
 alpine_registries.each do |data|
-  r = Registry.find_or_initialize_by(url: data[:url])
-  r.assign_attributes(data)
-  r.save
+  Registry.seed(data)
 end
 
 postmarketos_registries = []
@@ -103,9 +99,7 @@ postmarketos_versions.each do |version|
 end
 
 postmarketos_registries.each do |data|
-  r = Registry.find_or_initialize_by(url: data[:url])
-  r.assign_attributes(data)
-  r.save
+  Registry.seed(data)
 end
 
 nixpkgs_registries = []
@@ -124,9 +118,7 @@ nixpkgs_channels.each do |channel|
 end
 
 nixpkgs_registries.each do |data|
-  r = Registry.find_or_initialize_by(url: data[:url])
-  r.assign_attributes(data)
-  r.save
+  Registry.seed(data)
 end
 
 r = Registry.find_or_initialize_by(url: 'https://guix.gnu.org')
@@ -164,9 +156,7 @@ ubuntu_releases.each do |release|
 end
 
 ubuntu_registries.each do |data|
-  r = Registry.find_or_initialize_by(url: data[:url])
-  r.assign_attributes(data)
-  r.save
+  Registry.seed(data)
 end
 
 debian_registries = []
@@ -191,9 +181,7 @@ debian_releases.each do |release|
 end
 
 debian_registries.each do |data|
-  r = Registry.find_or_initialize_by(url: data[:url])
-  r.assign_attributes(data)
-  r.save
+  Registry.seed(data)
 end
 
 ips_registries = [
@@ -208,9 +196,7 @@ ips_registries = [
 ]
 
 ips_registries.each do |data|
-  r = Registry.find_or_initialize_by(url: data[:url])
-  r.assign_attributes(data)
-  r.save
+  Registry.seed(data)
 end
 
 gentoo_registries = [
@@ -227,9 +213,7 @@ gentoo_registries = [
 ]
 
 gentoo_registries.each do |data|
-  r = Registry.find_or_initialize_by(url: data[:url])
-  r.assign_attributes(data)
-  r.save
+  Registry.seed(data)
 end
 
 freebsd_registries = [
@@ -252,9 +236,7 @@ freebsd_registries = [
 ]
 
 freebsd_registries.each do |data|
-  r = Registry.find_or_initialize_by(url: data[:url])
-  r.assign_attributes(data)
-  r.save
+  Registry.seed(data)
 end
 
 pkgsrc_registries = [
@@ -269,9 +251,7 @@ pkgsrc_registries = [
 ]
 
 pkgsrc_registries.each do |data|
-  r = Registry.find_or_initialize_by(url: data[:url])
-  r.assign_attributes(data)
-  r.save
+  Registry.seed(data)
 end
 
 openbsd_registries = [
@@ -290,7 +270,5 @@ openbsd_registries = [
 ]
 
 openbsd_registries.each do |data|
-  r = Registry.find_or_initialize_by(url: data[:url])
-  r.assign_attributes(data)
-  r.save
+  Registry.seed(data)
 end

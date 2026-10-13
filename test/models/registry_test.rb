@@ -794,4 +794,18 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal [], @registry.sync_declared_dependency_packages
     assert_equal [], Registry.declared_repositories('rubygems')
   end
+
+  test 'seed merges seeded metadata into existing metadata' do
+    @registry.update!(metadata: { 'funded_packages_count' => 27, 'archetype_catalog' => false })
+    Registry.seed(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems', metadata: { 'archetype_catalog' => true })
+
+    assert_equal({ 'funded_packages_count' => 27, 'archetype_catalog' => true }, @registry.reload.metadata)
+  end
+
+  test 'seed creates a registry that does not exist yet' do
+    registry = Registry.seed(name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven', metadata: { 'archetype_catalog' => true })
+
+    assert registry.persisted?
+    assert_equal({ 'archetype_catalog' => true }, registry.metadata)
+  end
 end

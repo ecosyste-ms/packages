@@ -708,22 +708,7 @@ module Ecosystem
     end
 
     def supports_archetype_catalog?
-      case @registry_url
-      when *MAVEN_CENTRAL_URLS
-        true
-      when "https://repository.jboss.org/nexus/content/repositories/releases"
-        true
-      when "https://repository.apache.org/content/repositories/releases"
-        true
-      when "https://repository.apache.org/content/repositories/snapshots"
-        true
-      when "https://artifacts.alfresco.com/nexus/content/repositories/public"
-        true
-      when "https://repository.cloudera.com/content/repositories/public"
-        true
-      else
-        false
-      end
+      is_maven_central? || @registry.metadata.to_h['archetype_catalog'].present?
     end
 
     def is_snapshot_repository?

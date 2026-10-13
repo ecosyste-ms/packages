@@ -225,7 +225,7 @@ class MavenTest < ActiveSupport::TestCase
   end
 
   test 'jboss_all_package_names_with_archetype_catalog' do
-    jboss_registry = Registry.new(default: true, name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven')
+    jboss_registry = Registry.new(default: true, name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven', metadata: { 'archetype_catalog' => true })
     jboss_ecosystem = Ecosystem::Maven.new(jboss_registry)
     
     # Mock JBoss archetype-catalog.xml
@@ -239,7 +239,7 @@ class MavenTest < ActiveSupport::TestCase
 
 
   test 'recently_updated_package_names_for_non_maven_central' do
-    jboss_registry = Registry.new(default: true, name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven')
+    jboss_registry = Registry.new(default: true, name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven', metadata: { 'archetype_catalog' => true })
     jboss_ecosystem = Ecosystem::Maven.new(jboss_registry)
     
     # Mock JBoss archetype-catalog.xml (empty)
@@ -253,7 +253,7 @@ class MavenTest < ActiveSupport::TestCase
   end
 
   test 'apache_all_package_names_with_archetype_catalog' do
-    apache_registry = Registry.new(default: true, name: 'repository.apache.org-releases', url: 'https://repository.apache.org/content/repositories/releases', ecosystem: 'maven')
+    apache_registry = Registry.new(default: true, name: 'repository.apache.org-releases', url: 'https://repository.apache.org/content/repositories/releases', ecosystem: 'maven', metadata: { 'archetype_catalog' => true })
     apache_ecosystem = Ecosystem::Maven.new(apache_registry)
     
     # Mock Apache archetype-catalog.xml
@@ -289,7 +289,7 @@ class MavenTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_from_archetype_catalog_for_non_maven_central' do
-    jboss_registry = Registry.new(default: true, name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven')
+    jboss_registry = Registry.new(default: true, name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven', metadata: { 'archetype_catalog' => true })
     jboss_ecosystem = Ecosystem::Maven.new(jboss_registry)
     
     # Mock JBoss archetype-catalog.xml with multiple packages
@@ -329,7 +329,7 @@ class MavenTest < ActiveSupport::TestCase
   end
 
   test 'apache_snapshots_package_metadata_and_repository_extraction' do
-    apache_snapshots_registry = Registry.new(default: true, name: 'repository.apache.org-snapshots', url: 'https://repository.apache.org/content/repositories/snapshots', ecosystem: 'maven')
+    apache_snapshots_registry = Registry.new(default: true, name: 'repository.apache.org-snapshots', url: 'https://repository.apache.org/content/repositories/snapshots', ecosystem: 'maven', metadata: { 'archetype_catalog' => true })
     apache_snapshots_ecosystem = Ecosystem::Maven.new(apache_snapshots_registry)
 
     # Mock Apache snapshots maven-metadata.xml and POM
@@ -927,6 +927,12 @@ class MavenTest < ActiveSupport::TestCase
     metadata = @ecosystem.package_metadata('com.example:svn-project')
 
     assert_equal 'https://github.com/example/svn-project', metadata[:repository_url]
+  end
+
+  test 'all_package_names is empty for a non-Central registry without an archetype catalog' do
+    registry = Registry.new(name: 'packages.confluent.io', url: 'https://packages.confluent.io/maven', ecosystem: 'maven')
+    assert_equal [], Ecosystem::Maven.new(registry).all_package_names
+    assert_not_requested :get, /archetype-catalog\.xml/
   end
 
   test 'declared_repositories_key reads POM repositories' do

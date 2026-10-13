@@ -15,6 +15,14 @@ class Registry < ApplicationRecord
 
   THROTTLE_CACHE_TTL = 60
 
+  # Merges seeded metadata so values computed at runtime, like funded_packages_count, survive a re-seed.
+  def self.seed(data)
+    registry = find_or_initialize_by(url: data[:url])
+    registry.assign_attributes(data.merge(metadata: registry.metadata.to_h.merge(data[:metadata].to_h.stringify_keys)))
+    registry.save
+    registry
+  end
+
   def self.throttle_cache
     if @throttle_cache.nil? || Process.clock_gettime(Process::CLOCK_MONOTONIC) > @throttle_cache_expires_at
       @throttle_cache = pluck(:id, :url, :metadata).each_with_object({}) do |(id, url, meta), h|
