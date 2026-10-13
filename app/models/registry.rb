@@ -18,7 +18,8 @@ class Registry < ApplicationRecord
   # Merges seeded metadata so values computed at runtime, like funded_packages_count, survive a re-seed.
   def self.seed(data)
     registry = find_or_initialize_by(url: data[:url])
-    registry.assign_attributes(data.merge(metadata: registry.metadata.to_h.merge(data[:metadata].to_h.stringify_keys)))
+    registry.metadata = registry.metadata.to_h.merge(data[:metadata].to_h.stringify_keys)
+    registry.assign_attributes(data.except(:metadata))
     registry.save
     registry
   end

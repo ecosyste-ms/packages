@@ -808,4 +808,17 @@ class RegistryTest < ActiveSupport::TestCase
     assert registry.persisted?
     assert_equal({ 'archetype_catalog' => true }, registry.metadata)
   end
+
+  test 'seed keeps rate_limit alongside existing metadata' do
+    @registry.update!(metadata: { 'funded_packages_count' => 27, 'rate_limit' => 1 })
+    Registry.seed(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems', rate_limit: 2)
+
+    assert_equal({ 'funded_packages_count' => 27, 'rate_limit' => 2 }, @registry.reload.metadata)
+  end
+
+  test 'seed sets rate_limit on a new registry' do
+    registry = Registry.seed(name: 'repository.cloudera.com', url: 'https://repository.cloudera.com/repository/cloudera-repos', ecosystem: 'maven', rate_limit: 2)
+
+    assert_equal 2, registry.reload.rate_limit
+  end
 end
