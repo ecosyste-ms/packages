@@ -47,7 +47,7 @@ class MavenTest < ActiveSupport::TestCase
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/"
+    assert_equal check_status_url, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/maven-metadata.xml"
   end
 
   test 'purl' do
@@ -724,16 +724,25 @@ class MavenTest < ActiveSupport::TestCase
     assert Ecosystem::Maven.new(r).send(:is_maven_central?)
   end
 
-  test 'check_status_url on the Google mirror appends index.html' do
+  test 'check_status_url on the Google mirror uses maven-metadata.xml' do
     r = Registry.new(url: 'https://maven-central.storage-download.googleapis.com/maven2', name: 'x', ecosystem: 'maven')
     eco = Ecosystem::Maven.new(r)
-    assert_equal "https://maven-central.storage-download.googleapis.com/maven2/dev/zio/zio-aws-autoscaling_3/index.html", eco.check_status_url(@package)
+    assert_equal "https://maven-central.storage-download.googleapis.com/maven2/dev/zio/zio-aws-autoscaling_3/maven-metadata.xml", eco.check_status_url(@package)
   end
 
-  test 'check_status_url on a non-mirror registry uses the bare directory url' do
-    r = Registry.new(url: 'https://repository.jboss.org/nexus/content/repositories/releases', name: 'jboss', ecosystem: 'maven')
-    eco = Ecosystem::Maven.new(r)
-    assert_equal "https://repository.jboss.org/nexus/content/repositories/releases/dev/zio/zio-aws-autoscaling_3/", eco.check_status_url(@package)
+  test 'check_status marks a package removed on a Nexus 3 registry that answers 200 for missing directories' do
+    registry = Registry.create!(name: 'repository.cloudera.com', url: 'https://repository.cloudera.com/repository/cloudera-repos', ecosystem: 'maven')
+    present = registry.packages.create!(name: 'org.apache.hadoop:hadoop-common', ecosystem: 'maven', status: 'removed')
+    missing = registry.packages.create!(name: 'org.example:missing', ecosystem: 'maven')
+    stub_request(:head, %r{repository\.cloudera\.com/.*/$}).to_return(status: 200)
+    stub_request(:head, 'https://repository.cloudera.com/repository/cloudera-repos/org/apache/hadoop/hadoop-common/maven-metadata.xml').to_return(status: 200)
+    stub_request(:head, 'https://repository.cloudera.com/repository/cloudera-repos/org/example/missing/maven-metadata.xml').to_return(status: 404)
+
+    present.check_status
+    missing.check_status
+
+    assert_equal 'active', present.reload.read_attribute(:status)
+    assert_equal 'removed', missing.reload.status
   end
 
   test 'HTML directory listing fallback on the Google mirror fetches index.html' do
@@ -780,7 +789,7 @@ class MavenTest < ActiveSupport::TestCase
       .to_return(status: 200, body: "<metadata><versioning><versions><version>1.0</version></versions></versioning></metadata>")
     stub_request(:get, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/1.0/jcip-annotations-1.0.pom")
       .to_return(status: 200, body: file_fixture('maven/jcip-annotations-1.0.pom'), headers: { 'last-modified' => 'Thu, 14 Aug 2008 02:49:00 GMT' })
-    stub_request(:head, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/index.html")
+    stub_request(:head, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/maven-metadata.xml")
       .to_return(status: 200)
     listing = stub_request(:get, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/index.html")
       .to_return(status: 200, body: '<html><body><pre><a href="../">../</a><a href="jcip-annotations/">jcip-annotations/</a><a href="jcip-existing/">jcip-existing/</a><a href="jcip-missing/">jcip-missing/</a><a href="sub/">sub/</a></pre></body></html>')

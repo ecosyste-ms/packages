@@ -15,9 +15,10 @@ module Ecosystem
       ':'
     end
 
+    # Nexus 3 answers 200 for any directory path, so check a file that only exists for real artifacts.
     def check_status_url(package)
       group_id, artifact_id = *package.name.split(':', 2)
-      directory_listing_url(group_id, artifact_id)
+      "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/maven-metadata.xml"
     end
 
     def download_url(package, version)
