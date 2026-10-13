@@ -739,6 +739,37 @@ class MavenTest < ActiveSupport::TestCase
     assert_not_requested :get, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/"
   end
 
+  test 'namespace_package_names on the Google mirror fetches index.html' do
+    r = Registry.new(url: 'https://maven-central.storage-download.googleapis.com/maven2', name: 'x', ecosystem: 'maven')
+    eco = Ecosystem::Maven.new(r)
+
+    stub_request(:get, "https://maven-central.storage-download.googleapis.com/maven2/com/bucket4j/index.html")
+      .to_return(status: 200, body: '<html><body><pre><a href="../">../</a><a href="bucket4j_jdk17-core/">bucket4j_jdk17-core/</a><a href="maven-metadata.xml">maven-metadata.xml</a></pre></body></html>')
+
+    assert_equal ['com.bucket4j:bucket4j_jdk17-core'], eco.namespace_package_names('com.bucket4j')
+    assert_not_requested :get, "https://maven-central.storage-download.googleapis.com/maven2/com/bucket4j/"
+  end
+
+  test 'namespace_package_names on Maven Central uses the bare directory url' do
+    stub_request(:get, "https://repo1.maven.org/maven2/com/bucket4j/")
+      .to_return(status: 200, body: '<html><body><pre><a href="../">../</a><a href="bucket4j_jdk17-core/">bucket4j_jdk17-core/</a></pre></body></html>')
+
+    assert_equal ['com.bucket4j:bucket4j_jdk17-core'], @ecosystem.namespace_package_names('com.bucket4j')
+    assert_not_requested :get, "https://repo1.maven.org/maven2/com/bucket4j/index.html"
+  end
+
+  test 'sync_missing_namespace_packages on the Google mirror queues artifacts missing from the namespace' do
+    r = Registry.create!(url: 'https://maven-central.storage-download.googleapis.com/maven2', name: 'repo1.maven.org', ecosystem: 'maven')
+    r.packages.create!(name: 'com.bucket4j:bucket4j_jdk17-caffeine', namespace: 'com.bucket4j', ecosystem: 'maven')
+    r.stubs(:sleep)
+
+    stub_request(:get, "https://maven-central.storage-download.googleapis.com/maven2/com/bucket4j/index.html")
+      .to_return(status: 200, body: '<html><body><pre><a href="../">../</a><a href="bucket4j_jdk17-caffeine/">bucket4j_jdk17-caffeine/</a><a href="bucket4j_jdk17-core/">bucket4j_jdk17-core/</a></pre></body></html>')
+
+    r.expects(:sync_packages_async).with(['com.bucket4j:bucket4j_jdk17-core'])
+    r.sync_missing_namespace_packages
+  end
+
   def stub_scm_pom(group_path, artifact, scm_xml, parent_xml: '')
     stub_request(:get, "https://repo1.maven.org/maven2/#{group_path}/#{artifact}/maven-metadata.xml")
       .to_return(status: 200, body: "<metadata><versioning><versions><version>1.0</version></versions></versioning></metadata>")

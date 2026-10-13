@@ -536,8 +536,8 @@ class Registry < ApplicationRecord
         missing_names = Array(names) - @existing_package_names
         puts "Syncing #{missing_names.count} missing packages for #{namespace}"
         sync_packages_async(missing_names)
-      rescue
-        puts "Error syncing missing packages for #{namespace}"
+      rescue => e
+        puts "Error syncing missing packages for #{namespace}: #{e.class} #{e.message}"
       end
     end
   end 

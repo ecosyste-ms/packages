@@ -56,7 +56,7 @@ module Ecosystem
     end
 
     def namespace_package_names(namespace)
-      get_html("#{@registry_url}/#{namespace.gsub(".", "/")}/").css("a").map do |a|
+      get_html(listing_url(namespace.gsub(".", "/"))).css("a").map do |a|
         next if a.text == "../"
         next if a.text[-1] != "/"
         namespace + ":" + a.text.gsub('/', '')
@@ -655,7 +655,12 @@ module Ecosystem
     MAVEN_CENTRAL_GCS_MIRROR = "https://maven-central.storage-download.googleapis.com/maven2"
 
     def directory_listing_url(group_id, artifact_id)
-      base = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/"
+      listing_url("#{group_id.gsub(".", "/")}/#{artifact_id}")
+    end
+
+    # The Google mirror 404s on bare directory paths and only serves index.html.
+    def listing_url(path)
+      base = "#{@registry_url}/#{path}/"
       @registry_url == MAVEN_CENTRAL_GCS_MIRROR ? "#{base}index.html" : base
     end
 
