@@ -37,6 +37,20 @@ class OctaveTest < ActiveSupport::TestCase
     assert_nil @ecosystem.install_command(@package, version)
   end
 
+  test 'install_command accepts a SourceForge archive download url' do
+    url = 'https://sourceforge.net/projects/octave-fuzzy/files/fuzzy-logic-toolkit-0.5.0.tar.gz/download'
+    version = @package.versions.build(number: '0.5.0', metadata: { 'download_url' => url })
+    assert_equal "pkg install \"#{url}\"", @ecosystem.install_command(@package, version)
+  end
+
+  test 'install_command is nil for SourceForge download urls without a named archive' do
+    ['https://sourceforge.net/projects/sole/files/latest/download',
+     'https://example.com/files/fuzzy-logic-toolkit-0.5.0.tar.gz/download'].each do |url|
+      version = @package.versions.build(number: '0.1.1', metadata: { 'download_url' => url })
+      assert_nil @ecosystem.install_command(@package, version), url
+    end
+  end
+
   test 'purl' do
     purl = @ecosystem.purl(@package, @version)
     assert_equal 'pkg:octave/csg-toolkit@1.4.3', purl

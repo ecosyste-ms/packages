@@ -6,7 +6,10 @@ module Ecosystem
     RELEASE_KEYS = %w[id date sha256 url depends].freeze
     DEPENDENCY_PATTERN = /\A\s*([^\s(]+)\s*(?:\(\s*(.*?)\s*\))?\s*\z/
     INTERPRETER = 'octave'
-    ARCHIVE_PATTERN = /\.(?:tar\.gz|tgz|tar\.bz2|tar\.xz|zip)\z/i
+    ARCHIVE_EXTENSION = /\.(?:tar\.gz|tgz|tar\.bz2|tar\.xz|zip)/i
+    ARCHIVE_PATTERN = /#{ARCHIVE_EXTENSION}\z/
+    # SourceForge serves a named archive through a trailing /download, e.g. .../files/pkg-1.0.tar.gz/download
+    SOURCEFORGE_ARCHIVE_PATTERN = %r{\Ahttps?://(?:www\.)?sourceforge\.net/projects/[^/]+/files/(?:[^?#]+/)?[^/?#]+#{ARCHIVE_EXTENSION}/download\z}i
 
     def sync_maintainers_inline?
       true
@@ -22,7 +25,7 @@ module Ecosystem
 
     def install_command(package, version = nil)
       url = download_url(package, version || package.latest_version)
-      return nil unless url.to_s.match?(ARCHIVE_PATTERN)
+      return nil unless archive_url?(url.to_s)
       "pkg install \"#{url}\""
     end
 
@@ -165,6 +168,10 @@ module Ecosystem
     end
 
     private
+
+    def archive_url?(url)
+      url.match?(ARCHIVE_PATTERN) || url.match?(SOURCEFORGE_ARCHIVE_PATTERN)
+    end
 
     def link_url(links, label)
       links.find { |link| link['label'].to_s.casecmp?(label) }&.dig('url').presence

@@ -153,6 +153,16 @@ class EcosystemVersionRenderingTest < ActiveSupport::TestCase
     assert_equal Ecosystem::Base.list.map(&:lowercase_name).sort, CASES.keys.sort
   end
 
+  test 'octave version install_command renders SourceForge archive download urls' do
+    url = 'https://sourceforge.net/projects/octave-fuzzy/files/fuzzy-logic-toolkit-0.5.0.tar.gz/download'
+    registry = Registry.new(name: 'octave.example', url: 'https://registry.example.test', ecosystem: 'octave')
+    package = registry.packages.build(name: 'fuzzy-logic-toolkit', ecosystem: 'octave')
+    version = package.versions.build(number: '0.5.0', metadata: { download_url: url })
+
+    assert_equal "pkg install \"#{url}\"", version.install_command
+    assert_not_requested :any, /.*/
+  end
+
   CASES.each do |ecosystem, attributes|
     { install_command: :install, documentation_url: :documentation }.each do |method, expectation|
       [:package, :version].each_with_index do |target, index|
