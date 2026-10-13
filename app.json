@@ -37,6 +37,10 @@
       "schedule": "0 0 * * *"
     },
     {
+      "command": "bundle exec rake packages:sync_declared_dependencies",
+      "schedule": "30 2 * * 0"
+    },
+    {
       "command": "bundle exec rake packages:update_extra_counts",
       "schedule": "0 5 * * *"
     },

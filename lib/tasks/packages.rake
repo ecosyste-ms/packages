@@ -13,6 +13,15 @@ def with_rake_lock(task_name, ttl: 3600)
 end
 
 namespace :packages do
+  desc 'queue dependencies that packages declare against each registry but are missing from the ecosystem'
+  task sync_declared_dependencies: :environment do
+    ecosystems = Ecosystem::Base.list.select(&:declared_repositories_key).map(&:lowercase_name)
+    Registry.where(ecosystem: ecosystems).find_each do |registry|
+      names = registry.sync_declared_dependency_packages
+      puts "#{registry.name}: #{names.size}"
+    end
+  end
+
   desc 'print repositories declared by packages with counts of dependencies no registry in the ecosystem has'
   task :declared_repositories, [:ecosystem, :limit] => :environment do |_t, args|
     Registry.print_declared_repositories(args[:ecosystem], limit: (args[:limit] || 50).to_i)

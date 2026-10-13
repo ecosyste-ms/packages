@@ -784,7 +784,7 @@ class RegistryTest < ActiveSupport::TestCase
     confluent.packages.create!(name: 'io.confluent:already-here', namespace: 'io.confluent', ecosystem: 'maven')
     declaring_package(central, 'com.example:app', ['https://packages.confluent.io/maven/'], ['io.confluent:kafka-avro-serializer', 'io.confluent:already-here'])
 
-    confluent.expects(:sync_packages_async).with(['io.confluent:kafka-avro-serializer'])
+    confluent.expects(:sync_packages_spread_async).with(['io.confluent:kafka-avro-serializer'])
     assert_equal ['io.confluent:kafka-avro-serializer'], confluent.sync_declared_dependency_packages
   end
 
@@ -846,5 +846,25 @@ class RegistryTest < ActiveSupport::TestCase
       '=== untracked repositories ===',
       "namespaces\tunresolved\trepo"
     ], io.string.lines.map(&:chomp)
+  end
+
+  test 'sync_packages_spread_async schedules one budget per period instead of dropping the rest' do
+    SyncPackageWorker.clear
+    registry = Registry.create!(name: 'slow.example', url: 'https://slow.example', ecosystem: 'maven', rate_limit: 0.0025)
+    freeze_time do
+      registry.sync_packages_spread_async(%w[a b c d e])
+
+      jobs = SyncPackageWorker.jobs
+      assert_equal %w[a b c d e], jobs.map { |job| job['args'][1] }.sort
+      offsets = jobs.map { |job| ((job['at'] || Time.now.to_f) - Time.now.to_f).round }.sort
+      assert_equal [0, 0, 900, 900, 1800], offsets
+    end
+  end
+
+  test 'sync_packages_spread_async queues everything at once without a rate limit' do
+    SyncPackageWorker.clear
+    @registry.sync_packages_spread_async(%w[a b c])
+    assert_equal 3, SyncPackageWorker.jobs.size
+    assert SyncPackageWorker.jobs.none? { |job| job['at'] }
   end
 end

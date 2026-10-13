@@ -241,6 +241,17 @@ class Registry < ApplicationRecord
     end
   end
 
+  # Queues every name, one sync budget's worth per period, instead of dropping what exceeds the budget.
+  def sync_packages_spread_async(package_names, period: 15.minutes)
+    budget = sync_budget(period)
+    return sync_packages_async(package_names, period: period) unless budget
+    package_names.each_slice(budget).with_index do |slice, index|
+      slice.each_slice(1_000) do |batch|
+        SyncPackageWorker.set(wait: index * period).perform_bulk(batch.map { |name| [id, name] })
+      end
+    end
+  end
+
   def sync_packages_async(package_names, period: 15.minutes, force: false)
     budget = sync_budget(period)
     package_names = package_names.first(budget) if budget
@@ -600,7 +611,7 @@ class Registry < ApplicationRecord
 
   def sync_declared_dependency_packages
     names = declared_dependency_names
-    sync_packages_async(names) if names.any?
+    sync_packages_spread_async(names) if names.any?
     names
   end
 
