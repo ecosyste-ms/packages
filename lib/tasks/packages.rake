@@ -13,6 +13,11 @@ def with_rake_lock(task_name, ttl: 3600)
 end
 
 namespace :packages do
+  desc 'print repositories declared by packages with counts of dependencies no registry in the ecosystem has'
+  task :declared_repositories, [:ecosystem, :limit] => :environment do |_t, args|
+    Registry.print_declared_repositories(args[:ecosystem], limit: (args[:limit] || 50).to_i)
+  end
+
   desc 'sync recently updated packages'
   task sync_recent: :environment do
     with_rake_lock('packages:sync_recent') do

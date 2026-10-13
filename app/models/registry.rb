@@ -526,6 +526,68 @@ class Registry < ApplicationRecord
     packages.where.not(namespace: nil).group(:namespace).order('COUNT(id) desc').count.to_a.map(&:first)
   end
 
+  def self.declared_repositories(ecosystem)
+    key = Ecosystem::Base.find(ecosystem).declared_repositories_key
+    return [] unless key
+    sql = Package.sanitize_sql_array([
+      "SELECT #{Package.normalized_repository_sql} AS repo, count(DISTINCT packages.namespace) AS namespaces, array_agg(packages.id) AS package_ids " \
+      "FROM packages CROSS JOIN LATERAL json_array_elements_text(packages.metadata->:key) u " \
+      "WHERE packages.registry_id IN (:ids) AND json_typeof(packages.metadata->:key) = 'array' " \
+      "GROUP BY 1 ORDER BY 2 DESC",
+      { ids: where(ecosystem: ecosystem).pluck(:id), key: key }
+    ])
+    Package.connection.select_rows(sql).filter_map do |repo, namespaces, package_ids|
+      next if repo.blank?
+      package_ids = package_ids.is_a?(Array) ? package_ids : package_ids.to_s.delete('{}').split(',')
+      { repo: repo, namespaces: namespaces.to_i, package_ids: package_ids.map(&:to_i) }
+    end
+  end
+
+  # Dependencies of these packages' latest versions that no registry in the ecosystem has.
+  def self.unresolved_dependency_names(ecosystem, package_ids)
+    version_ids = package_ids.each_slice(1_000).flat_map { |ids| Version.where(package_id: ids, latest: true).pluck(:id) }
+    names = version_ids.each_slice(1_000).flat_map do |ids|
+      Dependency.where(version_id: ids, ecosystem: ecosystem).distinct.pluck(:package_name)
+    end.uniq
+    ecosystem_class = Ecosystem::Base.find(ecosystem)
+    names = names.select { |name| ecosystem_class.resolvable_dependency_name?(name) }
+    ids = where(ecosystem: ecosystem).pluck(:id)
+    names - names.each_slice(1_000).flat_map { |batch| Package.where(registry_id: ids, name: batch).pluck(:name) }
+  end
+
+  def self.print_declared_repositories(ecosystem, limit: 50, io: $stdout)
+    registries = where(ecosystem: ecosystem).to_h { |registry| [Ecosystem::Base.normalize_repository_url(registry.url), registry.name] }
+    tracked, untracked = declared_repositories(ecosystem).partition { |row| registries.key?(row[:repo]) }
+
+    io.puts "=== tracked registries ==="
+    io.puts %w[namespaces unresolved registry repo].join("\t")
+    tracked.each do |row|
+      io.puts [row[:namespaces], unresolved_dependency_names(ecosystem, row[:package_ids]).size, registries[row[:repo]], row[:repo]].join("\t")
+    end
+
+    io.puts "=== untracked repositories ==="
+    io.puts %w[namespaces unresolved repo].join("\t")
+    untracked.first(limit).each do |row|
+      io.puts [row[:namespaces], unresolved_dependency_names(ecosystem, row[:package_ids]).size, row[:repo]].join("\t")
+    end
+  end
+
+  def declaring_package_ids
+    key = ecosystem_class.declared_repositories_key
+    return [] unless key
+    Package.where(registry_id: Registry.where(ecosystem: ecosystem).select(:id)).declaring_repository(key, url).pluck(:id)
+  end
+
+  def declared_dependency_names
+    self.class.unresolved_dependency_names(ecosystem, declaring_package_ids)
+  end
+
+  def sync_declared_dependency_packages
+    names = declared_dependency_names
+    sync_packages_async(names) if names.any?
+    names
+  end
+
   def sync_missing_namespace_packages
     @existing_package_names = existing_package_names
     namespaces.each do |namespace|

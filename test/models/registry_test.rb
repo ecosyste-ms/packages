@@ -715,4 +715,83 @@ class RegistryTest < ActiveSupport::TestCase
         .to_return(status: 200, body: "module #{module_path}\n")
     end
   end
+
+
+  def declaring_package(registry, name, repositories, dependencies, latest: true)
+    package = registry.packages.create!(name: name, namespace: name.split(':').first, ecosystem: 'maven', metadata: { 'repositories' => repositories })
+    version = package.versions.create!(number: '1.0', latest: latest, registry_id: registry.id)
+    dependencies.each do |dependency|
+      version.dependencies.create!(package_name: dependency, ecosystem: 'maven', requirements: '1.0', package_id: package.id)
+    end
+    package
+  end
+
+  test 'normalize_repository_url drops scheme, case and trailing slashes' do
+    assert_equal 'packages.confluent.io/maven', Ecosystem::Base.normalize_repository_url(' HTTPS://Packages.Confluent.io/maven// ')
+    assert_equal 'packages.confluent.io/maven', Ecosystem::Base.normalize_repository_url('http://packages.confluent.io/maven')
+  end
+
+  test 'unresolved_dependency_names keeps latest-version dependencies missing from every Maven registry' do
+    central = Registry.create!(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
+    central.packages.create!(name: 'com.google.guava:guava', namespace: 'com.google.guava', ecosystem: 'maven')
+    current = declaring_package(central, 'com.example:app', ['https://packages.confluent.io/maven/'],
+                                ['io.confluent:kafka-avro-serializer', 'com.google.guava:guava', '${project.groupId}:core'])
+    old = declaring_package(central, 'com.example:old', ['https://packages.confluent.io/maven/'], ['io.confluent:old-only'], latest: false)
+
+    assert_equal ['io.confluent:kafka-avro-serializer'], Registry.unresolved_dependency_names('maven', [current.id, old.id])
+  end
+
+  test 'declared_dependency_names matches the declared URL however it is written' do
+    central = Registry.create!(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
+    confluent = Registry.create!(name: 'packages.confluent.io', url: 'https://packages.confluent.io/maven', ecosystem: 'maven')
+    declaring_package(central, 'com.example:app', ['http://Packages.Confluent.io/maven/'], ['io.confluent:kafka-avro-serializer'])
+    declaring_package(central, 'com.example:other', ['https://repo.spring.io/release'], ['org.springframework:spring-unlisted'])
+
+    assert_equal ['io.confluent:kafka-avro-serializer'], confluent.declared_dependency_names
+  end
+
+  test 'declared_dependency_names includes declarations from packages in non-Central registries' do
+    central = Registry.create!(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
+    confluent = Registry.create!(name: 'packages.confluent.io', url: 'https://packages.confluent.io/maven', ecosystem: 'maven')
+    osgeo = Registry.create!(name: 'repo.osgeo.org', url: 'https://repo.osgeo.org/repository/release', ecosystem: 'maven')
+    declaring_package(confluent, 'io.confluent:geo-thing', ['https://repo.osgeo.org/repository/release/'], ['org.geotools:gt-main'])
+
+    assert_equal ['org.geotools:gt-main'], osgeo.declared_dependency_names
+  end
+
+  test 'print_declared_repositories lists tracked registries and untracked repositories in separate sections' do
+    central = Registry.create!(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
+    Registry.create!(name: 'packages.confluent.io', url: 'https://packages.confluent.io/maven', ecosystem: 'maven')
+    declaring_package(central, 'com.example:app', ['https://packages.confluent.io/maven/', 'https://repo.osgeo.org/repository/release'],
+                      ['io.confluent:kafka-avro-serializer', 'org.geotools:gt-main'])
+
+    io = StringIO.new
+    Registry.print_declared_repositories('maven', io: io)
+
+    assert_equal [
+      '=== tracked registries ===',
+      "namespaces\tunresolved\tregistry\trepo",
+      "1\t2\tpackages.confluent.io\tpackages.confluent.io/maven",
+      '=== untracked repositories ===',
+      "namespaces\tunresolved\trepo",
+      "1\t2\trepo.osgeo.org/repository/release"
+    ], io.string.lines.map(&:chomp)
+  end
+
+  test 'sync_declared_dependency_packages queues dependencies declared against the registry' do
+    central = Registry.create!(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
+    confluent = Registry.create!(name: 'packages.confluent.io', url: 'https://packages.confluent.io/maven', ecosystem: 'maven')
+    confluent.packages.create!(name: 'io.confluent:already-here', namespace: 'io.confluent', ecosystem: 'maven')
+    declaring_package(central, 'com.example:app', ['https://packages.confluent.io/maven/'], ['io.confluent:kafka-avro-serializer', 'io.confluent:already-here'])
+
+    confluent.expects(:sync_packages_async).with(['io.confluent:kafka-avro-serializer'])
+    assert_equal ['io.confluent:kafka-avro-serializer'], confluent.sync_declared_dependency_packages
+  end
+
+  test 'sync_declared_dependency_packages does nothing for ecosystems without declared repositories' do
+    @registry.packages.create!(name: 'rails', ecosystem: 'rubygems', metadata: { 'repositories' => ['https://rubygems.org'] })
+    @registry.expects(:sync_packages_async).never
+    assert_equal [], @registry.sync_declared_dependency_packages
+    assert_equal [], Registry.declared_repositories('rubygems')
+  end
 end

@@ -692,6 +692,15 @@ module Ecosystem
       @registry_url == MAVEN_CENTRAL_GCS_MIRROR ? "#{base}index.html" : base
     end
 
+    def self.declared_repositories_key
+      'repositories'
+    end
+
+    # Drops ${...} placeholders and names without a groupId.
+    def self.resolvable_dependency_name?(name)
+      name.count(':') == 1 && !name.include?('$')
+    end
+
     private
 
     def is_maven_central?

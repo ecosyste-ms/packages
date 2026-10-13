@@ -35,6 +35,11 @@ class Package < ApplicationRecord
   has_many :maintainers, through: :maintainerships
   has_many :top_dependent_packages, dependent: :delete_all
 
+  # SQL counterpart of Ecosystem::Base.normalize_repository_url for a json_array_elements_text alias u.
+  def self.normalized_repository_sql
+    "regexp_replace(regexp_replace(lower(trim(u)), '/+$', ''), '^https?://', '')"
+  end
+
   def self.sortable_columns
     {
       'updated_at' => 'updated_at',
@@ -68,6 +73,10 @@ class Package < ApplicationRecord
   end
 
   scope :ecosystem, ->(ecosystem) { where(ecosystem: ecosystem.downcase) }
+  scope :declaring_repository, ->(key, url) {
+    where("json_typeof(packages.metadata->:key) = 'array' AND EXISTS (SELECT 1 FROM json_array_elements_text(packages.metadata->:key) u WHERE #{normalized_repository_sql} = :url)",
+          key: key, url: Ecosystem::Base.normalize_repository_url(url))
+  }
   scope :namespace, ->(namespace) { where(namespace: namespace) }
   scope :created_after, ->(created_at) { where('created_at > ?', created_at) }
   scope :updated_after, ->(updated_at) { where('updated_at > ?', updated_at) }

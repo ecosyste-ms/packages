@@ -29,6 +29,19 @@ module Ecosystem
       true
     end
 
+    # Package metadata key holding the repository URLs a package declares, for ecosystems that support it.
+    def self.declared_repositories_key
+      nil
+    end
+
+    def self.resolvable_dependency_name?(_name)
+      true
+    end
+
+    def self.normalize_repository_url(url)
+      url.to_s.strip.downcase.sub(%r{\Ahttps?://}, '').sub(%r{/+\z}, '')
+    end
+
     def self.list
       @ecosystems ||= begin
         Dir[Rails.root.join("app", "models", "ecosystem", "*.rb")].sort.each do |file|

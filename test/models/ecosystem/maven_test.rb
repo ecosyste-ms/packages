@@ -928,4 +928,14 @@ class MavenTest < ActiveSupport::TestCase
 
     assert_equal 'https://github.com/example/svn-project', metadata[:repository_url]
   end
+
+  test 'declared_repositories_key reads POM repositories' do
+    assert_equal 'repositories', Ecosystem::Maven.declared_repositories_key
+  end
+
+  test 'resolvable_dependency_name? drops placeholders and names without a groupId' do
+    assert Ecosystem::Maven.resolvable_dependency_name?('io.confluent:kafka-avro-serializer')
+    refute Ecosystem::Maven.resolvable_dependency_name?('${project.groupId}:core')
+    refute Ecosystem::Maven.resolvable_dependency_name?('core')
+  end
 end
