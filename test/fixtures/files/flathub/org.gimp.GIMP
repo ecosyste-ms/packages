@@ -1,0 +1,79 @@
+{
+  "is_free_license": true,
+  "isMobileFriendly": false,
+  "branding": null,
+  "is_eol": false,
+  "kudos": null,
+  "keywords": [
+    "GIMP",
+    "Photoshop"
+  ],
+  "mimetypes": null,
+  "project_license": "GPL-3.0+ AND LGPL-3.0+",
+  "name": "GNU Image Manipulation Program",
+  "type": "desktop-application",
+  "developer_name": "The GIMP team",
+  "translation": null,
+  "bundle": {
+    "value": "app/org.gimp.GIMP/x86_64/stable",
+    "type": "flatpak",
+    "sdk": "org.gnome.Sdk/x86_64/50",
+    "runtime": "org.gnome.Platform/x86_64/50"
+  },
+  "launchable": {
+    "value": "org.gimp.GIMP.desktop",
+    "type": "desktop-id"
+  },
+  "summary": "High-end image creation and manipulation",
+  "categories": [
+    "Graphics",
+    "2DGraphics",
+    "RasterGraphics"
+  ],
+  "description": "<p>\n      GIMP is an acronym for GNU Image Manipulation Program. It is\n      Community-driven Free Software for high-end image creation and manipulation.\n    </p>\n      <p>\n      It has many capabilities. It can be used as a paint program,\n      an expert quality photo retouching program, image composition,\n      an online batch processing system, a mass production image\n      renderer, an image format converter, etc.\n    </p>\n      <p>\n      GIMP is expandable and extensible. It is designed to be\n      augmented with plug-ins and extensions to do just about\n      anything. The advanced scripting interface allows everything\n      from the simplest task to the most complex image manipulation\n      procedures to be easily scripted. GIMP is available for Linux,\n      Microsoft Windows and macOS.\n    </p>\n    ",
+  "icon": "https://dl.flathub.org/media/org/gimp/GIMP/ab48223ba11e3bad9493fcda45e9ac04/icons/128x128/org.gimp.GIMP.png",
+  "releases": [
+    {
+      "url": "https://www.gimp.org/release/3.2.4/",
+      "version": "3.2.4",
+      "date_eol": null,
+      "description": "<p>\n        The second bugfix release of the GIMP 3.2 series brings it to quite a stable state again as bugs reports are slowing down.\n        </p>\n          <ul>\n            <li>Bug fixed where GIMP would fail to open some XCF</li>\n            <li>When moving a floating layer or selection with a selection tool, marching ants are now disabled</li>\n            <li>Improved Text tool, especially regarding prioritizing global actions</li>\n            <li>Better temporary folder handling</li>\n            <li>Fill actions now behave accordingly to the target item type</li>\n            <li>Various file formats support improved</li>\n            <li>A new function and a deprecation in the libgimp API for plug-ins</li>\n          </ul>\n        ",
+      "timestamp": "1776384000",
+      "type": "stable",
+      "date": null,
+      "urgency": null
+    },
+    {
+      "url": "https://www.gimp.org/release/3.2.2/",
+      "version": "3.2.2",
+      "date_eol": null,
+      "description": "<p>\n        Here we go! The first bugfix release for the GIMP 3.2 series is here.\n        </p>\n          <ul>\n            <li>A bug when group layers became invisible in some conditions when children had effects got fixed</li>\n            <li>More fixes, especially for the new vector and link layer types, as well as non-destructive effects</li>\n            <li>Various file formats support improved</li>\n            <li>Themes fixes and improvements</li>\n            <li>Support for x86 (32-bit) architecture on Windows was dropped</li>\n          </ul>\n        ",
+      "timestamp": "1774656000",
+      "type": "stable",
+      "date": null,
+      "urgency": null
+    }
+  ],
+  "metadata": {
+    "flathub::verification::verified": true,
+    "flathub::verification::method": "website",
+    "flathub::verification::login_is_organization": false,
+    "flathub::verification::login_name": null,
+    "flathub::verification::login_provider": null,
+    "flathub::manifest": null,
+    "flathub::verification::website": "gimp.org",
+    "flathub::verification::timestamp": "1682352604"
+  },
+  "urls": {
+    "help": "https://www.gimp.org/docs/",
+    "donation": "https://www.gimp.org/donating/",
+    "translate": null,
+    "faq": null,
+    "contact": null,
+    "vcs_browser": "https://gitlab.gnome.org/GNOME/gimp/",
+    "contribute": "https://www.gimp.org/develop/",
+    "bugtracker": "https://gitlab.gnome.org/GNOME/gimp/issues/new",
+    "homepage": "https://www.gimp.org/"
+  },
+  "id": "org.gimp.GIMP"
+}
