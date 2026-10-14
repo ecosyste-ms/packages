@@ -1,5 +1,6 @@
 class Version < ApplicationRecord
   include EcosystemsApiClient
+  include VersionAdvisories
   
   validates_presence_of :package_id, :number
   validates_uniqueness_of :number, scope: :package_id, case_sensitive: false
