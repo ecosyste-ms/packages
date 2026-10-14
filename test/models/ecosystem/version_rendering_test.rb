@@ -104,6 +104,10 @@ class EcosystemVersionRenderingTest < ActiveSupport::TestCase
     },
     'npm' => { name: '@babel/core', install: ['npm install @babel/core', 'npm install @babel/core@1.2.3'], documentation: nil },
     'nuget' => { name: 'Newtonsoft.Json', install: ['Install-Package Newtonsoft.Json', 'Install-Package Newtonsoft.Json -Version 1.2.3'], documentation: nil },
+    'octave' => {
+      name: 'statistics', version_metadata: { download_url: 'https://github.com/gnu-octave/statistics/releases/download/release-1.2.3/statistics-1.2.3.tar.gz' },
+      install: [nil, 'pkg install "https://github.com/gnu-octave/statistics/releases/download/release-1.2.3/statistics-1.2.3.tar.gz"'], documentation: nil
+    },
     'opam' => {
       name: 'lwt', install: ['opam install lwt', 'opam install lwt.1.2.3'],
       documentation: ['https://ocaml.org/p/lwt/latest/doc/index.html', 'https://ocaml.org/p/lwt/1.2.3/doc/index.html']
@@ -153,6 +157,16 @@ class EcosystemVersionRenderingTest < ActiveSupport::TestCase
 
   test 'rendering cases cover every ecosystem' do
     assert_equal Ecosystem::Base.list.map(&:lowercase_name).sort, CASES.keys.sort
+  end
+
+  test 'octave version install_command renders SourceForge archive download urls' do
+    url = 'https://sourceforge.net/projects/octave-fuzzy/files/fuzzy-logic-toolkit-0.5.0.tar.gz/download'
+    registry = Registry.new(name: 'octave.example', url: 'https://registry.example.test', ecosystem: 'octave')
+    package = registry.packages.build(name: 'fuzzy-logic-toolkit', ecosystem: 'octave')
+    version = package.versions.build(number: '0.5.0', metadata: { download_url: url })
+
+    assert_equal "pkg install \"#{url}\"", version.install_command
+    assert_not_requested :any, /.*/
   end
 
   CASES.each do |ecosystem, attributes|

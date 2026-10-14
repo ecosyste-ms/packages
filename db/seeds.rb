@@ -60,6 +60,7 @@ default_registries = [
   {name: 'reservoir.lean-lang.org', url: 'https://reservoir.lean-lang.org', ecosystem: 'lean', github: 'leanprover', default: true},
   {name: 'opam.ocaml.org', url: 'https://opam.ocaml.org', ecosystem: 'opam', github: 'ocaml', default: true},
   {name: 'code.dlang.org', url: 'https://code.dlang.org', ecosystem: 'dub', github: 'dlang', default: true},
+  {name: 'packages.octave.org', url: 'https://packages.octave.org', ecosystem: 'octave', github: 'gnu-octave', default: true},
 ]
 
 default_registries.each do |data|
