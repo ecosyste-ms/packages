@@ -1850,6 +1850,7 @@ components:
         - first_release_published_at
         - latest_release_published_at
         - latest_release_number
+        - latest_published_release_number
         - last_synced_at
         - created_at
         - updated_at
@@ -1925,6 +1926,10 @@ components:
         latest_release_number:
           type: string
           nullable: true
+        latest_published_release_number:
+          type: string
+          nullable: true
+          description: Newest published release number, including deprecated or unlisted versions. Null when the package has no versions. Differs from latest_release_number when every version is deprecated or unlisted.
         last_synced_at:
           type: string
           format: date-time

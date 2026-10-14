@@ -118,6 +118,20 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response['metadata'], {"foo"=>"bar"}
   end
 
+  test 'get a package with only deprecated versions' do
+    @package.versions.create!(number: '1.0.0', published_at: 2.years.ago, status: 'deprecated')
+    @package.versions.create!(number: '2.0.0', published_at: 1.year.ago, status: 'deprecated')
+    @package.update_details
+
+    get api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_nil actual_response['latest_release_number']
+    assert_equal '2.0.0', actual_response['latest_published_release_number']
+  end
+
   test 'lookup by purl' do
     get lookup_api_v1_packages_path(purl: 'pkg:cargo/rand@0.8.0')
     assert_response :success
