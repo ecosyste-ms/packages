@@ -39,9 +39,10 @@ module Ecosystem
 
     def check_status(package)
       resp = request(check_status_url(package), headers: snap_headers)
-      "removed" if [400, 404, 410].include?(resp.status)
+      return 'removed' if [400, 404, 410].include?(resp.status)
+      resp.success? ? nil : false
     rescue
-      nil
+      false
     end
 
     def sitemap
@@ -93,7 +94,7 @@ module Ecosystem
         repository_url: repo_fallback(Array(links['source']).first, snap['website']),
         keywords_array: Array(snap['categories']).map { |c| c['name'] }.compact,
         namespace: publisher['username'],
-        channel_map: data['channel-map'],
+        releases: data['channel-map'],
         metadata: {
           title: snap['title'],
           snap_id: data['snap-id'],
@@ -106,7 +107,7 @@ module Ecosystem
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
-      grouped = Array(pkg_metadata[:channel_map]).group_by { |c| c['version'] }
+      grouped = Array(pkg_metadata[:releases]).group_by { |c| c['version'] }
       grouped.filter_map do |version, entries|
         next if version.blank?
         primary = entries.find { |e| e.dig('channel', 'architecture') == 'amd64' } || entries.first
@@ -129,7 +130,7 @@ module Ecosystem
     end
 
     def dependencies_metadata(_name, version, pkg_metadata)
-      entry = Array(pkg_metadata[:channel_map]).find { |c| c['version'] == version }
+      entry = Array(pkg_metadata[:releases]).find { |c| c['version'] == version }
       base = entry&.dig('base')
       return [] if base.blank?
       [{

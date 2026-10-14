@@ -140,4 +140,58 @@ class SnapTest < ActiveSupport::TestCase
   test 'has_dependent_repos' do
     refute @ecosystem.has_dependent_repos?
   end
+
+  test 'sync_package persists releases, dependencies and publisher' do
+    @registry.save!
+    stub_request(:get, %r{\Ahttps://api\.snapcraft\.io/v2/snaps/info/gimp\?fields=})
+      .with(headers: { 'Snap-Device-Series' => '16' })
+      .to_return(status: 200, body: file_fixture('snap/info_gimp.json'))
+    stub_request(:get, 'https://api.snapcraft.io/v2/snaps/info/gimp')
+      .with(headers: { 'Snap-Device-Series' => '16' })
+      .to_return(status: 200, body: file_fixture('snap/info_gimp.json'))
+
+    @registry.sync_package('gimp', force: true)
+    package = @registry.packages.find_by!(name: 'gimp')
+    assert_equal %w[3.2.0-RC3 3.2.4], package.versions.order(:number).pluck(:number)
+    version = package.versions.find_by!(number: '3.2.4')
+    assert_equal 'core24', version.metadata['base']
+    assert_equal %w[amd64 arm64], version.metadata['architectures']
+    assert_equal @version.metadata['download_url'], version.download_url
+    assert_match(/\Asha3-384-/, version.integrity)
+    assert_equal [['core24', '*', 'runtime', 'snap']], version.dependencies.pluck(:package_name, :requirements, :kind, :ecosystem)
+    assert_equal ['gimp'], package.maintainers.pluck(:login)
+
+    Registry.find(@registry.id).sync_package('gimp', force: true)
+    assert_equal 2, package.versions.count
+    assert_equal 1, version.dependencies.count
+  end
+
+  test 'check_status preserves persisted status on unsuccessful responses' do
+    @registry.save!
+    package = @registry.packages.create!(name: 'gimp', ecosystem: 'snap', status: 'removed')
+    [429, 500, 503].each do |status|
+      stub_request(:get, 'https://api.snapcraft.io/v2/snaps/info/gimp')
+        .to_return(status: status)
+      package.check_status
+      assert_equal 'removed', package.reload.status
+    end
+  end
+
+  test 'check_status preserves persisted status on network failures' do
+    @registry.save!
+    package = @registry.packages.create!(name: 'gimp', ecosystem: 'snap', status: 'removed')
+    stub_request(:get, 'https://api.snapcraft.io/v2/snaps/info/gimp').to_timeout
+    package.check_status
+    assert_equal 'removed', package.reload.status
+  end
+
+  test 'recent syncs respect the configured registry budget' do
+    @registry.rate_limit = 1
+    @registry.save!
+    stub_request(:get, 'https://snapcraft.io/store/sitemap.xml')
+      .to_return(status: 200, body: file_fixture('snap/sitemap.xml'))
+    SyncPackageWorker.expects(:perform_bulk).with([[@registry.id, 'gimp', true], [@registry.id, 'spotify', true]])
+
+    @registry.sync_recently_updated_packages_async(period: 2.seconds)
+  end
 end
