@@ -47,6 +47,14 @@ class SnapTest < ActiveSupport::TestCase
     assert_equal %w[gimp spotify zoom-client jq], names
   end
 
+  test 'package lists are empty when the sitemap errors' do
+    stub_request(:get, "https://snapcraft.io/store/sitemap.xml")
+      .to_return({ status: 504, body: '<html><body><h1>504 Gateway Time-out</h1></body></html>' })
+    Rails.logger.expects(:warn).with('Snap package list unavailable: Snap sitemap returned 504').twice
+    assert_equal [], @ecosystem.all_package_names
+    assert_equal [], @ecosystem.recently_updated_package_names
+  end
+
   test 'package_metadata' do
     stub_request(:get, %r{\Ahttps://api\.snapcraft\.io/v2/snaps/info/gimp\?fields=})
       .with(headers: { 'Snap-Device-Series' => '16' })
@@ -79,7 +87,7 @@ class SnapTest < ActiveSupport::TestCase
 
     assert_equal 2, versions.length
     v = versions.find { |x| x[:number] == '3.2.4' }
-    assert_equal '2026-04-17T10:01:41.749811+00:00', v[:published_at]
+    assert_equal '2026-04-17T10:00:55.957455+00:00', v[:published_at]
     assert_equal 560, v[:metadata][:revision]
     assert_equal 'core24', v[:metadata][:base]
     assert_equal 'strict', v[:metadata][:confinement]
@@ -164,6 +172,29 @@ class SnapTest < ActiveSupport::TestCase
     Registry.find(@registry.id).sync_package('gimp', force: true)
     assert_equal 2, package.versions.count
     assert_equal 1, version.dependencies.count
+  end
+
+  test 'sync_package refreshes channels when a version is promoted' do
+    @registry.save!
+    info = JSON.parse(file_fixture('snap/info_gimp.json').read)
+    promoted = info.deep_dup
+    promoted['channel-map'].each do |e|
+      next unless e['version'] == '3.2.0-RC3'
+      e['channel']['name'] = 'stable'
+      e['revision'] += 100
+    end
+    stub_request(:get, %r{\Ahttps://api\.snapcraft\.io/v2/snaps/info/gimp})
+      .to_return({ status: 200, body: info.to_json }, { status: 200, body: info.to_json },
+                 { status: 200, body: promoted.to_json })
+
+    @registry.sync_package('gimp', force: true)
+    version = @registry.packages.find_by!(name: 'gimp').versions.find_by!(number: '3.2.0-RC3')
+    assert_equal ['preview/stable'], version.metadata['channels']
+
+    Registry.find(@registry.id).sync_package('gimp', force: true)
+    version.reload
+    assert_equal ['stable'], version.metadata['channels']
+    assert_equal 654, version.metadata['revision']
   end
 
   test 'check_status preserves persisted status on unsuccessful responses' do

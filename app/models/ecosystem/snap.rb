@@ -47,7 +47,9 @@ module Ecosystem
 
     def sitemap
       @sitemap ||= begin
-        doc = get_xml("#{@registry_url}/store/sitemap.xml")
+        resp = request("#{@registry_url}/store/sitemap.xml")
+        raise "Snap sitemap returned #{resp.status}" unless resp.success?
+        doc = Nokogiri::XML(resp.body)
         doc.remove_namespaces!
         doc.css('url').filter_map do |u|
           loc = u.at_css('loc')&.text
@@ -61,13 +63,15 @@ module Ecosystem
 
     def all_package_names
       sitemap.map { |e| e[:name] }
-    rescue
+    rescue => e
+      Rails.logger.warn("Snap package list unavailable: #{e.message}")
       []
     end
 
     def recently_updated_package_names
       sitemap.sort_by { |e| e[:lastmod].to_s }.reverse.first(100).map { |e| e[:name] }
-    rescue
+    rescue => e
+      Rails.logger.warn("Snap package list unavailable: #{e.message}")
       []
     end
 
@@ -113,7 +117,7 @@ module Ecosystem
         primary = entries.find { |e| e.dig('channel', 'architecture') == 'amd64' } || entries.first
         {
           number: version,
-          published_at: entries.map { |e| e.dig('channel', 'released-at') }.compact.min,
+          published_at: entries.map { |e| e['created-at'] }.compact.min,
           integrity: integrity(primary),
           metadata: {
             revision: primary['revision'],
@@ -126,6 +130,18 @@ module Ecosystem
             channels: entries.map { |e| e.dig('channel', 'name') }.compact.uniq,
           }.compact
         }
+      end
+    end
+
+    # Channels move as revisions are promoted, so refresh what was recorded on first sync.
+    def update_existing_versions(package, versions_metadata)
+      remote = versions_metadata.index_by { |v| v[:number] }
+      package.versions.select(:id, :number, :metadata, :integrity).find_each do |version|
+        incoming = remote[version.number]
+        next if incoming.nil?
+        metadata = (version.metadata || {}).merge(incoming[:metadata].stringify_keys)
+        next if metadata == version.metadata && incoming[:integrity] == version.integrity
+        version.update_columns(metadata: metadata, integrity: incoming[:integrity], updated_at: Time.current)
       end
     end
 
