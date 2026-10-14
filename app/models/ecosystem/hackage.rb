@@ -52,15 +52,19 @@ module Ecosystem
 
     def map_package_metadata(package)
       return nil if package.nil?
+      page = package[:page]
+      home_page = find_attribute(page, "Home page")
+      source_repo = find_source_repo(page)
+      bug_tracker = find_attribute(page, "Bug tracker")
       {
         name: package[:name],
-        keywords_array: Array(package[:page].css('#content div').first.css('a')[0..-2].map(&:text)),
-        description: description(package[:page]),
-        licenses: find_attribute(package[:page], "License"),
-        homepage: find_attribute(package[:page], "Home page"),
-        repository_url: repo_fallback(repository_url(find_attribute(package[:page], "Source repository")), find_attribute(package[:page], "Home page")),
-        page: package[:page],
-        downloads: find_attribute(package[:page], "Downloads").split(' ').first.to_i,
+        keywords_array: Array(page.css('#content div').first.css('a')[0..-2].map(&:text)),
+        description: description(page),
+        licenses: find_attribute(page, "License"),
+        homepage: home_page,
+        repository_url: find_repository_url([source_repo, bug_tracker, home_page].compact) || source_repo,
+        page: page,
+        downloads: find_attribute(page, "Downloads").split(' ').first.to_i,
         downloads_period: 'total'
       }
     end
@@ -97,8 +101,27 @@ module Ecosystem
     end
 
     def find_attribute(page, name)
-      tr = page.css("#content tr").select { |t| t.css("th").text.to_s.start_with?(name) }.first
-      tr&.css("td")&.text&.strip 
+      find_attribute_row(page, name)&.css("td")&.text&.strip
+    end
+
+    # The Source repo field is rendered like
+    # `head: git clone <a href="https://github.com/mauke/data-default">https://github.com/mauke/data-default</a> -b flare`
+    # so the plain text ends with a branch or tag name. Prefer the actual link target
+    # and, when there is no link, strip trailing branch/tag selectors instead of
+    # treating them as part of the repository location.
+    def find_source_repo(page)
+      td = find_attribute_row(page, "Source repo")&.css("td")
+      return nil unless td
+
+      href = td.css("a").filter_map { |a| a["href"].presence }.first
+      return href if href
+
+      text = td.text.strip.sub(/\s+(?:-b|--branch|-t|--tag)\s+\S+\s*$/, "")
+      text.split.last
+    end
+
+    def find_attribute_row(page, name)
+      page.css("#content tr").select { |t| t.css("th").text.to_s.tr("\u00a0", " ").start_with?(name) }.first
     end
 
     def description(page)
@@ -107,15 +130,6 @@ module Ecosystem
       return "" unless index
 
       contents[0..(index - 1)].join("\n\n")
-    end
-
-    def repository_url(text)
-      return nil unless text.present?
-
-      match = text.match(/github.com\/(.+?)\.git/)
-      return nil unless match
-
-      "https://github.com/#{match[1]}"
     end
 
     def maintainers_metadata(name)

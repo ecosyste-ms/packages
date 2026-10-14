@@ -8,11 +8,11 @@ module Ecosystem
 
     def download_url(package, version)
       return nil unless version.present?
-      "#{@registry_url}/packages/#{package.name}/versions/#{version}.tar.gz"
+      "#{@registry_url}/api/archives/#{package.name}-#{version}.tar.gz"
     end
 
     def documentation_url(package, version = nil)
-      "#{@registry_url}/documentation/#{package.name}/#{version}"
+      "#{@registry_url}/documentation/#{package.name}/#{version.presence || 'latest'}/"
     end
 
     def install_command(package, version = nil)
@@ -21,12 +21,19 @@ module Ecosystem
 
     def check_status(package)
       json = fetch_package_metadata(package.name)
-      return nil if json.present? && json.is_a?(Hash) && json["name"].present?
+      if json.present? && json.is_a?(Hash) && json["name"].present?
+        return json["isDiscontinued"] ? "discontinued" : nil
+      end
 
       # Fall back to a direct request if not cached
       url = check_status_url(package)
       response = Faraday.get(url)
       return "removed" if [400, 404, 410].include?(response.status)
+
+      false
+    rescue => e
+      Rails.logger.warn("Error checking status for pub package #{package.name}: #{e.message}")
+      false
     end
 
     def all_package_names
@@ -50,11 +57,12 @@ module Ecosystem
     def map_package_metadata(package)
       latest_version = package["latest"]
       return false if latest_version.nil?
+      pubspec = latest_version["pubspec"]
       {
         name: package["name"],
-        homepage: latest_version["pubspec"]["homepage"],
-        description: latest_version["pubspec"]["description"],
-        repository_url: repo_fallback(latest_version["pubspec"]["repository"], latest_version["pubspec"]["homepage"]),
+        homepage: pubspec["homepage"],
+        description: pubspec["description"],
+        repository_url: find_repository_url([pubspec["repository"], pubspec["issue_tracker"], pubspec["homepage"]].compact) || pubspec["repository"],
         versions: package["versions"],
         status: package['isDiscontinued'] ? 'discontinued' : nil
       }
@@ -64,7 +72,8 @@ module Ecosystem
       pkg_metadata[:versions].map do |v|
         {
           number: v["version"],
-          published_at: v['published']
+          published_at: v['published'],
+          integrity: v["archive_sha256"].present? ? "sha256-#{v['archive_sha256']}" : nil
         }
       end
     end

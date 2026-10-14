@@ -35,12 +35,12 @@ class VcpkgTest < ActiveSupport::TestCase
 
   test 'install_command' do
     install_command = @ecosystem.install_command(@package)
-    assert_equal install_command, ".\vcpkg install zziplib"
+    assert_equal install_command, '.\vcpkg install zziplib'
   end
 
   test 'install_command with version' do
     install_command = @ecosystem.install_command(@package, @version.number)
-    assert_equal install_command, ".\vcpkg install zziplib"
+    assert_equal install_command, '.\vcpkg install zziplib'
   end
 
   test 'purl' do

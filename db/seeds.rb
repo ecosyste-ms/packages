@@ -3,13 +3,13 @@ default_registries = [
   {name: 'crates.io', url: 'https://crates.io', ecosystem: 'cargo', github: 'rust-lang', default: true},
   {name: 'cocoapods.org', url: 'https://cocoapods.org', ecosystem: 'cocoapods', github: 'cocoapods', default: true},
   {name: 'metacpan.org', url: 'https://metacpan.org', ecosystem: 'cpan', github: 'metacpan', default: true},
-  {name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go', github: 'golang', default: true},
+  {name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go', github: 'golang', default: true, rate_limit: 5},
   {name: 'hex.pm', url: 'https://hex.pm', ecosystem: 'hex', github: 'hexpm', default: true},
-  {name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm', github: 'npm', default: true},
-  {name: 'nuget.org', url: 'https://www.nuget.org', ecosystem: 'nuget', github: 'nuget', default: true},
+  {name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm', github: 'npm', default: true, rate_limit: 3},
+  {name: 'nuget.org', url: 'https://www.nuget.org', ecosystem: 'nuget', github: 'nuget', default: true, rate_limit: 5},
   {name: 'packagist.org', url: 'https://packagist.org', ecosystem: 'packagist', github: 'packagist', default: true},
   {name: 'pub.dev', url: 'https://pub.dev', ecosystem: 'pub', github: 'dart-lang', default: true},
-  {name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi', github: 'pypi', default: true},
+  {name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi', github: 'pypi', default: true, rate_limit: 2},
   {name: 'rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems', github: 'rubygems', default: true},
   {name: 'gem.coop', url: 'https://gem.coop', ecosystem: 'rubygems', github: 'gem-coop', default: false},
   {name: 'spack.io', url: 'https://packages.spack.io', ecosystem: 'spack', github: 'spack', default: true},
@@ -24,23 +24,31 @@ default_registries = [
   {name: 'deno.land', url: 'https://deno.land', ecosystem: 'deno', github: 'denoland', default: true},
   {name: 'clojars.org', url: 'https://repo.clojars.org', ecosystem: 'clojars', github: 'clojars', default: true},
   {name: 'registry.bazel.build', url: 'https://registry.bazel.build', ecosystem: 'bazel', github: 'bazelbuild', default: true},
-  {name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven', github: 'maven-central', default: true},
-  {name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven', github: 'jboss-eap', default: false},
-  {name: 'repository.apache.org-releases', url: 'https://repository.apache.org/content/repositories/releases', ecosystem: 'maven', github: 'apache', default: false},
-  {name: 'repository.apache.org-snapshots', url: 'https://repository.apache.org/content/repositories/snapshots', ecosystem: 'maven', github: 'apache', default: false},
-  {name: 'artifacts.alfresco.com', url: 'https://artifacts.alfresco.com/nexus/content/repositories/public', ecosystem: 'maven', github: 'alfresco', default: false},
-  {name: 'repository.cloudera.com', url: 'https://repository.cloudera.com/content/repositories/public', ecosystem: 'maven', github: 'cloudera', default: false},
+  {name: 'repo1.maven.org', url: 'https://maven-central.storage-download.googleapis.com/maven2', ecosystem: 'maven', github: 'maven-central', default: true, rate_limit: 2, metadata: {'aliases' => ['https://repo.maven.apache.org/maven2', 'https://repo1.maven.org/maven2']}},
+  {name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven', github: 'jboss-eap', default: false, metadata: {'archetype_catalog' => true}},
+  {name: 'repository.apache.org-releases', url: 'https://repository.apache.org/content/repositories/releases', ecosystem: 'maven', github: 'apache', default: false, metadata: {'archetype_catalog' => true}},
+  {name: 'repository.apache.org-snapshots', url: 'https://repository.apache.org/content/repositories/snapshots', ecosystem: 'maven', github: 'apache', default: false, metadata: {'archetype_catalog' => true}},
+  {name: 'artifacts.alfresco.com', url: 'https://artifacts.alfresco.com/nexus/content/repositories/public', ecosystem: 'maven', github: 'alfresco', default: false, metadata: {'archetype_catalog' => true}},
+  {name: 'repository.cloudera.com', url: 'https://repository.cloudera.com/repository/cloudera-repos', ecosystem: 'maven', github: 'cloudera', default: false, rate_limit: 2, metadata: {'aliases' => ['https://repository.cloudera.com/artifactory/cloudera-repos', 'https://repository.cloudera.com/content/repositories/public']}},
+  {name: 'packages.confluent.io', url: 'https://packages.confluent.io/maven', ecosystem: 'maven', github: 'confluentinc', default: false, rate_limit: 2},
+  {name: 'repo.osgeo.org', url: 'https://repo.osgeo.org/repository/release', ecosystem: 'maven', github: 'OSGeo', default: false, rate_limit: 2},
+  {name: 'repo.spring.io-milestone', url: 'https://repo.spring.io/milestone', ecosystem: 'maven', github: 'spring-projects', default: false, rate_limit: 2},
+  {name: 'maven.vaadin.com-addons', url: 'https://maven.vaadin.com/vaadin-addons', ecosystem: 'maven', github: 'vaadin', default: false, rate_limit: 2},
+  {name: 'build.shibboleth.net', url: 'https://build.shibboleth.net/nexus/content/repositories/releases', ecosystem: 'maven', github: 'shibboleth', default: false, rate_limit: 2},
+  {name: 'repo.jenkins-ci.org', url: 'https://repo.jenkins-ci.org/public', ecosystem: 'maven', github: 'jenkinsci', default: false, rate_limit: 2},
+  {name: 'nexus.gael.cloud', url: 'https://nexus.gael.cloud/repository/maven-public', ecosystem: 'maven', github: 'gael-systems', default: false, rate_limit: 2},
   {name: 'pkgs.racket-lang.org', url: 'https://pkgs.racket-lang.org', ecosystem: 'racket', github: 'racket-lang', default: true},
   {name: 'elpa.gnu.org', url: 'https://elpa.gnu.org/packages', ecosystem: 'elpa', github: 'emacs', default: true},
   {name: 'elpa.nongnu.org', url: 'https://elpa.nongnu.org/nongnu', ecosystem: 'elpa', github: 'emacs', default: false},
   {name: 'anaconda.org', url: 'https://anaconda.org', ecosystem: 'conda', github: 'Anaconda', metadata: {'kind' => 'anaconda', 'key' => 'Main', 'api' => 'https://repo.ananconda.com'}, default: true},
   {name: 'conda-forge.org', url: 'https://conda-forge.org', ecosystem: 'conda', github: 'conda-forge', metadata: {'kind' => 'conda-forge', 'key' => 'CondaForge', 'api' => 'https://conda.anaconda.org'}, default: false},
-  {name: 'hub.docker.com', url: 'https://hub.docker.com', ecosystem: 'docker', github: 'docker', metadata: {api_url: 'https://registry-1.docker.io'}, default: true},
+  {name: 'hub.docker.com', url: 'https://hub.docker.com', ecosystem: 'docker', github: 'docker', metadata: {api_url: 'https://registry-1.docker.io'}, default: true, rate_limit: 2},
   {name: 'swiftpackageindex.com', url: 'https://swiftpackageindex.com', ecosystem: 'swiftpm', github: 'SwiftPackageIndex', default: true},
   {name: 'vcpkg.io', url: 'https://vcpkg.io', ecosystem: 'vcpkg', github: 'vcpkg', default: true},
   {name: 'conan.io', url: 'https://conan.io/center', ecosystem: 'conan', github: 'conan-io', default: true},
   {name: "carthage", url: "https://github.com/Carthage/Carthage", ecosystem: "carthage", github: "Carthage", default: true},
   {name: 'github actions', url: 'https://github.com/marketplace/actions/', ecosystem: 'actions', github: 'actions', default: true},
+  {name: 'huggingface.co', url: 'https://huggingface.co', ecosystem: 'huggingface', github: 'huggingface', default: true, rate_limit: 3},
   {name: 'pkg.adelielinux.org', url: "https://pkg.adelielinux.org/current", ecosystem: "adelie", github: "AdelieLinux", default: true, metadata: {repos: ['system', 'user']}},
   {name: 'bioconductor.org', url: 'https://bioconductor.org', ecosystem: 'bioconductor', github: 'Bioconductor', default: true},
   {name: 'open-vsx.org', url: 'https://open-vsx.org', ecosystem: 'openvsx', default: true, github: 'open-vsx'},
@@ -48,14 +56,16 @@ default_registries = [
   {name: 'repo.jenkins-ci.org', url: 'https://repo.jenkins-ci.org/public', ecosystem: 'maven', github: 'jenkinsci', default: false},
   {name: 'nexus.gael.cloud', url: 'https://nexus.gael.cloud/repository/maven-public', ecosystem: 'maven', github: 'gael-systems', default: false},
   {name: 'registry.terraform.io', url: 'https://registry.terraform.io', ecosystem: 'terraform', github: 'hashicorp', default: true},
-  {name: 'artifacthub.io', url: 'https://artifacthub.io', ecosystem: 'helm', github: 'artifacthub', default: true},
+  {name: 'artifacthub.io', url: 'https://artifacthub.io', ecosystem: 'helm', github: 'artifacthub', default: true, rate_limit: 3},
   {name: 'ctan.org', url: 'https://ctan.org', ecosystem: 'ctan', github: 'TeX-82', default: true},
+  {name: 'reservoir.lean-lang.org', url: 'https://reservoir.lean-lang.org', ecosystem: 'lean', github: 'leanprover', default: true},
+  {name: 'opam.ocaml.org', url: 'https://opam.ocaml.org', ecosystem: 'opam', github: 'ocaml', default: true},
+  {name: 'code.dlang.org', url: 'https://code.dlang.org', ecosystem: 'dub', github: 'dlang', default: true},
+  {name: 'packages.octave.org', url: 'https://packages.octave.org', ecosystem: 'octave', github: 'gnu-octave', default: true},
 ]
 
 default_registries.each do |data|
-  r = Registry.find_or_initialize_by(url: data[:url])
-  r.assign_attributes(data)
-  r.save
+  Registry.seed(data)
 end
 
 alpine_registries = []
@@ -79,9 +89,7 @@ alpine_versions.each do |version|
 end
 
 alpine_registries.each do |data|
-  r = Registry.find_or_initialize_by(url: data[:url])
-  r.assign_attributes(data)
-  r.save
+  Registry.seed(data)
 end
 
 postmarketos_registries = []
@@ -100,9 +108,7 @@ postmarketos_versions.each do |version|
 end
 
 postmarketos_registries.each do |data|
-  r = Registry.find_or_initialize_by(url: data[:url])
-  r.assign_attributes(data)
-  r.save
+  Registry.seed(data)
 end
 
 nixpkgs_registries = []
@@ -121,9 +127,7 @@ nixpkgs_channels.each do |channel|
 end
 
 nixpkgs_registries.each do |data|
-  r = Registry.find_or_initialize_by(url: data[:url])
-  r.assign_attributes(data)
-  r.save
+  Registry.seed(data)
 end
 
 r = Registry.find_or_initialize_by(url: 'https://guix.gnu.org')
@@ -161,9 +165,7 @@ ubuntu_releases.each do |release|
 end
 
 ubuntu_registries.each do |data|
-  r = Registry.find_or_initialize_by(url: data[:url])
-  r.assign_attributes(data)
-  r.save
+  Registry.seed(data)
 end
 
 debian_registries = []
@@ -188,9 +190,7 @@ debian_releases.each do |release|
 end
 
 debian_registries.each do |data|
-  r = Registry.find_or_initialize_by(url: data[:url])
-  r.assign_attributes(data)
-  r.save
+  Registry.seed(data)
 end
 
 ips_registries = [
@@ -205,7 +205,79 @@ ips_registries = [
 ]
 
 ips_registries.each do |data|
-  r = Registry.find_or_initialize_by(url: data[:url])
-  r.assign_attributes(data)
-  r.save
+  Registry.seed(data)
+end
+
+gentoo_registries = [
+  {
+    name: 'gentoo-portage',
+    url: 'https://packages.gentoo.org/',
+    ecosystem: 'gentoo',
+    github: 'gentoo',
+    default: true,
+    metadata: {
+      'snapshot_url' => 'https://distfiles.gentoo.org/snapshots/portage-latest.tar.xz',
+    }
+  },
+]
+
+gentoo_registries.each do |data|
+  Registry.seed(data)
+end
+
+freebsd_registries = [
+  {
+    name: 'freebsd-14-amd64',
+    url: 'https://pkg.freebsd.org/FreeBSD:14:amd64/latest',
+    ecosystem: 'freebsd',
+    github: 'freebsd',
+    version: '14',
+    default: true
+  },
+  {
+    name: 'freebsd-15-amd64',
+    url: 'https://pkg.freebsd.org/FreeBSD:15:amd64/latest',
+    ecosystem: 'freebsd',
+    github: 'freebsd',
+    version: '15',
+    default: false
+  },
+]
+
+freebsd_registries.each do |data|
+  Registry.seed(data)
+end
+
+pkgsrc_registries = [
+  {
+    name: 'pkgsrc-netbsd-x86_64-10.1-all',
+    # Bump this URL when pkgsrc publishes packages for newer NetBSD releases.
+    url: 'https://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.1/All',
+    ecosystem: 'pkgsrc',
+    github: 'pkgsrc',
+    default: true,
+  },
+]
+
+pkgsrc_registries.each do |data|
+  Registry.seed(data)
+end
+
+openbsd_registries = [
+  {
+    name: "openbsd-7.9-amd64",
+    url: "https://cdn.openbsd.org/pub/OpenBSD/7.9/packages/amd64",
+    ecosystem: "openbsd",
+    github: "openbsd",
+    default: true,
+    version: "7.9",
+    metadata: {
+      "arch" => "amd64",
+      "sqlports_version" => "7.54",
+    },
+  },
+]
+
+openbsd_registries.each do |data|
+  Registry.seed(data)
 end

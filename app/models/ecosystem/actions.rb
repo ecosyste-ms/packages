@@ -8,10 +8,11 @@ module Ecosystem
     end
 
     def purl_params(package, version = nil)
+      parts = package.name.split('/')
       {
         type: purl_type,
-        namespace: package.name.split('/').first,
-        name: package.name.split('/').last,
+        namespace: parts[0...-1].join('/'),
+        name: parts.last,
         version: version.try(:number).try(:encode, 'iso-8859-1', invalid: :replace, undef: :replace, replace: '')
       }
     end
@@ -37,6 +38,7 @@ module Ecosystem
 
       connection = Faraday.new(url) do |faraday|
         faraday.use Faraday::FollowRedirects::Middleware
+        faraday.request :instrumentation
         faraday.adapter Faraday.default_adapter
       end
 
@@ -80,20 +82,16 @@ module Ecosystem
       if yaml.blank?
         yaml = get_raw_no_exception("https://raw.githubusercontent.com/#{full_name}/#{json['default_branch']}/#{yaml_path}.yaml")
       end
-      
-      # TODO search for action.yml or action.yaml in all tags if not found in default branch
-      tags = tags_json = get_json(json['tags_url']+'?per_page=1000')
-      if tags.present?
-        yaml = nil
-        while yaml.blank? && tags.present?
-          tag = tags.shift
+
+      if yaml.blank?
+        tags = get_json(json['tags_url'] + '?per_page=1000')
+        Array(tags).each do |tag|
           yaml = get_raw_no_exception("https://raw.githubusercontent.com/#{full_name}/#{tag['name']}/#{yaml_path}.yml")
-          if yaml.blank?
-            yaml = get_raw_no_exception("https://raw.githubusercontent.com/#{full_name}/#{tag['name']}/#{yaml_path}.yaml")
-          end
+          yaml = get_raw_no_exception("https://raw.githubusercontent.com/#{full_name}/#{tag['name']}/#{yaml_path}.yaml") if yaml.blank?
+          break if yaml.present?
         end
       end
-      
+
       return nil unless yaml.present?
 
       yaml = YAML.safe_load(yaml)
@@ -106,7 +104,7 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      get_json("https://repos.ecosyste.ms/api/v1/package_names/actions").first(20)
+      get_json_array("https://repos.ecosyste.ms/api/v1/package_names/actions").first(20)
     rescue
       []
     end
@@ -124,14 +122,14 @@ module Ecosystem
     end
 
     def all_package_names
-      get_json("https://repos.ecosyste.ms/api/v1/package_names/actions")
+      get_json_array("https://repos.ecosyste.ms/api/v1/package_names/actions")
     rescue
       []
     end
 
     def map_package_metadata(package)
       return nil unless package
-      {
+      metadata = {
         name: package['name'],
         description: package['yaml']['description'].presence || package["description"],
         repository_url: package["repository_url"],
@@ -139,28 +137,84 @@ module Ecosystem
         keywords_array: package['topics'],
         homepage: package["homepage"],
         tags_url: package["tags_url"],
+        releases_url: package["releases_url"],
         namespace: package["owner"],
         metadata: package['yaml'].merge('default_branch' => package['default_branch'], 'path' => package['path'])
       }
+      metadata.delete(:releases_url) if metadata[:releases_url].blank?
+      metadata
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       return [] unless pkg_metadata[:tags_url]
-      tags_json = get_json(pkg_metadata[:tags_url]+'?per_page=1000')
+      tags_json = get_json(pkg_metadata[:tags_url]+"?per_page=#{REPOS_TAGS_PER_PAGE}")
       return [] if tags_json.blank?
 
+      releases_by_tag = {}
+      if pkg_metadata[:releases_url]
+        releases_json = begin
+          get_json(pkg_metadata[:releases_url]+'?per_page=1000') || []
+        rescue StandardError
+          []
+        end
+        releases_by_tag = releases_json.index_by { |release| release['tag_name'] }
+      end
+
       tags_json.map do |tag|
+        release = releases_by_tag[tag['name']]
+        metadata = {
+          sha: tag['sha'],
+          download_url: tag['download_url']
+        }
+        metadata[:immutable] = release['immutable'] if [true, false].include?(release&.fetch('immutable', nil))
+
         {
           number: tag['name'],
           published_at: tag['published_at'],
-          metadata: {
-            sha: tag['sha'],
-            download_url: tag['download_url']
-          }
+          metadata: metadata
         }
       end
     rescue StandardError
       []
+    end
+
+    def update_existing_versions(package, versions_metadata)
+      sync_tag_backed_versions(package, versions_metadata)
+
+      immutable_by_number = versions_metadata.each_with_object({}) do |version, result|
+        version = version.with_indifferent_access
+        metadata = version[:metadata]&.with_indifferent_access || {}
+        next unless metadata.key?(:immutable)
+        next unless [true, false].include?(metadata[:immutable])
+
+        result[version[:number].to_s.downcase] = metadata[:immutable]
+      end
+
+      package.versions.select(:id, :number, :metadata).find_each do |version|
+        normalized_number = version.number.downcase
+        next unless immutable_by_number.key?(normalized_number)
+
+        immutable = immutable_by_number[normalized_number]
+        next if version.immutable == immutable
+
+        version.update_columns(
+          metadata: (version.metadata || {}).merge('immutable' => immutable),
+          updated_at: Time.current
+        )
+      end
+    end
+
+    def merge_version_metadata(existing_metadata, new_metadata)
+      existing_metadata = (existing_metadata || {}).with_indifferent_access
+      new_metadata = (new_metadata || {}).with_indifferent_access
+      immutable = new_metadata[:immutable]
+
+      return new_metadata if [true, false].include?(immutable)
+
+      new_metadata.delete(:immutable)
+      existing_immutable = existing_metadata[:immutable]
+      new_metadata[:immutable] = existing_immutable if [true, false].include?(existing_immutable)
+      new_metadata
     end
 
     def dependencies_metadata(name, version, package)

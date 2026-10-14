@@ -60,8 +60,8 @@ class CarthageTest < ActiveSupport::TestCase
     stub_request(:get, "https://repos.ecosyste.ms/api/v1/package_names/carthage")
       .to_return({ status: 200, body: file_fixture('carthage/carthage') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 0
-    # assert_equal recently_updated_package_names.last, nil
+    assert_equal 20, recently_updated_package_names.length
+    assert recently_updated_package_names.all? { |n| n.is_a?(String) }
   end
   
   test 'package_metadata' do
@@ -82,7 +82,7 @@ class CarthageTest < ActiveSupport::TestCase
   end
 
   test 'versions_metadata' do
-    stub_request(:get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/Carthage%2FReactiveTask/tags")
+    stub_request(:get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/Carthage%2FReactiveTask/tags?per_page=1000")
       .to_return({ status: 200, body: file_fixture('carthage/tags') })
     stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/Carthage/ReactiveTask")
       .to_return({ status: 200, body: file_fixture('carthage/lookup?url=https:%2F%2Fgithub.com%2FCarthage%2FReactiveTask') })
@@ -90,5 +90,28 @@ class CarthageTest < ActiveSupport::TestCase
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata.first, {:number=>"0.16.0", :published_at=>"2019-05-29T17:11:59.000Z", :metadata=>{:sha=>"df1bf7625684180b9377a8ba3c076db08d98757e", :download_url=>"https://codeload.github.com/Carthage/ReactiveTask/tar.gz/0.16.0"}}
+  end
+
+  test 'update_existing_versions syncs tag-backed changes' do
+    @ecosystem.expects(:sync_tag_backed_versions).with(@package, [{ number: '0.16.0' }])
+    @ecosystem.update_existing_versions(@package, [{ number: '0.16.0' }])
+  end
+
+  test 'recently_updated_package_names ignores non-array upstream response' do
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/package_names/carthage")
+      .to_return(status: 520, body: '{"error_code":520,"ray_id":"x","instance":"y"}', headers: { 'Content-Type' => 'application/json' })
+    assert_equal [], @ecosystem.recently_updated_package_names
+  end
+
+  test 'all_package_names ignores non-array upstream response' do
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/package_names/carthage")
+      .to_return(status: 520, body: '{"error_code":520}', headers: { 'Content-Type' => 'application/json' })
+    assert_equal [], @ecosystem.all_package_names
+  end
+
+  test 'fetch_package_metadata rejects response without full_name' do
+    stub_request(:get, %r{https://repos.ecosyste.ms/api/v1/repositories/lookup})
+      .to_return(status: 520, body: '{"error_code":520,"ray_id":"x"}', headers: { 'Content-Type' => 'application/json' })
+    assert_nil @ecosystem.fetch_package_metadata('foo/bar')
   end
 end

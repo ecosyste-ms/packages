@@ -37,3 +37,6 @@
 # Ignore generated files
 *.csv
 data/*
+worklist-*.jsonl
+worklist-*.jsonl.zip
+worklists.tar.gz

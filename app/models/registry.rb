@@ -3,6 +3,8 @@ class Registry < ApplicationRecord
 
   validates_uniqueness_of :name, :url
 
+  validate :rate_limit_must_be_positive
+
   has_many :packages
   has_many :versions
   has_many :maintainers
@@ -10,6 +12,80 @@ class Registry < ApplicationRecord
 
   scope :not_docker, -> { where.not(ecosystem: 'docker') }
   scope :frequently_synced, -> { where.not(ecosystem: ['docker', 'cocoapods', 'bower']) }
+
+  THROTTLE_CACHE_TTL = 60
+
+  # Merges seeded metadata so values computed at runtime, like funded_packages_count, survive a re-seed.
+  def self.seed(data)
+    registry = find_or_initialize_by(url: data[:url])
+    registry.metadata = registry.metadata.to_h.merge(data[:metadata].to_h.stringify_keys)
+    registry.assign_attributes(data.except(:metadata))
+    registry.save
+    registry
+  end
+
+  def self.throttle_cache
+    if @throttle_cache.nil? || Process.clock_gettime(Process::CLOCK_MONOTONIC) > @throttle_cache_expires_at
+      @throttle_cache = pluck(:id, :url, :metadata).each_with_object({}) do |(id, url, meta), h|
+        limit = meta.is_a?(Hash) ? meta['rate_limit'] : nil
+        h[id] = { host: extract_host(url), rate_limit: (limit.to_f if limit) }
+      end
+      @throttle_cache_expires_at = Process.clock_gettime(Process::CLOCK_MONOTONIC) + THROTTLE_CACHE_TTL
+    end
+    @throttle_cache
+  end
+
+  def self.extract_host(url)
+    uri = Addressable::URI.heuristic_parse(url)
+    uri&.host.presence || url
+  rescue Addressable::URI::InvalidURIError
+    url
+  end
+
+  def self.reset_throttle_cache
+    @throttle_cache = nil
+  end
+
+  def self.host_for(id)
+    throttle_cache.dig(id, :host)
+  end
+
+  def self.rate_limit_for(id)
+    throttle_cache.dig(id, :rate_limit)
+  end
+
+  def self.throttle_limit_for(id)
+    rl = rate_limit_for(id)
+    return nil if rl.nil?
+    rl >= 1 ? rl.round : 1
+  end
+
+  def self.throttle_period_for(id)
+    rl = rate_limit_for(id)
+    return 1 if rl.nil? || rl >= 1
+    (1.0 / rl).ceil
+  end
+
+  def self.throttled_ids
+    throttle_cache.select { |_, v| v[:rate_limit] }.keys
+  end
+
+  def rate_limit
+    metadata && metadata['rate_limit']
+  end
+
+  def sync_budget(period)
+    rate_limit ? (rate_limit * period.to_i).floor : nil
+  end
+
+  def rate_limit=(value)
+    self.metadata = (metadata || {}).merge('rate_limit' => value).compact
+  end
+
+  def rate_limit_must_be_positive
+    return if rate_limit.nil?
+    errors.add(:rate_limit, 'must be a positive number') unless rate_limit.is_a?(Numeric) && rate_limit > 0
+  end
 
   def self.find_by_name!(name)
     name = 'cocoapods.org' if name == 'cocoapod.org'
@@ -91,6 +167,8 @@ class Registry < ApplicationRecord
     packages.pluck(:name)
   end
 
+  MISSING_PACKAGE_NAMES_LIMIT = 5_000
+
   def missing_package_names
     all_names = all_package_names
     all_names = all_names.keys if all_names.is_a?(Hash)
@@ -98,9 +176,17 @@ class Registry < ApplicationRecord
     return [] if all_names.empty?
 
     missing = []
+    scanned = 0
     all_names.each_slice(10_000) do |batch|
+      scanned += batch.length
       existing_in_batch = packages.where(name: batch).pluck(:name).to_set
       missing.concat(batch.reject { |name| existing_in_batch.include?(name) })
+      break if missing.length >= MISSING_PACKAGE_NAMES_LIMIT
+    end
+    if missing.length >= MISSING_PACKAGE_NAMES_LIMIT
+      more = scanned < all_names.length ? '+' : ''
+      Rails.logger.warn("missing_package_names for #{name} (#{ecosystem}) found #{missing.length}#{more} names; capping at #{MISSING_PACKAGE_NAMES_LIMIT}")
+      missing = missing.first(MISSING_PACKAGE_NAMES_LIMIT)
     end
     missing
   rescue => e
@@ -117,7 +203,7 @@ class Registry < ApplicationRecord
   end
 
   def sync_recently_updated_packages
-    sync_packages(recently_updated_package_names_excluding_recently_synced)
+    sync_packages(recently_updated_package_names_excluding_recently_synced, force: true)
   end
 
   def sync_all_packages_async
@@ -125,17 +211,22 @@ class Registry < ApplicationRecord
   end
 
   def sync_missing_packages_async
-    sync_in_batches? ? sync_missing_packages : sync_packages_async(missing_package_names)
+    if ecosystem_instance.sync_missing_packages_incrementally?
+      return ecosystem_instance.sync_missing_packages_async
+    end
+
+    sync_in_batches? ? sync_missing_packages : sync_packages_async(missing_package_names, period: 1.hour)
   end
 
-  def sync_recently_updated_packages_async
-    sync_in_batches? ? sync_recently_updated_packages : sync_packages_async(recently_updated_package_names_excluding_recently_synced)
+  def sync_recently_updated_packages_async(period: 15.minutes)
+    return if sync_in_batches?
+    sync_packages_async(recently_updated_package_names_excluding_recently_synced, period: period, force: true)
   end
 
-  def sync_packages(package_names)
+  def sync_packages(package_names, force: false)
     package_names.each_with_index do |name, index|
       begin
-        sync_package(name)
+        sync_package(name, force: force)
 
         # Force garbage collection every 100 packages for system package managers
         # to prevent memory buildup from memoized package indexes
@@ -150,15 +241,32 @@ class Registry < ApplicationRecord
     end
   end
 
-  def sync_packages_async(package_names)
-    package_names.each_slice(1_000) do |batch|
-      SyncPackageWorker.perform_bulk(batch.map{|name| [id, name]})
+  # Queues every name, one sync budget's worth per period, instead of dropping what exceeds the budget.
+  def sync_packages_spread_async(package_names, period: 15.minutes)
+    budget = sync_budget(period)
+    return sync_packages_async(package_names, period: period) unless budget
+    package_names.each_slice(budget).with_index do |slice, index|
+      slice.each_slice(1_000) do |batch|
+        SyncPackageWorker.set(wait: index * period).perform_bulk(batch.map { |name| [id, name] })
+      end
     end
   end
 
-  def sync_package(name, force: false)
+  def sync_packages_async(package_names, period: 15.minutes, force: false)
+    budget = sync_budget(period)
+    package_names = package_names.first(budget) if budget
+    package_names.each_slice(1_000) do |batch|
+      SyncPackageWorker.perform_bulk(batch.map{|name| force ? [id, name, true] : [id, name]})
+    end
+  end
+
+  def sync_package(name, force: false, version: nil)
     logger.info "Syncing #{name}"
-    package_metadata = ecosystem_instance.package_metadata(name)
+    package_metadata = if version
+                         ecosystem_instance.package_metadata(name, version: version)
+                       else
+                         ecosystem_instance.package_metadata(name)
+                       end
     unless package_metadata
       logger.error "Failed to sync #{name}: package_metadata returned nil or false"
       return false
@@ -188,18 +296,21 @@ class Registry < ApplicationRecord
       return
     end
 
-    package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page, :time, :download_stats, :tags_url))
+    package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page, :time, :download_stats, :tags_url, :releases_url))
 
     update_repo_metadata_after_save = package.changed?
+    new_package = package.new_record?
 
     package.save!
 
+    package.emit_new_package_event if new_package
     package.update_repo_metadata_async if update_repo_metadata_after_save
 
     new_versions = []
     existing_version_numbers = package.versions.pluck('number')
 
     versions_metadata = ecosystem_instance.versions_metadata(package_metadata, existing_version_numbers)
+    ecosystem_instance.update_existing_versions(package, versions_metadata)
 
     versions_metadata.each do |version|
       new_versions << version.merge(package_id: package.id, registry_id: id, created_at: Time.now, updated_at: Time.now) unless existing_version_numbers.find { |v| v == version.with_indifferent_access[:number].to_s && version.with_indifferent_access[:status].nil? }
@@ -211,7 +322,12 @@ class Registry < ApplicationRecord
       new_versions.each_slice(100) do |s|
         Version.upsert_all(s, unique_by: [:package_id, :number])
       end
-      
+
+      if LiveEvent.enabled?
+        new_numbers = new_versions.map { |v| v.with_indifferent_access[:number].to_s } - existing_version_numbers
+        package.emit_new_version_events(package.versions.where(number: new_numbers).to_a) if new_numbers.any?
+      end
+
       all_deps = []
       all_versions = package.versions
 
@@ -297,6 +413,39 @@ class Registry < ApplicationRecord
     end
   end
 
+  RANKINGS_BATCH_SIZE = 1000
+
+  # Re-ranks every package in one pass with the same rules as Package#load_rankings.
+  # Each field counts active packages with a strictly greater value through a window
+  # function, so the cost is one sort per field rather than a count query per package.
+  # Results go into a temporary table first, so writes run in short batches instead of
+  # holding row locks for a whole registry.
+  def update_rankings(batch_size: RANKINGS_BATCH_SIZE)
+    return 0 if packages_count.zero?
+
+    table = "registry_rankings_#{id.to_i}"
+    connection = self.class.connection
+    connection.execute("DROP TABLE IF EXISTS #{table}")
+    connection.execute(rankings_snapshot_sql(table))
+    connection.execute("CREATE INDEX ON #{table} (id)")
+
+    updated = 0
+    last_id = 0
+    loop do
+      rows = connection.select_all("SELECT * FROM #{table} WHERE id > #{last_id.to_i} ORDER BY id LIMIT #{batch_size.to_i}").to_a
+      break if rows.empty?
+      last_id = rows.last['id'].to_i
+      updated += write_rankings(rows.filter_map { |row| ranking_change(row) })
+    end
+    updated
+  ensure
+    connection.execute("DROP TABLE IF EXISTS #{table}") if table && connection
+  end
+
+  def update_rankings_async
+    UpdateRegistryRankingsWorker.perform_async(id)
+  end
+
   def update_extra_counts
     self.active_packages_count = packages.active.count
     self.namespaces_count = packages.where.not(namespace: nil).distinct.count(:namespace)
@@ -331,7 +480,26 @@ class Registry < ApplicationRecord
 
     return unless maintainers_json.present?
 
+    identity_candidates = maintainers_json.flat_map do |maintainer|
+      maintainer.values_at(:uuid, :login).compact.flat_map do |identifier|
+        [identifier.to_s, identifier.to_s.downcase]
+      end
+    end.uniq
+    hidden_identifiers = maintainers.hidden
+                                    .where(uuid: identity_candidates)
+                                    .or(maintainers.hidden.where(login: identity_candidates))
+                                    .pluck(:uuid, :login)
+                                    .flatten
+                                    .compact
+                                    .map(&:downcase)
+                                    .to_set
+
     maintainers_json.each do |maintainer|
+      identifiers = maintainer.values_at(:uuid, :login).compact.flat_map do |identifier|
+        [identifier.to_s, identifier.to_s.downcase]
+      end
+      next if identifiers.any? { |identifier| hidden_identifiers.include?(identifier) }
+
       m = maintainers.find_or_create_by(uuid: maintainer[:uuid])
       m.email = maintainer[:email]
       m.login = maintainer[:login]
@@ -378,6 +546,75 @@ class Registry < ApplicationRecord
     packages.where.not(namespace: nil).group(:namespace).order('COUNT(id) desc').count.to_a.map(&:first)
   end
 
+  def self.declared_repositories(ecosystem)
+    key = Ecosystem::Base.find(ecosystem).declared_repositories_key
+    return [] unless key
+    sql = Package.sanitize_sql_array([
+      "SELECT #{Package.normalized_repository_sql} AS repo, count(DISTINCT packages.namespace) AS namespaces, array_agg(packages.id) AS package_ids " \
+      "FROM packages CROSS JOIN LATERAL json_array_elements_text(packages.metadata->:key) u " \
+      "WHERE packages.registry_id IN (:ids) AND json_typeof(packages.metadata->:key) = 'array' " \
+      "GROUP BY 1 ORDER BY 2 DESC",
+      { ids: where(ecosystem: ecosystem).pluck(:id), key: key }
+    ])
+    Package.connection.select_rows(sql).filter_map do |repo, namespaces, package_ids|
+      next if repo.blank?
+      package_ids = package_ids.is_a?(Array) ? package_ids : package_ids.to_s.delete('{}').split(',')
+      { repo: repo, namespaces: namespaces.to_i, package_ids: package_ids.map(&:to_i) }
+    end
+  end
+
+  # Dependencies of these packages' latest versions that no registry in the ecosystem has.
+  def self.unresolved_dependency_names(ecosystem, package_ids)
+    version_ids = package_ids.each_slice(1_000).flat_map { |ids| Version.where(package_id: ids, latest: true).pluck(:id) }
+    names = version_ids.each_slice(1_000).flat_map do |ids|
+      Dependency.where(version_id: ids, ecosystem: ecosystem).distinct.pluck(:package_name)
+    end.uniq
+    ecosystem_class = Ecosystem::Base.find(ecosystem)
+    names = names.select { |name| ecosystem_class.resolvable_dependency_name?(name) }
+    ids = where(ecosystem: ecosystem).pluck(:id)
+    names - names.each_slice(1_000).flat_map { |batch| Package.where(registry_id: ids, name: batch).pluck(:name) }
+  end
+
+  def self.print_declared_repositories(ecosystem, limit: 50, io: $stdout)
+    registries = where(ecosystem: ecosystem).each_with_object({}) do |registry, h|
+      registry.repository_urls.each { |url| h[Ecosystem::Base.normalize_repository_url(url)] = registry.name }
+    end
+    tracked, untracked = declared_repositories(ecosystem).partition { |row| registries.key?(row[:repo]) }
+
+    io.puts "=== tracked registries ==="
+    io.puts %w[namespaces unresolved registry repo].join("\t")
+    tracked.each do |row|
+      io.puts [row[:namespaces], unresolved_dependency_names(ecosystem, row[:package_ids]).size, registries[row[:repo]], row[:repo]].join("\t")
+    end
+
+    io.puts "=== untracked repositories ==="
+    io.puts %w[namespaces unresolved repo].join("\t")
+    untracked.first(limit).each do |row|
+      io.puts [row[:namespaces], unresolved_dependency_names(ecosystem, row[:package_ids]).size, row[:repo]].join("\t")
+    end
+  end
+
+  def declaring_package_ids
+    key = ecosystem_class.declared_repositories_key
+    return [] unless key
+    Package.where(registry_id: Registry.where(ecosystem: ecosystem).select(:id)).declaring_repository(key, repository_urls).pluck(:id)
+  end
+
+  # Other URLs that serve this registry's packages, such as Central's repo1 and repo.maven.apache.org.
+  def repository_urls
+    [url] + Array(metadata.to_h['aliases'])
+  end
+
+  def declared_dependency_names
+    self.class.unresolved_dependency_names(ecosystem, declaring_package_ids)
+  end
+
+  def sync_declared_dependency_packages
+    names = declared_dependency_names
+    sync_packages_spread_async(names) if names.any?
+    names
+  end
+
   def sync_missing_namespace_packages
     @existing_package_names = existing_package_names
     namespaces.each do |namespace|
@@ -388,15 +625,15 @@ class Registry < ApplicationRecord
         missing_names = Array(names) - @existing_package_names
         puts "Syncing #{missing_names.count} missing packages for #{namespace}"
         sync_packages_async(missing_names)
-      rescue
-        puts "Error syncing missing packages for #{namespace}"
+      rescue => e
+        puts "Error syncing missing packages for #{namespace}: #{e.class} #{e.message}"
       end
     end
   end 
 
   def keywords
     Rails.cache.fetch("registries_keywords/#{id}", expires_in: 1.week) do
-      result = Package.connection.select_rows("SELECT keywords, COUNT(keywords) AS keywords_count FROM (SELECT id, registry_id, unnest(keywords) AS keywords FROM packages WHERE registry_id = #{id} AND status IS NULL) AS foo GROUP BY keywords ORDER BY keywords_count DESC, keywords ASC LIMIT 50000;")
+      result = Package.connection.select_rows("SELECT keywords, COUNT(keywords) AS keywords_count FROM (SELECT id, registry_id, unnest(keywords) AS keywords FROM packages WHERE registry_id = #{id} AND status = 'active') AS foo GROUP BY keywords ORDER BY keywords_count DESC, keywords ASC LIMIT 50000;")
       result || []
     end
   end
@@ -439,11 +676,13 @@ class Registry < ApplicationRecord
     count
   end
 
-  def sync_one_percent_of_packages
-    packages.active.outdated.order('RANDOM()').limit(one_percent_of_packages_count).each(&:sync_async)
+  def sync_one_percent_of_packages(period: 20.minutes)
+    limit = [one_percent_of_packages_count, sync_budget(period)].compact.min
+    packages.active.outdated.order('RANDOM()').limit(limit).each(&:sync_async)
   end
 
   def self.sync_worst_one_percent
+    return if Sidekiq::Queue.new('critical').size > 10_000
     Registry.frequently_synced.sort_by(&:outdated_percentage).last.sync_one_percent_of_packages
   end
 
@@ -591,5 +830,61 @@ class Registry < ApplicationRecord
         Package.where(id: group).update_all(critical: true)
       end
     end
+  end
+
+  private
+
+  # Repo metadata counts are cast the same way as top_percentage_for_json
+  def rankings_snapshot_sql(table)
+    columns = Package::RANKED_FIELDS.map do |field|
+      next "packages.#{field}" unless Package::REPO_METADATA_RANKED_FIELDS.include?(field)
+      "(packages.repo_metadata ->> '#{field}')::text::integer AS #{field}"
+    end
+    # Active packages up to and including this value, minus the active packages tied at it.
+    # Frame exclusion (EXCLUDE GROUP) would do the same but scales quadratically.
+    counts = Package::RANKED_FIELDS.map do |field|
+      active = "count(*) FILTER (WHERE status = 'active')"
+      "#{active} OVER (ORDER BY #{field} DESC NULLS LAST RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) - " \
+        "#{active} OVER (PARTITION BY #{field}) AS #{field}_above"
+    end
+    <<~SQL
+      CREATE TEMPORARY TABLE #{table} AS
+      SELECT id, rankings::text AS rankings, #{Package::RANKED_FIELDS.join(', ')}, #{counts.join(', ')}
+      FROM (
+        SELECT packages.id, packages.status, packages.rankings, #{columns.join(', ')}
+        FROM packages
+        WHERE packages.registry_id = #{id.to_i}
+      ) ranked
+    SQL
+  end
+
+  # Keys other than the ranked fields, such as underproduction, are kept
+  def ranking_change(row)
+    values = Package::RANKED_FIELDS.index_with { |field| row[field.to_s]&.to_i }
+    rankings = Package::RANKED_FIELDS.index_with do |field|
+      values[field].nil? ? nil : row["#{field}_above"].to_i.to_f / packages_count * 100
+    end
+    existing = begin
+      JSON.parse(row['rankings'].presence || '{}')
+    rescue JSON::ParserError
+      {}
+    end
+    existing = {} unless existing.is_a?(Hash)
+    merged = existing.merge(Package.with_average_ranking(rankings, values).stringify_keys)
+    [row['id'].to_i, merged] unless merged == existing
+  end
+
+  def write_rankings(changes)
+    return 0 if changes.empty?
+
+    connection = self.class.connection
+    values = changes.map { |package_id, rankings| "(#{package_id.to_i}, #{connection.quote(rankings.to_json)})" }
+    connection.exec_update(<<~SQL)
+      UPDATE packages
+      SET rankings = changes.rankings::json, updated_at = #{connection.quote(Time.current)}
+      FROM (VALUES #{values.join(', ')}) AS changes(id, rankings)
+      WHERE packages.id = changes.id
+    SQL
+    changes.length
   end
 end

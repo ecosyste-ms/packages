@@ -12,12 +12,7 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     scope = scope.updated_before(params[:updated_before]) if params[:updated_before].present?
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Version.sortable_columns, default: 'published_at')
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(sanitize_sort(Version, default: 'published_at'))
     else
       scope = scope.order('published_at DESC nulls last, created_at DESC')
     end
@@ -46,12 +41,7 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     scope = scope.updated_before(params[:updated_before]) if params[:updated_before].present?
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Version.sortable_columns, default: 'published_at')
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(sanitize_sort(Version, default: 'published_at'))
     else
       scope = scope.order('published_at DESC nulls last, created_at DESC')
     end
@@ -73,5 +63,19 @@ class Api::V1::VersionsController < Api::V1::ApplicationController
     @package = find_package_with_normalization!(@registry, params[:package_id])
     @version = @package.versions.find_by_number!(params[:id])
     fresh_when @version, public: true
+  end
+
+  def lookup
+    integrity = Version.normalize_integrity(params)
+
+    if integrity.blank?
+      return render json: { error: 'Missing integrity parameter' }, status: :bad_request
+    end
+
+    scope = Version.where(integrity: integrity)
+                   .includes(:dependencies, package: :registry)
+                   .order('published_at DESC nulls last, created_at DESC, id DESC')
+
+    @pagy, @versions = pagy_countless(scope)
   end
 end

@@ -64,7 +64,7 @@ module Ecosystem
       cache_key = "ips-#{@registry.name}-#{part.gsub('.', '-')}"
       cached_file = download_and_cache(catalog_url(part), cache_key)
       return {} if cached_file.nil?
-      Oj.load(File.read(cached_file))
+      Oj.load(File.read(cached_file)) || {}
     end
 
     def base_catalog

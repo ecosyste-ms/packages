@@ -92,6 +92,17 @@ class CocoapodsTest < ActiveSupport::TestCase
     assert_nil package_metadata[:keywords_array]
   end
 
+  test 'repository_url falls back to homepage when source.git is missing' do
+    pkg = {
+      "name" => "Foo",
+      "homepage" => "https://github.com/foo/bar",
+      "source" => { "http" => "https://example.com/foo.zip" },
+    }
+    mapped = @ecosystem.map_package_metadata(pkg)
+
+    assert_equal "https://github.com/foo/bar", mapped[:repository_url]
+  end
+
   test 'package_metadata returns false for deprecated pod with no name' do
     stub_request(:get, "https://cdn.cocoapods.org/all_pods_versions_6_c_e.txt")
       .to_return({ status: 200, body: "EmplateSDK/4.0.0\n" })

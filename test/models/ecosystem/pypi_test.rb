@@ -85,6 +85,18 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal recently_updated_package_names.last, 'lgy'
   end
 
+  test 'normalized_name collapses separator runs' do
+    body = JSON.parse(file_fixture('pypi/yiban.json').read)
+    body['info']['name'] = 'Foo__Bar.-baz'
+    stub_request(:get, "https://pypi.org/pypi/Foo__Bar.-baz/json")
+      .to_return({ status: 200, body: body.to_json })
+    stub_request(:get, "https://pypistats.org/api/packages/foo__bar.-baz/recent")
+      .to_return({ status: 200, body: file_fixture('pypi/recent.json') })
+    package_metadata = @ecosystem.package_metadata('Foo__Bar.-baz')
+
+    assert_equal 'foo-bar-baz', package_metadata[:metadata]['normalized_name']
+  end
+
   test 'package_metadata' do
     stub_request(:get, "https://pypi.org/pypi/yiban/json")
       .to_return({ status: 200, body: file_fixture('pypi/yiban.json') })
@@ -117,6 +129,7 @@ class PypiTest < ActiveSupport::TestCase
       {
         :number=>"0.1.2.32",
         :published_at=>"2019-11-05T15:06:04",
+        :status=>nil,
         :integrity=>"sha256-29ffb8f9b1d6114757a53a1a713a4e07ce4e1c4c50d31332644593db208f30e7",
         :licenses=>nil,
         :metadata=>{
@@ -474,6 +487,40 @@ class PypiTest < ActiveSupport::TestCase
       }
     }
     assert_equal "MIT License,BSD License", @ecosystem.licenses(package)
+  end
+
+  test 'licenses falls back to classifiers when license contains a full license body' do
+    package = {
+      "info" => {
+        "license_expression" => nil,
+        "license" => "Copyright (c) 2001-2002 Enthought, Inc.\nAll rights reserved.\n\nRedistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met...",
+        "classifiers" => ["License :: OSI Approved :: BSD License"]
+      }
+    }
+    assert_equal "BSD License", @ecosystem.licenses(package)
+  end
+
+  test 'licenses falls back to classifiers when license is a long single-line string' do
+    package = {
+      "info" => {
+        "license_expression" => nil,
+        "license" => "BSD 3-Clause License Copyright (c) 2008-2011, AQR Capital Management, LLC, Lambda Foundry, Inc. and PyData Development Team. All rights reserved.",
+        "classifiers" => ["License :: OSI Approved :: BSD License"]
+      }
+    }
+    assert_equal "BSD License", @ecosystem.licenses(package)
+  end
+
+  test 'licenses returns license body when no classifiers available' do
+    body = "Copyright body\nwith newlines"
+    package = {
+      "info" => {
+        "license_expression" => nil,
+        "license" => body,
+        "classifiers" => []
+      }
+    }
+    assert_equal body, @ecosystem.licenses(package)
   end
 
   test 'pypi package_metadata funding_url flask' do

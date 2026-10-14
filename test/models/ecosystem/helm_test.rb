@@ -11,6 +11,8 @@ class HelmTest < ActiveSupport::TestCase
       metadata: { 'repository_url' => 'https://prometheus-community.github.io/helm-charts' }
     )
     @version = @package.versions.build(number: '74.0.0')
+    stub_request(:get, %r{\Ahttps://artifacthub\.io/api/v1/packages/helm/[^/]+/[^/]+/[^/]+\z})
+      .to_return(status: 200, body: '{"content_url":"https://charts.example.com/chart.tgz","digest":"abc"}')
   end
 
   test 'registry_url' do
@@ -29,8 +31,17 @@ class HelmTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    download_url = @ecosystem.download_url(@package, @version)
-    assert_nil download_url
+    @version.metadata = { 'content_url' => 'https://example.com/charts/kube-prometheus-stack-74.0.0.tgz' }
+    assert_equal 'https://example.com/charts/kube-prometheus-stack-74.0.0.tgz', @ecosystem.download_url(@package, @version)
+  end
+
+  test 'download_url without version returns nil' do
+    assert_nil @ecosystem.download_url(@package)
+  end
+
+  test 'download_url returns nil when content_url missing' do
+    @version.metadata = {}
+    assert_nil @ecosystem.download_url(@package, @version)
   end
 
   test 'documentation_url' do
@@ -150,6 +161,7 @@ class HelmTest < ActiveSupport::TestCase
       assert first_version[:number].present?
       assert_equal first_version[:licenses], package_metadata[:licenses]
       assert_kind_of Hash, first_version[:metadata]
+      assert_equal 'https://charts.example.com/chart.tgz', first_version[:metadata]['content_url']
     end
   end
 
@@ -213,5 +225,53 @@ class HelmTest < ActiveSupport::TestCase
     @package.name = 'invalid-name'
     status = @ecosystem.check_status(@package)
     assert_nil status
+  end
+
+  test 'versions_metadata and dependencies_metadata share one per-version fetch' do
+    version_stub = stub_request(:get, "https://artifacthub.io/api/v1/packages/helm/foo/bar/1.0.0")
+      .to_return(status: 200, body: '{"content_url":"https://example.com/x.tgz","data":{"dependencies":[{"name":"dep","version":"1"}]}}',
+                 headers: { 'Content-Type' => 'application/json' })
+
+    pkg = { name: 'foo/bar', versions: [{ 'version' => '1.0.0', 'ts' => 0 }], licenses: 'MIT' }
+    versions = @ecosystem.versions_metadata(pkg)
+    assert_equal 'https://example.com/x.tgz', versions.first[:metadata]['content_url']
+
+    deps = @ecosystem.dependencies_metadata('foo/bar', '1.0.0', nil)
+    assert_equal 'dep', deps.first[:package_name]
+
+    assert_requested version_stub, times: 1
+  end
+
+  test 'fetch_version_details caches nil on error and does not refetch' do
+    stub_request(:get, "https://artifacthub.io/api/v1/packages/helm/foo/bar/1.0.0")
+      .to_return(status: 500, body: 'not json')
+
+    assert_nil @ecosystem.fetch_version_details('foo', 'bar', '1.0.0')
+    assert_nil @ecosystem.fetch_version_details('foo', 'bar', '1.0.0')
+    assert_equal [], @ecosystem.dependencies_metadata('foo/bar', '1.0.0', nil)
+    assert_requested :get, "https://artifacthub.io/api/v1/packages/helm/foo/bar/1.0.0", times: 1
+  end
+
+  test 'versions_metadata caps at NEW_VERSIONS_PER_SYNC newest versions' do
+    versions = (1..8).map { |i| { 'version' => "1.#{i}.0", 'ts' => 1_700_000_000 + i } }
+    pkg = { name: 'foo/bar', versions: versions, licenses: 'MIT' }
+    result = @ecosystem.versions_metadata(pkg)
+    assert_equal Ecosystem::Helm::NEW_VERSIONS_PER_SYNC, result.length
+    assert_equal ['1.8.0', '1.7.0', '1.6.0', '1.5.0', '1.4.0'], result.map { |v| v[:number] }
+  end
+
+  test 'versions_metadata applies the cap after excluding existing versions' do
+    versions = (1..8).map { |i| { 'version' => "1.#{i}.0", 'ts' => 1_700_000_000 + i } }
+    pkg = { name: 'foo/bar', versions: versions, licenses: 'MIT' }
+    result = @ecosystem.versions_metadata(pkg, ['1.8.0', '1.7.0', '1.6.0', '1.5.0', '1.4.0'])
+    assert_equal ['1.3.0', '1.2.0', '1.1.0'], result.map { |v| v[:number] }
+  end
+
+  test 'versions_metadata drops versions whose per-version fetch failed' do
+    stub_request(:get, "https://artifacthub.io/api/v1/packages/helm/foo/bar/2.0.0")
+      .to_return(status: 429, body: '')
+    pkg = { name: 'foo/bar', versions: [{ 'version' => '1.0.0', 'ts' => 100 }, { 'version' => '2.0.0', 'ts' => 200 }], licenses: 'MIT' }
+    result = @ecosystem.versions_metadata(pkg)
+    assert_equal ['1.0.0'], result.map { |v| v[:number] }
   end
 end

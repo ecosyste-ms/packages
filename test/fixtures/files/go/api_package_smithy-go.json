@@ -1,0 +1,1 @@
+{"modulePath":"github.com/aws/smithy-go","version":"v1.25.1","isLatest":true,"isStandardLibrary":false,"goos":"all","goarch":"all","path":"github.com/aws/smithy-go","name":"smithy","synopsis":"Package smithy provides the core components for a Smithy SDK.","isRedistributable":true}

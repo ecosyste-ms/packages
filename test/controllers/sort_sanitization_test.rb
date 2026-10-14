@@ -18,6 +18,19 @@ class SortSanitizationTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test 'packages index rejects ascending usage metric sort' do
+    get registry_packages_path(registry_id: @registry.name, sort: 'downloads', order: 'asc')
+    assert_response :unprocessable_content
+  end
+
+  test 'packages index accepts updated_at in both directions' do
+    get registry_packages_path(registry_id: @registry.name, sort: 'updated_at', order: 'asc')
+    assert_response :success
+
+    get registry_packages_path(registry_id: @registry.name, sort: 'updated_at', order: 'desc')
+    assert_response :success
+  end
+
   test 'packages index with invalid sort falls back to default' do
     get registry_packages_path(registry_id: @registry.name, sort: '1;DROP TABLE packages--')
     assert_response :success
@@ -85,10 +98,22 @@ class SortSanitizationTest < ActionDispatch::IntegrationTest
 
   # -- CriticalController --
 
-  test 'critical index with valid sort' do
+  test 'critical index rejects ascending usage metric sort' do
     @package.update(critical: true)
     get critical_path(sort: 'downloads', order: 'asc')
-    assert_response :success
+    assert_response :unprocessable_content
+  end
+
+  test 'critical index explains ascending default sort errors' do
+    @package.update(critical: true)
+
+    get critical_path(order: 'asc')
+    assert_response :unprocessable_content
+    assert_equal 'the default downloads sort only supports descending order', response.body
+
+    get critical_path(sort: 'invalid', order: 'asc')
+    assert_response :unprocessable_content
+    assert_equal 'the default downloads sort only supports descending order', response.body
   end
 
   test 'critical index with invalid sort falls back to default' do
@@ -114,6 +139,12 @@ class SortSanitizationTest < ActionDispatch::IntegrationTest
   test 'api packages index with stargazers_count sort' do
     get api_v1_registry_packages_path(registry_id: @registry.name, sort: 'stargazers_count')
     assert_response :success
+  end
+
+  test 'api packages index rejects ascending usage metric sort' do
+    get api_v1_registry_packages_path(registry_id: @registry.name, sort: 'stargazers_count', order: 'asc')
+    assert_response :unprocessable_content
+    assert_equal 'stargazers_count only supports descending order', response.parsed_body['error']
   end
 
   test 'api packages names with invalid sort falls back to default' do
@@ -143,6 +174,14 @@ class SortSanitizationTest < ActionDispatch::IntegrationTest
     get api_v1_critical_index_path(sort: '1;DROP TABLE packages--')
     assert_response :success
     assert_equal 1, @registry.packages.count
+  end
+
+  test 'api critical index explains ascending default sort errors' do
+    @package.update(critical: true)
+    get api_v1_critical_index_path(order: 'asc')
+
+    assert_response :unprocessable_content
+    assert_equal 'the default downloads sort only supports descending order', response.parsed_body['error']
   end
 
   # -- API VersionsController --

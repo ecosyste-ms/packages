@@ -19,18 +19,48 @@ class PubTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    download_url = @ecosystem.download_url(@package, @version)
-    assert_equal download_url, 'https://pub.dev/packages/bloc/versions/8.0.3.tar.gz'
+    [@version, @version.number].each do |version|
+      assert_equal 'https://pub.dev/api/archives/bloc-8.0.3.tar.gz', @ecosystem.download_url(@package, version)
+    end
+  end
+
+  test 'download_url without a version' do
+    [nil, '', ' '].each do |version|
+      assert_nil @ecosystem.download_url(@package, version)
+    end
   end
 
   test 'documentation_url' do
     documentation_url = @ecosystem.documentation_url(@package)
-    assert_equal documentation_url, 'https://pub.dev/documentation/bloc/'
+    assert_equal 'https://pub.dev/documentation/bloc/latest/', documentation_url
   end
 
   test 'documentation_url with version' do
-    documentation_url = @ecosystem.documentation_url(@package, @version.number)
-    assert_equal documentation_url, 'https://pub.dev/documentation/bloc/8.0.3'
+    [@version, @version.number].each do |version|
+      assert_equal 'https://pub.dev/documentation/bloc/8.0.3/', @ecosystem.documentation_url(@package, version)
+    end
+  end
+
+  test 'documentation_url with a blank version uses latest' do
+    [nil, '', ' '].each do |version|
+      assert_equal 'https://pub.dev/documentation/bloc/latest/', @ecosystem.documentation_url(@package, version)
+    end
+  end
+
+  test 'archive and documentation URLs preserve prerelease versions' do
+    version = @package.versions.build(number: '9.0.0-dev.1')
+
+    assert_equal 'https://pub.dev/api/archives/bloc-9.0.0-dev.1.tar.gz', @ecosystem.download_url(@package, version)
+    assert_equal 'https://pub.dev/documentation/bloc/9.0.0-dev.1/', @ecosystem.documentation_url(@package, version)
+  end
+
+  test 'archive and documentation URLs use the configured registry URL' do
+    @registry.url = 'https://pub.example/dart'
+    ecosystem = Ecosystem::Pub.new(@registry)
+
+    assert_equal 'https://pub.example/dart/api/archives/bloc-8.0.3.tar.gz', ecosystem.download_url(@package, @version)
+    assert_equal 'https://pub.example/dart/documentation/bloc/latest/', ecosystem.documentation_url(@package)
+    assert_equal 'https://pub.example/dart/documentation/bloc/8.0.3/', ecosystem.documentation_url(@package, @version)
   end
 
   test 'install_command' do
@@ -89,14 +119,30 @@ class PubTest < ActiveSupport::TestCase
     assert_nil package_metadata[:keywords_array]
   end
 
+  test 'repository_url falls back to issue_tracker' do
+    pkg = {
+      "name" => "foo",
+      "latest" => {
+        "pubspec" => {
+          "homepage" => "https://foo.example.com",
+          "issue_tracker" => "https://github.com/foo/bar/issues",
+        },
+      },
+      "versions" => [],
+    }
+    mapped = @ecosystem.map_package_metadata(pkg)
+
+    assert_equal "https://github.com/foo/bar", mapped[:repository_url]
+  end
+
   test 'versions_metadata' do
     stub_request(:get, "https://pub.dev/api/packages/bloc")
       .to_return({ status: 200, body: file_fixture('pub/bloc') })
     package_metadata = @ecosystem.package_metadata('bloc')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
-    assert_equal versions_metadata.first, {:number=>"0.1.0", :published_at=>"2018-10-08T02:30:26.298213Z"}
-    assert_equal versions_metadata.last, {:number=>"8.0.3", :published_at=>"2022-02-28T16:43:11.890583Z"}
+    assert_equal versions_metadata.first, {:number=>"0.1.0", :published_at=>"2018-10-08T02:30:26.298213Z", :integrity=>nil}
+    assert_equal versions_metadata.last, {:number=>"8.0.3", :published_at=>"2022-02-28T16:43:11.890583Z", :integrity=>nil}
   end
 
   test 'dependencies_metadata' do
@@ -129,5 +175,33 @@ class PubTest < ActiveSupport::TestCase
     # The registry URL should NOT have been hit
     assert_not_requested(:get, "https://pub.dev/packages/bloc")
     assert_not_requested(:head, "https://pub.dev/packages/bloc")
+  end
+
+  test 'check_status returns discontinued when isDiscontinued is set' do
+    @ecosystem.stubs(:fetch_package_metadata).with('bloc').returns({ 'name' => 'bloc', 'isDiscontinued' => true })
+    assert_equal 'discontinued', @ecosystem.check_status(@package)
+  end
+
+  test 'check_status returns nil when isDiscontinued is false' do
+    @ecosystem.stubs(:fetch_package_metadata).with('bloc').returns({ 'name' => 'bloc', 'isDiscontinued' => false })
+    assert_nil @ecosystem.check_status(@package)
+  end
+
+  test 'check_status returns false when the request errors' do
+    @ecosystem.stubs(:fetch_package_metadata).with('bloc').returns(nil)
+    stub_request(:get, "https://pub.dev/packages/bloc").to_raise(Faraday::ConnectionFailed.new('boom'))
+    assert_equal false, @ecosystem.check_status(@package)
+  end
+
+  test 'check_status returns false when the metadata request errors but the package page exists' do
+    stub_request(:get, "https://pub.dev/api/packages/bloc").to_raise(Faraday::ConnectionFailed.new('boom'))
+    stub_request(:get, "https://pub.dev/packages/bloc").to_return(status: 200)
+    assert_equal false, @ecosystem.check_status(@package)
+  end
+
+  test 'check_status returns false when the package page request is unsuccessful' do
+    @ecosystem.stubs(:fetch_package_metadata).with('bloc').returns(nil)
+    stub_request(:get, "https://pub.dev/packages/bloc").to_return(status: 500)
+    assert_equal false, @ecosystem.check_status(@package)
   end
 end

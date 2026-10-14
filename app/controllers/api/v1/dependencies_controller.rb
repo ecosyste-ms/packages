@@ -3,6 +3,7 @@ class Api::V1::DependenciesController < Api::V1::ApplicationController
     scope = Dependency.all.includes(version: {package: :registry})
 
     scope = scope.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
+    scope = scope.where(version_id: params[:version_id]) if params[:version_id].present?
     scope = scope.where(package_id: params[:package_id]) if params[:package_id].present?
     scope = scope.where(package_name: params[:package_name]) if params[:package_name].present?
     scope = scope.where(requirements: params[:requirements]) if params[:requirements].present?
@@ -11,12 +12,7 @@ class Api::V1::DependenciesController < Api::V1::ApplicationController
     scope = scope.where('dependencies.id > ?', params[:after]) if params[:after].present?
 
     if params[:sort].present?
-      sort = sanitize_sort(Dependency.sortable_columns, default: 'id')
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(sanitize_sort(Dependency, default: 'id'))
     end
 
     @pagy, @dependencies = pagy_countless(scope)

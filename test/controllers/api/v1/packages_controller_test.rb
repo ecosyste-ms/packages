@@ -129,6 +129,35 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.first['name'], @package.name
   end
 
+  test 'lookup by name and ecosystem only matches packages in that ecosystem' do
+    other = Registry.create(name: 'npmjs.org', url: 'https://npmjs.org', ecosystem: 'npm')
+    other.packages.create(ecosystem: 'npm', name: 'rand')
+
+    get lookup_api_v1_packages_path, params: { ecosystem: 'cargo', name: 'rand' }
+    assert_response :success
+    assert_equal [@package.id], Oj.load(@response.body).pluck('id')
+
+    get lookup_api_v1_packages_path, params: { ecosystem: 'unknown', name: 'rand' }
+    assert_response :success
+    assert_empty Oj.load(@response.body)
+  end
+
+  test 'lookup returns bad request without a package selector' do
+    get lookup_api_v1_packages_path(ecosystem: 'docker')
+    assert_response :bad_request
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 'Missing repository_url, purl or name parameter', actual_response['error']
+  end
+
+  test 'lookup by purl with array returns 422' do
+    get lookup_api_v1_packages_path(purl: ['pkg:npm/lodash', 'pkg:gem/rails'])
+    assert_response :unprocessable_content
+    actual_response = Oj.load(@response.body)
+    assert_match 'bulk_lookup', actual_response['error']
+  end
+
   test 'lookup by purl with missing type' do
     invalid_purl = 'pkg:/software.amazon.awssdk%3Ametrics-spi'
   
@@ -152,6 +181,37 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal actual_response.length, 1
     assert_equal actual_response.first['name'], @package.name
+  end
+
+  test 'generated PURLs resolve back to distinct nested GitHub Actions packages' do
+    registry = Registry.create!(name: 'github actions', url: 'https://actions.io', ecosystem: 'actions', default: true)
+    packages = ['github/gh-aw/actions/setup', 'github/gh-aw-actions/setup'].map do |name|
+      registry.packages.create!(ecosystem: 'actions', name: name)
+    end
+
+    packages.each do |package|
+      get lookup_api_v1_registry_path(id: registry.name), params: { ecosystem: 'actions', name: package.name }
+      assert_response :success
+      result = Oj.load(response.body).sole
+      assert_equal package.id, result['id']
+      assert_equal "pkg:githubactions/#{package.name}", result['purl']
+
+      get lookup_api_v1_packages_path, params: { purl: result['purl'] }
+      assert_response :success
+      assert_equal [package.id], Oj.load(response.body).pluck('id')
+    end
+  end
+
+  test 'bulk PURL lookup resolves distinct nested GitHub Actions packages' do
+    registry = Registry.create!(name: 'github actions', url: 'https://actions.io', ecosystem: 'actions', default: true)
+    packages = ['github/gh-aw/actions/setup', 'github/gh-aw-actions/setup'].map do |name|
+      registry.packages.create!(ecosystem: 'actions', name: name)
+    end
+
+    post bulk_lookup_api_v1_packages_path, params: { purls: packages.map(&:purl) }
+
+    assert_response :success
+    assert_equal packages.map(&:id).sort, Oj.load(response.body).pluck('id').sort
   end
 
   test 'lookup by purl maven' do
@@ -323,6 +383,19 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal @package.name, actual_response.first['name']
   end
 
+  test 'bulk_lookup by repository_urls array' do
+    @package.update(repository_url: 'https://github.com/rust-random/rand')
+    other = @registry.packages.create(ecosystem: @registry.ecosystem, name: 'serde', repository_url: 'https://github.com/Serde-rs/Serde')
+
+    post bulk_lookup_api_v1_packages_path, params: { repository_urls: ['https://github.com/rust-random/rand', 'https://github.com/serde-rs/serde'] }
+    assert_response :success
+
+    names = Oj.load(@response.body).pluck('name')
+    assert_equal 2, names.length
+    assert_includes names, @package.name
+    assert_includes names, other.name
+  end
+
   test 'bulk_lookup by names' do
     post bulk_lookup_api_v1_packages_path, params: { names: ['rand'] }
     assert_response :success
@@ -331,6 +404,23 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal 1, actual_response.length
     assert_equal @package.name, actual_response.first['name']
+  end
+
+  test 'bulk_lookup by github purl with ecosystem filter narrows results' do
+    npm_registry = Registry.create(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    npm_package = npm_registry.packages.create(name: 'rand-js', ecosystem: 'npm', repository_url: 'https://github.com/rust-random/rand')
+    @package.update(repository_url: 'https://github.com/rust-random/rand')
+
+    now = Time.current
+    rows = (1..1000).map { |i| { registry_id: npm_registry.id, ecosystem: 'npm', name: "rand-fork-#{i}", repository_url: 'https://github.com/rust-random/rand', created_at: now, updated_at: now } }
+    Package.insert_all(rows)
+
+    post bulk_lookup_api_v1_packages_path, params: { purls: ['pkg:github/rust-random/rand'], ecosystem: 'cargo' }
+    assert_response :success
+
+    ids = Oj.load(@response.body).pluck('id')
+    assert_includes ids, @package.id
+    refute_includes ids, npm_package.id
   end
 
   test 'bulk_lookup with invalid purls returns empty result' do
@@ -853,6 +943,128 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
 
     get dependent_packages_api_v1_registry_package_path(registry_id: pypi_registry.name, id: 'tomli_w')
     assert_response :success
+  end
+
+  test 'dependent_packages defaults to latest versions only' do
+    dependent = @registry.packages.create(name: 'needs-rand', ecosystem: @registry.ecosystem)
+    old = dependent.versions.create(number: '1.0.0', latest: false)
+    old.dependencies.create(package_id: @package.id, package_name: @package.name, ecosystem: @registry.ecosystem, requirements: '>= 0', kind: 'runtime')
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+    assert_empty Oj.load(@response.body)
+
+    latest = dependent.versions.create(number: '2.0.0', latest: true)
+    latest.dependencies.create(package_id: @package.id, package_name: @package.name, ecosystem: @registry.ecosystem, requirements: '>= 0', kind: 'runtime')
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+    names = Oj.load(@response.body).map { |p| p['name'] }
+    assert_includes names, 'needs-rand'
+  end
+
+  test 'dependent_packages with latest=false returns historical dependents' do
+    dependent = @registry.packages.create(name: 'used-rand-once', ecosystem: @registry.ecosystem)
+    old = dependent.versions.create(number: '1.0.0', latest: false)
+    old.dependencies.create(package_id: @package.id, package_name: @package.name, ecosystem: @registry.ecosystem, requirements: '>= 0', kind: 'runtime')
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name, latest: 'false')
+    assert_response :success
+    names = Oj.load(@response.body).map { |p| p['name'] }
+    assert_includes names, 'used-rand-once'
+  end
+
+  test 'dependent_packages serves from top_dependent_packages cache when available' do
+    dep1 = @registry.packages.create(name: 'dep-one', ecosystem: @registry.ecosystem, downloads: 100)
+    dep2 = @registry.packages.create(name: 'dep-two', ecosystem: @registry.ecosystem, downloads: 200)
+    dep3 = @registry.packages.create(name: 'dep-three', ecosystem: @registry.ecosystem, downloads: 50)
+    TopDependentPackage.create!(package_id: @package.id, sort: 'downloads', dependent_ids: [dep2.id, dep1.id, dep3.id], updated_at: Time.current)
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name, sort: 'downloads', order: 'desc', per_page: 2)
+    assert_response :success
+    assert_equal 'top_dependent_packages', @response.headers['X-Source']
+
+    names = Oj.load(@response.body).map { |p| p['name'] }
+    assert_equal ['dep-two', 'dep-one'], names
+  end
+
+  test 'dependent_packages cache paginates within cached ids' do
+    deps = 3.times.map { |i| @registry.packages.create(name: "dep#{i}", ecosystem: @registry.ecosystem) }
+    TopDependentPackage.create!(package_id: @package.id, sort: 'downloads', dependent_ids: deps.map(&:id), updated_at: Time.current)
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name, sort: 'downloads', per_page: 2, page: 2)
+    assert_response :success
+    assert_equal 'top_dependent_packages', @response.headers['X-Source']
+
+    names = Oj.load(@response.body).map { |p| p['name'] }
+    assert_equal ['dep2'], names
+  end
+
+  test 'dependent_packages returns an empty cached page when page overflows' do
+    dependent = @registry.packages.create(name: 'dep-one', ecosystem: @registry.ecosystem)
+    TopDependentPackage.create!(package_id: @package.id, sort: 'downloads', dependent_ids: [dependent.id], updated_at: Time.current)
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name, sort: 'downloads', page: 2)
+
+    assert_response :success
+    assert_equal [], Oj.load(@response.body)
+  end
+
+  test 'dependent_packages cache skipped when sort not cached' do
+    TopDependentPackage.create!(package_id: @package.id, sort: 'downloads', dependent_ids: [999], updated_at: Time.current)
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name, sort: 'name')
+    assert_response :success
+    assert_nil @response.headers['X-Source']
+  end
+
+  test 'dependent_packages cache skipped when filters present' do
+    dep = @registry.packages.create(name: 'cached-dep', ecosystem: @registry.ecosystem)
+    TopDependentPackage.create!(package_id: @package.id, sort: 'downloads', dependent_ids: [dep.id], updated_at: Time.current)
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name, sort: 'downloads', kind: 'runtime')
+    assert_response :success
+    assert_nil @response.headers['X-Source']
+  end
+
+  test 'dependent_packages cache skipped for rank with default desc order' do
+    dep = @registry.packages.create(name: 'cached-dep', ecosystem: @registry.ecosystem)
+    TopDependentPackage.create!(package_id: @package.id, sort: 'rank', dependent_ids: [dep.id], updated_at: Time.current)
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name, sort: 'rank')
+    assert_response :success
+    assert_nil @response.headers['X-Source']
+
+    get dependent_packages_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name, sort: 'rank', order: 'asc')
+    assert_response :success
+    assert_equal 'top_dependent_packages', @response.headers['X-Source']
+  end
+
+  test 'dependent_package_kinds defaults to latest versions only' do
+    dependent = @registry.packages.create(name: 'needs-rand', ecosystem: @registry.ecosystem)
+    old = dependent.versions.create(number: '1.0.0', latest: false)
+    old.dependencies.create(package_id: @package.id, package_name: @package.name, ecosystem: @registry.ecosystem, requirements: '>= 0', kind: 'runtime')
+
+    get dependent_package_kinds_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+    assert_empty Oj.load(@response.body)
+
+    latest = dependent.versions.create(number: '2.0.0', latest: true)
+    latest.dependencies.create(package_id: @package.id, package_name: @package.name, ecosystem: @registry.ecosystem, requirements: '>= 0', kind: 'development')
+
+    get dependent_package_kinds_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+    assert_equal({'development' => 1}, Oj.load(@response.body))
+  end
+
+  test 'dependent_package_kinds with latest=false counts historical dependents' do
+    dependent = @registry.packages.create(name: 'used-rand-once', ecosystem: @registry.ecosystem)
+    old = dependent.versions.create(number: '1.0.0', latest: false)
+    old.dependencies.create(package_id: @package.id, package_name: @package.name, ecosystem: @registry.ecosystem, requirements: '>= 0', kind: 'runtime')
+
+    get dependent_package_kinds_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name, latest: 'false')
+    assert_response :success
+    assert_equal({'runtime' => 1}, Oj.load(@response.body))
   end
 
   test 'get dependent_package_kinds for pypi package with underscore in name' do

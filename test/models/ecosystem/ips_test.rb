@@ -213,4 +213,11 @@ class IpsTest < ActiveSupport::TestCase
     assert_equal 'https://pkg.openindiana.org/hipster/openindiana.org/catalog/1/catalog.base.C',
                  @ecosystem.catalog_url('catalog.base.C')
   end
+
+  test 'summary_packages returns an empty hash for an empty catalog' do
+    @ecosystem.stubs(:download_and_cache).returns('/tmp/catalog.summary.C')
+    File.stubs(:read).with('/tmp/catalog.summary.C').returns('')
+
+    assert_equal({}, @ecosystem.summary_packages)
+  end
 end

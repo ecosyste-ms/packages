@@ -19,16 +19,12 @@ module Ecosystem
 
     def fetch_package_metadata_uncached(name)
       json = get_json("https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/#{CGI.escape(name)}")
-      return nil if json.nil?
-      return nil if json['error'].present?
+      return nil unless json.is_a?(Hash) && json['full_name'].present?
       json.merge('name' => name, 'repository_url' => "https://github.com/#{name}")
     end
 
     def recently_updated_package_names
-      json = get_json("https://repos.ecosyste.ms/api/v1/package_names/carthage")
-      return [] if json.nil?
-      return [] if json['error'].present?
-      json.first(20)
+      get_json_array("https://repos.ecosyste.ms/api/v1/package_names/carthage").first(20)
     rescue
       []
     end
@@ -46,7 +42,7 @@ module Ecosystem
     end
 
     def all_package_names
-      get_json("https://repos.ecosyste.ms/api/v1/package_names/carthage")
+      get_json_array("https://repos.ecosyste.ms/api/v1/package_names/carthage")
     rescue
       []
     end
@@ -67,7 +63,7 @@ module Ecosystem
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       return [] unless pkg_metadata[:tags_url]
-      tags_json = get_json(pkg_metadata[:tags_url])
+      tags_json = get_json(pkg_metadata[:tags_url]+"?per_page=#{REPOS_TAGS_PER_PAGE}")
       return [] if tags_json.blank?
 
       tags_json.map do |tag|
@@ -84,9 +80,13 @@ module Ecosystem
       []
     end
 
+    def update_existing_versions(package, versions_metadata)
+      sync_tag_backed_versions(package, versions_metadata)
+    end
+
     def dependencies_metadata(name, version, package)
       return [] unless package[:repository_url]
-      github_name_with_owner = GithubUrlParser.parse(package[:repository_url]) 
+      github_name_with_owner = GithubUrlParser.parse(package[:repository_url])
       return [] unless github_name_with_owner
       deps = get_raw_no_exception("https://raw.githubusercontent.com/#{github_name_with_owner}/#{version}/Cartfile")
       return [] unless deps.present?

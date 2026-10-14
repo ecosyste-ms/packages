@@ -17,6 +17,12 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :dependencies, only: [:index]
 
+      resources :versions, only: [] do
+        collection do
+          get :lookup
+        end
+      end
+
       resources :keywords, only: [:index, :show], constraints: { id: /.*/ }, defaults: { format: :json }
 
       resources :critical, only: [:index] do

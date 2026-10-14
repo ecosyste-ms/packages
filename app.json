@@ -5,32 +5,40 @@
       "schedule": "*/5 * * * *"
     },
     {
+      "command": "bundle exec rake packages:sync_recent_pypi",
+      "schedule": "*/2 * * * *"
+    },
+    {
       "command": "bundle exec rake packages:sync_recent",
-      "schedule": "*/15 * * * *"
+      "schedule": "3,18,33,48 * * * *"
     },
     {
       "command": "bundle exec rake packages:sync_least_recent",
-      "schedule": "*/15 * * * *"
+      "schedule": "7,22,37,52 * * * *"
     },
     {
       "command": "bundle exec rake packages:sync_least_recent_top",
-      "schedule": "*/30 * * * *"
+      "schedule": "11,41 * * * *"
     },
     {
       "command": "bundle exec rake packages:sync_worst_one_percent",
-      "schedule": "*/20 * * * *"
+      "schedule": "4,24,44 * * * *"
     },
     {
-      "command": "bundle exec rake packages:update_repo_metadata_async",
-      "schedule": "*/30 * * * *"
+      "command": "bundle exec rake packages:update_repo_metadata",
+      "schedule": "4,9,14,19,24,29,34,39,44,49,54,59 * * * *"
     },
     {
       "command": "bundle exec rake packages:check_statuses",
-      "schedule": "0 * * * *"
+      "schedule": "26 * * * *"
     },
     {
       "command": "bundle exec rake packages:sync_missing",
       "schedule": "0 0 * * *"
+    },
+    {
+      "command": "bundle exec rake packages:sync_declared_dependencies",
+      "schedule": "30 2 * * 0"
     },
     {
       "command": "bundle exec rake packages:update_extra_counts",
@@ -38,11 +46,11 @@
     },
     {
       "command": "bundle exec rake packages:sync_maintainers",
-      "schedule": "*/30 * * * *"
+      "schedule": "13,43 * * * *"
     },
     {
       "command": "bundle exec rake packages:update_rankings",
-      "schedule": "*/30 * * * *"
+      "schedule": "17,47 * * * *"
     },
     {
       "command": "bundle exec rake sitemap:refresh",
@@ -50,11 +58,11 @@
     },
     {
       "command": "bundle exec rake packages:update_advisories",
-      "schedule": "0 * * * *"
+      "schedule": "19 * * * *"
     },
     {
       "command": "bundle exec rake packages:sync_outdated_docker",
-      "schedule": "0 * * * *"
+      "schedule": "31 * * * *"
     },
     {
       "command": "bundle exec rake packages:update_docker_usages",
@@ -62,18 +70,18 @@
     },
     {
       "command": "bundle exec rake packages:sync_batch_registries_outdated",
-      "schedule": "0 * * * *"
+      "schedule": "36 * * * *"
     },
     {
       "command": "bundle exec rake packages:crawl_recently_updated_github_marketplace",
-      "schedule": "0 */2 * * *"
+      "schedule": "23 */2 * * *"
     },
     {
       "command": "bundle exec rake packages:calculate_funding_domains",
       "schedule": "0 0 */6 * *"
     },
     {
-      "command": "bundle exec rake packages:clean_up_sidekiq_unique_jobs",
+      "command": "bundle exec rake sidekiq:unique_jobs:audit_locks",
       "schedule": "0 0 * * 0"
     }
   ]

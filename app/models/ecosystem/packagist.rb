@@ -123,6 +123,7 @@ module Ecosystem
         {
           number: version["version"],
           published_at: version["time"],
+          integrity: (version['dist'] && version['dist']['shasum'].present?) ? "sha1-#{version['dist']['shasum']}" : nil,
           metadata: metadata
         }
       end

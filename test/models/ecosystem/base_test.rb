@@ -13,7 +13,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_nil status
   end
 
-  test 'check_status returns nil when URL is invalid' do
+  test 'check_status returns false when URL is invalid' do
     # Create a package with an invalid URI in repository_url
     invalid_package = @registry.packages.create(
       ecosystem: 'test',
@@ -24,7 +24,7 @@ class BaseTest < ActiveSupport::TestCase
     # Mock check_status_url to return the invalid URL
     @ecosystem.stubs(:check_status_url).returns('https://MTAnalytics (#11070)')
     status = @ecosystem.check_status(invalid_package)
-    assert_nil status
+    assert_equal false, status
   end
 
   test 'check_status returns removed for 404 status' do
@@ -45,6 +45,27 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal 'removed', status
   end
 
+  test 'request emits registry_http_requests metric tagged by host and status' do
+    stub_request(:get, "https://registry.example.org/pkg.json")
+      .to_return(status: 200, body: '{}')
+
+    Appsignal.expects(:increment_counter).with("registry_http_requests", 1, host: "registry.example.org", status: "200")
+    Appsignal.expects(:add_distribution_value).with("registry_http_duration", anything, host: "registry.example.org")
+
+    @ecosystem.send(:get_raw, "https://registry.example.org/pkg.json")
+  end
+
+  test 'check_status emits registry_http_requests metric' do
+    stub_request(:head, "https://example.com/package")
+      .to_return(status: 404)
+
+    Appsignal.expects(:increment_counter).with("registry_http_requests", 1, host: "example.com", status: "404")
+    Appsignal.stubs(:add_distribution_value)
+
+    @ecosystem.stubs(:check_status_url).returns('https://example.com/package')
+    @ecosystem.check_status(@package)
+  end
+
   test 'check_status returns nil for 200 status' do
     stub_request(:head, "https://example.com/package")
       .to_return(status: 200)
@@ -54,13 +75,22 @@ class BaseTest < ActiveSupport::TestCase
     assert_nil status
   end
 
-  test 'check_status handles Faraday errors gracefully' do
+  test 'check_status returns false for unsuccessful status' do
+    stub_request(:head, "https://example.com/package")
+      .to_return(status: 500)
+
+    @ecosystem.stubs(:check_status_url).returns('https://example.com/package')
+    status = @ecosystem.check_status(@package)
+    assert_equal false, status
+  end
+
+  test 'check_status returns false on Faraday errors so status is left untouched' do
     stub_request(:head, "https://example.com/package")
       .to_raise(Faraday::ConnectionFailed.new('Connection failed'))
 
     @ecosystem.stubs(:check_status_url).returns('https://example.com/package')
     status = @ecosystem.check_status(@package)
-    assert_nil status
+    assert_equal false, status
   end
 
   test 'download_and_cache returns nil when wget fails to download' do
@@ -130,5 +160,77 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal cached_file, result
     assert cached_file.exist?
     FileUtils.rm_f(cached_file)
+  end
+
+  test 'sync_tag_backed_versions refreshes moved sha and published_at' do
+    version = @package.versions.create(number: 'v2', published_at: 2.days.ago, metadata: { 'sha' => 'old', 'download_url' => 'old_url', 'other' => 'kept' })
+    published = 1.hour.ago.change(usec: 0)
+
+    @ecosystem.sync_tag_backed_versions(@package, [
+      { number: 'v2', published_at: published, metadata: { sha: 'new', download_url: 'new_url' } }
+    ])
+
+    version.reload
+    assert_equal 'new', version.metadata['sha']
+    assert_equal 'new_url', version.metadata['download_url']
+    assert_equal 'kept', version.metadata['other']
+    assert_equal published, version.published_at
+    assert_nil version.status
+  end
+
+  test 'sync_tag_backed_versions keeps existing download_url when incoming omits it' do
+    version = @package.versions.create(number: 'v3', metadata: { 'sha' => 'old', 'download_url' => 'keep_me' })
+
+    @ecosystem.sync_tag_backed_versions(@package, [
+      { number: 'v3', metadata: { sha: 'new' } }
+    ])
+
+    version.reload
+    assert_equal 'new', version.metadata['sha']
+    assert_equal 'keep_me', version.metadata['download_url']
+  end
+
+  test 'sync_tag_backed_versions marks missing versions removed and restores returning versions' do
+    gone = @package.versions.create(number: 'gone', metadata: { 'sha' => 'a' })
+    already_removed = @package.versions.create(number: 'also-gone', status: 'removed', updated_at: 2.days.ago)
+    already_removed_updated_at = already_removed.updated_at
+    back = @package.versions.create(number: 'back', status: 'removed', metadata: { 'sha' => 'same' })
+
+    @ecosystem.sync_tag_backed_versions(@package, [
+      { 'number' => 'back', 'metadata' => { 'sha' => 'same' } },
+      { 'number' => 'kept', 'metadata' => { 'sha' => 'x' } }
+    ])
+
+    assert_equal 'removed', gone.reload.status
+    assert_equal 'removed', already_removed.reload.status
+    assert_equal already_removed_updated_at.to_i, already_removed.updated_at.to_i
+    assert_nil back.reload.status
+  end
+
+  test 'sync_tag_backed_versions leaves non-removed status alone when sha is unchanged' do
+    version = @package.versions.create(number: 'v1', status: 'deprecated', metadata: { 'sha' => 'same' })
+
+    @ecosystem.sync_tag_backed_versions(@package, [
+      { number: 'v1', metadata: { sha: 'same' } }
+    ])
+
+    assert_equal 'deprecated', version.reload.status
+  end
+
+  test 'sync_tag_backed_versions does nothing when versions_metadata is empty' do
+    version = @package.versions.create(number: 'v1', metadata: { 'sha' => 'a' })
+
+    @ecosystem.sync_tag_backed_versions(@package, [])
+
+    assert_nil version.reload.status
+  end
+
+  test 'sync_tag_backed_versions skips removal when the tags page is full' do
+    beyond_page = @package.versions.create(number: 'old', metadata: { 'sha' => 'a' })
+    full_page = Array.new(Ecosystem::Base::REPOS_TAGS_PER_PAGE) { |i| { number: "v#{i}", metadata: { sha: "s#{i}" } } }
+
+    @ecosystem.sync_tag_backed_versions(@package, full_page)
+
+    assert_nil beyond_page.reload.status
   end
 end

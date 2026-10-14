@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby '4.0.3'
+ruby '4.0.7'
 
 # Rails components
 gem "activemodel", "~> 8.1.1"
@@ -14,6 +14,7 @@ gem "railties", "~> 8.1.1"
 gem "secure_headers"
 gem "sprockets-rails"
 gem "pg"
+gem "sqlite3"
 gem "puma"
 gem "jbuilder"
 gem "bootsnap", require: false
@@ -29,6 +30,7 @@ gem "simple-rss"
 gem "redis"
 gem "sidekiq"
 gem 'sidekiq-unique-jobs'
+gem 'sidekiq-throttled'
 gem "ecosystems-bibliothecary", github: "ecosyste-ms/bibliothecary", branch: "main", require: "bibliothecary"
 gem "pagy", "~> 9.4.0"
 gem "pghero"
@@ -71,8 +73,6 @@ group :test do
   gem "mocha"
   gem "rails-controller-testing"
 end
-
-gem "vers", "~> 1.0"
 
 group :development, :test do
   gem "dotenv-rails", "~> 3.2"

@@ -94,13 +94,18 @@ class BowerTest < ActiveSupport::TestCase
   test 'versions_metadata' do
     stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/angular/bower-angular")
       .to_return({ status: 200, body: file_fixture('bower/lookup?url=https:%2F%2Fgithub.com%2Fangular%2Fbower-angular') })
-    stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/angular/bower-angular/tags")
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/angular/bower-angular/tags?per_page=1000")
       .to_return({ status: 200, body: file_fixture('bower/tags') })
     versions_metadata = @ecosystem.versions_metadata({name: 'bower-angular', repository_url: "https://github.com/angular/bower-angular"})
 
     assert_equal versions_metadata, [
       {:number=>"v1.2.8-build.2093+sha.1c045f1", :published_at=>"2014-01-08T09:03:50.000Z", :metadata=>{:sha=>"c7a4f380b36667b063d5f1b1dcb5aaebba43cf0c", :download_url=>"https://codeload.github.com/angular/bower-angular/tar.gz/v1.2.8-build.2093+sha.1c045f1"}},
       {:number=>"v1.2.8-build.2092+sha.95e1b2d", :published_at=>"2014-01-08T08:49:35.000Z", :metadata=>{:sha=>"24c0a22b32631277c6da4c419a484278e560c7a1", :download_url=>"https://codeload.github.com/angular/bower-angular/tar.gz/v1.2.8-build.2092+sha.95e1b2d"}}]
+  end
+
+  test 'update_existing_versions syncs tag-backed changes' do
+    @ecosystem.expects(:sync_tag_backed_versions).with(@package, [{ number: '1.0.0' }])
+    @ecosystem.update_existing_versions(@package, [{ number: '1.0.0' }])
   end
 
   test 'check_status reuses memoized metadata without extra HTTP request' do

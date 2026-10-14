@@ -29,6 +29,7 @@ module Ecosystem
     end
 
     def download_url(package, version)
+      return nil unless version.present?
       "https://distfiles.adelielinux.org/adelie/current/#{package.metadata['repository']}/#{package.metadata['architecture']}/#{package.name}-#{version.number}.apk"
     end
 
@@ -135,7 +136,8 @@ module Ecosystem
       email = d[1].gsub('>','').strip
       [{
         uuid: email,
-        name: name
+        name: name,
+        email: email
       }]
     end
 

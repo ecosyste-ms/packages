@@ -15,9 +15,10 @@ module Ecosystem
       ':'
     end
 
+    # Nexus 3 answers 200 for any directory path, so check a file that only exists for real artifacts.
     def check_status_url(package)
       group_id, artifact_id = *package.name.split(':', 2)
-      "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/"
+      "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/maven-metadata.xml"
     end
 
     def download_url(package, version)
@@ -56,16 +57,35 @@ module Ecosystem
     end
 
     def namespace_package_names(namespace)
-      get_html("#{@registry_url}/#{namespace.gsub(".", "/")}/").css("a").map do |a|
+      get_html(listing_url(namespace.gsub(".", "/"))).css("a").map do |a|
         next if a.text == "../"
         next if a.text[-1] != "/"
         namespace + ":" + a.text.gsub('/', '')
       end.compact
     end
 
+    # Multi-module releases publish many artifacts at once and the recent feed
+    # only catches some, so list the namespace to queue the siblings we lack.
+    def sync_subpackages_async(package)
+      namespace = package.namespace
+      return if namespace.blank? || !is_maven_central?
+      return unless Rails.cache.write("maven_namespace_listing/#{@registry.id}/#{namespace}", true, expires_in: 1.day, unless_exist: true)
+
+      names = namespace_package_names(namespace)
+      names -= @registry.packages.where(name: names).pluck(:name)
+      # Listings mix sub-groups in with artifacts; skip children we already know as namespaces.
+      sub_groups = @registry.packages.where(namespace: names.map { |name| name.sub(':', '.') }).distinct.pluck(:namespace).to_set
+      names = names.reject { |name| sub_groups.include?(name.sub(':', '.')) }
+      @registry.sync_packages_async(names)
+    rescue => e
+      Rails.logger.error("Error syncing namespace siblings for #{package.name}: #{e.class} #{e.message}")
+    end
+
     def recently_updated_package_names
       if is_maven_central?
-        (recently_updated_package_names_from_sonatype + recently_updated_package_names_from_libraries_io).uniq
+        # maven.libraries.io/mavenCentral/recent stopped updating on 2026-09-24
+        # (recently_updated_package_names_from_sonatype + recently_updated_package_names_from_libraries_io).uniq
+        recently_updated_package_names_from_sonatype.uniq
       elsif supports_archetype_catalog?
         recently_updated_package_names_from_archetype_catalog
       else
@@ -84,19 +104,26 @@ module Ecosystem
         builder.adapter Faraday.default_adapter, accept_encoding: "gzip"
       end
 
-      response = connection.post do |req|
-        req.body = {
-          size: 20,
-          sortField: "publishedDate",
-          sortDirection: "desc"
-        }.to_json
-      end
+      names = []
+      # The API caps size at 20, so page to see more than one release burst.
+      SONATYPE_RECENT_PAGES.times do |page|
+        response = connection.post do |req|
+          req.body = {
+            size: 20,
+            page: page,
+            sortField: "publishedDate",
+            sortDirection: "desc"
+          }.to_json
+        end
 
-      json = JSON.parse(response.body)
-      json.dig("components")&.map { |c| c["id"].gsub('pkg:maven/', '').gsub('/', ':') } || []
+        components = JSON.parse(response.body)["components"]
+        break if components.blank?
+        names.concat(components.map { |c| c["id"].gsub('pkg:maven/', '').gsub('/', ':') })
+      end
+      names
     rescue => e
       Rails.logger.error("Error fetching recently updated from Sonatype: #{e}")
-      []
+      Array(names)
     end
 
     def recently_updated_package_names_from_libraries_io
@@ -191,7 +218,7 @@ module Ecosystem
     end
 
     def fetch_versions_from_html_directory(group_id, artifact_id)
-      directory_url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/"
+      directory_url = directory_listing_url(group_id, artifact_id)
       Rails.logger.info "Fetching versions from HTML directory: #{directory_url}"
       html = get_html(directory_url)
 
@@ -244,6 +271,7 @@ module Ecosystem
             number: version,
             published_at: published_at_node ? Time.parse(published_at_node.text) : nil,
             licenses: license_list,
+            integrity: version_integrity(pkg_metadata[:name], version),
             metadata: {
               properties: properties,
               java_version: extract_java_version(pom),
@@ -260,10 +288,22 @@ module Ecosystem
         .compact
     end
 
+    def version_integrity(name, version)
+      group_id, artifact_id = *name.split(':', 2)
+      url = "#{@registry_url}/#{group_id.gsub('.', '/')}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.jar.sha1"
+      resp = request(url)
+      return nil unless resp.respond_to?(:success?) && resp.success?
+      sha1 = resp.body.to_s.strip[/\A[0-9a-fA-F]{40}/]
+      sha1 ? "sha1-#{sha1.downcase}" : nil
+    rescue Faraday::Error
+      nil
+    end
+
     def dependencies_metadata(name, version, mapped_package)
       group_id, artifact_id = *name.split(':', 2)
-      url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.pom"
-      pom_file = generate_effective_pom(request(url).body)
+      effective = fetch_effective_pom(group_id, artifact_id, version)
+      return [] if effective.nil?
+      pom_file = effective[:body]
       properties = mapped_package&.dig(:properties) || {}
       Bibliothecary::Parsers::Maven.parse_pom_manifest(pom_file, properties).map do |dep|
         {
@@ -307,7 +347,8 @@ module Ecosystem
       child = {
         description: extract_pom_value(xml, "description", parent[:properties]),
         homepage: extract_pom_value(xml, "url", parent[:properties])&.strip,
-        repository_url: repo_fallback(
+        repository_url: scm_repository_url(
+          extract_pom_value(xml, "scm/connection", parent[:properties])&.strip,
           extract_pom_value(xml, "scm/url", parent[:properties])&.strip,
           extract_pom_value(xml, "url", parent[:properties])&.strip
         ),
@@ -320,6 +361,41 @@ module Ecosystem
       }.select { |_k, v| v.present? }
 
       parent.merge(child)
+    end
+
+    APACHE_GIT_HOSTS = %w[git-wip-us.apache.org git.apache.org gitbox.apache.org].freeze
+
+    # Prefer the Git clone URL in scm/connection, then scm/url, then the homepage.
+    def scm_repository_url(connection, scm_url, homepage)
+      [scm_connection_clone_url(connection), scm_url].each do |candidate|
+        found = apache_git_repository_url(candidate) || (UrlParser.try_all(candidate) rescue nil)
+        return found if found.present?
+      end
+      repo_fallback(scm_url, homepage)
+    end
+
+    # "scm:git:https://host/org/repo.git/module" -> "https://host/org/repo.git"
+    def scm_connection_clone_url(connection)
+      return nil if connection.blank?
+      return nil if connection.match?(/\Ascm[:|]/i) && !connection.match?(/\Ascm[:|]git[:|]/i)
+      url = connection.sub(/\Ascm[:|]git[:|]/i, "")
+      url.sub(%r{(\.git)/.*\z}i, '\1')
+    end
+
+    # Apache Git locations moved to GitBox. Handles /repos/asf/<name>.git paths
+    # and Gitweb query URLs (/repos/asf?p=<name>.git;a=summary), keeping the repository root.
+    def apache_git_repository_url(url)
+      return nil if url.blank?
+      uri = URI.parse(url)
+      return nil unless APACHE_GIT_HOSTS.include?(uri.host)
+      name = if uri.query
+        Rack::Utils.parse_query(uri.query.tr(";", "&"))["p"].to_s[%r{\A([^/]+\.git)}i, 1]
+      else
+        uri.path.to_s[%r{\A/(?:repos/asf/)?([^/]+\.git)}i, 1]
+      end
+      name.present? ? "https://gitbox.apache.org/repos/asf/#{name}" : nil
+    rescue URI::InvalidURIError
+      nil
     end
 
     def extract_pom_value(xml, location, parent_properties = {})
@@ -419,89 +495,77 @@ module Ecosystem
     end
 
     def generate_effective_pom(xml_body)
+      capacity_acquired = false
       return xml_body unless ENV['ENABLE_MAVEN_EFFECTIVE_POM'] == 'true'
 
-      Tempfile.create(%w[pom_ .xml]) do |input_file|
-        File.write(input_file.path, xml_body)
-        input_file.flush
+      capacity_acquired = wait_for_pom_capacity
+      return xml_body unless capacity_acquired
 
-        # Run Maven to generate effective POM
-        Tempfile.create(%w[effective_pom_ .xml]) do |output_file|
-          # Throttle based on concurrent Maven processes
-          wait_for_maven_capacity
+      stdout, stderr, status = Open3.capture3(
+        "pom", "-f", "-", "-xml", "-repo", @registry_url, "-timeout", "30s",
+        stdin_data: xml_body
+      )
 
-          begin
-            # Build command - use timeout/nice in production (Docker has coreutils)
-            # Fallback to plain mvn on dev machines
-            if File.exist?("/usr/bin/timeout") || File.exist?("/bin/timeout")
-              cmd = ["timeout", "180s", "nice", "-n", "10", "mvn", "help:effective-pom", "-B", "-q", "-f", input_file.path, "-Doutput=#{output_file.path}"]
-            else
-              cmd = ["mvn", "help:effective-pom", "-B", "-q", "-f", input_file.path, "-Doutput=#{output_file.path}"]
-            end
-
-            env = {
-              "MAVEN_OPTS" => "-Xmx128m -Xms64m -XX:+UseSerialGC -XX:MaxMetaspaceSize=64m -XX:ActiveProcessorCount=1"
-            }
-
-            stdout, stderr, status = Open3.capture3(env, *cmd)
-
-            unless status.success?
-              return xml_body
-            end
-
-            # Parse the effective POM
-            File.read(output_file.path)
-          ensure
-            release_maven_capacity
-          end
-        end
+      unless status.success?
+        Rails.logger.warn("pom: effective-pom failed: #{stderr.strip}")
+        return xml_body
       end
 
+      stdout
     rescue => e
+      Rails.logger.warn("pom: #{e.class}: #{e.message}")
       xml_body
+    ensure
+      release_pom_capacity if capacity_acquired
     end
 
-    def wait_for_maven_capacity
-      max_concurrent = ENV.fetch('MAX_CONCURRENT_MAVEN', '10').to_i
-      redis_key = 'maven:running_processes'
-      max_wait = 300
-
-      started_at = Time.now
-
-      lua_script = <<-LUA
+    def wait_for_pom_capacity
+      max_concurrent = [ENV.fetch('MAX_CONCURRENT_POM', '5').to_i, 1].max
+      wait_timeout = [ENV.fetch('POM_CAPACITY_WAIT_TIMEOUT', '5').to_f, 0].max
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + wait_timeout
+      redis_key = 'pom:running_processes'
+      lua_script = <<~LUA
         local key = KEYS[1]
         local max = tonumber(ARGV[1])
         local current = tonumber(redis.call('get', key) or 0)
         if current < max then
           redis.call('incr', key)
-          redis.call('expire', key, 300)
+          redis.call('expire', key, ARGV[2])
           return 1
-        else
-          return 0
         end
+        return 0
       LUA
 
       loop do
-        result = REDIS.eval(lua_script, keys: [redis_key], argv: [max_concurrent])
-        break if result == 1
+        result = REDIS.eval(lua_script, keys: [redis_key], argv: [max_concurrent, 60])
+        return true if result == 1
 
-        if Time.now - started_at > max_wait
-          Rails.logger.error("Timed out waiting for Maven capacity after #{max_wait}s")
-          raise "Maven capacity timeout"
+        if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+          Rails.logger.warn("pom: capacity limit reached after #{wait_timeout}s")
+          return false
         end
 
-        sleep(0.5)
+        sleep(0.1)
       end
     rescue => e
-      Rails.logger.error("Failed to acquire Maven capacity: #{e.message}")
-      raise
+      Rails.logger.warn("pom: failed to acquire capacity: #{e.message}")
+      false
     end
 
-    def release_maven_capacity
-      redis_key = 'maven:running_processes'
-      REDIS.decr(redis_key)
+    def release_pom_capacity
+      redis_key = 'pom:running_processes'
+      lua_script = <<~LUA
+        local key = KEYS[1]
+        local current = tonumber(redis.call('get', key) or 0)
+        if current <= 1 then
+          redis.call('del', key)
+          return 0
+        end
+        return redis.call('decr', key)
+      LUA
+      REDIS.eval(lua_script, keys: [redis_key])
     rescue => e
-      Rails.logger.error("Failed to release Maven capacity: #{e.message}")
+      Rails.logger.warn("pom: failed to release capacity: #{e.message}")
     end
 
     def download_pom(group_id, artifact_id, version)
@@ -513,12 +577,11 @@ module Ecosystem
     end
 
     def fetch_pom(group_id, artifact_id, version)
-      url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.pom"
-      pom_request = request(url)
-      return nil if pom_request.status == 404
-      xml = Ox.parse(generate_effective_pom(pom_request.body))
+      effective = fetch_effective_pom(group_id, artifact_id, version)
+      return nil if effective.nil?
+      xml = Ox.parse(effective[:body])
       return nil if xml.nil?
-      published_at = pom_request.headers["Last-Modified"]
+      published_at = effective[:last_modified]
       if published_at.present?
         pat = Ox::Element.new("publishedAt")
         pat << published_at
@@ -527,6 +590,18 @@ module Ecosystem
       xml
     rescue URI::InvalidURIError, Ox::Error
       nil
+    end
+
+    def fetch_effective_pom(group_id, artifact_id, version)
+      @effective_pom_cache ||= {}
+      key = "#{group_id}/#{artifact_id}/#{version}"
+      return @effective_pom_cache[key] if @effective_pom_cache.key?(key)
+      url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.pom"
+      resp = request(url)
+      return @effective_pom_cache[key] = nil if resp.status == 404
+      @effective_pom_cache[key] = { body: generate_effective_pom(resp.body), last_modified: resp.headers["Last-Modified"] }
+    rescue URI::InvalidURIError
+      @effective_pom_cache[key] = nil
     end
 
     def get_pom(group_id, artifact_id, version, seen = [])
@@ -598,29 +673,43 @@ module Ecosystem
       license_urls.map { |url| url_license_map[url.strip] }.compact
     end
 
+    MAVEN_CENTRAL_URLS = [
+      "https://repo.maven.apache.org/maven2",
+      "https://repo1.maven.org/maven2",
+      "https://maven-central.storage-download.googleapis.com/maven2"
+    ].freeze
+
+    MAVEN_CENTRAL_GCS_MIRROR = "https://maven-central.storage-download.googleapis.com/maven2"
+
+    SONATYPE_RECENT_PAGES = 5
+
+    def directory_listing_url(group_id, artifact_id)
+      listing_url("#{group_id.gsub(".", "/")}/#{artifact_id}")
+    end
+
+    # The Google mirror 404s on bare directory paths and only serves index.html.
+    def listing_url(path)
+      base = "#{@registry_url}/#{path}/"
+      @registry_url == MAVEN_CENTRAL_GCS_MIRROR ? "#{base}index.html" : base
+    end
+
+    def self.declared_repositories_key
+      'repositories'
+    end
+
+    # Drops ${...} placeholders and names without a groupId.
+    def self.resolvable_dependency_name?(name)
+      name.count(':') == 1 && !name.include?('$')
+    end
+
     private
 
     def is_maven_central?
-      @registry_url == "https://repo.maven.apache.org/maven2" || @registry_url == "https://repo1.maven.org/maven2"
+      MAVEN_CENTRAL_URLS.include?(@registry_url)
     end
 
     def supports_archetype_catalog?
-      case @registry_url
-      when "https://repo.maven.apache.org/maven2", "https://repo1.maven.org/maven2"
-        true
-      when "https://repository.jboss.org/nexus/content/repositories/releases"
-        true
-      when "https://repository.apache.org/content/repositories/releases"
-        true
-      when "https://repository.apache.org/content/repositories/snapshots"
-        true
-      when "https://artifacts.alfresco.com/nexus/content/repositories/public"
-        true
-      when "https://repository.cloudera.com/content/repositories/public"
-        true
-      else
-        false
-      end
+      is_maven_central? || @registry.metadata.to_h['archetype_catalog'].present?
     end
 
     def is_snapshot_repository?

@@ -174,14 +174,37 @@ class ActionsTest < ActiveSupport::TestCase
       :homepage=>nil, 
       :tags_url=>"http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/getsentry%2Faction-git-diff-suggestions/tags", 
       :namespace=>"getsentry", 
-      :metadata=>{"name"=>"action-git-diff-suggestions", "description"=>"This GitHub Action will take the current git changes and apply them as GitHub code review suggestions", "author"=>"Sentry", "branding"=>{"icon"=>"book-open", "color"=>"purple"}, "inputs"=>{"github-token"=>{"description"=>"github token"}, "message"=>{"description"=>"The message to prepend the review suggestion"}}, "runs"=>{"using"=>"node12", "main"=>"dist/index.js"}, "default_branch"=>"main", "path"=>nil}}
+      :metadata=>{"name"=>"action-git-diff-suggestions", "description"=>"This GitHub Action will take the current git changes and apply them as GitHub code review suggestions", "author"=>"Sentry", "branding"=>{"icon"=>"book-open", "color"=>"purple"}, "inputs"=>{"github-token"=>{"description"=>"github token", "default"=>"${{ github.token }}"}, "message"=>{"description"=>"The message to prepend the review suggestion"}}, "runs"=>{"using"=>"node12", "main"=>"dist/index.js"}, "default_branch"=>"main", "path"=>nil}}
+    assert_not_requested :get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/getsentry%2Faction-git-diff-suggestions/tags?per_page=1000"
+    assert_not_requested :get, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/v1/action.yml"
+  end
+
+  test 'package_metadata falls back to tags when default branch has no action file' do
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/getsentry/action-git-diff-suggestions")
+      .to_return({ status: 200, body: file_fixture('actions/lookup?url=https:%2F%2Fgithub.com%2Fgetsentry%2Faction-git-diff-suggestions') })
+    stub_request(:get, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/main/action.yml")
+      .to_return({ status: 404 })
+    stub_request(:get, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/main/action.yaml")
+      .to_return({ status: 404 })
+    stub_request(:get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/getsentry%2Faction-git-diff-suggestions/tags?per_page=1000")
+      .to_return({ status: 200, body: file_fixture('actions/tags') })
+    stub_request(:get, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/v1/action.yml")
+      .to_return({ status: 200, body: file_fixture('actions/action.yml.1') })
+
+    package_metadata = @ecosystem.package_metadata('getsentry/action-git-diff-suggestions')
+    assert_equal 'getsentry/action-git-diff-suggestions', package_metadata[:name]
+    assert_equal 'node12', package_metadata[:metadata]['runs']['using']
   end
 
   test 'versions_metadata' do
+    lookup = Oj.load(file_fixture('actions/lookup?url=https:%2F%2Fgithub.com%2Fgetsentry%2Faction-git-diff-suggestions').read)
+    lookup['releases_url'] = 'http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/getsentry%2Faction-git-diff-suggestions/releases'
     stub_request(:get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/getsentry%2Faction-git-diff-suggestions/tags?per_page=1000")
       .to_return({ status: 200, body: file_fixture('actions/tags') })
+    stub_request(:get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/getsentry%2Faction-git-diff-suggestions/releases?per_page=1000")
+      .to_return({ status: 200, body: file_fixture('actions/releases') })
     stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/getsentry/action-git-diff-suggestions")
-      .to_return({ status: 200, body: file_fixture('actions/lookup?url=https:%2F%2Fgithub.com%2Fgetsentry%2Faction-git-diff-suggestions') })
+      .to_return({ status: 200, body: lookup.to_json })
     stub_request(:get, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/main/action.yml")
       .to_return({ status: 200, body: file_fixture('actions/action.yml') })
     stub_request(:get, "https://raw.githubusercontent.com/getsentry/action-git-diff-suggestions/v1/action.yml")
@@ -189,7 +212,79 @@ class ActionsTest < ActiveSupport::TestCase
     package_metadata = @ecosystem.package_metadata('getsentry/action-git-diff-suggestions')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
-    assert_equal versions_metadata.first, {:number=>"v1", :published_at=>"2020-11-25T01:40:25.000Z", :metadata=>{:sha=>"8c75946d0d7bbe80a92cf3579d544321512c30b7", :download_url=>"https://codeload.github.com/getsentry/action-git-diff-suggestions/tar.gz/v1"}}
+    assert_equal versions_metadata.first, {:number=>"v1", :published_at=>"2020-11-25T01:40:25.000Z", :metadata=>{:sha=>"8c75946d0d7bbe80a92cf3579d544321512c30b7", :download_url=>"https://codeload.github.com/getsentry/action-git-diff-suggestions/tar.gz/v1", :immutable=>true}}
+  end
+
+  test 'versions_metadata keeps tags when releases are unavailable' do
+    tags_url = 'https://repos.ecosyste.ms/tags'
+    releases_url = 'https://repos.ecosyste.ms/releases'
+    tags = Oj.load(file_fixture('actions/tags').read)
+    @ecosystem.stubs(:get_json).with("#{tags_url}?per_page=1000").returns(tags)
+    @ecosystem.stubs(:get_json).with("#{releases_url}?per_page=1000").raises(StandardError)
+
+    versions_metadata = @ecosystem.versions_metadata(tags_url: tags_url, releases_url: releases_url)
+
+    assert_equal 1, versions_metadata.length
+    refute versions_metadata.first[:metadata].key?(:immutable)
+  end
+
+  test 'update_versions stores immutability on an existing version' do
+    @registry.stubs(:ecosystem_instance).returns(@ecosystem)
+    @ecosystem.stubs(:package_metadata).with(@package.name).returns({ name: @package.name })
+    @ecosystem.stubs(:versions_metadata).returns([
+      {
+        number: @version.number,
+        metadata: {
+          download_url: @version.metadata['download_url'],
+          immutable: true
+        }
+      }
+    ])
+
+    @package.update_versions
+
+    assert @version.reload.immutable
+  end
+
+  test 'update_existing_versions refreshes changed immutability' do
+    @version.update!(metadata: @version.metadata.merge('immutable' => false))
+
+    @ecosystem.update_existing_versions(
+      @package,
+      [{ number: @version.number.upcase, metadata: { immutable: true } }]
+    )
+
+    assert @version.reload.immutable
+  end
+
+  test 'update_existing_versions handles null metadata' do
+    @version.update_column(:metadata, nil)
+
+    @ecosystem.update_existing_versions(
+      @package,
+      [{ number: @version.number, metadata: { immutable: true } }]
+    )
+
+    assert_equal({ 'immutable' => true }, @version.reload.metadata)
+  end
+
+  test 'update_versions preserves immutability when the release value is null' do
+    @version.update!(metadata: @version.metadata.merge('immutable' => true))
+    @registry.stubs(:ecosystem_instance).returns(@ecosystem)
+    @ecosystem.stubs(:package_metadata).with(@package.name).returns({ name: @package.name })
+    @ecosystem.stubs(:versions_metadata).returns([
+      {
+        number: @version.number,
+        metadata: {
+          download_url: @version.metadata['download_url'],
+          immutable: nil
+        }
+      }
+    ])
+
+    @package.update_versions
+
+    assert @version.reload.immutable
   end
 
   test 'purl' do
@@ -202,5 +297,27 @@ class ActionsTest < ActiveSupport::TestCase
     purl = @ecosystem.purl(@package, @version)
     assert_equal purl, 'pkg:githubactions/getsentry/action-git-diff-suggestions@v1'
     assert Purl.parse(purl)
+  end
+
+  test 'purl preserves nested actions with the same owner and final path segment' do
+    names = ['github/gh-aw/actions/setup', 'github/gh-aw-actions/setup']
+    purls = names.map do |name|
+      package = @registry.packages.build(ecosystem: 'actions', name: name)
+      @ecosystem.purl(package)
+    end
+
+    assert_equal ['pkg:githubactions/github/gh-aw/actions/setup', 'pkg:githubactions/github/gh-aw-actions/setup'], purls
+    reconstructed_names = purls.map do |purl|
+      parsed = Purl.parse(purl)
+      [parsed.namespace, parsed.name].join('/')
+    end
+    assert_equal names, reconstructed_names
+  end
+
+  test 'versioned purl preserves the full nested action path and its casing' do
+    package = @registry.packages.build(ecosystem: 'actions', name: 'example/repository/Actions/Setup')
+    version = package.versions.build(number: 'v1')
+
+    assert_equal 'pkg:githubactions/example/repository/Actions/Setup@v1', @ecosystem.purl(package, version)
   end
 end

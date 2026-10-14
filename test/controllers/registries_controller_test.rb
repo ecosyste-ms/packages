@@ -31,4 +31,29 @@ class RegistriesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :not_found
   end
+
+  test 'keyword action renders packages without metadata' do
+    registry = Registry.create!(name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go')
+    package = registry.packages.create!(name: 'github.com/example/structures', ecosystem: 'go', keywords: ['structures'], metadata: nil)
+
+    get keyword_registry_path(registry.name, 'structures')
+
+    assert_response :success
+    assert_select '.card-title a', text: package.name
+    assert_select '[title="Accepts funding"]', count: 0
+  end
+
+  test 'keyword action shows repository funding without package metadata' do
+    registry = Registry.create!(name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go')
+    package = registry.packages.create!(
+      name: 'github.com/example/structures', ecosystem: 'go', keywords: ['structures'], metadata: nil,
+      repo_metadata: { 'metadata' => { 'funding' => { 'github' => 'example' } } }
+    )
+
+    get keyword_registry_path(registry.name, 'structures')
+
+    assert_response :success
+    assert_select '.card-title a', text: package.name
+    assert_select '[title="Accepts funding"]', count: 1
+  end
 end

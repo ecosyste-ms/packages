@@ -50,6 +50,7 @@ class AdelieTest < ActiveSupport::TestCase
     assert_equal 1, maintainers.length
     assert_equal 'awilfox@adelielinux.org', maintainers.first[:uuid]
     assert_equal 'A. Wilcox', maintainers.first[:name]
+    assert_equal 'awilfox@adelielinux.org', maintainers.first[:email]
   end
 
   test 'dependencies_metadata returns empty array when package not found' do
@@ -86,6 +87,11 @@ class AdelieTest < ActiveSupport::TestCase
     version = @package.versions.build(number: '3.5-r0')
     download_url = @ecosystem.download_url(@package, version)
     assert_equal download_url, 'https://distfiles.adelielinux.org/adelie/current/system/x86_64/abuild-3.5-r0.apk'
+  end
+
+  test 'download_url without version returns nil' do
+    download_url = @ecosystem.download_url(@package, nil)
+    assert_nil download_url
   end
 
   test 'install_command' do

@@ -48,6 +48,20 @@ class SwiftpmTest < ActiveSupport::TestCase
     assert_equal check_status_url, "https://swiftpackageindex.com/swift-cloud/Compute"
   end
 
+  test 'check_status returns nil when url is invalid' do
+    @ecosystem.stubs(:fetch_package_metadata).returns(nil)
+    @ecosystem.stubs(:check_status_url).returns("https://swift-tar (#13072)")
+
+    assert_nil @ecosystem.check_status(@package)
+  end
+
+  test 'check_status returns nil on connection failure' do
+    @ecosystem.stubs(:fetch_package_metadata).returns(nil)
+    stub_request(:head, "https://swiftpackageindex.com/swift-cloud/Compute").to_raise(Faraday::ConnectionFailed)
+
+    assert_nil @ecosystem.check_status(@package)
+  end
+
   test 'purl' do
     purl = @ecosystem.purl(@package)
     assert_equal purl, 'pkg:swift/github.com/swift-cloud/Compute'
@@ -69,11 +83,27 @@ class SwiftpmTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
-    stub_request(:get, "https://github.com/SwiftPackageIndex/PackageList/commits/main.atom")
-    .to_return({ status: 200, body: file_fixture('swiftpm/main.atom') })
+    stub_request(:get, "https://swiftpackageindex.com/packages.rss")
+      .to_return({ status: 200, body: file_fixture('swiftpm/packages.rss') })
+    stub_request(:get, "https://swiftpackageindex.com/releases.rss")
+      .to_return({ status: 200, body: file_fixture('swiftpm/releases.rss') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 6
-    assert_equal recently_updated_package_names.last, 'MediaPicker'
+    assert_equal recently_updated_package_names.first, 'github.com/drmaxgit/swift-drmax-navigation'
+    assert_includes recently_updated_package_names, 'github.com/peteroettl/Cadence'
+    assert_includes recently_updated_package_names, 'github.com/ivantokar/hokusai-vapor'
+    assert recently_updated_package_names.all? { |n| n.start_with?('github.com/') && n.count('/') == 2 }
+  end
+
+  test 'package_metadata returns nil when repos lookup is rate limited' do
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/swift-cloud/Compute")
+      .to_return({ status: 429, body: '{"error_msg":"Rate limit exceeded"}' })
+    assert_nil @ecosystem.package_metadata('github.com/swift-cloud/Compute')
+  end
+
+  test 'package_metadata returns nil when repos lookup errors' do
+    stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/swift-cloud/Compute")
+      .to_return({ status: 500, body: '{"error":"internal server error"}' })
+    assert_nil @ecosystem.package_metadata('github.com/swift-cloud/Compute')
   end
   
   test 'package_metadata' do
@@ -93,7 +123,7 @@ class SwiftpmTest < ActiveSupport::TestCase
   end
 
   test 'versions_metadata' do
-    stub_request(:get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/swift-cloud%2FCompute/tags")
+    stub_request(:get, "http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/swift-cloud%2FCompute/tags?per_page=1000")
       .to_return({ status: 200, body: file_fixture('swiftpm/tags') })
     stub_request(:get, "https://repos.ecosyste.ms/api/v1/repositories/lookup?url=https://github.com/swift-cloud/Compute")
       .to_return({ status: 200, body: file_fixture('swiftpm/lookup?url=https:%2F%2Fgithub.com%2Fswift-cloud%2FCompute') })
@@ -147,5 +177,10 @@ class SwiftpmTest < ActiveSupport::TestCase
       {:package_name=>"github.com/krzyzanowskim/CryptoSwift", :requirements=>"1.6.0", :kind=>"runtime", :ecosystem=>"swiftpm"},
       {:package_name=>"github.com/apple/swift-docc-plugin", :requirements=>"1.0.0", :kind=>"runtime", :ecosystem=>"swiftpm"}
     ], dependencies_metadata
+  end
+
+  test 'update_existing_versions syncs tag-backed changes' do
+    @ecosystem.expects(:sync_tag_backed_versions).with(@package, [{ number: '2.3.1' }])
+    @ecosystem.update_existing_versions(@package, [{ number: '2.3.1' }])
   end
 end

@@ -26,7 +26,7 @@ class TopController < ApplicationController
       @sort = Arel.sql("(repo_metadata ->> 'forks_count')::text::integer").desc.nulls_last
     when 'versions_count'
       @sort_name = 'versions'
-      @sort = 'versions_count desc nulls last'      
+      @sort = Package.sort_order(sort: 'versions_count', order: 'desc')
     when 'maintainers_count'
       @sort_name = 'maintainers'
       @sort = 'maintainers_count desc nulls last'

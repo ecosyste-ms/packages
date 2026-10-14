@@ -49,6 +49,9 @@
       "browserify": {
         "transform": ["loose-envify"]
       },
+      "contentPolicy": {
+        "class": "dual-use"
+      },
       "repository": {
         "url": "git+https://github.com/facebook/react.git",
         "type": "git",

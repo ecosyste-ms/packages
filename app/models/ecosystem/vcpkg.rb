@@ -7,7 +7,7 @@ module Ecosystem
     end
 
     def install_command(package, _version = nil)
-      ".\vcpkg install #{package.name}"
+      ".\\vcpkg install #{package.name}"
     end
 
     def check_status(package)

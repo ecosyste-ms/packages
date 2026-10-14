@@ -14,12 +14,32 @@ module Ecosystem
       false
     end
 
+    def sync_missing_packages_incrementally?
+      false
+    end
+
     def sync_maintainers_inline?
       false
     end
 
+    def sync_subpackages_async(_package)
+    end
+
     def has_dependent_repos?
       true
+    end
+
+    # Package metadata key holding the repository URLs a package declares, for ecosystems that support it.
+    def self.declared_repositories_key
+      nil
+    end
+
+    def self.resolvable_dependency_name?(_name)
+      true
+    end
+
+    def self.normalize_repository_url(url)
+      url.to_s.strip.downcase.sub(%r{\Ahttps?://}, '').sub(%r{/+\z}, '')
     end
 
     def self.list
@@ -88,21 +108,25 @@ module Ecosystem
         URI.parse(url)
       rescue URI::InvalidURIError => e
         Rails.logger.warn("Invalid URI for package #{package.id} (#{package.name}): #{url} - #{e.message}")
-        return nil
+        return false
       end
 
       connection = Faraday.new(url) do |faraday|
         faraday.use Faraday::FollowRedirects::Middleware
+        faraday.request :instrumentation
         faraday.adapter Faraday.default_adapter
         faraday.options.timeout = 10
         faraday.options.open_timeout = 5
       end
 
       response = connection.head(url)
-      "removed" if [400, 404, 410].include?(response.status)
+      return "removed" if [400, 404, 410].include?(response.status)
+      return nil if response.success?
+
+      false
     rescue => e
       Rails.logger.warn("Error checking status for package #{package.id} (#{package.name}): #{e.message}")
-      nil
+      false
     end
 
     def ecosystem_name(ecosystem)
@@ -113,14 +137,25 @@ module Ecosystem
       []
     end
 
-    def fetch_package_metadata(name)
-      return @last_fetched_metadata if @last_fetched_name == name
-      @last_fetched_name = name
-      @last_fetched_metadata = fetch_package_metadata_uncached(name)
+    def fetch_package_metadata(name, version: nil)
+      cache_key = [name, version]
+      return @last_fetched_metadata if @last_fetched_key == cache_key
+
+      metadata = if version
+                   fetch_package_metadata_for_version(name, version)
+                 else
+                   fetch_package_metadata_uncached(name)
+                 end
+      @last_fetched_key = cache_key
+      @last_fetched_metadata = metadata
     end
 
-    def package_metadata(name)
-      map_package_metadata(fetch_package_metadata(name))
+    def fetch_package_metadata_for_version(name, _version)
+      fetch_package_metadata_uncached(name)
+    end
+
+    def package_metadata(name, version: nil)
+      map_package_metadata(fetch_package_metadata(name, version: version))
     end
 
     def map_dependencies(deps, kind, optional = false, ecosystem = self.class.name.demodulize.downcase)
@@ -233,6 +268,51 @@ module Ecosystem
       []
     end
 
+    def update_existing_versions(_package, _versions_metadata)
+      nil
+    end
+
+    REPOS_TAGS_PER_PAGE = 1000
+
+    def sync_tag_backed_versions(package, versions_metadata)
+      return if versions_metadata.blank?
+
+      remote = versions_metadata.each_with_object({}) do |version, result|
+        version = version.with_indifferent_access
+        result[version[:number].to_s.downcase] = version
+      end
+      mark_removed = versions_metadata.size < REPOS_TAGS_PER_PAGE
+      now = Time.current
+
+      package.versions.select(:id, :number, :status, :published_at, :metadata).find_each do |version|
+        incoming = remote[version.number.to_s.downcase]
+        if incoming.nil?
+          next unless mark_removed
+          next if version.status == 'removed'
+          version.update_columns(status: 'removed', updated_at: now)
+          next
+        end
+
+        updates = {}
+        updates[:status] = nil if version.status == 'removed'
+
+        incoming_metadata = (incoming[:metadata] || {}).with_indifferent_access
+        existing_metadata = (version.metadata || {}).with_indifferent_access
+        if incoming_metadata[:sha].present? && incoming_metadata[:sha] != existing_metadata[:sha]
+          new_metadata = existing_metadata.merge('sha' => incoming_metadata[:sha])
+          new_metadata['download_url'] = incoming_metadata[:download_url] if incoming_metadata[:download_url].present?
+          updates[:metadata] = new_metadata
+          updates[:published_at] = incoming[:published_at] if incoming[:published_at].present?
+        end
+
+        version.update_columns(updates.merge(updated_at: now)) if updates.any?
+      end
+    end
+
+    def merge_version_metadata(_existing_metadata, new_metadata)
+      new_metadata
+    end
+
     def download_and_cache(url, cache_key, ttl: 1.hour)
       cache_dir = Rails.root.join('tmp', 'cache', 'ecosystems')
       FileUtils.mkdir_p(cache_dir)
@@ -342,6 +422,11 @@ module Ecosystem
     def get_json(url, options = {})
       options.deep_merge!(headers: { "Accept" => "application/json" })
       get(url, options)
+    end
+
+    def get_json_array(url, options = {})
+      json = get_json(url, options)
+      json.is_a?(Array) ? json : []
     end
   end
 end

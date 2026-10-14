@@ -29,6 +29,7 @@ module Ecosystem
     end
 
     def download_url(package, version)
+      return nil unless version.present?
       "https://mirror.postmarketos.org/postmarketos/#{@registry.version}/#{package.metadata['architecture']}/#{package.name}-#{version.number}.apk"
     end
 
@@ -133,6 +134,7 @@ module Ecosystem
       [{
         uuid: email,
         name: name,
+        email: email,
         url: "https://pkgs.postmarketoslinux.org/packages?maintainer=#{name}",
       }]
     end

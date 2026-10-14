@@ -233,7 +233,8 @@ module Ecosystem
         email = $2.strip
         [{
           uuid: email,
-          name: name
+          name: name,
+          email: email
         }]
       else
         []

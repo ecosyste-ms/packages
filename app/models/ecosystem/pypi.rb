@@ -72,7 +72,7 @@ module Ecosystem
           "funding" => fetch_funding_link(package.dig("info", "project_urls") || {}, %w[donate donation funding sponsor]),
           "documentation" => package.dig("info", "project_urls", "Documentation"),
           "classifiers" => package["info"]["classifiers"],
-          "normalized_name" => package["info"]["name"].downcase.gsub('_', '-').gsub('.', '-'),
+          "normalized_name" => package["info"]["name"].downcase.gsub(/[-_.]+/, '-'),
           "project_status" => package["project-status"]
         }
       }
@@ -160,6 +160,7 @@ module Ecosystem
           {
             number: k,
             published_at: nil,
+            status: nil,
             integrity: nil,
             licenses: nil,
             metadata: {
@@ -170,6 +171,7 @@ module Ecosystem
           {
             number: k,
             published_at: v[0]["upload_time"],
+            status: v.all? { |file| file['yanked'] } ? 'yanked' : nil,
             integrity: 'sha256-' + v[0]['digests']['sha256'],
             licenses: version_licenses(name, k),
             metadata: {
@@ -184,6 +186,21 @@ module Ecosystem
             }
           }
         end
+      end
+    end
+
+    def update_existing_versions(package, _versions_metadata)
+      releases = fetch_package_metadata(package.name).fetch('releases', {})
+      yanked, available = releases.reject { |_, files| files.blank? }
+                                  .partition { |_, files| files.all? { |file| file['yanked'] } }
+      newly_yanked = package.versions.where(number: yanked.map(&:first)).where("status IS DISTINCT FROM 'yanked'")
+      restored = package.versions.where(number: available.map(&:first), status: 'yanked')
+
+      newly_yanked.or(restored).select(:id, :number, :metadata).find_each do |version|
+        files = releases[version.number]
+        status = files.all? { |file| file['yanked'] } ? 'yanked' : nil
+        metadata = (version.metadata || {}).merge(files.first.slice('yanked', 'yanked_reason'))
+        version.update_columns(status: status, metadata: metadata, updated_at: Time.current)
       end
     end
 
@@ -208,8 +225,7 @@ module Ecosystem
     end
 
     def version_licenses(name, version)
-      info = fetch_version(name, version)["info"] || {}
-      info["license_expression"].presence || info["license"].presence
+      licenses(fetch_version(name, version))
     end
 
     def dependencies_metadata(name, version, _package)
@@ -235,12 +251,24 @@ module Ecosystem
       nil
     end
 
-    def licenses(package)
-      return package["info"]["license_expression"] if package["info"]["license_expression"].present?
-      return package["info"]["license"] if package["info"]["license"].present?
+    LICENSE_IDENTIFIER_MAX_LENGTH = 100
 
-      license_classifiers = package["info"]["classifiers"].select { |c| c.start_with?("License :: ") }
-      license_classifiers.map { |l| l.split(":: ").last }.join(",")
+    def licenses(package)
+      info = package["info"] || {}
+      return info["license_expression"] if info["license_expression"].present?
+
+      license = info["license"]
+      return license if license_identifier?(license)
+
+      license_classifiers = (info["classifiers"] || []).select { |c| c.start_with?("License :: ") }
+      return license_classifiers.map { |l| l.split(":: ").last }.join(",") if license_classifiers.any?
+
+      license.presence
+    end
+
+    def license_identifier?(license)
+      return false if license.blank?
+      license.length <= LICENSE_IDENTIFIER_MAX_LENGTH && !license.include?("\n")
     end
 
     def package_find_names(package_name)

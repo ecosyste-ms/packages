@@ -62,12 +62,15 @@ module Ecosystem
 
     def map_package_metadata(package)
       return nil if package["distribution"].nil?
+      resources = package.fetch("resources", {})
+      repo_web = resources.dig("repository", "web")
+      candidates = [repo_web, resources.dig("repository", "url"), resources.dig("bugtracker", "web"), resources["homepage"]].compact
       {
         name: package["distribution"],
-        homepage: package.fetch("resources", {})["homepage"],
+        homepage: resources["homepage"],
         description: package["abstract"],
         licenses: package.fetch("license", []).join(","),
-        repository_url: repo_fallback(package.fetch("resources", {}).fetch("repository", {})["web"], package.fetch("resources", {})["homepage"]),
+        repository_url: find_repository_url(candidates) || repo_web,
         keywords_array: package.fetch("metadata", {})["keywords"],
         metadata:{
           author: package['author']

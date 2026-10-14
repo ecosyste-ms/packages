@@ -14,12 +14,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = scope.critical if params[:critical].present?
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns)
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order)
     end
 
     @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
@@ -37,12 +32,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = scope.with_funding if params[:funding].present?
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns)
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order)
     end
 
     @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
@@ -58,12 +48,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = scope.where(registry_id: @registry.id) if @registry
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns, default: 'downloads')
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order(default: 'downloads'))
     else
       scope = scope.order_by_maintainer_count_asc.order('downloads DESC nulls last')
     end
@@ -75,6 +60,10 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
   end
 
   def lookup
+    unless params[:repository_url].present? || params[:purl].present? || params[:name].present?
+      return render json: { error: 'Missing repository_url, purl or name parameter' }, status: :bad_request
+    end
+
     scope = Package.all
     if params[:id].present?
       @registry = Registry.find_by_name!(params[:id])
@@ -85,20 +74,24 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       scope = scope.repository_url(params[:repository_url])
       scope = scope.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
     elsif params[:purl].present?
+      unless params[:purl].is_a?(String)
+        render json: { error: "purl must be a single string; use POST /api/v1/packages/bulk_lookup for multiple purls" }, status: :unprocessable_content and return
+      end
       scope = lookup_by_purl(params[:purl])
     else
       params[:name] = "library/#{params[:name]}" if params[:ecosystem] == 'docker' && !params[:name].include?('/')
-      scope = scope.where(name: params[:name])
+      name = params[:name]
+      ecosystem = @registry&.ecosystem || params[:ecosystem]
+      name = name.downcase if ecosystem == 'nuget'
+      if @registry.nil? && params[:ecosystem].present?
+        scope = scope.where(registry_id: Registry.where(ecosystem: params[:ecosystem]).pluck(:id))
+      end
+      scope = ecosystem == 'pypi' ? scope.with_pypi_name(name) : scope.where(name: name)
       scope = scope.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
     end
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns)
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order)
     end
 
     @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
@@ -143,7 +136,9 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     elsif params[:purls].present?
       @packages = Package.purl(params[:purls]).limit(1000)
     else
-      @packages = Package.where(name: params[:names]).limit(1000)
+      @packages = Package.where(name: params[:names])
+      @packages = @packages.where(registry_id: Registry.where(ecosystem: params[:ecosystem]).pluck(:id)) if params[:ecosystem].present?
+      @packages = @packages.limit(1000)
     end
     @packages = @packages.includes(:registry, {maintainers: :registry})
     @packages = @packages.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
@@ -151,7 +146,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
 
   def names
     @registry = Registry.find_by_name!(params[:id])
-    scope = @registry.packages
+    scope = @registry.packages.select(:id, :name, :updated_at)
     scope = scope.created_after(params[:created_after]) if params[:created_after].present?
     scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
     scope = scope.created_before(params[:created_before]) if params[:created_before].present?
@@ -162,12 +157,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = scope.name_postfix(params[:postfix]) if params[:postfix].present?
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns)
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order)
     end
 
     @pagy, @packages = pagy_countless(scope, limit_max: 10000)
@@ -186,10 +176,21 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = find_package_with_normalization!(@registry, params[:id])
 
-    if params[:latest].present?
-      scope = @package.latest_dependent_packages(kind: params[:kind]).includes(:registry, {maintainers: :registry})
-    else
+    if TopDependentPackage.cacheable_request?(params) &&
+       (cached = @package.top_dependent_packages.find_by(sort: params[:sort]))
+      @pagy, page_ids = pagy_array(cached.dependent_ids)
+      page_ids ||= []
+      by_id = Package.where(id: page_ids).includes(:registry, { maintainers: :registry }).index_by(&:id)
+      @packages = page_ids.map { |i| by_id[i] }.compact
+      response.headers['X-Source'] = 'top_dependent_packages'
+      fresh_when([cached, *@packages], public: true)
+      return
+    end
+
+    if params[:latest] == 'false'
       scope = @package.dependent_packages(kind: params[:kind]).includes(:registry, {maintainers: :registry})
+    else
+      scope = @package.latest_dependent_packages(kind: params[:kind]).includes(:registry, {maintainers: :registry})
     end
 
     scope = scope.created_after(params[:created_after]) if params[:created_after].present?
@@ -198,12 +199,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = scope.where("downloads >= ?", params[:min_downloads].to_i) if params[:min_downloads].present?
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns)
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order)
     end
 
     @pagy, @packages = pagy_countless(scope)
@@ -214,10 +210,10 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     @registry = Registry.find_by_name!(params[:registry_id])
     @package = find_package_with_normalization!(@registry, params[:id])
 
-    if params[:latest].present?
-      @kinds = @package.latest_dependent_package_kinds
-    else
+    if params[:latest] == 'false'
       @kinds = @package.dependent_package_kinds
+    else
+      @kinds = @package.latest_dependent_package_kinds
     end
 
     if stale?(@package, public: true)
@@ -235,12 +231,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     scope = scope.updated_after(params[:updated_after]) if params[:updated_after].present?
 
     if params[:sort].present? || params[:order].present?
-      sort = sanitize_sort(Package.sortable_columns)
-      if params[:order] == 'asc'
-        scope = scope.order(sort.asc.nulls_last)
-      else
-        scope = scope.order(sort.desc.nulls_last)
-      end
+      scope = scope.order(package_sort_order)
     end
 
     @pagy, @packages = pagy_countless(scope)

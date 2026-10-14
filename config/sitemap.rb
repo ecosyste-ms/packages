@@ -8,7 +8,7 @@ SitemapGenerator::Sitemap.create do
     if registry.maintainers_count > 0
       add registry_maintainers_path(registry), lastmod: registry.updated_at
 
-      registry.maintainers.order('packages_count DESC').limit(100).each do |maintainer|
+      registry.maintainers.visible.order('packages_count DESC').limit(100).each do |maintainer|
         next if maintainer.to_param.blank?
         add registry_maintainer_path(registry, maintainer), lastmod: maintainer.updated_at
       end

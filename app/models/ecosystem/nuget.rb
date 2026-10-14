@@ -88,7 +88,11 @@ module Ecosystem
     end
 
     def download_stats(name)
-      get_json("https://azuresearch-usnc.nuget.org/query?q=packageid:#{name.downcase}")
+      json = get_json("https://azuresearch-usnc.nuget.org/query?q=packageid:#{name.downcase}")
+      json['data'] = Array(json['data']).select do |result|
+        result.is_a?(Hash) && result['id'].to_s.casecmp?(name)
+      end
+      json
     rescue
       {}
     end
@@ -134,12 +138,22 @@ module Ecosystem
         downloads_period: 'total',
         download_stats: package[:download_stats],
         
-        # Enhanced metadata from .nuspec file
-        metadata: build_package_nuspec_metadata(nuspec_metadata, package)
+        # Enhanced metadata from .nuspec file and the NuGet search response
+        metadata: build_package_nuspec_metadata(nuspec_metadata).merge(verified_metadata(package[:download_stats]))
       }
     end
 
-    def build_package_nuspec_metadata(nuspec_metadata, package)
+    def verified_metadata(download_stats)
+      search_result = download_stats&.dig("data")&.first
+      return {} unless search_result.is_a?(Hash)
+
+      verified = search_result["verified"]
+      return {} unless [true, false].include?(verified)
+
+      { verified: verified }
+    end
+
+    def build_package_nuspec_metadata(nuspec_metadata)
       # Only include NuGet-specific fields that aren't duplicates of standard package fields
       return {} unless nuspec_metadata
 
@@ -305,9 +319,22 @@ module Ecosystem
           number: version,
           published_at: catalog_entry["published"],
           status: status,
+          integrity: version_integrity(item, skip: existing_set.include?(version.to_s)),
           metadata: build_version_nuspec_metadata(pkg_metadata[:name], version, pkg_metadata, item, skip_nuspec: existing_set.include?(version.to_s))
         }
       end
+    end
+
+    def version_integrity(item, skip: false)
+      return nil if skip
+      catalog_entry = item["catalogEntry"]
+      return nil unless catalog_entry && catalog_entry["@id"].present?
+      leaf = get_json(catalog_entry["@id"])
+      return nil unless leaf.is_a?(Hash) && leaf["packageHash"].present?
+      algo = (leaf["packageHashAlgorithm"] || "SHA512").to_s.downcase
+      "#{algo}-#{leaf['packageHash']}"
+    rescue Faraday::Error, Oj::ParseError
+      nil
     end
 
     def version_status(catalog_entry)
@@ -545,7 +572,7 @@ module Ecosystem
     end
 
     def maintainers_metadata(name)
-      json = get_json("https://azuresearch-usnc.nuget.org/query?q=packageid:#{name.downcase}")
+      json = download_stats(name)
       json['data'][0]['owners'].map do |user|
         {
           uuid: user,

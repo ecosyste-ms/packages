@@ -1,8 +1,30 @@
 class Package < ApplicationRecord
   include EcosystemsApiClient
+
+  UnsupportedSortDirection = Class.new(ArgumentError)
+  DESCENDING_ONLY_SORTS = %w[
+    downloads
+    dependent_repos_count
+    dependent_packages_count
+    stargazers_count
+    forks_count
+  ].freeze
+  REPO_METADATA_REFRESH_CURSOR_KEY = 'packages:update_repo_metadata:cursor'.freeze
+  REPO_METADATA_REFRESH_BATCH_SIZE = 400
+  REPO_METADATA_REFRESH_INTERVAL = 5.minutes.to_f / REPO_METADATA_REFRESH_BATCH_SIZE
+  REPO_METADATA_REFRESH_SCAN_SIZE = 100_000
+  REPO_METADATA_REFRESH_MAX_AGE = 1.month
+  RANKED_FIELDS = %i[downloads dependent_repos_count dependent_packages_count stargazers_count forks_count docker_downloads_count].freeze
+  REPO_METADATA_RANKED_FIELDS = %i[stargazers_count forks_count].freeze
   
+  # Matches a name where any /-delimited segment is exactly "." or "..".
+  # Such names generate URLs that CDNs and browsers normalise into other
+  # paths (e.g. "./../../../" collapses to "/"), causing cache poisoning.
+  PATH_TRAVERSAL_SEGMENT = %r{(?:\A|/)\.\.?(?:/|\z)}
+
   validates_presence_of :registry_id, :name, :ecosystem
   validates_uniqueness_of :name, scope: :registry_id
+  validates :name, format: { without: PATH_TRAVERSAL_SEGMENT, message: 'contains path traversal segments' }
 
   belongs_to :registry
   counter_culture :registry
@@ -11,6 +33,12 @@ class Package < ApplicationRecord
 
   has_many :maintainerships, dependent: :delete_all
   has_many :maintainers, through: :maintainerships
+  has_many :top_dependent_packages, dependent: :delete_all
+
+  # SQL counterpart of Ecosystem::Base.normalize_repository_url for a json_array_elements_text alias u.
+  def self.normalized_repository_sql
+    "regexp_replace(regexp_replace(lower(trim(u)), '/+$', ''), '^https?://', '')"
+  end
 
   def self.sortable_columns
     {
@@ -27,10 +55,28 @@ class Package < ApplicationRecord
       'docker_dependents_count' => 'docker_dependents_count',
       'stargazers_count' => "(repo_metadata ->> 'stargazers_count')::text::integer",
       'forks_count' => "(repo_metadata ->> 'forks_count')::text::integer",
+      'rank' => "(rankings ->> 'average')::float",
     }
   end
 
+  def self.sort_order(sort:, order:, default: 'updated_at')
+    requested_sort = sortable_columns.key?(sort)
+    sort_key = requested_sort ? sort : default
+    direction = order == 'asc' ? :asc : :desc
+
+    if direction == :asc && DESCENDING_ONLY_SORTS.include?(sort_key)
+      sort_name = requested_sort ? sort_key : "the default #{sort_key} sort"
+      raise UnsupportedSortDirection, "#{sort_name} only supports descending order"
+    end
+
+    column_sort_order(sortable_columns.fetch(sort_key), direction)
+  end
+
   scope :ecosystem, ->(ecosystem) { where(ecosystem: ecosystem.downcase) }
+  scope :declaring_repository, ->(key, urls) {
+    where("json_typeof(packages.metadata->:key) = 'array' AND EXISTS (SELECT 1 FROM json_array_elements_text(packages.metadata->:key) u WHERE #{normalized_repository_sql} IN (:urls))",
+          key: key, urls: Array(urls).map { |url| Ecosystem::Base.normalize_repository_url(url) })
+  }
   scope :namespace, ->(namespace) { where(namespace: namespace) }
   scope :created_after, ->(created_at) { where('created_at > ?', created_at) }
   scope :updated_after, ->(updated_at) { where('updated_at > ?', updated_at) }
@@ -48,7 +94,7 @@ class Package < ApplicationRecord
   scope :without_rankings, -> { where('length(rankings::text) = 2') }
   scope :top, -> (percent = 1) { where("(rankings->>'average')::text::float < ?", percent) }
  
-  scope :repository_url, ->(repository_url) { where("lower(repository_url) = ?", repository_url.try(:downcase)) }
+  scope :repository_url, ->(url) { where("lower(repository_url) IN (?)", Array(url).compact.map { |u| u.to_s.downcase }) }
 
   scope :name_prefix, ->(prefix) { where("lower(name) LIKE ?", "#{prefix.downcase}%") }
   scope :name_postfix, ->(postfix) { where("lower(name) LIKE ?", "%#{postfix.downcase}") }
@@ -77,13 +123,24 @@ class Package < ApplicationRecord
   scope :with_advisories, -> { where("json_array_length(advisories) > 0") }
 
   after_create :update_rankings_async
+  after_update :mark_versions_removed, if: :saved_change_to_removed_status?
+
+  def self.with_pypi_name(name)
+    normalized_name = name.downcase.gsub(/[-_.]+/, '-')
+    where(name: [name, normalized_name]).or(where("metadata->>'normalized_name' = ?", normalized_name))
+  end
 
   def self.find_by_normalized_name(name)
-    normalized_name = name.downcase.gsub('_', '-').gsub('.', '-')
+    normalized_name = name.downcase.gsub(/[-_.]+/, '-')
     pkg = where(name: name).limit(1).take
     pkg = where(name: normalized_name).limit(1).take if pkg.nil?
     # for pypi
-    pkg = where("metadata->>'normalized_name' = ?", name.downcase.gsub('_', '-').gsub('.', '-')).limit(1).take if pkg.nil?
+    pkg = where("metadata->>'normalized_name' = ?", normalized_name).limit(1).take if pkg.nil?
+    legacy_normalized_name = name.downcase.tr('_.', '--')
+    if pkg.nil? && legacy_normalized_name != normalized_name
+      pkg = where(name: legacy_normalized_name).limit(1).take
+      pkg = where("metadata->>'normalized_name' = ?", legacy_normalized_name).limit(1).take if pkg.nil?
+    end
     pkg
   end
 
@@ -94,19 +151,28 @@ class Package < ApplicationRecord
   end
 
   def self.keywords
-    Package.connection.select_rows("SELECT keywords, COUNT(keywords) AS keywords_count FROM (SELECT id, unnest(keywords) AS keywords FROM packages WHERE status IS NULL) AS foo GROUP BY keywords ORDER BY keywords_count DESC, keywords ASC;").reject{|k,v| k.blank?}
+    Rails.cache.fetch("packages_keywords", expires_in: 1.week) do
+      Package.connection.select_rows("SELECT keywords, COUNT(keywords) AS keywords_count FROM (SELECT id, unnest(keywords) AS keywords FROM packages WHERE status = 'active') AS foo GROUP BY keywords ORDER BY keywords_count DESC, keywords ASC LIMIT 50000;").reject{|k,v| k.blank?}
+    end
+  end
+
+  def self.related_keywords(keyword)
+    (keyword(keyword).limit(5000).pluck(:keywords).flatten - [keyword]).tally.sort_by { |_, v| -v }.first(100)
   end
 
   def self.sync_least_recent_async
-    Package.active.outdated.frequently_synced.order('RANDOM()').limit(4000).select('packages.id, packages.last_synced_at, packages.registry_id').each(&:sync_async)
+    return if Sidekiq::Queue.new('critical').size > 10_000
+    Package.active.outdated.frequently_synced.where.not(registry_id: Registry.throttled_ids).order('RANDOM()').limit(4000).select('packages.id, packages.last_synced_at, packages.registry_id').each(&:sync_async)
   end
 
   def self.sync_least_recent_top_async
-    Package.active.frequently_synced.order('RANDOM()').top(2).where('packages.last_synced_at < ?', 12.hours.ago).select('packages.id, packages.last_synced_at, packages.registry_id').limit(3_000).each(&:sync_async)
+    return if Sidekiq::Queue.new('critical').size > 10_000
+    Package.active.frequently_synced.order('RANDOM()').top(2).where('packages.last_synced_at < ?', 12.hours.ago).select('packages.id, packages.last_synced_at, packages.registry_id').limit(500).each(&:sync_async)
   end
 
   def self.check_statuses_async
-    Package.frequently_synced.active.where('last_synced_at < ?', 5.weeks.ago).limit(1000).select('packages.id').each(&:check_status_async)
+    return if Sidekiq::Queue.new('default').size > 20_000
+    Package.frequently_synced.active.where('last_synced_at < ?', 5.weeks.ago).limit(1000).select('packages.id, packages.registry_id').each(&:check_status_async)
   end
 
   def self.sync_download_counts_async
@@ -144,7 +210,10 @@ class Package < ApplicationRecord
   end
 
   def update_dependent_package_ids
-    Dependency.where(package_id: nil, ecosystem: registry.ecosystem, package_name: name).in_batches.update_all(package_id: id)
+    version_ids = Version.joins(:package).where(packages: { registry_id: registry_id }).select(:id)
+    Dependency.where(package_id: nil, ecosystem: registry.ecosystem, package_name: name)
+      .where(version_id: version_ids)
+      .in_batches.update_all(package_id: id)
   end
 
   def update_dependent_packages_count
@@ -158,6 +227,21 @@ class Package < ApplicationRecord
   def update_dependent_packages_details
     update_dependent_package_ids
     update_dependent_packages_count
+    update_top_dependent_packages
+  end
+
+  def update_top_dependent_packages
+    if dependent_packages_count.to_i <= TopDependentPackage::THRESHOLD
+      top_dependent_packages.delete_all
+      return
+    end
+
+    ids = latest_dependent_packages.pluck(:id)
+    rows = TopDependentPackage::SORTS.map do |key, cfg|
+      top = Package.where(id: ids).order(Arel.sql(cfg[:order])).limit(TopDependentPackage::LIMIT).pluck(:id)
+      { package_id: id, sort: key, dependent_ids: top, updated_at: Time.current }
+    end
+    TopDependentPackage.upsert_all(rows, unique_by: [:package_id, :sort])
   end
 
   def update_maintainers_count
@@ -213,6 +297,57 @@ class Package < ApplicationRecord
     registry.purl(self)
   end
 
+  LIVE_EVENT_ATTRS = [:id, :name, :ecosystem, :description, :homepage, :licenses, :normalized_licenses,
+                      :repository_url, :keywords_array, :namespace, :versions_count, :first_release_published_at,
+                      :latest_release_published_at, :latest_release_number, :last_synced_at, :created_at,
+                      :updated_at, :dependent_packages_count, :downloads, :downloads_period,
+                      :dependent_repos_count, :rankings, :docker_dependents_count, :docker_downloads_count,
+                      :status, :critical].freeze
+  LIVE_EVENT_METHODS = [:registry_url, :install_command, :documentation_url, :purl, :docker_usage_url,
+                        :usage_url, :dependent_repositories_url, :funding_links].freeze
+
+  def as_live_event_json
+    as_json(only: LIVE_EVENT_ATTRS, methods: LIVE_EVENT_METHODS)
+  end
+
+  def packages_api_url
+    "https://packages.ecosyste.ms/api/v1/registries/#{registry.name}/packages/#{ERB::Util.url_encode(name)}"
+  end
+
+  def live_event_payload(event:, version: nil)
+    payload = {
+      event: event,
+      registry: registry.name,
+      registry_url: "https://packages.ecosyste.ms/api/v1/registries/#{registry.name}",
+      package_url: packages_api_url,
+      package: as_live_event_json
+    }
+    if version
+      payload[:version_url] = "#{packages_api_url}/versions/#{ERB::Util.url_encode(version.number)}"
+      payload[:version] = version.as_live_event_json
+    end
+    payload
+  end
+
+  def emit_new_package_event
+    return unless LiveEvent.enabled?
+    LiveEvent.emit(live_event_payload(event: 'package.created'))
+  rescue StandardError => e
+    Rails.logger.warn("LiveEvent package.created failed for #{registry&.name}/#{name}: #{e.class}: #{e.message}")
+  end
+
+  def emit_new_version_events(version_records)
+    return unless LiveEvent.enabled?
+    return if version_records.blank?
+    events = version_records.map do |v|
+      v.package = self
+      live_event_payload(event: 'version.created', version: v)
+    end
+    LiveEvent.emit(events)
+  rescue StandardError => e
+    Rails.logger.warn("LiveEvent version.created failed for #{registry&.name}/#{name}: #{e.class}: #{e.message}")
+  end
+
   def update_details
     set_latest_on_latest_version
     normalize_licenses
@@ -220,7 +355,9 @@ class Package < ApplicationRecord
     set_latest_release_number
     set_first_release_published_at
     combine_keywords_and_topics
-    save if changed?
+    saved = save if changed?
+    registry.ecosystem_instance.sync_subpackages_async(self) if saved && saved_change_to_latest_release_number?
+    saved
   end
 
   def update_details_async
@@ -228,11 +365,20 @@ class Package < ApplicationRecord
   end
 
   def latest_version
-    @latest_version ||= (latest_stable_version || versions.active.sort.first)
+    @latest_version ||= (dist_tag_latest_version || latest_stable_version || versions.active.reject(&:opam_archived?).sort.first)
+  end
+
+  def dist_tag_latest_version
+    return unless metadata.is_a?(Hash)
+
+    tag = metadata.dig('dist-tags', 'latest')
+    return if tag.blank?
+
+    versions.active.find_by(number: tag)
   end
 
   def latest_stable_version
-    @latest_stable_version ||= versions.active.select(&:stable?).sort.first
+    @latest_stable_version ||= versions.active.reject(&:opam_archived?).select(&:stable?).sort.first
   end
 
   def set_latest_release_published_at
@@ -286,7 +432,7 @@ class Package < ApplicationRecord
     read_attribute(:licenses).presence || repo_metadata && repo_metadata['license']
   end
 
-  NON_SPDX_LICENSE_VALUES = %w[other unknown none noassertion proprietary custom see\ license].freeze
+  NON_SPDX_LICENSE_VALUES = ["other", "unknown", "none", "noassertion", "proprietary", "custom", "see license", "open source"].freeze
 
   def spdx_license
     return Spdx.parse_spdx(licenses).licenses if Spdx.valid_spdx?(licenses)
@@ -325,14 +471,17 @@ class Package < ApplicationRecord
   def sync_async
     return if last_synced_at && last_synced_at > 1.day.ago
     return if registry&.sync_in_batches?
-    UpdatePackageWorker.perform_async(id)
+    SyncPackageByIdWorker.perform_async(registry_id, id)
   end
 
   def update_versions
-    package_metadata = registry.ecosystem_instance.package_metadata(name)
+    ecosystem = registry.ecosystem_instance
+    package_metadata = ecosystem.package_metadata(name)
     return false unless package_metadata
-    versions_metadata = registry.ecosystem_instance.versions_metadata(package_metadata)
+    versions_metadata = ecosystem.versions_metadata(package_metadata)
+    ecosystem.update_existing_versions(self, versions_metadata)
 
+    created_versions = []
     versions_metadata.each do |version|
       if version[:integrity].present?
         v = versions.find{|ver| ver.integrity == version[:integrity] }
@@ -341,17 +490,30 @@ class Package < ApplicationRecord
       end
       begin
         if v
+          version = version.except(:published_at) if self.ecosystem == 'opam' && version[:published_at].nil?
           v.registry_id = registry_id
-          v.assign_attributes(version) 
+          metadata_key = version.key?(:metadata) ? :metadata : 'metadata'
+          if version.key?(metadata_key)
+            version = version.merge(metadata_key => ecosystem.merge_version_metadata(v.metadata, version[metadata_key]))
+          end
+          v.assign_attributes(version)
           v.save(validate: false)
-        else        
-          versions.create(version)
+        else
+          created = versions.create(version)
+          created_versions << created if created.persisted?
         end
       rescue ActiveRecord::RecordNotUnique
         Rails.logger.warn("Version not unique: #{version[:number]}")
       end
     end
     update_columns(versions_count: versions.count, versions_updated_at: Time.now)
+    if self.ecosystem == 'opam'
+      update_columns(metadata: (metadata || {}).merge('archived' => package_metadata.dig(:metadata, :archived)))
+    elsif self.ecosystem == 'npm'
+      update_columns(metadata: (metadata || {}).merge('dist-tags' => package_metadata.dig(:metadata, 'dist-tags')))
+    end
+    update_details
+    emit_new_version_events(created_versions)
   end
 
   def update_versions_async
@@ -368,13 +530,25 @@ class Package < ApplicationRecord
     val == 'active' ? nil : val
   end
 
+  def saved_change_to_removed_status?
+    saved_change_to_attribute?(:status) && read_attribute(:status) == 'removed'
+  end
+
+  def mark_versions_removed
+    versions.update_all(status: 'removed', updated_at: Time.current)
+  end
+
   def check_status
     result = registry.ecosystem_instance.check_status(self)
-    update(status: result || 'active', last_synced_at: Time.now)
+    if result == false
+      update_columns(last_synced_at: Time.now)
+    else
+      update(status: result || 'active', last_synced_at: Time.now)
+    end
   end
 
   def check_status_async
-    CheckStatusWorker.perform_async(id)
+    CheckPackageStatusWorker.perform_async(registry_id, id)
   end
 
   def repository_or_homepage_url
@@ -382,12 +556,40 @@ class Package < ApplicationRecord
   end
 
   def self.update_repo_metadata_async
-    Package.with_repository_or_homepage_url.order('repo_metadata_updated_at DESC nulls first').limit(400).select('packages.id, packages.repository_url, packages.homepage').each(&:update_repo_metadata_async)
+    cursor = REDIS.get(REPO_METADATA_REFRESH_CURSOR_KEY).to_i
+    packages, next_cursor = repo_metadata_refresh_batch(after_id: cursor)
+    packages.each_with_index do |package, index|
+      package.update_repo_metadata_async(wait: index * REPO_METADATA_REFRESH_INTERVAL)
+    end
+    REDIS.set(REPO_METADATA_REFRESH_CURSOR_KEY, next_cursor)
   end
 
-  def update_repo_metadata_async
+  def self.repo_metadata_refresh_batch(after_id:, batch_size: REPO_METADATA_REFRESH_BATCH_SIZE, scan_size: REPO_METADATA_REFRESH_SCAN_SIZE)
+    max_id = maximum(:id)
+    return [[], 0] unless max_id
+
+    after_id = 0 if after_id >= max_id
+    scan_end = [after_id + scan_size, max_id].min
+    packages = with_repository_or_homepage_url
+      .where(id: (after_id + 1)..scan_end)
+      .where('repo_metadata_updated_at IS NULL OR repo_metadata_updated_at < ?', REPO_METADATA_REFRESH_MAX_AGE.ago)
+      .order(:id)
+      .limit(batch_size)
+      .select('packages.id, packages.repository_url, packages.homepage')
+      .to_a
+
+    next_cursor = packages.length == batch_size ? packages.last.id : scan_end
+    next_cursor = 0 if next_cursor >= max_id
+    [packages, next_cursor]
+  end
+
+  def update_repo_metadata_async(wait: nil)
     return if repository_or_homepage_url.blank?
-    UpdateRepoMetadataWorker.perform_async(id)
+    if wait
+      UpdateRepoMetadataWorker.perform_in(wait, id)
+    else
+      UpdateRepoMetadataWorker.perform_async(id)
+    end
   end
 
   def update_repo_metadata
@@ -435,21 +637,44 @@ class Package < ApplicationRecord
   end
 
   def fetch_repo_metadata
-    return if repository_or_homepage_url.blank?
+    url = repository_or_homepage_url
+    return if url.blank?
 
-    json = ecosystems_api_get('https://repos.ecosyste.ms/api/v1/repositories/lookup', params: { url: repository_or_homepage_url })
-    
-    if json.nil?
-      # check for renamed repos
-      resp = Faraday.head(repository_or_homepage_url)
-      if resp.status == 301
-        json = ecosystems_api_get('https://repos.ecosyste.ms/api/v1/repositories/lookup', params: { url: resp.headers['location'] })
-      end
-    end
-    
-    json || {}
-  rescue
-    {}
+    json = fetch_repo_metadata_lookup(url)
+    return json if json
+
+    redirect_url = repo_metadata_redirect_url(url)
+    return {} unless redirect_url
+
+    fetch_repo_metadata_lookup(redirect_url) || {}
+  end
+
+  def fetch_repo_metadata_lookup(url)
+    ecosystems_api_get(
+      'https://repos.ecosyste.ms/api/v1/repositories/lookup',
+      params: { url: url },
+      raise_on_error: true
+    )
+  rescue EcosystemsApiClient::RequestError => error
+    raise unless [400, 404, 410, 422].include?(error.status)
+    nil
+  end
+
+  def repo_metadata_redirect_url(url)
+    return unless repo_metadata_fallback_url?(url)
+
+    response = Faraday.head(url)
+    return unless [301, 302, 307, 308].include?(response.status)
+    response.headers['location'].presence
+  rescue Faraday::Error, URI::InvalidURIError
+    nil
+  end
+
+  def repo_metadata_fallback_url?(url)
+    uri = URI.parse(url)
+    uri.is_a?(URI::HTTP) && uri.host.present?
+  rescue URI::InvalidURIError
+    false
   end
 
   def fetch_tags
@@ -556,14 +781,21 @@ class Package < ApplicationRecord
       forks_count: registry.top_percentage_for_json(self, 'forks_count'),
       docker_downloads_count: registry.top_percentage_for(self, :docker_downloads_count)
     }
-    if rankings.values.compact.any? && rankings.values.compact.any?{|v| v > 0 }
-      rankings[:average] = rankings.values.compact.sum / rankings.values.compact.length.to_f
-    else
-      rankings[:average] = 100
+    values = rankings.keys.index_with do |field|
+      REPO_METADATA_RANKED_FIELDS.include?(field) ? repo_metadata&.dig(field.to_s) : send(field)
     end
-    rankings
+    self.class.with_average_ranking(rankings, values)
   rescue 
     nil # handle database query error
+  end
+
+  # Shared with Registry#update_rankings so both paths average the same way
+  def self.with_average_ranking(rankings, values)
+    # 0% with a zero value means every package ties at zero, which says nothing about this one
+    scored = rankings.reject do |field, percentage|
+      percentage.nil? || (percentage.zero? && values[field].to_i.zero?)
+    end
+    rankings.merge(average: scored.any? ? scored.values.sum / scored.length.to_f : 100)
   end
 
   def update_rankings
@@ -585,7 +817,7 @@ class Package < ApplicationRecord
   end
 
   def package_funding_links
-    return [] if metadata["funding"].blank?
+    return [] if metadata.blank? || metadata["funding"].blank?
     funding_array = metadata["funding"].is_a?(Array) ? metadata["funding"] : [metadata["funding"]] 
     funding_array.map{|f| f.is_a?(Hash) ? f['url'] : f }
   end
@@ -605,7 +837,7 @@ class Package < ApplicationRecord
       next if v.blank?
       case key
       when "github"
-        Array(v).map{|username| "https://github.com/sponsors/#{username}" }
+        github_funding_usernames(v).map{|username| "https://github.com/sponsors/#{username}" }
       when "tidelift"
         "https://tidelift.com/funding/github/#{v}"
       when "community_bridge"
@@ -634,6 +866,10 @@ class Package < ApplicationRecord
         v
       end
     end.flatten.compact
+  end
+
+  def github_funding_usernames(value)
+    Array(value).flat_map { |username| username.to_s.split(",") }.map(&:strip).reject(&:blank?).first(4)
   end
 
   def stars
@@ -910,40 +1146,39 @@ class Package < ApplicationRecord
     purl_strings = Array(purl_strings)
     return none if purl_strings.empty?
 
-    registry_ids_cache = {}
+    by_ecosystem = Hash.new { |h, k| h[k] = [] }
+    repo_urls = []
 
-    scopes = purl_strings.filter_map do |purl_string|
-      lookup_scope_for_purl(purl_string, registry_ids_cache)
-    end
-
-    return none if scopes.empty?
-    return scopes.first if scopes.length == 1
-
-    scopes.reduce { |result, scope| result.or(scope) }
-  end
-
-  def self.lookup_scope_for_purl(purl_string, registry_ids_cache = {})
-    purl_param = purl_string.gsub('npm/@', 'npm/%40')
-    purl = Purl.parse(purl_param)
-
-    if purl.type == 'docker' && purl.namespace.nil?
-      namespace = 'library'
-    else
-      namespace = purl.namespace
-    end
-
-    if purl.type == 'github'
-      repository_url = "https://github.com/#{purl.namespace}/#{purl.name}"
-      where("lower(repository_url) = ?", repository_url.downcase)
-    else
-      name = [namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
+    purl_strings.each do |purl_string|
+      purl = Purl.parse(purl_string.gsub('npm/@', 'npm/%40'))
+      if purl.type == 'github'
+        repo_urls << "https://github.com/#{purl.namespace}/#{purl.name}".downcase
+        next
+      end
+      namespace = (purl.type == 'docker' && purl.namespace.nil?) ? 'library' : purl.namespace
       ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type)
-      registry_ids = registry_ids_cache[ecosystem] ||= Registry.where(ecosystem: ecosystem).pluck(:id)
-      where(name: name, registry_id: registry_ids)
+      name = [namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
+      name = name.downcase if ecosystem == 'nuget'
+      by_ecosystem[ecosystem] << name
+    rescue => e
+      Rails.logger.warn("Invalid PURL in bulk lookup: #{purl_string} - #{e.message}")
     end
-  rescue => e
-    Rails.logger.warn("Invalid PURL in bulk lookup: #{purl_string} - #{e.message}")
-    nil
+
+    ids = []
+    by_ecosystem.each do |ecosystem, names|
+      registry_ids = Registry.where(ecosystem: ecosystem).pluck(:id)
+      next if registry_ids.empty?
+      if ecosystem == 'pypi'
+        normalized = names.map { |n| n.downcase.gsub(/[-_.]+/, '-') }.uniq
+        ids.concat(where(registry_id: registry_ids, name: (names + normalized).uniq).pluck(:id))
+        ids.concat(where(registry_id: registry_ids).where("metadata->>'normalized_name' IN (?)", normalized).pluck(:id))
+      else
+        ids.concat(where(registry_id: registry_ids, name: names.uniq).pluck(:id))
+      end
+    end
+    ids.concat(where("lower(repository_url) IN (?)", repo_urls.uniq).pluck(:id)) if repo_urls.any?
+
+    ids.empty? ? none : where(id: ids.uniq)
   end
 
   def self.funding_domains

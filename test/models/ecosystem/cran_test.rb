@@ -91,6 +91,30 @@ class CranTest < ActiveSupport::TestCase
     assert_nil package_metadata[:keywords_array]
   end
 
+  test 'repository_url falls back to BugReports when URL has no forge' do
+    stub_request(:get, "https://cran.r-project.org/web/packages/knitr/index.html")
+      .to_return({ status: 200, body: file_fixture('cran/knitr.html') })
+    stub_request(:get, "https://cranlogs.r-pkg.org/downloads/total/last-month/knitr")
+      .to_return({ status: 200, body: file_fixture('cran/knitr_downloads') })
+    package_metadata = @ecosystem.package_metadata('knitr')
+
+    assert_equal package_metadata[:homepage], "https://yihui.org/knitr/"
+    assert_equal package_metadata[:repository_url], "https://github.com/yihui/knitr"
+  end
+
+  test 'repository_url scans all URL entries' do
+    properties = {
+      "URL:" => "https://www.rcpp.org,\nhttps://dirk.eddelbuettel.com/code/rcpp.html,\nhttps://github.com/RcppCore/Rcpp",
+      "BugReports:" => "https://github.com/RcppCore/Rcpp/issues",
+    }
+    html = Nokogiri::HTML("<h2>Rcpp: Seamless R and C++ Integration</h2>")
+    @ecosystem.stubs(:downloads).returns(nil)
+    mapped = @ecosystem.map_package_metadata(name: 'Rcpp', html: html, properties: properties)
+
+    assert_equal mapped[:homepage], "https://www.rcpp.org"
+    assert_equal mapped[:repository_url], "https://github.com/RcppCore/Rcpp"
+  end
+
   test 'versions_metadata' do
     stub_request(:get, "https://cran.r-project.org/web/packages/pack/index.html")
       .to_return({ status: 200, body: file_fixture('cran/index.html') })

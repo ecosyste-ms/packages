@@ -1,7 +1,15 @@
 class ApplicationController < ActionController::Base
   include Pagy::Backend
 
+  rescue_from Package::UnsupportedSortDirection do |error|
+    respond_to do |format|
+      format.json { render json: { error: error.message }, status: :unprocessable_content }
+      format.any { render plain: error.message, status: :unprocessable_content }
+    end
+  end
+
   skip_before_action :verify_authenticity_token
+  before_action :reject_path_traversal_in_params
   before_action :set_cache_headers
 
   after_action lambda {
@@ -33,6 +41,7 @@ class ApplicationController < ActionController::Base
     else
       name = [namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
       ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type)
+      name = name.downcase if ecosystem == 'nuget'
 
       # Filter by repository_url qualifier if provided
       if purl.qualifiers && purl.qualifiers['repository_url'].present?
@@ -44,10 +53,25 @@ class ApplicationController < ActionController::Base
         registry_ids = Registry.where(ecosystem: ecosystem).pluck(:id)
       end
 
-      Package.where(name: name, registry_id: registry_ids)
+      scope = Package.where(registry_id: registry_ids)
+      ecosystem == 'pypi' ? scope.with_pypi_name(name) : scope.where(name: name)
     end
   rescue
     Package.none
+  end
+
+  # Several routes accept ids matching /.*/ because package names, version
+  # numbers, keywords etc. can legitimately contain slashes and dots. A value
+  # whose /-delimited segments include "." or ".." produces a URL that CDNs
+  # normalise into a different path (e.g. "/keywords/../.." collapses to "/"),
+  # so a 200 response here would be cached against the wrong page. Refuse to
+  # serve any request where a path parameter contains such a segment.
+  def reject_path_traversal_in_params
+    request.path_parameters.each do |key, value|
+      next if key == :controller || key == :action || key == :format
+      next unless value.is_a?(String)
+      raise ActiveRecord::RecordNotFound if value.match?(Package::PATH_TRAVERSAL_SEGMENT)
+    end
   end
 
   def find_package_with_normalization!(registry, name)
@@ -68,9 +92,15 @@ class ApplicationController < ActionController::Base
     url.to_s.downcase.sub(/\/+$/, '')
   end
 
-  def sanitize_sort(allowed_columns, default: 'updated_at')
+  def sanitize_sort(model, default: 'updated_at')
     sort_param = params[:sort].presence || default
+    allowed_columns = model.sortable_columns
     sql = allowed_columns[sort_param] || allowed_columns[default] || default
-    Arel.sql(sql)
+    direction = params[:order] == 'asc' ? :asc : :desc
+    model.column_sort_order(sql, direction)
+  end
+
+  def package_sort_order(default: 'updated_at')
+    Package.sort_order(sort: params[:sort], order: params[:order], default: default)
   end
 end

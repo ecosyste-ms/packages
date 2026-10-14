@@ -36,7 +36,7 @@ class HexTest < ActiveSupport::TestCase
 
   test 'install_command' do
     install_command = @ecosystem.install_command(@package)
-    assert_equal install_command, 'mix hex.package fetch rand '
+    assert_equal install_command, 'mix hex.package fetch rand'
   end
 
   test 'install_command with version' do
@@ -95,6 +95,27 @@ class HexTest < ActiveSupport::TestCase
     assert_nil package_metadata[:keywords_array]
     assert_equal package_metadata[:downloads], 85
     assert_equal package_metadata[:downloads_period], "total"
+  end
+
+  test 'repository_url scans all link values, not just github key' do
+    pkg = {
+      "name" => "gleam_stdlib",
+      "meta" => {
+        "description" => "stdlib",
+        "licenses" => ["Apache-2.0"],
+        "links" => {
+          "Repository" => "https://github.com/gleam-lang/stdlib",
+          "Sponsor" => "https://github.com/sponsors/lpil",
+          "Website" => "https://gleam.run/",
+        },
+      },
+      "releases" => [],
+      "downloads" => { "all" => 1 },
+    }
+    mapped = @ecosystem.map_package_metadata(pkg)
+
+    assert_equal "https://github.com/gleam-lang/stdlib", mapped[:repository_url]
+    assert_equal "Apache-2.0", mapped[:licenses]
   end
 
   test 'versions_metadata' do

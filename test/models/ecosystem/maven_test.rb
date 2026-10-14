@@ -5,6 +5,7 @@ class MavenTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.new(default: true, name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
     @ecosystem = Ecosystem::Maven.new(@registry)
+    stub_request(:get, /\.jar\.sha1$/).to_return(status: 404, body: '')
     @package = Package.new(ecosystem: 'maven', name: 'dev.zio:zio-aws-autoscaling_3')
     @version = @package.versions.build(number: '5.17.224.2')
   end
@@ -46,7 +47,7 @@ class MavenTest < ActiveSupport::TestCase
 
   test 'check_status_url' do
     check_status_url = @ecosystem.check_status_url(@package)
-    assert_equal check_status_url, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/"
+    assert_equal check_status_url, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/maven-metadata.xml"
   end
 
   test 'purl' do
@@ -69,20 +70,33 @@ class MavenTest < ActiveSupport::TestCase
     assert_equal all_package_names.last, 'am.ik.archetype:elm-spring-boot-blank-archetype'
   end
 
-  test 'recently_updated_package_names' do
-    stub_request(:post, "https://central.sonatype.com/api/internal/browse/components?repository=maven-central")
-      .with(
-        body: "{\"size\":20,\"sortField\":\"publishedDate\",\"sortDirection\":\"desc\"}",
-        headers: {
-          'Content-Type'=>'application/json',
-          'Expect'=>'',
-          'User-Agent'=>'packages.ecosyste.ms'
-        })
-      .to_return(status: 200, body: '{"items":[]}', headers: {})
-    stub_request(:get, "https://maven.libraries.io/mavenCentral/recent")
-      .to_return({ status: 200, body: file_fixture('maven/recent') })
-    recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 20
+  test 'recently_updated_package_names pages through the Sonatype feed' do
+    sonatype = "https://central.sonatype.com/api/internal/browse/components?repository=maven-central"
+    stub_request(:post, sonatype)
+      .with(body: { size: 20, page: 0, sortField: 'publishedDate', sortDirection: 'desc' }.to_json)
+      .to_return(status: 200, body: { components: [{ id: 'pkg:maven/com.bucket4j/bucket4j_jdk17-core' }, { id: 'pkg:maven/com.bucket4j/bucket4j_jdk17-jcache' }] }.to_json)
+    stub_request(:post, sonatype)
+      .with(body: { size: 20, page: 1, sortField: 'publishedDate', sortDirection: 'desc' }.to_json)
+      .to_return(status: 200, body: { components: [{ id: 'pkg:maven/net.serenity-bdd/serenity-core' }] }.to_json)
+    stub_request(:post, sonatype)
+      .with(body: { size: 20, page: 2, sortField: 'publishedDate', sortDirection: 'desc' }.to_json)
+      .to_return(status: 200, body: { components: [] }.to_json)
+
+    assert_equal ['com.bucket4j:bucket4j_jdk17-core', 'com.bucket4j:bucket4j_jdk17-jcache', 'net.serenity-bdd:serenity-core'], @ecosystem.recently_updated_package_names
+    assert_not_requested :post, sonatype, body: { size: 20, page: 3, sortField: 'publishedDate', sortDirection: 'desc' }.to_json
+    assert_not_requested :get, "https://maven.libraries.io/mavenCentral/recent"
+  end
+
+  test 'recently_updated_package_names keeps earlier Sonatype pages when a later one fails' do
+    sonatype = "https://central.sonatype.com/api/internal/browse/components?repository=maven-central"
+    stub_request(:post, sonatype)
+      .with(body: { size: 20, page: 0, sortField: 'publishedDate', sortDirection: 'desc' }.to_json)
+      .to_return(status: 200, body: { components: [{ id: 'pkg:maven/com.bucket4j/bucket4j_jdk17-core' }] }.to_json)
+    stub_request(:post, sonatype)
+      .with(body: { size: 20, page: 1, sortField: 'publishedDate', sortDirection: 'desc' }.to_json)
+      .to_return(status: 200, body: 'not json')
+
+    assert_equal ['com.bucket4j:bucket4j_jdk17-core'], @ecosystem.recently_updated_package_names
   end
 
   test 'package_metadata' do
@@ -211,7 +225,7 @@ class MavenTest < ActiveSupport::TestCase
   end
 
   test 'jboss_all_package_names_with_archetype_catalog' do
-    jboss_registry = Registry.new(default: true, name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven')
+    jboss_registry = Registry.new(default: true, name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven', metadata: { 'archetype_catalog' => true })
     jboss_ecosystem = Ecosystem::Maven.new(jboss_registry)
     
     # Mock JBoss archetype-catalog.xml
@@ -225,7 +239,7 @@ class MavenTest < ActiveSupport::TestCase
 
 
   test 'recently_updated_package_names_for_non_maven_central' do
-    jboss_registry = Registry.new(default: true, name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven')
+    jboss_registry = Registry.new(default: true, name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven', metadata: { 'archetype_catalog' => true })
     jboss_ecosystem = Ecosystem::Maven.new(jboss_registry)
     
     # Mock JBoss archetype-catalog.xml (empty)
@@ -239,7 +253,7 @@ class MavenTest < ActiveSupport::TestCase
   end
 
   test 'apache_all_package_names_with_archetype_catalog' do
-    apache_registry = Registry.new(default: true, name: 'repository.apache.org-releases', url: 'https://repository.apache.org/content/repositories/releases', ecosystem: 'maven')
+    apache_registry = Registry.new(default: true, name: 'repository.apache.org-releases', url: 'https://repository.apache.org/content/repositories/releases', ecosystem: 'maven', metadata: { 'archetype_catalog' => true })
     apache_ecosystem = Ecosystem::Maven.new(apache_registry)
     
     # Mock Apache archetype-catalog.xml
@@ -275,7 +289,7 @@ class MavenTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_from_archetype_catalog_for_non_maven_central' do
-    jboss_registry = Registry.new(default: true, name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven')
+    jboss_registry = Registry.new(default: true, name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven', metadata: { 'archetype_catalog' => true })
     jboss_ecosystem = Ecosystem::Maven.new(jboss_registry)
     
     # Mock JBoss archetype-catalog.xml with multiple packages
@@ -315,7 +329,7 @@ class MavenTest < ActiveSupport::TestCase
   end
 
   test 'apache_snapshots_package_metadata_and_repository_extraction' do
-    apache_snapshots_registry = Registry.new(default: true, name: 'repository.apache.org-snapshots', url: 'https://repository.apache.org/content/repositories/snapshots', ecosystem: 'maven')
+    apache_snapshots_registry = Registry.new(default: true, name: 'repository.apache.org-snapshots', url: 'https://repository.apache.org/content/repositories/snapshots', ecosystem: 'maven', metadata: { 'archetype_catalog' => true })
     apache_snapshots_ecosystem = Ecosystem::Maven.new(apache_snapshots_registry)
 
     # Mock Apache snapshots maven-metadata.xml and POM
@@ -504,6 +518,86 @@ class MavenTest < ActiveSupport::TestCase
     assert_nil versions_metadata[1][:published_at]
   end
 
+  def with_environment(name, value)
+    old = ENV[name]
+    value.nil? ? ENV.delete(name) : ENV[name] = value
+    yield
+  ensure
+    old.nil? ? ENV.delete(name) : ENV[name] = old
+  end
+
+  def with_effective_pom_enabled(&block)
+    with_environment('ENABLE_MAVEN_EFFECTIVE_POM', 'true', &block)
+  end
+
+  test 'dependencies_metadata uses pom binary' do
+    skip 'pom binary not on PATH' unless system('which pom > /dev/null 2>&1')
+
+    raw = file_fixture('maven/zio-aws-autoscaling_3-5.17.225.2.pom').read
+    stub_request(:get, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/5.17.225.2/zio-aws-autoscaling_3-5.17.225.2.pom")
+      .to_return(status: 200, body: raw)
+    @ecosystem.stubs(:wait_for_pom_capacity).returns(true)
+    @ecosystem.expects(:release_pom_capacity).once
+
+    dependencies = with_effective_pom_enabled do
+      @ecosystem.dependencies_metadata('dev.zio:zio-aws-autoscaling_3', '5.17.225.2', nil)
+    end
+
+    assert_equal 6, dependencies.length
+    core = dependencies.find { |dependency| dependency[:package_name] == 'dev.zio:zio-aws-core_3' }
+    assert_equal '5.17.225.2', core[:requirements]
+    assert_equal 'compile', core[:kind]
+  end
+
+  test 'generate_effective_pom falls back to input on failure' do
+    @ecosystem.stubs(:wait_for_pom_capacity).returns(true)
+    @ecosystem.expects(:release_pom_capacity).once
+    out = with_effective_pom_enabled { @ecosystem.generate_effective_pom('not xml') }
+    assert_equal 'not xml', out
+  end
+
+  test 'generate_effective_pom is a no-op when disabled' do
+    raw = file_fixture('maven/zio-aws-autoscaling_3-5.17.225.2.pom').read
+    assert_equal raw, @ecosystem.generate_effective_pom(raw)
+  end
+
+  test 'wait_for_pom_capacity defaults to five processes' do
+    REDIS.expects(:eval)
+      .with(kind_of(String), keys: ['pom:running_processes'], argv: [5, 60])
+      .returns(1)
+
+    acquired = with_environment('MAX_CONCURRENT_POM', nil) { @ecosystem.wait_for_pom_capacity }
+    assert acquired
+  end
+
+  test 'wait_for_pom_capacity uses the configured process limit' do
+    REDIS.expects(:eval)
+      .with(kind_of(String), keys: ['pom:running_processes'], argv: [2, 60])
+      .returns(1)
+
+    acquired = with_environment('MAX_CONCURRENT_POM', '2') { @ecosystem.wait_for_pom_capacity }
+    assert acquired
+  end
+
+  test 'generate_effective_pom falls back when pom capacity is unavailable' do
+    REDIS.expects(:eval).returns(0)
+    Open3.expects(:capture3).never
+
+    out = with_environment('POM_CAPACITY_WAIT_TIMEOUT', '0') do
+      with_effective_pom_enabled { @ecosystem.generate_effective_pom('raw pom') }
+    end
+
+    assert_equal 'raw pom', out
+  end
+
+  test 'release_pom_capacity decrements the shared counter' do
+    REDIS.expects(:eval)
+      .with(kind_of(String), keys: ['pom:running_processes'])
+      .returns(0)
+
+    assert_equal 0, @ecosystem.release_pom_capacity
+  end
+
   test 'dependencies_metadata netty-nio-client' do # skip: requires ENABLE_MAVEN_EFFECTIVE_POM
     skip unless ENV['ENABLE_MAVEN_EFFECTIVE_POM'] == 'true'
     stub_request(:get, "https://repo1.maven.org/maven2/software/amazon/awssdk/netty-nio-client/2.5.6/netty-nio-client-2.5.6.pom")
@@ -590,5 +684,273 @@ class MavenTest < ActiveSupport::TestCase
     assert_not_nil result2
     # Should only have made one HTTP request
     assert_requested(pom_stub, times: 1)
+  end
+
+  test 'version_integrity maps the .jar.sha1 sidecar to sha1 integrity' do
+    stub_request(:get, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/5.17.225.2/zio-aws-autoscaling_3-5.17.225.2.jar.sha1")
+      .to_return(status: 200, body: "16d2a89f307bc09e96af26d938ade5812550606a")
+    integrity = @ecosystem.send(:version_integrity, 'dev.zio:zio-aws-autoscaling_3', '5.17.225.2')
+    assert_equal "sha1-16d2a89f307bc09e96af26d938ade5812550606a", integrity
+  end
+
+  test 'version_integrity returns nil when no .jar.sha1 exists (pom-only / 404)' do
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/pom-only/1.0.0/pom-only-1.0.0.jar.sha1")
+      .to_return(status: 404, body: "")
+    integrity = @ecosystem.send(:version_integrity, 'com.example:pom-only', '1.0.0')
+    assert_nil integrity
+  end
+
+  test 'versions_metadata and dependencies_metadata share one .pom fetch per version' do
+    pom = '<project xmlns="http://maven.apache.org/POM/4.0.0"><groupId>com.example</groupId><artifactId>foo</artifactId><version>1.0.0</version><dependencies><dependency><groupId>junit</groupId><artifactId>junit</artifactId><version>4.13</version></dependency></dependencies></project>'
+    pom_stub = stub_request(:get, "https://repo1.maven.org/maven2/com/example/foo/1.0.0/foo-1.0.0.pom")
+      .to_return(status: 200, body: pom, headers: { 'Last-Modified' => 'Wed, 01 Jan 2025 00:00:00 GMT' })
+    @ecosystem.stubs(:generate_effective_pom).with(pom).returns(pom)
+
+    @ecosystem.versions_metadata({ name: 'com.example:foo', versions: ['1.0.0'] })
+    deps = @ecosystem.dependencies_metadata('com.example:foo', '1.0.0', nil)
+
+    assert_equal 'junit:junit', deps.first[:package_name]
+    assert_requested pom_stub, times: 1
+  end
+
+  test 'dependencies_metadata returns [] when pom is 404' do
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/gone/1.0.0/gone-1.0.0.pom")
+      .to_return(status: 404)
+    assert_equal [], @ecosystem.dependencies_metadata('com.example:gone', '1.0.0', nil)
+  end
+
+  test 'is_maven_central? recognises the Google mirror' do
+    r = Registry.new(url: 'https://maven-central.storage-download.googleapis.com/maven2', name: 'x', ecosystem: 'maven')
+    assert Ecosystem::Maven.new(r).send(:is_maven_central?)
+  end
+
+  test 'check_status_url on the Google mirror uses maven-metadata.xml' do
+    r = Registry.new(url: 'https://maven-central.storage-download.googleapis.com/maven2', name: 'x', ecosystem: 'maven')
+    eco = Ecosystem::Maven.new(r)
+    assert_equal "https://maven-central.storage-download.googleapis.com/maven2/dev/zio/zio-aws-autoscaling_3/maven-metadata.xml", eco.check_status_url(@package)
+  end
+
+  test 'check_status marks a package removed on a Nexus 3 registry that answers 200 for missing directories' do
+    registry = Registry.create!(name: 'repository.cloudera.com', url: 'https://repository.cloudera.com/repository/cloudera-repos', ecosystem: 'maven')
+    present = registry.packages.create!(name: 'org.apache.hadoop:hadoop-common', ecosystem: 'maven', status: 'removed')
+    missing = registry.packages.create!(name: 'org.example:missing', ecosystem: 'maven')
+    stub_request(:head, %r{repository\.cloudera\.com/.*/$}).to_return(status: 200)
+    stub_request(:head, 'https://repository.cloudera.com/repository/cloudera-repos/org/apache/hadoop/hadoop-common/maven-metadata.xml').to_return(status: 200)
+    stub_request(:head, 'https://repository.cloudera.com/repository/cloudera-repos/org/example/missing/maven-metadata.xml').to_return(status: 404)
+
+    present.check_status
+    missing.check_status
+
+    assert_equal 'active', present.reload.read_attribute(:status)
+    assert_equal 'removed', missing.reload.status
+  end
+
+  test 'HTML directory listing fallback on the Google mirror fetches index.html' do
+    r = Registry.new(url: 'https://maven-central.storage-download.googleapis.com/maven2', name: 'x', ecosystem: 'maven')
+    eco = Ecosystem::Maven.new(r)
+
+    stub_request(:get, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/maven-metadata.xml")
+      .to_raise(Faraday::ResourceNotFound.new(nil, { status: 404 }))
+    stub_request(:get, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/index.html")
+      .to_return(status: 200, body: '<html><body><pre><a href=../>../</a><a href="1.0/">1.0/</a></pre></body></html>')
+    stub_request(:get, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/1.0/jcip-annotations-1.0.pom")
+      .to_return(status: 200, body: file_fixture('maven/jcip-annotations-1.0.pom'), headers: { 'last-modified' => 'Thu, 14 Aug 2008 02:49:00 GMT' })
+
+    package_metadata = eco.package_metadata('net.jcip:jcip-annotations')
+    assert_equal ['1.0'], package_metadata[:versions]
+    assert_not_requested :get, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/"
+  end
+
+  test 'namespace_package_names on the Google mirror fetches index.html' do
+    r = Registry.new(url: 'https://maven-central.storage-download.googleapis.com/maven2', name: 'x', ecosystem: 'maven')
+    eco = Ecosystem::Maven.new(r)
+
+    stub_request(:get, "https://maven-central.storage-download.googleapis.com/maven2/com/bucket4j/index.html")
+      .to_return(status: 200, body: '<html><body><pre><a href="../">../</a><a href="bucket4j_jdk17-core/">bucket4j_jdk17-core/</a><a href="maven-metadata.xml">maven-metadata.xml</a></pre></body></html>')
+
+    assert_equal ['com.bucket4j:bucket4j_jdk17-core'], eco.namespace_package_names('com.bucket4j')
+    assert_not_requested :get, "https://maven-central.storage-download.googleapis.com/maven2/com/bucket4j/"
+  end
+
+  test 'namespace_package_names on Maven Central uses the bare directory url' do
+    stub_request(:get, "https://repo1.maven.org/maven2/com/bucket4j/")
+      .to_return(status: 200, body: '<html><body><pre><a href="../">../</a><a href="bucket4j_jdk17-core/">bucket4j_jdk17-core/</a></pre></body></html>')
+
+    assert_equal ['com.bucket4j:bucket4j_jdk17-core'], @ecosystem.namespace_package_names('com.bucket4j')
+    assert_not_requested :get, "https://repo1.maven.org/maven2/com/bucket4j/index.html"
+  end
+
+  test 'syncing a new package queues its missing namespace siblings' do
+    r = Registry.create!(url: 'https://maven-central.storage-download.googleapis.com/maven2', name: 'repo1.maven.org', ecosystem: 'maven')
+    r.packages.create!(name: 'net.jcip:jcip-existing', namespace: 'net.jcip', ecosystem: 'maven')
+    r.packages.create!(name: 'net.jcip.sub:thing', namespace: 'net.jcip.sub', ecosystem: 'maven')
+
+    stub_request(:get, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/maven-metadata.xml")
+      .to_return(status: 200, body: "<metadata><versioning><versions><version>1.0</version></versions></versioning></metadata>")
+    stub_request(:get, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/1.0/jcip-annotations-1.0.pom")
+      .to_return(status: 200, body: file_fixture('maven/jcip-annotations-1.0.pom'), headers: { 'last-modified' => 'Thu, 14 Aug 2008 02:49:00 GMT' })
+    stub_request(:head, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/jcip-annotations/maven-metadata.xml")
+      .to_return(status: 200)
+    listing = stub_request(:get, "https://maven-central.storage-download.googleapis.com/maven2/net/jcip/index.html")
+      .to_return(status: 200, body: '<html><body><pre><a href="../">../</a><a href="jcip-annotations/">jcip-annotations/</a><a href="jcip-existing/">jcip-existing/</a><a href="jcip-missing/">jcip-missing/</a><a href="sub/">sub/</a></pre></body></html>')
+
+    Registry.any_instance.expects(:sync_packages_async).with(['net.jcip:jcip-missing'])
+    r.sync_package('net.jcip:jcip-annotations')
+
+    assert r.packages.find_by(name: 'net.jcip:jcip-annotations')
+    assert_requested listing, times: 1
+  end
+
+  test 'sync_subpackages_async lists each namespace at most once a day' do
+    Rails.stubs(:cache).returns(ActiveSupport::Cache::MemoryStore.new)
+    r = Registry.create!(url: 'https://repo1.maven.org/maven2', name: 'repo1.maven.org', ecosystem: 'maven')
+    package = r.packages.create!(name: 'com.bucket4j:bucket4j_jdk17-caffeine', namespace: 'com.bucket4j', ecosystem: 'maven')
+    listing = stub_request(:get, "https://repo1.maven.org/maven2/com/bucket4j/")
+      .to_return(status: 200, body: '<html><body><pre><a href="bucket4j_jdk17-caffeine/">bucket4j_jdk17-caffeine/</a><a href="bucket4j_jdk17-core/">bucket4j_jdk17-core/</a></pre></body></html>')
+    r.stubs(:sync_packages_async)
+
+    eco = Ecosystem::Maven.new(r)
+    eco.sync_subpackages_async(package)
+    eco.sync_subpackages_async(package)
+
+    assert_requested listing, times: 1
+  end
+
+  test 'sync_subpackages_async skips registries other than Maven Central' do
+    r = Registry.create!(url: 'https://repo.jenkins-ci.org/public', name: 'repo.jenkins-ci.org', ecosystem: 'maven')
+    package = r.packages.create!(name: 'org.jenkins-ci:foo', namespace: 'org.jenkins-ci', ecosystem: 'maven')
+
+    Ecosystem::Maven.new(r).sync_subpackages_async(package)
+
+    assert_not_requested :get, "https://repo.jenkins-ci.org/public/org/jenkins-ci/"
+  end
+
+  test 'sync_missing_namespace_packages on the Google mirror queues artifacts missing from the namespace' do
+    r = Registry.create!(url: 'https://maven-central.storage-download.googleapis.com/maven2', name: 'repo1.maven.org', ecosystem: 'maven')
+    r.packages.create!(name: 'com.bucket4j:bucket4j_jdk17-caffeine', namespace: 'com.bucket4j', ecosystem: 'maven')
+    r.stubs(:sleep)
+
+    stub_request(:get, "https://maven-central.storage-download.googleapis.com/maven2/com/bucket4j/index.html")
+      .to_return(status: 200, body: '<html><body><pre><a href="../">../</a><a href="bucket4j_jdk17-caffeine/">bucket4j_jdk17-caffeine/</a><a href="bucket4j_jdk17-core/">bucket4j_jdk17-core/</a></pre></body></html>')
+
+    r.expects(:sync_packages_async).with(['com.bucket4j:bucket4j_jdk17-core'])
+    r.sync_missing_namespace_packages
+  end
+
+  def stub_scm_pom(group_path, artifact, scm_xml, parent_xml: '')
+    stub_request(:get, "https://repo1.maven.org/maven2/#{group_path}/#{artifact}/maven-metadata.xml")
+      .to_return(status: 200, body: "<metadata><versioning><versions><version>1.0</version></versions></versioning></metadata>")
+    stub_request(:get, "https://repo1.maven.org/maven2/#{group_path}/#{artifact}/1.0/#{artifact}-1.0.pom")
+      .to_return(status: 200, body: "<project><modelVersion>4.0.0</modelVersion>#{parent_xml}<groupId>#{group_path.tr('/', '.')}</groupId><artifactId>#{artifact}</artifactId><version>1.0</version>#{scm_xml}</project>")
+  end
+
+  test 'repository_url uses scm connection with Gitweb scm url' do
+    stub_scm_pom('org/apache/commons', 'commons-math3', <<~XML)
+      <scm>
+        <connection>scm:git:http://git-wip-us.apache.org/repos/asf/commons-math.git</connection>
+        <url>https://git-wip-us.apache.org/repos/asf?p=commons-math.git</url>
+      </scm>
+    XML
+
+    metadata = @ecosystem.package_metadata('org.apache.commons:commons-math3')
+
+    assert_equal 'https://gitbox.apache.org/repos/asf/commons-math.git', metadata[:repository_url]
+  end
+
+  test 'repository_url keeps the repository root when scm connection has a module path' do
+    stub_scm_pom('org/apache/hbase', 'hbase-client', <<~XML)
+      <scm>
+        <connection>scm:git:git://gitbox.apache.org/repos/asf/hbase.git/hbase-build-configuration/hbase-client</connection>
+        <url>https://gitbox.apache.org/repos/asf?p=hbase.git/hbase-build-configuration/hbase-client</url>
+      </scm>
+    XML
+
+    metadata = @ecosystem.package_metadata('org.apache.hbase:hbase-client')
+
+    assert_equal 'https://gitbox.apache.org/repos/asf/hbase.git', metadata[:repository_url]
+  end
+
+  test 'repository_url keeps the repository name from a Gitweb scm url without a connection' do
+    stub_scm_pom('org/apache/commons', 'commons-text', <<~XML)
+      <scm>
+        <url>https://gitbox.apache.org/repos/asf?p=commons-text.git;a=summary</url>
+      </scm>
+    XML
+
+    metadata = @ecosystem.package_metadata('org.apache.commons:commons-text')
+
+    assert_equal 'https://gitbox.apache.org/repos/asf/commons-text.git', metadata[:repository_url]
+  end
+
+  test 'repository_url strips the scm transport prefix from a GitHub connection' do
+    stub_scm_pom('com/example', 'github-connection', <<~XML)
+      <scm>
+        <connection>scm:git:https://github.com/example/widgets.git/widgets-core</connection>
+      </scm>
+    XML
+
+    metadata = @ecosystem.package_metadata('com.example:github-connection')
+
+    assert_equal 'https://github.com/example/widgets', metadata[:repository_url]
+  end
+
+  test 'repository_url prefers the child scm over the parent scm' do
+    stub_scm_pom('org/apache/hbase', 'hbase', <<~XML)
+      <scm>
+        <connection>scm:git:git://gitbox.apache.org/repos/asf/hbase.git</connection>
+        <url>https://gitbox.apache.org/repos/asf?p=hbase.git</url>
+      </scm>
+    XML
+    stub_scm_pom('org/apache/hbase', 'hbase-thirdparty', <<~XML, parent_xml: '<parent><groupId>org.apache.hbase</groupId><artifactId>hbase</artifactId><version>1.0</version></parent>')
+      <scm>
+        <connection>scm:git:https://github.com/apache/hbase-thirdparty.git</connection>
+      </scm>
+    XML
+
+    metadata = @ecosystem.package_metadata('org.apache.hbase:hbase-thirdparty')
+
+    assert_equal 'https://github.com/apache/hbase-thirdparty', metadata[:repository_url]
+  end
+
+  test 'repository_url uses the parent scm when the child has none and no homepage' do
+    stub_scm_pom('org/apache/hbase', 'hbase', <<~XML)
+      <scm>
+        <connection>scm:git:git://gitbox.apache.org/repos/asf/hbase.git</connection>
+      </scm>
+    XML
+    stub_scm_pom('org/apache/hbase', 'hbase-common', '', parent_xml: '<parent><groupId>org.apache.hbase</groupId><artifactId>hbase</artifactId><version>1.0</version></parent>')
+
+    metadata = @ecosystem.package_metadata('org.apache.hbase:hbase-common')
+
+    assert_equal 'https://gitbox.apache.org/repos/asf/hbase.git', metadata[:repository_url]
+  end
+
+  test 'repository_url ignores non-Git scm connections' do
+    stub_scm_pom('com/example', 'svn-project', <<~XML)
+      <scm>
+        <connection>scm:svn:https://svn.example.com/repos/project/trunk</connection>
+        <url>https://github.com/example/svn-project</url>
+      </scm>
+    XML
+
+    metadata = @ecosystem.package_metadata('com.example:svn-project')
+
+    assert_equal 'https://github.com/example/svn-project', metadata[:repository_url]
+  end
+
+  test 'all_package_names is empty for a non-Central registry without an archetype catalog' do
+    registry = Registry.new(name: 'packages.confluent.io', url: 'https://packages.confluent.io/maven', ecosystem: 'maven')
+    assert_equal [], Ecosystem::Maven.new(registry).all_package_names
+    assert_not_requested :get, /archetype-catalog\.xml/
+  end
+
+  test 'declared_repositories_key reads POM repositories' do
+    assert_equal 'repositories', Ecosystem::Maven.declared_repositories_key
+  end
+
+  test 'resolvable_dependency_name? drops placeholders and names without a groupId' do
+    assert Ecosystem::Maven.resolvable_dependency_name?('io.confluent:kafka-avro-serializer')
+    refute Ecosystem::Maven.resolvable_dependency_name?('${project.groupId}:core')
+    refute Ecosystem::Maven.resolvable_dependency_name?('core')
   end
 end

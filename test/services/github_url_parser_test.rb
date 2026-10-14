@@ -74,6 +74,12 @@ class GithubUrlParserTest < ActiveSupport::TestCase
     assert_equal result, full_name
   end
 
+  test 'preserves domain-like owner and repository names' do
+    %w[github-community-projects/github-io github-org/github.com].each do |name|
+      assert_equal name, GithubUrlParser.parse("https://github.com/#{name}")
+    end
+  end
+
   test "handles querystrings" do
     full_name = 'michaelkrog/filter4j'
     url       = 'scm:git:https://michaelkrog@github.com/michaelkrog/filter4j.git?foo=bar&wut=wah'
@@ -92,6 +98,12 @@ class GithubUrlParserTest < ActiveSupport::TestCase
       result = GithubUrlParser.parse(url)
       assert_equal result, full_name
     end
+  end
+
+  test 'handles long anchor and querystring runs' do
+    assert_nil GithubUrlParser.parse('#' * 20_000)
+    assert_equal 'foo/bar', GithubUrlParser.parse('https://github.com/foo/bar' + '#' * 20_000)
+    assert_equal 'foo/bar', GithubUrlParser.parse('https://github.com/foo/bar?' + '?' * 20_000)
   end
 
   test 'doesnt parses non-github urls' do

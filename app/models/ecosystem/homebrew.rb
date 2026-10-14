@@ -53,7 +53,7 @@ module Ecosystem
         name: package["name"],
         description: package["desc"],
         homepage: package["homepage"],
-        repository_url: repo_fallback("", package["homepage"]),
+        repository_url: repository_url(package),
         licenses: package['license'],
         version: package.dig("versions", "stable"),
         dependencies: package["dependencies"],
@@ -61,6 +61,23 @@ module Ecosystem
         downloads: package['analytics']['install']['30d'][package['name']],
         downloads_period: 'last-month'
       }
+    end
+
+    def repository_url(package)
+      urls = package["urls"] || {}
+      source_url = [urls["head"], urls["stable"]].compact.filter_map do |source|
+        url = source["url"]
+        next if url.blank?
+
+        normalized_url = url.sub(/\A(?:git|git\+https?):\/\//, "https://").sub(/\.git\z/, "")
+        parsed_url = UrlParser.try_all(normalized_url).presence
+        next parsed_url if parsed_url
+        next unless source["using"] == "git" || url.match?(/\A(?:git|git\+https?):\/\/|\.git\z/)
+
+        normalized_url
+      end.first
+
+      source_url || repo_fallback("", package["homepage"])
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])

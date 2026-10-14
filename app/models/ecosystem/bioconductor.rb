@@ -62,12 +62,14 @@ module Ecosystem
 
     def map_package_metadata(package)
       return false unless package
+      urls = package[:properties].fetch("URL", "").split(/[,\s]+/).reject(&:blank?)
+      bug_reports = package[:properties]["BugReports"]
       {
         name: package[:name],
-        homepage: package[:properties].fetch("URL", "").split(",").first,
+        homepage: urls.first,
         description: package[:html].css("h2").text.strip,
         licenses: package[:properties]["License"],
-        repository_url: repo_fallback(package[:properties].fetch("URL", "").split(",").first.presence, (package[:properties].fetch("URL", "").split(",").last.presence || package[:properties]["BugReports"])).to_s[0, 255],
+        repository_url: (find_repository_url(urls + [bug_reports].compact) || urls.first).to_s[0, 255],
         keywords_array: package[:properties]["biocViews"].split(", "),
         properties: package[:properties],
         downloads: downloads(package),
@@ -105,7 +107,10 @@ module Ecosystem
       tarball_name = "#{folder_name}.tar.gz"
       downloaded_file = File.open "/tmp/#{tarball_name}", "wb"
 
-      connection = Faraday.new
+      connection = Faraday.new do |builder|
+        builder.request :instrumentation
+        builder.adapter Faraday.default_adapter
+      end
       response = connection.get(url)
 
       File.open(downloaded_file, 'wb') do |file|

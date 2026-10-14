@@ -14,11 +14,88 @@ class PackageTest < ActiveSupport::TestCase
     should validate_uniqueness_of(:name).scoped_to(:registry_id)
   end
 
+  test 'rejects names with path traversal segments' do
+    registry = Registry.create(name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go')
+    ['./../../../', '..', '../foo', 'foo/..', 'foo/../bar', './', 'foo/./bar'].each do |name|
+      package = registry.packages.build(name: name, ecosystem: 'go')
+      assert_not package.valid?, "expected #{name.inspect} to be invalid"
+      assert_includes package.errors[:name], 'contains path traversal segments'
+    end
+  end
+
+  test 'allows names with dots that are not traversal segments' do
+    registry = Registry.create(name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go')
+    ['github.com/foo/bar', 'lodash.debounce', 'foo.bar/baz', '...ellipsis', 'a..b'].each do |name|
+      package = registry.packages.build(name: name, ecosystem: 'go')
+      assert package.valid?, "expected #{name.inspect} to be valid: #{package.errors.full_messages}"
+    end
+  end
+
   setup do
     @registry = Registry.create(default: true, name: 'rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
     @package = @registry.packages.create(name: 'foo', ecosystem: @registry.ecosystem, licenses: 'mit')
     @version = @package.versions.create(number: '1.0.0', published_at: 1.month.ago)
     @version2 = @package.versions.create(number: '2.0.0', published_at: 1.week.ago)
+  end
+
+  test 'sort_order restricts usage and popularity metrics to descending order' do
+    Package::DESCENDING_ONLY_SORTS.each do |sort|
+      error = assert_raises(Package::UnsupportedSortDirection) do
+        Package.sort_order(sort: sort, order: 'asc')
+      end
+      assert_equal "#{sort} only supports descending order", error.message
+    end
+  end
+
+  test 'sort_order identifies a descending-only fallback as the default sort' do
+    error = assert_raises(Package::UnsupportedSortDirection) do
+      Package.sort_order(sort: 'invalid', order: 'asc', default: 'downloads')
+    end
+
+    assert_equal 'the default downloads sort only supports descending order', error.message
+  end
+
+  test 'sort_order uses descending nulls last ordering for nullable metrics' do
+    sql = Package.order(Package.sort_order(sort: 'downloads', order: 'desc')).to_sql
+
+    assert_includes sql, 'ORDER BY downloads DESC NULLS LAST'
+  end
+
+  test 'sort_order omits null ordering for updated_at' do
+    ascending_sql = Package.order(Package.sort_order(sort: 'updated_at', order: 'asc')).to_sql
+    descending_sql = Package.order(Package.sort_order(sort: 'updated_at', order: 'desc')).to_sql
+
+    assert_includes ascending_sql, 'ORDER BY updated_at ASC'
+    assert_includes descending_sql, 'ORDER BY updated_at DESC'
+    refute_includes ascending_sql, 'NULLS LAST'
+    refute_includes descending_sql, 'NULLS LAST'
+  end
+
+  test 'sort_order leaves docker downloads available in both directions' do
+    sql = Package.order(Package.sort_order(sort: 'docker_downloads_count', order: 'asc')).to_sql
+
+    assert_includes sql, 'ORDER BY docker_downloads_count ASC NULLS LAST'
+  end
+
+  test 'registry metric sort indexes use descending nulls last ordering' do
+    index_names = %w[
+      index_packages_on_registry_downloads_desc
+      index_packages_on_registry_dependent_packages_desc
+      index_packages_on_registry_dependent_repos_desc
+      index_packages_on_registry_stargazers_desc
+      index_packages_on_registry_forks_desc
+    ]
+    definitions = ActiveRecord::Base.connection.select_rows(<<~SQL).to_h
+      SELECT indexname, indexdef
+      FROM pg_indexes
+      WHERE tablename = 'packages'
+        AND indexname IN (#{index_names.map { |name| ActiveRecord::Base.connection.quote(name) }.join(', ')})
+    SQL
+
+    assert_equal index_names.sort, definitions.keys.sort
+    definitions.each_value do |definition|
+      assert_includes definition, 'DESC NULLS LAST'
+    end
   end
 
   test 'update_details' do
@@ -101,8 +178,307 @@ class PackageTest < ActiveSupport::TestCase
     assert_equal @package.latest_release_number, '2.0.0'
   end
 
+  test 'set_latest_release_number follows the npm dist-tag latest' do
+    registry = Registry.create(name: 'registry.npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    package = registry.packages.create(name: 'fresh', ecosystem: 'npm', metadata: { 'dist-tags' => { 'latest' => '0.5.2' } })
+    package.versions.create(number: '0.5.2', published_at: 6.years.ago)
+    package.versions.create(number: '2.0.0', published_at: 2.months.ago)
+
+    package.set_latest_release_number
+
+    assert_equal '0.5.2', package.latest_release_number
+  end
+
+  test 'set_latest_release_number accepts two-component versions' do
+    registry = Registry.create!(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    package = registry.packages.create!(name: 'pytz', ecosystem: 'pypi')
+    package.versions.create(number: '2022.7.1', published_at: 3.years.ago)
+    package.versions.create(number: '2026.4', published_at: 1.week.ago)
+
+    package.set_latest_release_number
+
+    assert_equal '2026.4', package.latest_release_number
+  end
+
   test 'install_command' do
     assert_equal @package.install_command, 'gem install foo -s https://rubygems.org'
+  end
+
+  test 'repo_funding_links splits comma separated github usernames' do
+    @package.update(
+      repo_metadata: {
+        'metadata' => {
+          'funding' => {
+            'github' => 'foo, bar, baz'
+          }
+        }
+      }
+    )
+
+    assert_equal [
+      'https://github.com/sponsors/foo',
+      'https://github.com/sponsors/bar',
+      'https://github.com/sponsors/baz'
+    ], @package.repo_funding_links
+  end
+
+  test 'repo_funding_links handles github username arrays' do
+    @package.update(
+      repo_metadata: {
+        'metadata' => {
+          'funding' => {
+            'github' => ['foo', 'bar']
+          }
+        }
+      }
+    )
+
+    assert_equal [
+      'https://github.com/sponsors/foo',
+      'https://github.com/sponsors/bar'
+    ], @package.repo_funding_links
+  end
+
+  test 'repo_funding_links limits github usernames to four' do
+    @package.update(
+      repo_metadata: {
+        'metadata' => {
+          'funding' => {
+            'github' => 'foo, bar, baz, qux, quux'
+          }
+        }
+      }
+    )
+
+    assert_equal [
+      'https://github.com/sponsors/foo',
+      'https://github.com/sponsors/bar',
+      'https://github.com/sponsors/baz',
+      'https://github.com/sponsors/qux'
+    ], @package.repo_funding_links
+  end
+
+  test 'update_repo_metadata preserves its timestamp when the repository lookup is temporarily unavailable' do
+    repository_url = 'https://github.com/example/example'
+    previous_update = 2.days.ago
+    @package.update!(repository_url: repository_url, repo_metadata_updated_at: previous_update)
+
+    stub_request(:get, 'https://repos.ecosyste.ms/api/v1/repositories/lookup')
+      .with(query: { url: repository_url })
+      .to_return(status: 500)
+
+    error = assert_raises(EcosystemsApiClient::RequestError) do
+      @package.update_repo_metadata
+    end
+
+    assert_equal 500, error.status
+    assert_in_delta previous_update, @package.reload.repo_metadata_updated_at, 1.second
+  end
+
+  test 'update_repo_metadata treats an unsuccessful fallback request as no metadata' do
+    repository_url = 'https://github.com/example/example'
+    previous_update = 2.days.ago
+    @package.update!(repository_url: repository_url, repo_metadata_updated_at: previous_update)
+
+    stub_request(:get, 'https://repos.ecosyste.ms/api/v1/repositories/lookup')
+      .with(query: { url: repository_url })
+      .to_return(status: 404)
+    stub_request(:head, repository_url).to_return(status: 503)
+
+    @package.update_repo_metadata
+
+    assert_operator @package.reload.repo_metadata_updated_at, :>, previous_update
+  end
+
+  test 'update_repo_metadata treats a fallback connection failure as no metadata' do
+    repository_url = 'https://retired.example.org/project'
+    previous_update = 2.days.ago
+    @package.update!(repository_url: repository_url, repo_metadata_updated_at: previous_update)
+
+    stub_request(:get, 'https://repos.ecosyste.ms/api/v1/repositories/lookup')
+      .with(query: { url: repository_url })
+      .to_return(status: 404)
+    stub_request(:head, repository_url)
+      .to_raise(Faraday::ConnectionFailed.new('Could not resolve hostname'))
+
+    @package.update_repo_metadata
+
+    assert_operator @package.reload.repo_metadata_updated_at, :>, previous_update
+  end
+
+  test 'fetch_repo_metadata does not request invalid fallback urls' do
+    invalid_urls = [
+      'git://git.coding.net/example/project.git',
+      'git@example.org:example/project.git'
+    ]
+    Faraday.expects(:head).never
+
+    invalid_urls.each do |url|
+      @package.repository_url = url
+      stub_request(:get, 'https://repos.ecosyste.ms/api/v1/repositories/lookup')
+        .with(query: { url: url })
+        .to_return(status: 404)
+
+      assert_equal({}, @package.fetch_repo_metadata)
+    end
+  end
+
+  test 'update_repo_metadata retries when the repository lookup cannot connect' do
+    repository_url = 'https://github.com/example/example'
+    previous_update = 2.days.ago
+    @package.update!(repository_url: repository_url, repo_metadata_updated_at: previous_update)
+
+    stub_request(:get, 'https://repos.ecosyste.ms/api/v1/repositories/lookup')
+      .with(query: { url: repository_url })
+      .to_raise(Faraday::ConnectionFailed.new('Could not resolve hostname'))
+
+    assert_raises(Faraday::ConnectionFailed) do
+      @package.update_repo_metadata
+    end
+
+    assert_in_delta previous_update, @package.reload.repo_metadata_updated_at, 1.second
+  end
+
+  test 'update_repo_metadata retries when a redirected repository lookup is unavailable' do
+    repository_url = 'https://example.org/renamed'
+    redirected_url = 'https://github.com/example/renamed'
+    previous_update = 2.days.ago
+    @package.update!(repository_url: repository_url, repo_metadata_updated_at: previous_update)
+
+    stub_request(:get, 'https://repos.ecosyste.ms/api/v1/repositories/lookup')
+      .with(query: { url: repository_url })
+      .to_return(status: 404)
+    stub_request(:head, repository_url)
+      .to_return(status: 301, headers: { 'Location' => redirected_url })
+    stub_request(:get, 'https://repos.ecosyste.ms/api/v1/repositories/lookup')
+      .with(query: { url: redirected_url })
+      .to_return(status: 500)
+
+    error = assert_raises(EcosystemsApiClient::RequestError) do
+      @package.update_repo_metadata
+    end
+
+    assert_equal 500, error.status
+    assert_in_delta previous_update, @package.reload.repo_metadata_updated_at, 1.second
+  end
+
+  test 'update_repo_metadata stores a successful repository lookup and advances its timestamp' do
+    previous_update = 2.days.ago
+    metadata = {
+      'full_name' => 'example/example',
+      'host' => { 'name' => 'GitHub' }
+    }
+    @package.update!(repository_url: 'https://github.com/example/example', repo_metadata_updated_at: previous_update)
+    @package.stubs(:fetch_repo_metadata).returns(metadata)
+    @package.stubs(:fetch_tags).returns([])
+    @package.stubs(:fetch_owner).returns(nil)
+    @package.stubs(:ping_issues)
+    @package.stubs(:ping_commits)
+    @package.stubs(:update_issue_metadata)
+
+    @package.update_repo_metadata
+
+    assert_equal metadata.merge('tags' => []), @package.reload.repo_metadata
+    assert_operator @package.repo_metadata_updated_at, :>, previous_update
+  end
+
+  test 'repo_metadata_refresh_batch selects old and never-refreshed packages within a bounded id range' do
+    old_package = @registry.packages.create!(
+      name: 'old-repo-metadata',
+      ecosystem: @registry.ecosystem,
+      repository_url: 'https://github.com/example/old',
+      repo_metadata_updated_at: 2.months.ago
+    )
+    never_refreshed_package = @registry.packages.create!(
+      name: 'missing-repo-metadata',
+      ecosystem: @registry.ecosystem,
+      homepage: 'https://github.com/example/missing'
+    )
+    @registry.packages.create!(
+      name: 'fresh-repo-metadata',
+      ecosystem: @registry.ecosystem,
+      repository_url: 'https://github.com/example/fresh',
+      repo_metadata_updated_at: Time.current
+    )
+
+    packages, next_cursor = Package.repo_metadata_refresh_batch(
+      after_id: @package.id,
+      batch_size: 400,
+      scan_size: 100_000
+    )
+
+    assert_equal [old_package.id, never_refreshed_package.id], packages.map(&:id)
+    assert_equal 0, next_cursor
+  end
+
+  test 'repo_metadata_refresh_batch resumes after the last selected package when the batch is full' do
+    first_package = @registry.packages.create!(
+      name: 'first-old-repo-metadata',
+      ecosystem: @registry.ecosystem,
+      repository_url: 'https://github.com/example/first',
+      repo_metadata_updated_at: 2.months.ago
+    )
+    @registry.packages.create!(
+      name: 'second-old-repo-metadata',
+      ecosystem: @registry.ecosystem,
+      repository_url: 'https://github.com/example/second',
+      repo_metadata_updated_at: 2.months.ago
+    )
+
+    packages, next_cursor = Package.repo_metadata_refresh_batch(
+      after_id: @package.id,
+      batch_size: 1,
+      scan_size: 100_000
+    )
+
+    assert_equal [first_package.id], packages.map(&:id)
+    assert_equal first_package.id, next_cursor
+  end
+
+  test 'update_repo_metadata_async persists its scan cursor after enqueueing the batch' do
+    package = @registry.packages.create!(
+      name: 'queued-repo-metadata',
+      ecosystem: @registry.ecosystem,
+      repository_url: 'https://github.com/example/queued'
+    )
+    Package.stubs(:repo_metadata_refresh_batch).with(after_id: 123).returns([[package], 456])
+    REDIS.expects(:get).with(Package::REPO_METADATA_REFRESH_CURSOR_KEY).returns('123')
+    REDIS.expects(:set).with(Package::REPO_METADATA_REFRESH_CURSOR_KEY, 456)
+    package.expects(:update_repo_metadata_async).with(wait: 0)
+
+    Package.update_repo_metadata_async
+  end
+
+  test 'update_repo_metadata_async spreads the batch across the cron interval' do
+    packages = 3.times.map do |index|
+      @registry.packages.create!(
+        name: "spread-repo-metadata-#{index}",
+        ecosystem: @registry.ecosystem,
+        repository_url: "https://github.com/example/spread-#{index}"
+      )
+    end
+    Package.stubs(:repo_metadata_refresh_batch).returns([packages, 456])
+    REDIS.stubs(:get).returns('123')
+    REDIS.stubs(:set)
+
+    packages.each_with_index do |package, index|
+      package.expects(:update_repo_metadata_async).with(
+        wait: index * Package::REPO_METADATA_REFRESH_INTERVAL
+      )
+    end
+
+    Package.update_repo_metadata_async
+  end
+
+  test 'update_repo_metadata_async schedules a delayed worker when wait is given' do
+    package = @registry.packages.create!(
+      name: 'delayed-repo-metadata',
+      ecosystem: @registry.ecosystem,
+      repository_url: 'https://github.com/example/delayed'
+    )
+    UpdateRepoMetadataWorker.expects(:perform_in).with(2.5, package.id)
+
+    package.update_repo_metadata_async(wait: 2.5)
   end
 
   test 'registry_url' do
@@ -167,22 +543,92 @@ class PackageTest < ActiveSupport::TestCase
     assert_includes result, scoped_package
   end
 
-  test 'sync_async enqueues UpdatePackageWorker' do
+  test 'Package.purl class method handles mixed-ecosystem purls in one call' do
+    npm_registry = Registry.create(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    npm_package = npm_registry.packages.create(name: 'react', ecosystem: 'npm')
+    pypi_registry = Registry.create(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    pypi_package = pypi_registry.packages.create(name: 'requests', ecosystem: 'pypi', metadata: { 'normalized_name' => 'requests' })
+    @package.update(repository_url: 'https://github.com/rails/rails')
+
+    result = Package.purl(['pkg:npm/react', 'pkg:pypi/requests', 'pkg:gem/foo', 'pkg:github/rails/rails'])
+
+    assert_includes result, npm_package
+    assert_includes result, pypi_package
+    assert_includes result, @package
+    assert_equal 3, result.distinct.count
+  end
+
+  test 'Package.purl class method finds pypi package via normalized_name fallback' do
+    pypi_registry = Registry.create(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    pypi_package = pypi_registry.packages.create(name: 'Foo_Bar.Baz', ecosystem: 'pypi', metadata: { 'normalized_name' => 'foo-bar-baz' })
+
+    result = Package.purl(['pkg:pypi/FOO__bar.baz'])
+
+    assert_includes result, pypi_package
+  end
+
+  test 'Package.purl class method returns pypi normalized matches even when an exact match exists elsewhere' do
+    pypi_a = Registry.create(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    pypi_b = Registry.create(name: 'pypi-mirror', url: 'https://mirror.example/pypi', ecosystem: 'pypi')
+    exact = pypi_a.packages.create(name: 'typing-extensions', ecosystem: 'pypi', metadata: { 'normalized_name' => 'typing-extensions' })
+    underscored = pypi_b.packages.create(name: 'typing_extensions', ecosystem: 'pypi', metadata: { 'normalized_name' => 'typing-extensions' })
+
+    result = Package.purl(['pkg:pypi/typing-extensions'])
+
+    assert_includes result, exact
+    assert_includes result, underscored
+  end
+
+  test 'sync_async enqueues SyncPackageByIdWorker' do
     @package.update(last_synced_at: 2.days.ago)
-    UpdatePackageWorker.expects(:perform_async).with(@package.id).once
+    SyncPackageByIdWorker.expects(:perform_async).with(@package.registry_id, @package.id).once
     @package.sync_async
   end
 
   test 'sync_async skips recently synced packages' do
     @package.update(last_synced_at: 1.hour.ago)
-    UpdatePackageWorker.expects(:perform_async).never
+    SyncPackageByIdWorker.expects(:perform_async).never
     @package.sync_async
+  end
+
+  test 'check_statuses_async selects registry_id for the worker' do
+    Sidekiq::Queue.any_instance.stubs(:size).returns(0)
+    @package.update!(last_synced_at: 6.weeks.ago, status: 'active')
+    CheckPackageStatusWorker.expects(:perform_async).with(@registry.id, @package.id)
+    Package.check_statuses_async
+  end
+
+  test 'check_statuses_async skips when default queue is backed up' do
+    Sidekiq::Queue.expects(:new).with('default').returns(stub(size: 30_000))
+    @package.update!(last_synced_at: 6.weeks.ago, status: 'active')
+    CheckPackageStatusWorker.expects(:perform_async).never
+    Package.check_statuses_async
+  end
+
+  test 'sync_least_recent_async skips when critical queue is backed up' do
+    Sidekiq::Queue.any_instance.stubs(:size).returns(20_000)
+    SyncPackageByIdWorker.expects(:perform_async).never
+    Package.sync_least_recent_async
+  end
+
+  test 'sync_least_recent_async excludes throttled registries' do
+    Sidekiq::Queue.any_instance.stubs(:size).returns(0)
+    Registry.reset_throttle_cache
+    throttled = Registry.create!(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm', metadata: { 'rate_limit' => 1 })
+    stale_throttled = throttled.packages.create!(name: 'left-pad', ecosystem: 'npm', status: 'active', last_synced_at: 2.months.ago)
+    stale_open = @registry.packages.create!(name: 'stale-gem', ecosystem: 'rubygems', status: 'active', last_synced_at: 2.months.ago)
+
+    SyncPackageByIdWorker.expects(:perform_async).with(@registry.id, stale_open.id).once
+    SyncPackageByIdWorker.expects(:perform_async).with(throttled.id, stale_throttled.id).never
+    Package.sync_least_recent_async
+  ensure
+    Registry.reset_throttle_cache
   end
 
   test 'sync_async skips batch ecosystem packages' do
     batch_registry = Registry.create(name: 'nixpkgs-unstable', url: 'https://channels.nixos.org/nixos-unstable', ecosystem: 'nixpkgs', version: 'unstable')
     batch_package = batch_registry.packages.create(name: 'hello', ecosystem: 'nixpkgs', last_synced_at: 2.days.ago)
-    UpdatePackageWorker.expects(:perform_async).never
+    SyncPackageByIdWorker.expects(:perform_async).never
     batch_package.sync_async
   end
 
@@ -199,6 +645,20 @@ class PackageTest < ActiveSupport::TestCase
   test 'status reader returns removed for removed packages' do
     @package.update_column(:status, 'removed')
     assert_equal 'removed', @package.reload.status
+  end
+
+  test 'updating package status to removed marks versions removed' do
+    @package.update!(status: 'removed')
+
+    assert_equal ['removed'], @package.versions.reload.pluck(:status).uniq
+  end
+
+  test 'updating package status to another inactive status does not mark versions removed' do
+    @version.update!(status: 'yanked')
+
+    @package.update!(status: 'unpublished')
+
+    assert_equal ['yanked', nil], @package.versions.order(:number).pluck(:status)
   end
 
   test 'check_status sets active when ecosystem returns nil' do
@@ -220,6 +680,14 @@ class PackageTest < ActiveSupport::TestCase
     @package.update_column(:last_synced_at, 2.months.ago)
     @package.registry.ecosystem_instance.expects(:check_status).with(@package).returns(nil)
     @package.check_status
+    assert @package.last_synced_at > 1.minute.ago
+  end
+
+  test 'check_status leaves status untouched and stamps last_synced_at when ecosystem returns false' do
+    @package.update_columns(status: 'deprecated', last_synced_at: 2.months.ago)
+    @package.registry.ecosystem_instance.expects(:check_status).with(@package).returns(false)
+    @package.check_status
+    assert_equal 'deprecated', @package.reload.read_attribute(:status)
     assert @package.last_synced_at > 1.minute.ago
   end
 
@@ -265,5 +733,218 @@ class PackageTest < ActiveSupport::TestCase
     assert_includes results, package_with_advisories
     refute_includes results, package_without_advisories
     refute_includes results, @package
+  end
+
+  test 'as_live_event_json includes API fields' do
+    json = @package.as_live_event_json
+
+    assert_equal 'foo', json['name']
+    assert_equal 'rubygems', json['ecosystem']
+    assert_equal 'pkg:gem/foo', json['purl']
+    assert_equal 'https://rubygems.org/gems/foo', json['registry_url']
+    assert_equal 'gem install foo -s https://rubygems.org', json['install_command']
+    assert json.key?('description')
+    assert json.key?('repository_url')
+    assert json.key?('latest_release_number')
+    assert json.key?('status')
+    refute json.key?('maintainers')
+    refute json.key?('repo_metadata')
+  end
+
+  test 'live_event_payload for package.created' do
+    payload = @package.live_event_payload(event: 'package.created')
+
+    assert_equal 'package.created', payload[:event]
+    assert_equal 'rubygems.org', payload[:registry]
+    assert_equal 'https://packages.ecosyste.ms/api/v1/registries/rubygems.org', payload[:registry_url]
+    assert_equal 'https://packages.ecosyste.ms/api/v1/registries/rubygems.org/packages/foo', payload[:package_url]
+    assert_equal 'foo', payload[:package]['name']
+    assert_equal 'pkg:gem/foo', payload[:package]['purl']
+    refute payload.key?(:version)
+  end
+
+  test 'live_event_payload for version.created' do
+    payload = @package.live_event_payload(event: 'version.created', version: @version)
+
+    assert_equal 'version.created', payload[:event]
+    assert_equal 'https://packages.ecosyste.ms/api/v1/registries/rubygems.org/packages/foo', payload[:package_url]
+    assert_equal 'https://packages.ecosyste.ms/api/v1/registries/rubygems.org/packages/foo/versions/1.0.0', payload[:version_url]
+    assert_equal 'foo', payload[:package]['name']
+    assert_equal '1.0.0', payload[:version]['number']
+    assert_equal 'pkg:gem/foo@1.0.0', payload[:version]['purl']
+    assert payload[:version].key?('published_at')
+    assert payload[:version].key?('download_url')
+  end
+
+  test 'live_event_payload encodes package name in url' do
+    npm = Registry.create(default: true, name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    pkg = npm.packages.create(name: '@scope/pkg', ecosystem: 'npm')
+
+    assert_equal 'https://packages.ecosyste.ms/api/v1/registries/npmjs.org/packages/%40scope%2Fpkg',
+                 pkg.live_event_payload(event: 'package.created')[:package_url]
+  end
+
+  test 'emit_new_package_event calls LiveEvent.emit' do
+    LiveEvent.stubs(:enabled?).returns(true)
+    LiveEvent.expects(:emit).with(has_entry(:event, 'package.created'))
+    @package.emit_new_package_event
+  end
+
+  test 'emit_new_package_event does nothing when LiveEvent disabled' do
+    LiveEvent.stubs(:enabled?).returns(false)
+    LiveEvent.expects(:emit).never
+    @package.emit_new_package_event
+  end
+
+  test 'emit_new_version_events calls LiveEvent.emit with one event per version' do
+    LiveEvent.stubs(:enabled?).returns(true)
+    LiveEvent.expects(:emit).with do |events|
+      events.length == 2 &&
+        events.all? { |e| e[:event] == 'version.created' } &&
+        events.map { |e| e[:version]['number'] } == ['1.0.0', '2.0.0']
+    end
+    @package.emit_new_version_events([@version, @version2])
+  end
+
+  test 'emit_new_version_events does nothing with empty array' do
+    LiveEvent.stubs(:enabled?).returns(true)
+    LiveEvent.expects(:emit).never
+    @package.emit_new_version_events([])
+  end
+
+  test 'emit_new_version_events does nothing when LiveEvent disabled' do
+    LiveEvent.stubs(:enabled?).returns(false)
+    LiveEvent.expects(:emit).never
+    @package.emit_new_version_events([@version])
+  end
+
+  test 'emit_new_package_event swallows payload errors' do
+    LiveEvent.stubs(:enabled?).returns(true)
+    @package.stubs(:as_live_event_json).raises(NoMethodError, 'boom')
+
+    assert_nothing_raised { @package.emit_new_package_event }
+  end
+
+  test 'emit_new_version_events swallows payload errors' do
+    LiveEvent.stubs(:enabled?).returns(true)
+    @version.stubs(:as_live_event_json).raises(NoMethodError, 'boom')
+
+    assert_nothing_raised { @package.emit_new_version_events([@version]) }
+  end
+
+  test 'update_top_dependent_packages does nothing below threshold' do
+    @package.update_column(:dependent_packages_count, TopDependentPackage::THRESHOLD)
+    @package.update_top_dependent_packages
+    assert_empty @package.top_dependent_packages
+  end
+
+  test 'update_top_dependent_packages clears stale rows below threshold' do
+    TopDependentPackage.create!(package_id: @package.id, sort: 'downloads', dependent_ids: [1, 2, 3], updated_at: Time.current)
+    @package.update_column(:dependent_packages_count, 5)
+    @package.update_top_dependent_packages
+    assert_empty @package.top_dependent_packages.reload
+  end
+
+  test 'update_top_dependent_packages writes one row per sort above threshold' do
+    deps = 3.times.map do |i|
+      d = @registry.packages.create!(name: "dep#{i}", ecosystem: @registry.ecosystem,
+                                      downloads: (i + 1) * 100,
+                                      dependent_packages_count: 3 - i,
+                                      dependent_repos_count: i,
+                                      rankings: { 'average' => (i + 1).to_f })
+      v = d.versions.create!(number: '1.0.0', latest: true)
+      v.dependencies.create!(package_id: @package.id, package_name: @package.name, ecosystem: @registry.ecosystem, requirements: '>= 0', kind: 'runtime')
+      d
+    end
+
+    @package.update_column(:dependent_packages_count, TopDependentPackage::THRESHOLD + 1)
+    @package.update_top_dependent_packages
+
+    rows = @package.top_dependent_packages.reload.index_by(&:sort)
+    assert_equal TopDependentPackage::SORTS.keys.sort, rows.keys.sort
+
+    assert_equal [deps[2].id, deps[1].id, deps[0].id], rows['downloads'].dependent_ids
+    assert_equal [deps[0].id, deps[1].id, deps[2].id], rows['dependent_packages_count'].dependent_ids
+    assert_equal [deps[2].id, deps[1].id, deps[0].id], rows['dependent_repos_count'].dependent_ids
+    assert_equal [deps[0].id, deps[1].id, deps[2].id], rows['rank'].dependent_ids
+  end
+
+  test 'update_top_dependent_packages upserts on repeat' do
+    dep = @registry.packages.create!(name: 'dep', ecosystem: @registry.ecosystem, downloads: 100)
+    v = dep.versions.create!(number: '1.0.0', latest: true)
+    v.dependencies.create!(package_id: @package.id, package_name: @package.name, ecosystem: @registry.ecosystem, requirements: '>= 0', kind: 'runtime')
+
+    @package.update_column(:dependent_packages_count, TopDependentPackage::THRESHOLD + 1)
+    @package.update_top_dependent_packages
+    @package.update_top_dependent_packages
+
+    assert_equal TopDependentPackage::SORTS.size, @package.top_dependent_packages.reload.count
+  end
+
+  test 'keywords includes active packages and excludes inactive ones' do
+    @registry.packages.create!(name: 'active-gem', ecosystem: @registry.ecosystem, status: 'active', keywords: ['audit-keyword'])
+    @registry.packages.create!(name: 'removed-gem', ecosystem: @registry.ecosystem, status: 'removed', keywords: ['removed-keyword'])
+
+    keywords = Package.keywords.to_h { |keyword, count| [keyword, count.to_i] }
+
+    assert_equal 1, keywords['audit-keyword']
+    assert_nil keywords['removed-keyword']
+  end
+
+  test 'related_keywords tallies co-occurring keywords excluding the input' do
+    @registry.packages.create!(name: 'a', ecosystem: @registry.ecosystem, keywords: %w[cli json fast])
+    @registry.packages.create!(name: 'b', ecosystem: @registry.ecosystem, keywords: %w[cli json])
+    @registry.packages.create!(name: 'c', ecosystem: @registry.ecosystem, keywords: %w[cli yaml])
+
+    result = Package.related_keywords('cli')
+
+    assert_equal [['json', 2], ['fast', 1], ['yaml', 1]].to_h, result.to_h
+    refute_includes result.map(&:first), 'cli'
+  end
+
+  test 'related_keywords respects the relation it is called on' do
+    other = Registry.create(name: 'other.example', url: 'https://other.example', ecosystem: @registry.ecosystem)
+    @registry.packages.create!(name: 'a', ecosystem: @registry.ecosystem, keywords: %w[cli local])
+    other.packages.create!(name: 'b', ecosystem: other.ecosystem, keywords: %w[cli elsewhere])
+
+    result = @registry.packages.related_keywords('cli')
+
+    assert_equal({ 'local' => 1 }, result.to_h)
+  end
+
+  test 'related_keywords plucks without joining preloaded associations' do
+    @registry.packages.create!(name: 'a', ecosystem: @registry.ecosystem, keywords: %w[cli json])
+
+    sql = Package.keyword('cli').limit(5000).select(:keywords).to_sql
+    refute_match(/JOIN/i, sql)
+  end
+
+  test "update_rankings gives the sole package in a registry the top average" do
+    registry = Registry.create!(name: "rank-sole.example", url: "https://rank-sole.example", ecosystem: "huggingface")
+    package = registry.packages.create!(name: "org/model", ecosystem: "huggingface", downloads: 100)
+
+    package.reload.update_rankings
+
+    assert_equal 0, package.reload.rankings["average"]
+  end
+
+  test "update_rankings averages only fields that rank the package" do
+    registry = Registry.create!(name: "rank-leader.example", url: "https://rank-leader.example", ecosystem: "huggingface")
+    leader = registry.packages.create!(name: "org/leader", ecosystem: "huggingface", downloads: 100)
+    other = registry.packages.create!(name: "org/other", ecosystem: "huggingface", downloads: 10)
+
+    [leader, other].each { |package| package.reload.update_rankings }
+
+    assert_equal 0, leader.reload.rankings["average"]
+    assert_equal 50, other.reload.rankings["average"]
+  end
+
+  test "update_rankings gives the bottom average when every field ties at zero" do
+    registry = Registry.create!(name: "rank-zero.example", url: "https://rank-zero.example", ecosystem: "huggingface")
+    packages = 2.times.map { |i| registry.packages.create!(name: "org/zero-#{i}", ecosystem: "huggingface", downloads: 0) }
+
+    packages.each { |package| package.reload.update_rankings }
+
+    packages.each { |package| assert_equal 100, package.reload.rankings["average"] }
   end
 end

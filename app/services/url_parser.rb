@@ -1,6 +1,6 @@
 class UrlParser
   def self.parse(url)
-    new(url).parse
+    url_candidates(url).lazy.map { |candidate| new(candidate).parse }.find(&:present?)
   end
 
   def initialize(url)
@@ -19,13 +19,20 @@ class UrlParser
   end
 
   def self.parse_to_full_url(url)
-    new(url).parse_to_full_url
+    url_candidates(url).lazy.map { |candidate| new(candidate).parse_to_full_url }.find(&:present?)
   end
 
   def self.try_all(url)
-    GithubUrlParser.parse_to_full_url(url) ||
-    GitlabUrlParser.parse_to_full_url(url) ||
-    BitbucketUrlParser.parse_to_full_url(url)
+    url_candidates(url).lazy.map do |candidate|
+      GithubUrlParser.parse_to_full_url(candidate) ||
+      GitlabUrlParser.parse_to_full_url(candidate) ||
+      BitbucketUrlParser.parse_to_full_url(candidate) ||
+      ForgeUrlParser.parse_to_full_url(candidate)
+    end.find(&:present?)
+  end
+
+  def self.url_candidates(url)
+    url.to_s.split(%r{[,;\s]+(?=(?:[a-z][a-z0-9+.-]*://|git@))}i)
   end
 
   def parse_to_full_url
@@ -80,7 +87,7 @@ class UrlParser
   end
 
   def domain_regex
-    "#{domain}\.(#{tlds.join('|')})"
+    "#{domain}[.](#{tlds.join('|')})"
   end
 
   def website_url?
@@ -103,7 +110,7 @@ class UrlParser
   end
 
   def remove_anchors
-    self.url = url.dup.gsub(/(#\S*)$/i, '')
+    self.url = url.dup.sub(/#.*\z/m, '')
   end
 
   def remove_auth_user
@@ -135,15 +142,17 @@ class UrlParser
   end
 
   def remove_querystring
-    self.url = url.dup.gsub(/(\?\S*)$/i, '')
+    self.url = url.dup.sub(/\?.*\z/m, '')
   end
 
   def remove_scheme
-    self.url = url.dup.gsub(/(((git\+https|git|ssh|hg|svn|scm|http|https)+?:)+?)/i, '')
+    self.url = url.sub(%r{\A(https?://[^/]+/)(?:\1)+}i, '\1')
+    self.url = url.dup.gsub(/(?:git\+https|git|ssh|hg|svn|scm|http|https):/i, '')
+    self.url = url.sub(%r{\A(/*)([^/]+)/{2,}\2/}i, '\1\2/')
   end
 
   def remove_subdomain
-    self.url = url.dup.gsub(/(www|ssh|raw|git|wiki)+?\./i, '')
+    self.url = url.dup.gsub(/(?:www|ssh|raw|git|wiki)\./i, '')
   end
 
   def remove_whitespace

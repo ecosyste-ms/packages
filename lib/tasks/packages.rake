@@ -13,6 +13,20 @@ def with_rake_lock(task_name, ttl: 3600)
 end
 
 namespace :packages do
+  desc 'queue dependencies that packages declare against each registry but are missing from the ecosystem'
+  task sync_declared_dependencies: :environment do
+    ecosystems = Ecosystem::Base.list.select(&:declared_repositories_key).map(&:lowercase_name)
+    Registry.where(ecosystem: ecosystems).find_each do |registry|
+      names = registry.sync_declared_dependency_packages
+      puts "#{registry.name}: #{names.size}"
+    end
+  end
+
+  desc 'print repositories declared by packages with counts of dependencies no registry in the ecosystem has'
+  task :declared_repositories, [:ecosystem, :limit] => :environment do |_t, args|
+    Registry.print_declared_repositories(args[:ecosystem], limit: (args[:limit] || 50).to_i)
+  end
+
   desc 'sync recently updated packages'
   task sync_recent: :environment do
     with_rake_lock('packages:sync_recent') do
@@ -24,7 +38,38 @@ namespace :packages do
   task sync_recent_npm: :environment do
     with_rake_lock('packages:sync_recent_npm') do
       r = Registry.find_by(ecosystem: 'npm')
-      r.sync_recently_updated_packages_async
+      r.sync_recently_updated_packages_async(period: 5.minutes)
+    end
+  end
+
+  desc 'sync recently updated pypi packages'
+  task sync_recent_pypi: :environment do
+    with_rake_lock('packages:sync_recent_pypi') do
+      r = Registry.find_by(ecosystem: 'pypi')
+      r.sync_recently_updated_packages_async(period: 2.minutes)
+    end
+  end
+
+  desc 'backfill NuGet verified package metadata'
+  task backfill_nuget_verified: :environment do
+    with_rake_lock('packages:backfill_nuget_verified') do
+      registry = Registry.find_by!(ecosystem: 'nuget')
+      packages = registry.packages.where("NOT (COALESCE(metadata::jsonb, '{}'::jsonb) ? 'verified')")
+
+      packages.in_batches(of: 1_000) do |batch|
+        SyncPackageWorker.perform_bulk(batch.pluck(:name).map { |name| [registry.id, name, true] })
+      end
+    end
+  end
+
+  desc 'backfill GitHub Actions release immutability'
+  task backfill_github_actions_immutability: :environment do
+    with_rake_lock('packages:backfill_github_actions_immutability', ttl: 24.hours.to_i) do
+      registry = Registry.find_by!(ecosystem: 'actions')
+
+      registry.packages.in_batches(of: 1_000) do |batch|
+        UpdateVersionsWorker.perform_bulk(batch.pluck(:id).map { |id| [id] })
+      end
     end
   end
 
@@ -122,6 +167,13 @@ namespace :packages do
     end
   end
 
+  desc 'recompute rankings for every registry'
+  task update_registry_rankings: :environment do
+    with_rake_lock('packages:update_registry_rankings') do
+      Registry.find_each(&:update_rankings_async)
+    end
+  end
+
   desc 'update advisories'
   task update_advisories: :environment do
     with_rake_lock('packages:update_advisories') do
@@ -162,7 +214,7 @@ namespace :packages do
     with_rake_lock('packages:sync_outdated_docker') do
       registry = Registry.find_by(ecosystem: 'docker')
       registry.packages.active.outdated.limit(1000).order('RANDOM()').select(:id).each_with_index do |package, i|
-        UpdatePackageWorker.perform_in(i.seconds, package.id)
+        SyncPackageByIdWorker.perform_in(i.seconds, registry.id, package.id)
       end
     end
   end
@@ -185,14 +237,6 @@ namespace :packages do
   task update_critical: :environment do
     Registry.all.find_each do |registry|
       registry.find_critical_packages
-    end
-  end
-
-  desc 'clean up sidekiq unique jobs'
-  task clean_up_sidekiq_unique_jobs: :environment do
-    with_rake_lock('packages:clean_up_sidekiq_unique_jobs') do
-      SidekiqUniqueJobs::Digests.new.delete_by_pattern("*", count: 10_000)
-      SidekiqUniqueJobs::ExpiringDigests.new.delete_by_pattern("*", count: 10_000)
     end
   end
 
@@ -379,5 +423,20 @@ namespace :packages do
     results.sort_by { |_, v| -v.size }.each do |pkg, deps|
       puts "#{pkg},#{deps.size},#{deps.uniq.join(';')}"
     end;nil
+  end
+
+  desc 'populate top_dependent_packages cache for packages above threshold'
+  task update_top_dependent_packages: :environment do
+    with_rake_lock('packages:update_top_dependent_packages', ttl: 24.hours.to_i) do
+      ids = Package.where('dependent_packages_count > ?', TopDependentPackage::THRESHOLD)
+                   .order(dependent_packages_count: :desc)
+                   .pluck(:id)
+      ids.each_with_index do |package_id, i|
+        package = Package.find_by(id: package_id)
+        next unless package
+        package.update_top_dependent_packages
+        puts "#{i + 1}/#{ids.length} #{package.ecosystem}/#{package.name} (#{package.dependent_packages_count})" if (i % 100).zero?
+      end
+    end
   end
 end

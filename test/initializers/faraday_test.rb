@@ -1,6 +1,25 @@
 require 'test_helper'
 
 class FaradayInitializerTest < ActiveSupport::TestCase
+  test "sets default timeout on all Faraday connections" do
+    conn = Faraday.new(url: 'https://example.com')
+    assert_equal 30, conn.options.timeout
+    assert_equal 10, conn.options.open_timeout
+  end
+
+  test "sets default timeout on the default connection" do
+    assert_equal 30, Faraday.default_connection.options.timeout
+    assert_equal 10, Faraday.default_connection.options.open_timeout
+  end
+
+  test "explicit timeout overrides the default" do
+    conn = Faraday.new(url: 'https://example.com') do |f|
+      f.options.timeout = 5
+      f.adapter Faraday.default_adapter
+    end
+    assert_equal 5, conn.options.timeout
+  end
+
   test "sets default User-Agent header for Faraday connections" do
     # Create a new Faraday connection without any custom headers
     conn = Faraday.new(url: 'https://example.com')
@@ -30,6 +49,20 @@ class FaradayInitializerTest < ActiveSupport::TestCase
     # Verify the request was made with the correct User-Agent
     assert_requested :get, "https://example.com/test",
       headers: { 'User-Agent' => 'packages.ecosyste.ms' }
+  end
+
+  test "Faraday.get emits registry_http_requests metric" do
+    stub_request(:get, "https://direct.example.org/x").to_return(status: 200)
+    Appsignal.expects(:increment_counter).with("registry_http_requests", 1, host: "direct.example.org", status: "200")
+    Appsignal.stubs(:add_distribution_value)
+    Faraday.get("https://direct.example.org/x")
+  end
+
+  test "Faraday.head emits registry_http_requests metric" do
+    stub_request(:head, "https://direct.example.org/x").to_return(status: 404)
+    Appsignal.expects(:increment_counter).with("registry_http_requests", 1, host: "direct.example.org", status: "404")
+    Appsignal.stubs(:add_distribution_value)
+    Faraday.head("https://direct.example.org/x")
   end
 
   test "default User-Agent is applied to direct Faraday.post calls" do

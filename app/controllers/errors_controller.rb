@@ -1,5 +1,6 @@
 class ErrorsController < ApplicationController
   skip_before_action :set_cache_headers
+  skip_before_action :reject_path_traversal_in_params
 
   def not_found
     respond_to do |format|
@@ -18,6 +19,9 @@ class ErrorsController < ApplicationController
   end
 
   def internal
+    response.cache_control.replace({ no_store: true })
+    response.headers.delete('CDN-Cache-Control')
+
     respond_to do |format|
       format.html { render status: :internal_server_error }
       format.json { render json: { error: "internal server error" }, status: :internal_server_error }

@@ -128,4 +128,112 @@ class HomebrewTest < ActiveSupport::TestCase
       {:package_name=>"readline", :requirements=>"*", :kind=>"runtime", :ecosystem=>"homebrew"}
     ]
   end
+
+  test 'repository_url prefers git head url over marketing homepage' do
+    stub_request(:get, "https://formulae.brew.sh/api/formula/githead.json")
+      .to_return({ status: 200, body: file_fixture('homebrew/githead.json') })
+    package_metadata = @ecosystem.package_metadata('githead')
+
+    assert_equal "https://githead.example.com", package_metadata[:homepage]
+    assert_equal "https://github.com/foo/githead", package_metadata[:repository_url]
+  end
+
+  test 'repository_url uses stable source archive url when no git head' do
+    stub_request(:get, "https://formulae.brew.sh/api/formula/archivetool.json")
+      .to_return({ status: 200, body: file_fixture('homebrew/archivetool.json') })
+    package_metadata = @ecosystem.package_metadata('archivetool')
+
+    assert_equal "https://github.com/bar/archivetool", package_metadata[:repository_url]
+  end
+
+  test 'repository_url preserves explicit git sources on unrecognized hosts' do
+    stub_request(:get, "https://formulae.brew.sh/api/formula/aom.json")
+      .to_return({ status: 200, body: file_fixture('homebrew/aom.json') })
+    package_metadata = @ecosystem.package_metadata('aom')
+
+    assert_equal "https://aomedia.googlesource.com/aom", package_metadata[:repository_url]
+  end
+
+  test 'repository_url preserves an explicit stable git source without a head' do
+    formula = JSON.parse(file_fixture('homebrew/aom.json').read)
+    formula['urls'].delete('head')
+    stub_request(:get, "https://formulae.brew.sh/api/formula/aom.json")
+      .to_return({ status: 200, body: formula.to_json })
+
+    assert_equal "https://aomedia.googlesource.com/aom", @ecosystem.package_metadata('aom')[:repository_url]
+  end
+
+  test 'repository_url prefers an explicit git source over a recognized homepage' do
+    formula = JSON.parse(file_fixture('homebrew/aom.json').read)
+    formula['homepage'] = 'https://github.com/Homebrew/homebrew-core'
+    stub_request(:get, "https://formulae.brew.sh/api/formula/aom.json")
+      .to_return({ status: 200, body: formula.to_json })
+
+    assert_equal "https://aomedia.googlesource.com/aom", @ecosystem.package_metadata('aom')[:repository_url]
+  end
+
+  test 'repository_url preserves a git protocol source without a git extension' do
+    formula = JSON.parse(file_fixture('homebrew/aom.json').read)
+    formula['urls']['head']['url'] = 'git://example.com/aom'
+    stub_request(:get, "https://formulae.brew.sh/api/formula/aom.json")
+      .to_return({ status: 200, body: formula.to_json })
+
+    assert_equal "https://example.com/aom", @ecosystem.package_metadata('aom')[:repository_url]
+  end
+
+  test 'repository_url falls back to homepage when sources are not forge repos' do
+    stub_request(:get, "https://formulae.brew.sh/api/formula/abook.json")
+      .to_return({ status: 200, body: file_fixture('homebrew/abook.json') })
+    package_metadata = @ecosystem.package_metadata('abook')
+
+    assert_equal "", package_metadata[:repository_url]
+  end
+
+  test 'repository_url normalizes explicit git schemes and extensions' do
+    ['git://example.com/aom.git', 'git+https://example.com/aom.git', 'https://example.com/aom.git'].each do |url|
+      formula = { 'urls' => { 'head' => { 'url' => url } } }
+
+      assert_equal 'https://example.com/aom', @ecosystem.repository_url(formula)
+    end
+  end
+
+  test 'repository_url accepts git metadata without a git extension' do
+    ['head', 'stable'].each do |kind|
+      formula = { 'urls' => { kind => { 'url' => 'https://git.notmuchmail.org/git/notmuch', 'using' => 'git' } } }
+
+      assert_equal 'https://git.notmuchmail.org/git/notmuch', @ecosystem.repository_url(formula)
+    end
+  end
+
+  test 'repository_url does not treat null using svn sources as git' do
+    [nil, 'svn'].each do |using|
+      formula = {
+        'homepage' => 'https://astyle.sourceforge.net/',
+        'urls' => { 'head' => { 'url' => 'https://svn.code.sf.net/p/astyle/code/trunk', 'using' => using } }
+      }
+
+      assert_equal '', @ecosystem.repository_url(formula)
+      formula['homepage'] = 'https://github.com/foo/astyle'
+      assert_equal 'https://github.com/foo/astyle', @ecosystem.repository_url(formula)
+    end
+  end
+
+  test 'repository_url skips missing source urls and keeps stable fallback' do
+    formula = {
+      'urls' => {
+        'head' => { 'url' => nil, 'using' => 'git' },
+        'stable' => { 'url' => 'https://github.com/bar/archivetool/archive/v1.0.tar.gz' }
+      }
+    }
+
+    assert_equal 'https://github.com/bar/archivetool', @ecosystem.repository_url(formula)
+  end
+
+  test 'repository_url normalizes git schemes on recognized hosts' do
+    ['git://github.com/foo/aom.git', 'git+https://github.com/foo/aom.git'].each do |url|
+      formula = { 'urls' => { 'head' => { 'url' => url } } }
+
+      assert_equal 'https://github.com/foo/aom', @ecosystem.repository_url(formula)
+    end
+  end
 end

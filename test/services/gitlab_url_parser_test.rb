@@ -4,6 +4,10 @@ class GitlabUrlParserTest < ActiveSupport::TestCase
   test 'parses gitlab urls' do
     [
       ['https://gitlab.com/maxcdn/shml/', 'maxcdn/shml'],
+      ['https://gitlab.com/group/subgroup/project.git', 'group/subgroup/project'],
+      ['https://gitlab.com/tags/project.git', 'tags/project'],
+      ['https://gitlab.com/group/tags/project.git', 'group/tags/project'],
+      ['https://gitlab.com/group/project/-/tree/main', 'group/project'],
       ['git+https://gitlab.com/hugojosefson/express-cluster-stability.git', 'hugojosefson/express-cluster-stability'],
       ['www.gitlab.com/37point2/brainfuckifyjs', '37point2/brainfuckifyjs'],
       ['ssh+git@gitlab.com:omardelarosa/tonka-npm.git', 'omardelarosa/tonka-npm'],
@@ -56,6 +60,12 @@ class GitlabUrlParserTest < ActiveSupport::TestCase
       url, full_name = row
       result = GitlabUrlParser.parse(url)
       assert_equal result, full_name
+    end
+  end
+
+  test 'preserves domain-like group and repository names' do
+    %w[gitlab-community-projects/client team/gitlab-community-client team/gitlab.com group/gitlab-community/subgroup/project].each do |name|
+      assert_equal name, GitlabUrlParser.parse("https://gitlab.com/#{name}")
     end
   end
 

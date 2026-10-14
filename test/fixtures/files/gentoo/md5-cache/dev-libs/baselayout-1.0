@@ -1,0 +1,8 @@
+DESCRIPTION=Base layout
+HOMEPAGE=https://wiki.gentoo.org/wiki/Baselayout
+LICENSE=GPL-2
+KEYWORDS=amd64 arm64
+SLOT=0
+EAPI=8
+RDEPEND=
+_md5_=cccccccccccccccccccccccccccccccc

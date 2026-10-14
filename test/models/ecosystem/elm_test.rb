@@ -35,7 +35,7 @@ class ElmTest < ActiveSupport::TestCase
 
   test 'install_command' do
     install_command = @ecosystem.install_command(@package)
-    assert_equal install_command, 'elm-package install rtfeldman/count '
+    assert_equal install_command, 'elm-package install rtfeldman/count'
   end
 
   test 'install_command with version' do

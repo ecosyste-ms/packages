@@ -92,6 +92,20 @@ class HackageTest < ActiveSupport::TestCase
     assert_equal package_metadata[:downloads_period], 'total'
   end
 
+  test 'repository_url from Source repo and Bug tracker when Home page is not a forge' do
+    stub_request(:get, "https://hackage.haskell.org/package/pandoc")
+      .to_return({ status: 200, body: file_fixture('hackage/pandoc') })
+    package_metadata = @ecosystem.package_metadata('pandoc')
+
+    assert_equal "https://pandoc.org", package_metadata[:homepage]
+    assert_equal "https://github.com/jgm/pandoc", package_metadata[:repository_url]
+  end
+
+  test 'find_attribute matches nbsp headers' do
+    page = Nokogiri::HTML("<div id='content'><table><tr><th>Source&nbsp;repo</th><td>head: git clone https://gitlab.com/foo/bar.git</td></tr></table></div>")
+    assert_equal "head: git clone https://gitlab.com/foo/bar.git", @ecosystem.find_attribute(page, "Source repo")
+  end
+
   test 'versions_metadata' do
     stub_request(:get, "https://hackage.haskell.org/package/blockfrost-client")
       .to_return({ status: 200, body: file_fixture('hackage/blockfrost-client') })
@@ -152,4 +166,45 @@ class HackageTest < ActiveSupport::TestCase
     # The API should only have been called once (for the initial fetch)
     assert_requested(:get, "https://hackage.haskell.org/package/blockfrost-client", times: 1)
   end
+
+  test 'repository_url from Source repo link with branch suffix' do
+    stub_request(:get, "https://hackage.haskell.org/package/source-repo-branch")
+      .to_return({ status: 200, body: file_fixture('hackage/source-repo-branch') })
+    package_metadata = @ecosystem.package_metadata('source-repo-branch')
+
+    assert_equal "https://github.com/mauke/data-default", package_metadata[:repository_url]
+  end
+
+  test 'repository_url from Source repo text with tag suffix and no link' do
+    stub_request(:get, "https://hackage.haskell.org/package/source-repo-tag-no-link")
+      .to_return({ status: 200, body: file_fixture('hackage/source-repo-tag-no-link') })
+    package_metadata = @ecosystem.package_metadata('source-repo-tag-no-link')
+
+    assert_equal "https://gitlab.com/foo/bar", package_metadata[:repository_url]
+  end
+
+  test 'repository_url from Source repo text with no link' do
+    stub_request(:get, "https://hackage.haskell.org/package/source-repo-no-link")
+      .to_return({ status: 200, body: file_fixture('hackage/source-repo-no-link') })
+    package_metadata = @ecosystem.package_metadata('source-repo-no-link')
+
+    assert_equal "https://gitlab.com/foo/baz", package_metadata[:repository_url]
+  end
+
+  test 'repository_url from first Source repo when multiple entries exist' do
+    stub_request(:get, "https://hackage.haskell.org/package/source-repo-multiple")
+      .to_return({ status: 200, body: file_fixture('hackage/source-repo-multiple') })
+    package_metadata = @ecosystem.package_metadata('source-repo-multiple')
+
+    assert_equal "https://github.com/mauke/first", package_metadata[:repository_url]
+  end
+
+  test 'first Source repo without a link wins when multiple entries exist' do
+    stub_request(:get, 'https://hackage.haskell.org/package/source-repo-multiple-no-link')
+      .to_return(status: 200, body: file_fixture('hackage/source-repo-multiple-no-link'))
+    package_metadata = @ecosystem.package_metadata('source-repo-multiple-no-link')
+
+    assert_equal 'https://gitlab.com/foo/first', package_metadata[:repository_url]
+  end
+
 end

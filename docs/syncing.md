@@ -18,12 +18,13 @@ The primary mechanism. Each ecosystem class implements `recently_updated_package
 
 [`Registry#recently_updated_package_names_excluding_recently_synced`](../app/models/registry.rb#L70) filters the results. It drops any package already synced in the last 10 minutes and adds packages that exist in the registry feed but are missing from the database. This prevents redundant work when the same package appears in consecutive poll cycles.
 
-Two cron entries drive this:
+Three cron entries drive this:
 
 | Schedule | Task | What it does |
 |---|---|---|
+| Every 2 min | `packages:sync_recent_pypi` | Polls PyPI only |
 | Every 5 min | `packages:sync_recent_npm` | Polls npm only (by far the highest volume registry) |
-| Every 15 min | `packages:sync_recent` | Polls all non-Docker registries via [`Registry.sync_all_recently_updated_packages_async`](../app/models/registry.rb#L22) |
+| Every 15 min | `packages:sync_recent` | Polls all frequently-synced registries via [`Registry.sync_all_recently_updated_packages_async`](../app/models/registry.rb) |
 
 ## Pings from repos.ecosyste.ms
 
@@ -52,7 +53,7 @@ Any service can ping a specific package directly:
 
 **Single package ping** -- [`GET /api/v1/registries/:registry_id/packages/:id/ping`](../app/controllers/api/v1/packages_controller.rb#L276)
 
-Queues an [`UpdatePackageWorker`](../app/sidekiq/update_package_worker.rb) for the package. If the package doesn't exist yet, it queues a [`SyncPackageWorker`](../app/sidekiq/sync_package_worker.rb) to create it.
+Queues a [`SyncPackageByIdWorker`](../app/sidekiq/sync_package_by_id_worker.rb) for the package. If the package doesn't exist yet, it queues a [`SyncPackageWorker`](../app/sidekiq/sync_package_worker.rb) to create it.
 
 **Bulk ping by repository URL** -- [`GET /api/v1/packages/ping?repository_url=...`](../app/controllers/api/v1/packages_controller.rb#L289)
 
@@ -75,23 +76,25 @@ Polling and pings handle most updates, but packages can still fall behind. Sever
 
 | Schedule | Task | Selection logic |
 |---|---|---|
-| Every 15 min | `packages:sync_least_recent` | [`Package.sync_least_recent_async`](../app/models/package.rb#L81) -- 4000 random active packages not synced in over a month |
-| Every 30 min | `packages:sync_least_recent_top` | [`Package.sync_least_recent_top_async`](../app/models/package.rb#L85) -- 3000 random top-2% packages not synced in over 12 hours |
-| Every 20 min | `packages:sync_worst_one_percent` | [`Registry.sync_worst_one_percent`](../app/models/registry.rb#L423) -- finds the registry with the highest [`outdated_percentage`](../app/models/registry.rb#L395), syncs 1% of its outdated packages at random |
-| Hourly | `packages:sync_batch_registries_outdated` | [`Registry.sync_in_batches_outdated`](../app/models/registry.rb#L46) -- for batch-sync registries (deb, conda, vcpkg, alpine, nixpkgs, bower, julia, adelie, postmarketos), syncs up to 1000 outdated packages each |
-| Hourly | `packages:sync_outdated_docker` | 1000 random [outdated](../app/models/package.rb#L38) Docker packages (rate-limited to 1/sec) |
-| Daily (midnight) | `packages:sync_missing` | [`Registry.sync_all_missing_packages_async`](../app/models/registry.rb#L34) -- compares each registry's full package list against the database and syncs anything missing |
+| Every 15 min | `packages:sync_least_recent` | [`Package.sync_least_recent_async`](../app/models/package.rb) -- a random batch of active packages, on unthrottled registries, not synced in over a month |
+| Every 30 min | `packages:sync_least_recent_top` | [`Package.sync_least_recent_top_async`](../app/models/package.rb) -- a random batch of top-2% packages not synced in over 12 hours |
+| Every 20 min | `packages:sync_worst_one_percent` | [`Registry.sync_worst_one_percent`](../app/models/registry.rb) -- finds the registry with the highest [`outdated_percentage`](../app/models/registry.rb) and syncs a batch of its outdated packages at random, capped at that registry's throttle budget |
+| Hourly | `packages:sync_batch_registries_outdated` | [`Registry.sync_in_batches_outdated`](../app/models/registry.rb) -- for batch-sync registries (deb, conda, vcpkg, alpine, nixpkgs, bower, julia, adelie, postmarketos), syncs a batch of outdated packages each |
+| Hourly | `packages:sync_outdated_docker` | a random batch of [outdated](../app/models/package.rb) Docker packages |
+| Daily (midnight) | `packages:sync_missing` | [`Registry.sync_all_missing_packages_async`](../app/models/registry.rb) -- compares each registry's full package list against the database and syncs anything missing, capped per registry |
 
-A package is considered ["outdated"](../app/models/package.rb#L38) when `last_synced_at` is older than one month.
+A package is considered ["outdated"](../app/models/package.rb) when `last_synced_at` is older than one month. Batch sizes for each sweep are set in the linked methods and tuned against the per-registry throttle budgets described in [throttling.md](throttling.md), so they change as rate limits change.
 
 ## Sync throttling
 
-Several mechanisms prevent redundant syncing:
+Sync jobs are capped per registry host so we don't overwhelm upstream services. Each registry can have a `rate_limit` (jobs per second, fractional values allowed) stored in its `metadata`; sidekiq-throttled enforces it at fetch time across all worker processes, and the periodic sweeps above cap their per-registry enqueue at what that limit can drain before the next tick. See [throttling.md](throttling.md) for how it works, which workers are covered, and how to tune a limit.
+
+Separately, several checks prevent redundant syncing of the same package:
 
 - [`Package#sync_async`](../app/models/package.rb#L310) skips the job entirely if the package was synced in the last 24 hours.
 - [`Registry#sync_package`](../app/models/registry.rb#L145) checks the same 24-hour window. If a recently-synced package is requested again, it schedules the sync to run after the 24 hours expire rather than dropping it.
 - [`recently_updated_package_names_excluding_recently_synced`](../app/models/registry.rb#L70) filters out packages synced in the last 10 minutes.
-- [`Package.sync_download_counts_async`](../app/models/package.rb#L93) and [`sync_maintainers_async`](../app/models/package.rb#L101) check the Sidekiq default queue size and bail out if it exceeds 20,000 jobs.
+- The catch-up sweeps and enrichment tasks check their target Sidekiq queue's size and skip the tick if it is already backed up.
 
 ## How packages are prioritised
 
@@ -107,7 +110,7 @@ Beyond core package sync, several jobs enrich packages with data from other sour
 
 | Schedule | Task | What it does |
 |---|---|---|
-| Every 30 min | `packages:update_repo_metadata_async` | [`Package.update_repo_metadata_async`](../app/models/package.rb#L363) -- updates repo metadata for 400 packages (ordered by least recently updated) |
+| Every 5 min | `packages:update_repo_metadata` | [`Package.update_repo_metadata_async`](../app/models/package.rb#L505) scans a bounded ID range, queues up to 400 packages whose repo metadata is missing or over a month old, and stores its cursor in Redis |
 | Every 30 min | `packages:sync_maintainers` | [`Package.sync_maintainers_async`](../app/models/package.rb#L101) -- syncs maintainer data for up to 1000 packages in supported ecosystems |
 | Every 30 min | `packages:update_rankings` | [`Package.update_rankings_async`](../app/models/package.rb#L110) -- calculates ranking percentiles for up to 1000 unranked packages |
 | Hourly | `packages:update_advisories` | [`Package.update_advisories`](../app/models/package.rb#L754) -- fetches recently changed advisories and updates affected packages |

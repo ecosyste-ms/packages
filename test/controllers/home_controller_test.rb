@@ -42,4 +42,31 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_match /href="\/ecosystems\/alpine"/, response.body, "Should link to /ecosystems/alpine"
     refute_match /href="\/ecosystems\/alpinelinux"/, response.body, "Should not link to /ecosystems/alpinelinux"
   end
+
+  test 'groups freebsd registries into one ecosystem card' do
+    Registry.delete_all
+
+    Registry.create!(
+      name: 'freebsd-14-amd64',
+      url: 'https://pkg.freebsd.org/FreeBSD:14:amd64/latest',
+      ecosystem: 'freebsd',
+      github: 'freebsd',
+      version: '14',
+      packages_count: 100
+    )
+    Registry.create!(
+      name: 'freebsd-15-amd64',
+      url: 'https://pkg.freebsd.org/FreeBSD:15:amd64/latest',
+      ecosystem: 'freebsd',
+      github: 'freebsd',
+      version: '15',
+      packages_count: 90
+    )
+
+    get root_path
+    assert_response :success
+
+    assert_match /href="\/ecosystems\/freebsd"/, response.body
+    assert_select "div.registry", count: 1
+  end
 end

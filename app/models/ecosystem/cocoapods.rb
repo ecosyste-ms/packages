@@ -44,6 +44,7 @@ module Ecosystem
 
         connection = Faraday.new do |faraday|
           faraday.use Faraday::FollowRedirects::Middleware
+          faraday.request :instrumentation
           faraday.adapter Faraday.default_adapter
         end
 
@@ -91,7 +92,7 @@ module Ecosystem
         description: package["summary"],
         homepage: package["homepage"],
         licenses: parse_license(package["license"]),
-        repository_url: repo_fallback(package.dig("source", "git"), ""),
+        repository_url: repo_fallback(package.dig("source", "git"), package["homepage"]),
         versions: package["version_numbers"]
       }
     end

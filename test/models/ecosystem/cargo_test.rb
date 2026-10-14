@@ -104,6 +104,7 @@ class CargoTest < ActiveSupport::TestCase
     assert_equal versions_metadata, [{:number=>"0.2.2",
     :published_at=>"2022-03-29T13:35:06.927472+00:00",
     :status=>nil,
+    :integrity=>"sha256-bced3bcb3f52104ec2c5d32d23b0b76fb4079a3567025f64ef500082bc29f2c3",
     :metadata=>
      {:uuid=>523961,
       :downloads=>473,
@@ -130,6 +131,7 @@ class CargoTest < ActiveSupport::TestCase
    {:number=>"0.1.0",
     :published_at=>"2022-03-24T16:19:57.595451+00:00",
     :status=>nil,
+    :integrity=>"sha256-3c73ba40f4d2fc31375a39ce83d08695993f14c411f6907fe032535843811806",
     :metadata=>
      {:uuid=>521540,
       :downloads=>120,
@@ -156,6 +158,7 @@ class CargoTest < ActiveSupport::TestCase
    {:number=>"0.1.0-dev.2",
     :published_at=>"2022-03-24T16:08:54.337646+00:00",
     :status=>nil,
+    :integrity=>"sha256-5f9bef8f40cfbd69b1cb8e9de369940adb6fc676dddcb878afcd5683f883e5de",
     :metadata=>
      {:uuid=>521537,
       :downloads=>100,
@@ -182,6 +185,7 @@ class CargoTest < ActiveSupport::TestCase
    {:number=>"0.1.0-dev.1",
     :published_at=>"2022-03-24T15:58:36.858899+00:00",
     :status=>nil,
+    :integrity=>"sha256-dcd44068a1f7ff7a8069aab2b41c6c5f378806bf22119e399ca04e4da1633ab6",
     :metadata=>
      {:uuid=>521532,
       :downloads=>102,

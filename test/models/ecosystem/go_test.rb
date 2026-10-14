@@ -2,10 +2,15 @@ require "test_helper"
 
 class GoTest < ActiveSupport::TestCase
   setup do
+    @original_go_proxy_url = ENV.delete('GO_PROXY_URL')
     @registry = Registry.new(default: true, name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'Go')
     @ecosystem = Ecosystem::Go.new(@registry)
     @package = Package.new(ecosystem: 'Go', name: 'github.com/aws/smithy-go')
     @version = @package.versions.build(number: 'v1.11.1')
+  end
+
+  teardown do
+    ENV['GO_PROXY_URL'] = @original_go_proxy_url
   end
 
   test 'registry_url' do
@@ -20,7 +25,22 @@ class GoTest < ActiveSupport::TestCase
 
   test 'download_url' do
     download_url = @ecosystem.download_url(@package, @version)
-    assert_equal download_url, 'https://proxy.golang.org/github.com/aws/smithy-go/@v/v1.11.1.zip'
+    assert_equal download_url, 'https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/v1.11.1.zip'
+  end
+
+  test 'download_url uses configured proxy' do
+    ENV['GO_PROXY_URL'] = 'https://go-proxy.example.com/'
+
+    download_url = @ecosystem.download_url(@package, @version)
+
+    assert_equal download_url, 'https://go-proxy.example.com/github.com/aws/smithy-go/@v/v1.11.1.zip'
+  end
+
+  test 'download_url escapes uppercase version characters for the proxy' do
+    version = @package.versions.build(number: 'v1.0.0-RC1')
+
+    assert_equal 'https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/v1.0.0-!r!c1.zip',
+      @ecosystem.download_url(@package, version)
   end
 
   test 'documentation_url' do
@@ -41,6 +61,28 @@ class GoTest < ActiveSupport::TestCase
   test 'install_command with version' do
     install_command = @ecosystem.install_command(@package, @version.number)
     assert_equal install_command, 'go get github.com/aws/smithy-go@v1.11.1'
+  end
+
+  test 'check_status returns nil when fetch_package_metadata finds the module' do
+    @ecosystem.expects(:fetch_package_metadata).with(@package.name).returns(name: @package.name, module: {})
+    assert_nil @ecosystem.check_status(@package)
+  end
+
+  test 'check_status returns removed when fetch_package_metadata returns false' do
+    @ecosystem.expects(:fetch_package_metadata).with(@package.name).returns(false)
+    assert_equal 'removed', @ecosystem.check_status(@package)
+  end
+
+  test 'check_status after a failed sync makes no extra proxy requests' do
+    stub_request(:get, %r{https://pkg\.go\.dev/v1beta/module/example\.com/gone}).to_return(status: 404)
+    stub_request(:get, %r{https://pkg\.go\.dev/v1beta/package/example\.com/gone}).to_return(status: 404)
+    proxy_list = stub_request(:get, "https://proxy.golang.org/cached-only/example.com/gone/@v/list").to_return(status: 404)
+
+    assert_equal false, @ecosystem.fetch_package_metadata('example.com/gone')
+
+    package = Package.new(name: 'example.com/gone', ecosystem: 'go')
+    assert_equal 'removed', @ecosystem.check_status(package)
+    assert_requested proxy_list, times: 1
   end
 
   test 'purl' do
@@ -75,6 +117,75 @@ class GoTest < ActiveSupport::TestCase
     assert_equal all_package_names.last, 'github.com/xenolf/lego'
   end
 
+  test 'sync_missing_packages_async enqueues the latest indexed version for missing paths' do
+    registry = Registry.create!(default: true, name: 'Go discovery', url: 'https://go-discovery.example', ecosystem: 'Go')
+    registry.packages.create!(name: 'example.com/existing', ecosystem: 'go')
+    cursor = {
+      'timestamp' => '2026-08-09T00:00:00Z',
+      'path' => 'example.com/cursor',
+      'version' => 'v1.0.0'
+    }
+    registry.update!(metadata: { Ecosystem::Go::SYNC_MISSING_CURSOR_KEY => cursor })
+    ecosystem = Ecosystem::Go.new(registry)
+    body = [
+      { 'Path' => 'example.com/cursor', 'Version' => 'v1.0.0', 'Timestamp' => '2026-08-09T00:00:00Z' },
+      { 'Path' => 'example.com/existing', 'Version' => 'v1.1.0', 'Timestamp' => '2026-08-09T00:01:00Z' },
+      { 'Path' => 'example.com/missing', 'Version' => 'v1.0.0', 'Timestamp' => '2026-08-09T00:02:00Z' },
+      { 'Path' => 'example.com/missing', 'Version' => 'v1.1.0', 'Timestamp' => '2026-08-09T00:03:00Z' }
+    ].map { |row| Oj.dump(row) }.join("\n")
+    stub_request(:get, "https://index.golang.org/index?since=2026-08-09T00:00:00Z&limit=2000")
+      .to_return(status: 200, body: body)
+    SyncPackageVersionWorker.expects(:perform_bulk).with([
+      [registry.id, 'example.com/missing', 'v1.1.0']
+    ])
+
+    assert_equal 1, ecosystem.sync_missing_packages_async
+    assert_equal({
+      'timestamp' => '2026-08-09T00:03:00Z',
+      'path' => 'example.com/missing',
+      'version' => 'v1.1.0'
+    }, registry.reload.metadata[Ecosystem::Go::SYNC_MISSING_CURSOR_KEY])
+  end
+
+  test 'sync_missing_packages_async keeps the latest version across index pages' do
+    registry = Registry.create!(default: true, name: 'Go paged discovery', url: 'https://go-paged-discovery.example', ecosystem: 'Go')
+    ecosystem = Ecosystem::Go.new(registry)
+    first_page = Ecosystem::Go::INDEX_PAGE_SIZE.times.map do |index|
+      {
+        'Path' => 'example.com/missing',
+        'Version' => "v1.0.#{index}",
+        'Timestamp' => (Time.utc(2026, 8, 9) + index.seconds).iso8601(9)
+      }
+    end
+    last_row = {
+      'Path' => 'example.com/missing',
+      'Version' => 'v2.0.0',
+      'Timestamp' => '2026-08-10T00:00:00Z'
+    }
+    ecosystem.stubs(:index_versions).returns(first_page, [last_row])
+    SyncPackageVersionWorker.expects(:perform_bulk).with([
+      [registry.id, 'example.com/missing', 'v2.0.0']
+    ])
+
+    assert_equal 1, ecosystem.sync_missing_packages_async
+  end
+
+  test 'sync_missing_packages_cursor starts one day ago' do
+    travel_to Time.utc(2026, 8, 10, 12) do
+      assert_equal({ 'timestamp' => '2026-08-09T12:00:00.000000000Z' }, @ecosystem.sync_missing_packages_cursor)
+    end
+  end
+
+  test 'sync_missing_packages_async does not save its cursor when the index fails' do
+    registry = Registry.create!(default: true, name: 'Go failed discovery', url: 'https://go-failed-discovery.example', ecosystem: 'Go')
+    ecosystem = Ecosystem::Go.new(registry)
+    stub_request(:get, %r{\Ahttps://index\.golang\.org/index\?.*\z})
+      .to_return(status: 503, body: '')
+
+    assert_equal 0, ecosystem.sync_missing_packages_async
+    assert_nil registry.reload.metadata[Ecosystem::Go::SYNC_MISSING_CURSOR_KEY]
+  end
+
   test 'recently_updated_package_names' do
     stub_request(:get, "https://index.golang.org/index?since=#{Time.now.utc.beginning_of_day.to_fs(:iso8601)}")
       .to_return({ status: 200, body: file_fixture('go/index') })
@@ -84,13 +195,14 @@ class GoTest < ActiveSupport::TestCase
   end
 
   test 'package_metadata' do
-    stub_request(:get, "https://pkg.go.dev/github.com/aws/smithy-go")
-      .to_return({ status: 200, body: file_fixture('go/rand') })
+    stub_request(:get, "https://pkg.go.dev/v1beta/module/github.com/aws/smithy-go?licenses=true")
+      .to_return({ status: 200, body: file_fixture('go/api_module_smithy-go.json') })
+    stub_request(:get, "https://pkg.go.dev/v1beta/package/github.com/aws/smithy-go")
+      .to_return({ status: 200, body: file_fixture('go/api_package_smithy-go.json') })
     package_metadata = @ecosystem.package_metadata('github.com/aws/smithy-go')
-    
+
     assert_equal package_metadata[:name], "github.com/aws/smithy-go"
-    assert_equal package_metadata[:description], "Package rand provides utilities for creating and working with random value
-generators."
+    assert_equal package_metadata[:description], "Package smithy provides the core components for a Smithy SDK."
     assert_equal package_metadata[:homepage], "https://github.com/aws/smithy-go"
     assert_equal package_metadata[:licenses], "Apache-2.0"
     assert_equal package_metadata[:repository_url], "https://github.com/aws/smithy-go"
@@ -98,45 +210,114 @@ generators."
     assert_equal package_metadata[:namespace], "github.com/aws"
   end
 
-  test 'versions_metadata' do
-    stub_request(:get, "https://pkg.go.dev/github.com/aws/smithy-go")
-      .to_return({ status: 200, body: file_fixture('go/rand') })
-    stub_request(:get, "https://pkg.go.dev/github.com/aws/smithy-go?tab=versions")
-      .to_return({ status: 200, body: file_fixture('go/smithy-go?tab=versions') })
-    stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/list")
+  test 'package_metadata falls back to proxy when API misses' do
+    stub_request(:get, "https://pkg.go.dev/v1beta/module/github.com/aws/smithy-go?licenses=true")
+      .to_return({ status: 404, body: '{"code":404,"message":"not found"}' })
+    stub_request(:get, "https://pkg.go.dev/v1beta/package/github.com/aws/smithy-go")
+      .to_return({ status: 404, body: '{"code":404,"message":"not found"}' })
+    stub_request(:get, "https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/list")
       .to_return({ status: 200, body: file_fixture('go/list') })
-    stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/v1.9.0.info")
-      .to_return({ status: 200, body: file_fixture('go/v1.9.0.info') })
-
     package_metadata = @ecosystem.package_metadata('github.com/aws/smithy-go')
-    versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
-    assert_equal versions_metadata, [{:number=>"v1.9.0", :published_at=>"2021-11-05T22:57:36Z", :status=>nil}]
+    assert_equal package_metadata[:name], "github.com/aws/smithy-go"
+    assert_equal package_metadata[:repository_url], "https://github.com/aws/smithy-go"
+  end
+
+  test 'package_metadata rejects an indexed version with an alternative module path' do
+    name = 'github.com/googlecloudplatform/professional-services/tools/lambda-compat'
+    version = 'v0.0.0-20260810161643-097856497a66'
+    stub_request(:get, "https://proxy.golang.org/cached-only/#{name}/@v/#{version}.mod")
+      .to_return(status: 200, body: "module github.com/GoogleCloudPlatform/professional-services/tools/lambda-compat\n")
+
+    assert_equal false, @ecosystem.package_metadata(name, version: version)
+  end
+
+  test 'package_metadata accepts an exact indexed version when the version list is empty' do
+    name = 'github.com/example/pseudo-only'
+    version = 'v0.0.0-20260810161643-097856497a66'
+    stub_request(:get, "https://proxy.golang.org/cached-only/#{name}/@v/#{version}.mod")
+      .to_return(status: 200, body: "module #{name}\n")
+    stub_request(:get, "https://pkg.go.dev/v1beta/module/#{name}?licenses=true")
+      .to_return(status: 404, body: '{"code":404,"message":"not found"}')
+    stub_request(:get, "https://pkg.go.dev/v1beta/package/#{name}")
+      .to_return(status: 404, body: '{"code":404,"message":"not found"}')
+
+    package_metadata = @ecosystem.package_metadata(name, version: version)
+
+    assert_equal name, package_metadata[:name]
+    assert_equal version, package_metadata[:version]
+    assert_equal "https://#{name}", package_metadata[:repository_url]
+  end
+
+  test 'versions_metadata' do
+    stub_request(:get, "https://pkg.go.dev/v1beta/versions/github.com/aws/smithy-go?limit=1000")
+      .to_return({ status: 200, body: file_fixture('go/api_versions_smithy-go.json') })
+
+    versions_metadata = @ecosystem.versions_metadata({ name: 'github.com/aws/smithy-go' })
+
+    assert_equal versions_metadata.length, 57
+    assert_equal versions_metadata.first, { number: "v1.25.1", published_at: "2026-04-23T17:02:33Z", status: nil }
+  end
+
+  test 'versions_metadata skips existing versions but re-emits retracted ones' do
+    body = Oj.dump({
+      'items' => [
+        { 'modulePath' => 'github.com/aws/smithy-go', 'version' => 'v1.0.0', 'commitTime' => '2021-01-01T00:00:00Z', 'retracted' => false, 'deprecated' => false },
+        { 'modulePath' => 'github.com/aws/smithy-go', 'version' => 'v0.9.0', 'commitTime' => '2020-12-01T00:00:00Z', 'retracted' => true, 'deprecated' => false },
+        { 'modulePath' => 'github.com/aws/smithy-go/v2', 'version' => 'v2.0.0', 'commitTime' => '2022-01-01T00:00:00Z', 'retracted' => false, 'deprecated' => false }
+      ]
+    })
+    stub_request(:get, "https://pkg.go.dev/v1beta/versions/github.com/aws/smithy-go?limit=1000")
+      .to_return({ status: 200, body: body })
+
+    versions_metadata = @ecosystem.versions_metadata({ name: 'github.com/aws/smithy-go' }, ['v1.0.0', 'v0.9.0'])
+
+    assert_equal versions_metadata, [{ number: "v0.9.0", published_at: "2020-12-01T00:00:00Z", status: "retracted" }]
   end
 
   test 'dependencies_metadata' do
-    stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/v1.9.0.mod")
+    stub_request(:get, "https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/v1.9.0.mod")
       .to_return({ status: 200, body: file_fixture('go/v1.9.0.mod') })
     dependencies_metadata = @ecosystem.dependencies_metadata('github.com/aws/smithy-go', 'v1.9.0', nil)
 
     assert_equal dependencies_metadata, [{:package_name=>"github.com/google/go-cmp", :requirements=>"v0.5.4", :kind=>"runtime", :ecosystem=>"go"}]
   end
 
-  test 'versions_metadata falls back to HTML scraping when proxy list is empty' do
-    stub_request(:get, "https://pkg.go.dev/github.com/aws/smithy-go")
-      .to_return({ status: 200, body: file_fixture('go/rand') })
-    # Proxy list returns empty
-    stub_request(:get, "https://proxy.golang.org/github.com/aws/smithy-go/@v/list")
-      .to_return({ status: 200, body: "" })
-    stub_request(:get, "https://pkg.go.dev/github.com/aws/smithy-go?tab=versions")
-      .to_return({ status: 200, body: file_fixture('go/smithy-go?tab=versions') })
-    # Stub all version info requests from the HTML fixture
-    stub_request(:get, /proxy\.golang\.org\/github\.com\/aws\/smithy-go\/@v\/v.*\.info/)
-      .to_return({ status: 200, body: '{"Version":"v1.19.0","Time":"2023-11-15T20:00:00Z"}' })
+  test 'dependencies_metadata escapes uppercase version characters for the proxy' do
+    version = 'v1.0.0-RC1'
+    stub_request(:get, 'https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/v1.0.0-!r!c1.mod')
+      .to_return(status: 200, body: file_fixture('go/v1.9.0.mod'))
 
-    package_metadata = @ecosystem.package_metadata('github.com/aws/smithy-go')
-    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+    dependencies = @ecosystem.dependencies_metadata('github.com/aws/smithy-go', version, nil)
 
-    assert versions_metadata.length > 0, "Expected versions from fallback but got: #{versions_metadata.inspect}"
+    assert_equal 'github.com/google/go-cmp', dependencies.first[:package_name]
+  end
+
+  test 'versions_metadata falls back to proxy when API misses' do
+    stub_request(:get, "https://pkg.go.dev/v1beta/versions/github.com/aws/smithy-go?limit=1000")
+      .to_return({ status: 404, body: '{"code":404,"message":"not found"}' })
+    stub_request(:get, "https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/list")
+      .to_return({ status: 200, body: file_fixture('go/list') })
+    stub_request(:get, "https://proxy.golang.org/cached-only/github.com/aws/smithy-go/@v/v1.9.0.info")
+      .to_return({ status: 200, body: file_fixture('go/v1.9.0.info') })
+
+    versions_metadata = @ecosystem.versions_metadata({ name: 'github.com/aws/smithy-go' })
+
+    assert_equal versions_metadata, [{ number: "v1.9.0", published_at: "2021-11-05T22:57:36Z", status: nil }]
+  end
+
+  test 'versions_metadata includes an indexed pseudo-version omitted from the version list' do
+    name = 'example.com/pseudo-only'
+    version = 'v0.0.0-20260810161643-097856497a66'
+    stub_request(:get, "https://pkg.go.dev/v1beta/versions/#{name}?limit=1000")
+      .to_return(status: 404, body: '{"code":404,"message":"not found"}')
+    stub_request(:get, "https://proxy.golang.org/cached-only/#{name}/@v/list")
+      .to_return(status: 200, body: '')
+    stub_request(:get, "https://proxy.golang.org/cached-only/#{name}/@v/#{version}.info")
+      .to_return(status: 200, body: Oj.dump('Version' => version, 'Time' => '2026-08-10T16:16:43Z'))
+
+    versions_metadata = @ecosystem.versions_metadata({ name: name, version: version })
+
+    assert_equal [{ number: version, published_at: '2026-08-10T16:16:43Z', status: nil }], versions_metadata
   end
 end

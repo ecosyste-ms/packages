@@ -59,7 +59,7 @@ module Ecosystem
 
     def all_package_names
       official_packages = namespace_package_names('library')
-      community_packages = get_json("https://repos.ecosyste.ms/api/v1/package_names/docker")
+      community_packages = get_json_array("https://repos.ecosyste.ms/api/v1/package_names/docker")
       (official_packages + community_packages).uniq
     rescue
       []

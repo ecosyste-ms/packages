@@ -28,6 +28,53 @@ class Version < ApplicationRecord
 
   scope :active, -> { where(status: nil) }
 
+  def immutable
+    metadata['immutable'] if metadata.is_a?(Hash)
+  end
+
+  def opam_archived?
+    package&.ecosystem == 'opam' && metadata&.dig('archived') == true
+  end
+
+  def self.normalize_integrity(params)
+    integrity = params[:integrity]
+
+    if integrity.blank?
+      if params[:sha256].present?
+        integrity = "sha256-#{params[:sha256].to_s.downcase}"
+      elsif params[:sha1].present?
+        integrity = "sha1-#{params[:sha1].to_s.downcase}"
+      elsif params[:sha512].present?
+        integrity = "sha512-#{params[:sha512].to_s.downcase}"
+      end
+    end
+
+    return if integrity.blank?
+
+    integrity = integrity.to_s
+
+    if integrity.match?(/\A[a-fA-F0-9]+\z/)
+      integrity = integrity.downcase
+
+      if integrity.length == 64
+        "sha256-#{integrity}"
+      elsif integrity.length == 40
+        "sha1-#{integrity}"
+      elsif integrity.length == 128
+        "sha512-#{integrity}"
+      else
+        integrity
+      end
+    else
+      integrity.sub(/\A(sha256|sha1|sha512)-(.+)\z/i) do
+        digest = Regexp.last_match(2)
+        digest = digest.downcase if digest.match?(/\A[a-fA-F0-9]+\z/)
+
+        "#{Regexp.last_match(1).downcase}-#{digest}"
+      end
+    end
+  end
+
   def to_param
     number.gsub(/(\r\n|\n)/, "%0A")
   end
@@ -37,7 +84,7 @@ class Version < ApplicationRecord
   end
 
   def install_command
-    package.registry.ecosystem_instance.install_command(package, number)
+    package.registry.ecosystem_instance.install_command(package, self)
   end
 
   def registry_url
@@ -45,7 +92,7 @@ class Version < ApplicationRecord
   end
 
   def documentation_url
-    package.registry.ecosystem_instance.documentation_url(package, number)
+    package.registry.ecosystem_instance.documentation_url(package, self)
   end
 
   def published_at
@@ -85,6 +132,10 @@ class Version < ApplicationRecord
   end
 
   def <=>(other)
+    if package&.ecosystem == 'opam'
+      return Ecosystem::Opam.compare_versions(other.number, number)
+    end
+
     if parsed_number.is_a?(String) || other.parsed_number.is_a?(String)
       other.published_at <=> published_at
     else
@@ -129,7 +180,14 @@ class Version < ApplicationRecord
   end
 
   def clean_number
-    @clean_number ||= (SemanticRange.clean(number) || number)
+    @clean_number ||= (SemanticRange.clean(number) || two_component_number || number)
+  end
+
+  # Some ecosystems publish calendar versions like "2026.4" with only two
+  # components. Semantic::Version rejects them, which drops every such release
+  # from stable-version selection. Pad them to a valid "major.minor.patch".
+  def two_component_number
+    number.match(/\A(\d+)\.(\d+)\z/) { "#{Regexp.last_match(1)}.#{Regexp.last_match(2)}.0" }
   end
 
   def update_integrity_async
@@ -164,6 +222,15 @@ class Version < ApplicationRecord
     package.registry.ecosystem_instance.purl(package, self)
   end
 
+  LIVE_EVENT_ATTRS = [:id, :number, :published_at, :licenses, :integrity, :status, :metadata,
+                      :created_at, :updated_at, :latest].freeze
+  LIVE_EVENT_METHODS = [:download_url, :registry_url, :documentation_url, :install_command,
+                        :purl, :related_tag].freeze
+
+  def as_live_event_json
+    as_json(only: LIVE_EVENT_ATTRS, methods: LIVE_EVENT_METHODS)
+  end
+
   def digest_url
     "https://digest.ecosyste.ms/digest?url=#{CGI.escape(download_url)}&encoding=hex&algorithm=sha256" # TODO encoding and algorithm should come from ecosystem_instance
   end
@@ -196,10 +263,12 @@ class Version < ApplicationRecord
   end
 
   def stable?
+    return !prerelease? if package&.ecosystem == 'opam'
     valid_number? && !prerelease?
   end
 
   def prerelease?
+    return number.include?('~') if package&.ecosystem == 'opam'
     if semantic_version && semantic_version.pre.present?
       true
     else
@@ -214,14 +283,4 @@ class Version < ApplicationRecord
     end
   end
 
-  def transitive_dependencies(max_depth: TransitiveDependencyResolver::DEFAULT_MAX_DEPTH, max_dependencies: TransitiveDependencyResolver::DEFAULT_MAX_DEPENDENCIES, include_optional: false, kind: nil)
-    resolver = TransitiveDependencyResolver.for_ecosystem(package.ecosystem).new(
-      self,
-      max_depth: max_depth,
-      max_dependencies: max_dependencies,
-      include_optional: include_optional,
-      kind: kind
-    )
-    resolver.resolve
-  end
 end

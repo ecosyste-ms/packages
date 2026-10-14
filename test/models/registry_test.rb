@@ -1,6 +1,24 @@
 require "test_helper"
 
 class RegistryTest < ActiveSupport::TestCase
+  test 'forced Conda sync clears a repository fabricated from multiple homepages' do
+    registry = Registry.create!(name: 'conda-forge.org', url: 'https://conda-forge.org', ecosystem: 'conda', metadata: { kind: 'conda-forge', key: 'CondaForge' })
+    name = 'r-rpivottable'
+    source = JSON.parse(file_fixture('conda/r-rpivottable.json').read)
+    package = registry.packages.create!(name: name, ecosystem: 'conda', repository_url: 'https://github.com/smartinsightsfromdata,/smartinsightsfromdata.github.io', last_synced_at: Time.current)
+    stub_request(:get, 'https://conda.ecosyste.ms/CondaForge/')
+      .to_return(status: 200, body: { name => source }.to_json)
+    stub_request(:get, "https://api.anaconda.org/package/conda-forge/#{name}")
+      .to_return(status: 200, body: { ndownloads: 100 }.to_json)
+    UpdateRepoMetadataWorker.expects(:perform_async).with(package.id)
+
+    registry.sync_package(name, force: true)
+
+    assert_equal '', package.reload.repository_url
+    assert_equal source.fetch('homepage'), package.homepage
+    assert_equal ['0.3.0'], package.versions.pluck(:number)
+  end
+
   context 'associations' do
     should have_many(:packages)
     should have_many(:versions)
@@ -50,6 +68,31 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal @registry.missing_package_names, []
   end
 
+  test 'missing_package_names caps at MISSING_PACKAGE_NAMES_LIMIT' do
+    limit = Registry::MISSING_PACKAGE_NAMES_LIMIT
+    names = (1..(limit + 200)).map { |i| "pkg-#{i}" }
+    @registry.expects(:all_package_names).returns(names)
+    result = @registry.missing_package_names
+    assert_equal limit, result.length
+    assert_equal names.first(limit), result
+  end
+
+  test 'missing_package_names stops scanning batches once cap is reached' do
+    limit = Registry::MISSING_PACKAGE_NAMES_LIMIT
+    names = (1..30_000).map { |i| "pkg-#{i}" }
+    @registry.expects(:all_package_names).returns(names)
+    @registry.packages.expects(:where).once.returns(stub(pluck: []))
+    assert_equal limit, @registry.missing_package_names.length
+  end
+
+  test 'missing_package_names warns when exactly at the cap' do
+    limit = Registry::MISSING_PACKAGE_NAMES_LIMIT
+    names = (1..limit).map { |i| "pkg-#{i}" }
+    @registry.expects(:all_package_names).returns(names)
+    Rails.logger.expects(:warn).with { |msg| msg.include?("found #{limit} names") && !msg.include?("#{limit}+") }
+    assert_equal limit, @registry.missing_package_names.length
+  end
+
   test 'existing_package_names' do
     @registry.save
     @registry.packages.create(name: 'foo', ecosystem: @registry.ecosystem)
@@ -70,7 +113,9 @@ class RegistryTest < ActiveSupport::TestCase
   
   test 'sync_recently_updated_packages' do
     @registry.expects(:recently_updated_package_names_excluding_recently_synced).returns(['foo', 'bar', 'baz'])
-    @registry.expects(:sync_packages).with(['foo', 'bar', 'baz'])
+    @registry.expects(:sync_package).with('foo', force: true)
+    @registry.expects(:sync_package).with('bar', force: true)
+    @registry.expects(:sync_package).with('baz', force: true)
     @registry.sync_recently_updated_packages
   end
 
@@ -82,25 +127,66 @@ class RegistryTest < ActiveSupport::TestCase
   
   test 'sync_missing_packages_async' do
     @registry.expects(:missing_package_names).returns(['foo', 'bar', 'baz'])
-    @registry.expects(:sync_packages_async).with(['foo', 'bar', 'baz'])
+    @registry.expects(:sync_packages_async).with(['foo', 'bar', 'baz'], period: 1.hour)
     @registry.sync_missing_packages_async
+  end
+
+  test 'sync_missing_packages_async delegates incremental discovery to the ecosystem' do
+    ecosystem = @registry.ecosystem_instance
+    ecosystem.expects(:sync_missing_packages_incrementally?).returns(true)
+    ecosystem.expects(:sync_missing_packages_async).returns(2)
+    @registry.expects(:missing_package_names).never
+    assert_equal 2, @registry.sync_missing_packages_async
   end
   
   test 'sync_recently_updated_packages_async' do
     @registry.expects(:recently_updated_package_names_excluding_recently_synced).returns(['foo', 'bar', 'baz'])
-    @registry.expects(:sync_packages_async).with(['foo', 'bar', 'baz'])
+    @registry.expects(:sync_packages_async).with(['foo', 'bar', 'baz'], period: 15.minutes, force: true)
     @registry.sync_recently_updated_packages_async
+  end
+
+  test 'sync_recently_updated_packages_async passes period through' do
+    @registry.expects(:recently_updated_package_names_excluding_recently_synced).returns(['foo'])
+    @registry.expects(:sync_packages_async).with(['foo'], period: 5.minutes, force: true)
+    @registry.sync_recently_updated_packages_async(period: 5.minutes)
+  end
+
+  test 'sync_recently_updated_packages_async skips batch-sync ecosystems' do
+    @registry.stubs(:sync_in_batches?).returns(true)
+    @registry.expects(:sync_recently_updated_packages).never
+    @registry.expects(:sync_packages_async).never
+    assert_nil @registry.sync_recently_updated_packages_async
   end
   
   test 'sync_packages' do
-    @registry.expects(:sync_package).with('foo')
-    @registry.expects(:sync_package).with('bar')
+    @registry.expects(:sync_package).with('foo', force: false)
+    @registry.expects(:sync_package).with('bar', force: false)
     @registry.sync_packages(['foo', 'bar'])
   end
 
   test 'sync_packages_async' do
     SyncPackageWorker.expects(:perform_bulk).with([[@registry.id, "foo"], [@registry.id, "bar"]])
     @registry.sync_packages_async(['foo', 'bar'])
+  end
+
+  test 'sync_packages_async caps at sync_budget for throttled registries' do
+    @registry.rate_limit = 1
+    SyncPackageWorker.expects(:perform_bulk).with([[@registry.id, "a"], [@registry.id, "b"]])
+    @registry.sync_packages_async(%w[a b c d], period: 2.seconds)
+  end
+
+  test 'recent update syncs retain the registry budget when forcing workers' do
+    @registry.rate_limit = 1
+    @registry.expects(:recently_updated_package_names_excluding_recently_synced).returns(%w[a b c d])
+    SyncPackageWorker.expects(:perform_bulk).with([[@registry.id, 'a', true], [@registry.id, 'b', true]])
+
+    @registry.sync_recently_updated_packages_async(period: 2.seconds)
+  end
+
+  test 'sync_packages_async is uncapped when rate_limit is nil' do
+    assert_nil @registry.rate_limit
+    SyncPackageWorker.expects(:perform_bulk).with([[@registry.id, "a"], [@registry.id, "b"], [@registry.id, "c"]])
+    @registry.sync_packages_async(%w[a b c], period: 1.second)
   end
 
   test 'sync_package' do
@@ -132,6 +218,68 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal package.versions.sort.last.dependencies.length, 1
   end
 
+  test 'sync_package persists the npm latest dist-tag on initial sync and resync' do
+    registry = Registry.create!(name: 'registry.npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    metadata = {
+      '_id' => 'fresh',
+      'dist-tags' => { 'latest' => '0.5.2' },
+      'versions' => {
+        '0.5.2' => { 'name' => 'fresh', 'version' => '0.5.2', 'license' => 'MIT' },
+        '2.0.0' => { 'name' => 'fresh', 'version' => '2.0.0', 'license' => 'MIT' }
+      },
+      'time' => { '0.5.2' => '2017-09-24T00:00:00Z', '2.0.0' => '2024-08-31T00:00:00Z' }
+    }
+    stub_request(:get, 'https://api.npmjs.org/downloads/point/last-month/fresh')
+      .to_return(status: 200, body: { downloads: 100 }.to_json)
+
+    %w[0.5.2 2.0.0].each do |latest|
+      metadata['dist-tags']['latest'] = latest
+      stub_request(:get, 'https://registry.npmjs.org/fresh')
+        .to_return(status: 200, body: metadata.to_json)
+
+      package = Registry.find(registry.id).sync_package('fresh', force: true).reload
+
+      assert_equal latest, package.latest_release_number
+      assert_equal Time.iso8601(metadata['time'][latest]), package.latest_release_published_at
+      assert_equal [latest], package.versions.where(latest: true).pluck(:number)
+      assert_equal 2, package.versions.count
+    end
+  end
+
+  test 'sync_package persists two-component PyPI releases on initial sync and resync' do
+    registry = Registry.create!(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    releases = {
+      '2022.7.1' => '2023-01-01T00:00:00Z',
+      '2026.4' => '2026-09-01T00:00:00Z'
+    }
+    metadata = { 'info' => { 'name' => 'pytz', 'license' => 'MIT' }, 'releases' => {} }
+    stub_request(:get, 'https://pypistats.org/api/packages/pytz/recent')
+      .to_return(status: 200, body: { data: { last_month: 100 } }.to_json)
+
+    releases.each do |number, published_at|
+      metadata['releases'][number] = [{
+        'upload_time' => published_at,
+        'digests' => { 'sha256' => 'a' * 64 },
+        'url' => "https://files.pythonhosted.org/packages/pytz-#{number}.tar.gz",
+        'yanked' => false,
+        'packagetype' => 'sdist',
+        'python_version' => 'source'
+      }]
+      stub_request(:get, "https://pypi.org/pypi/pytz/#{number}/json")
+        .to_return(status: 200, body: { info: { name: 'pytz', version: number, license: 'MIT', requires_dist: [] } }.to_json)
+      stub_request(:get, 'https://pypi.org/pypi/pytz/json')
+        .to_return(status: 200, body: metadata.to_json)
+
+      package = Registry.find(registry.id).sync_package('pytz', force: true).reload
+
+      assert_equal 'pypi', package.ecosystem
+      assert_equal number, package.latest_release_number
+      assert_equal Time.iso8601(published_at), package.latest_release_published_at
+      assert_equal [number], package.versions.where(latest: true).pluck(:number)
+      assert_equal metadata['releases'].length, package.versions.count
+    end
+  end
+
   test 'sync_package returns false when package_metadata name is blank' do
     ecosystem = @registry.ecosystem_instance
     ecosystem.stubs(:package_metadata).returns({ name: '', description: 'Test' })
@@ -149,9 +297,173 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal false, result
   end
 
+  test 'sync_package forwards an indexed version and updates last_synced_at' do
+    ecosystem = @registry.ecosystem_instance
+    ecosystem.expects(:package_metadata).with('newpkg', version: '1.2.3').returns({ name: 'newpkg' })
+    ecosystem.stubs(:versions_metadata).returns([])
+    Package.any_instance.stubs(:check_status)
+    Package.any_instance.stubs(:update_repo_metadata_async)
+
+    package = @registry.sync_package('newpkg', version: '1.2.3')
+
+    assert package.persisted?
+    assert package.last_synced_at
+  end
+
+  test 'sync_package resolves a Go subpackage through its containing module' do
+    registry = Registry.create!(default: true, name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go')
+    subpackage = 'github.com/aws/aws-sdk-go-v2/internal/rand'
+    module_path = 'github.com/aws/aws-sdk-go-v2'
+    stub_go_subpackage(subpackage, module_path, ['v1.47.0'])
+
+    package = registry.sync_package(subpackage)
+
+    assert package.persisted?
+    assert_equal subpackage, package.name
+    assert_equal module_path, package.metadata['module_path']
+    assert_equal 'active', package.read_attribute(:status)
+    assert_equal 'v1.47.0', package.latest_release_number
+    assert_equal 'v1.47.0', package.latest_version.number
+    assert_equal ['v1.47.0'], package.versions.pluck(:number)
+    assert_equal "https://proxy.golang.org/cached-only/#{module_path}/@v/v1.47.0.zip",
+      package.latest_version.download_url
+  end
+
+  test 'sync_package restores removed versions for a Go subpackage' do
+    registry = Registry.create!(default: true, name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go')
+    subpackage = 'github.com/aws/aws-sdk-go-v2/internal/rand'
+    module_path = 'github.com/aws/aws-sdk-go-v2'
+    package = registry.packages.create!(
+      name: subpackage,
+      ecosystem: 'go',
+      status: 'removed',
+      last_synced_at: 2.days.ago
+    )
+    old_version = package.versions.create!(number: 'v1.41.6', status: 'removed', registry: registry)
+    stub_go_subpackage(subpackage, module_path, ['v1.47.0', 'v1.41.6'])
+
+    registry.sync_package(subpackage)
+
+    assert_equal 'active', package.reload.read_attribute(:status)
+    assert_equal module_path, package.metadata['module_path']
+    assert_nil old_version.reload.status
+    assert_equal 'v1.47.0', package.latest_release_number
+    assert_equal ['v1.41.6', 'v1.47.0'], package.versions.active.order(:number).pluck(:number)
+  end
+
+  test 'sync_package clears stale module_path when Go package resolves as its own module' do
+    registry = Registry.create!(default: true, name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go')
+    name = 'github.com/aws/aws-sdk-go-v2/service/s3'
+    package = registry.packages.create!(
+      name: name,
+      ecosystem: 'go',
+      metadata: { 'module_path' => 'github.com/aws/aws-sdk-go-v2' },
+      last_synced_at: 2.days.ago
+    )
+    stub_request(:get, "https://pkg.go.dev/v1beta/module/#{name}?licenses=true")
+      .to_return(status: 200, body: Oj.dump(path: name, version: 'v1.0.0', repoUrl: 'https://github.com/aws/aws-sdk-go-v2', licenses: [{ types: ['Apache-2.0'] }]))
+    stub_request(:get, "https://pkg.go.dev/v1beta/package/#{name}")
+      .to_return(status: 200, body: Oj.dump(modulePath: name, version: 'v1.0.0', path: name, synopsis: 'Package s3'))
+    stub_request(:get, "https://pkg.go.dev/v1beta/versions/#{name}?limit=1000")
+      .to_return(status: 200, body: Oj.dump(items: [{ modulePath: name, version: 'v1.0.0', commitTime: Time.utc(2026, 9, 9).iso8601, retracted: false, deprecated: false }]))
+    stub_request(:get, "https://proxy.golang.org/cached-only/#{name}/@v/v1.0.0.mod")
+      .to_return(status: 200, body: "module #{name}\n")
+
+    registry.sync_package(name)
+
+    package.reload
+    assert_nil package.metadata
+    assert_equal "https://proxy.golang.org/cached-only/#{name}/@v/v1.0.0.zip", package.latest_version.download_url
+  end
+
   test 'sync_package_async' do
     SyncPackageWorker.expects(:perform_async).with(@registry.id, 'split')
     @registry.sync_package_async('split')
+  end
+
+  test 'sync_maintainers skips hidden identities and syncs visible maintainers' do
+    package = @registry.packages.create!(name: 'some-package', ecosystem: @registry.ecosystem)
+    @registry.maintainers.create!(uuid: 'old-uuid', login: 'blockeduser', packages_count: Maintainer::TOMBSTONE_PACKAGES_COUNT)
+    @registry.ecosystem_instance.expects(:maintainers_metadata).with(package.name).returns([
+      {uuid: 'new-uuid', login: 'blockeduser'},
+      {uuid: 'visible-uuid', login: 'visibleuser'}
+    ])
+
+    @registry.sync_maintainers(package)
+
+    assert_equal ['visibleuser'], package.maintainers.reload.pluck(:login)
+    assert_nil @registry.maintainers.find_by(uuid: 'new-uuid')
+    assert_equal 1, package.reload.maintainers_count
+  end
+
+  test 'sync_package emits package.created and version.created for new package' do
+    LiveEvent.stubs(:enabled?).returns(true)
+
+    ecosystem = @registry.ecosystem_instance
+    ecosystem.stubs(:package_metadata).returns({ name: 'newpkg' })
+    ecosystem.stubs(:versions_metadata).returns([{ number: '1.0.0', published_at: Time.now }])
+    ecosystem.stubs(:dependencies_metadata).returns([])
+    Package.any_instance.stubs(:check_status)
+    Package.any_instance.stubs(:update_repo_metadata_async)
+
+    Package.any_instance.expects(:emit_new_package_event).once
+    Package.any_instance.expects(:emit_new_version_events).with do |records|
+      records.length == 1 && records.first.is_a?(Version) && records.first.number == '1.0.0'
+    end
+
+    @registry.sync_package('newpkg')
+  end
+
+  test 'sync_package does not emit package.created for existing package' do
+    LiveEvent.stubs(:enabled?).returns(true)
+    @registry.packages.create(name: 'existing', ecosystem: 'rubygems', last_synced_at: 2.days.ago)
+
+    ecosystem = @registry.ecosystem_instance
+    ecosystem.stubs(:package_metadata).returns({ name: 'existing' })
+    ecosystem.stubs(:versions_metadata).returns([])
+    ecosystem.stubs(:dependencies_metadata).returns([])
+    Package.any_instance.stubs(:check_status)
+    Package.any_instance.stubs(:update_repo_metadata_async)
+
+    Package.any_instance.expects(:emit_new_package_event).never
+
+    @registry.sync_package('existing')
+  end
+
+  test 'sync_package does not emit version.created for status updates to existing versions' do
+    LiveEvent.stubs(:enabled?).returns(true)
+    pkg = @registry.packages.create(name: 'existing', ecosystem: 'rubygems', last_synced_at: 2.days.ago)
+    pkg.versions.create(number: '1.0.0', registry_id: @registry.id)
+
+    ecosystem = @registry.ecosystem_instance
+    ecosystem.stubs(:package_metadata).returns({ name: 'existing' })
+    ecosystem.stubs(:versions_metadata).returns([{ number: '1.0.0', status: 'yanked' }])
+    ecosystem.stubs(:dependencies_metadata).returns([])
+    Package.any_instance.stubs(:check_status)
+    Package.any_instance.stubs(:update_repo_metadata_async)
+
+    Package.any_instance.expects(:emit_new_version_events).never
+
+    @registry.sync_package('existing')
+  end
+
+  test 'sync_package skips version reload when LiveEvent disabled' do
+    LiveEvent.stubs(:enabled?).returns(false)
+
+    ecosystem = @registry.ecosystem_instance
+    ecosystem.stubs(:package_metadata).returns({ name: 'newpkg' })
+    versions_metadata = [{ number: '1.0.0' }]
+    ecosystem.stubs(:versions_metadata).returns(versions_metadata)
+    ecosystem.expects(:update_existing_versions).with do |package, metadata|
+      package.name == 'newpkg' && metadata == versions_metadata
+    end
+    ecosystem.stubs(:dependencies_metadata).returns([])
+    Package.any_instance.stubs(:check_status)
+    Package.any_instance.stubs(:update_repo_metadata_async)
+
+    Package.any_instance.expects(:emit_new_version_events).never
+
+    @registry.sync_package('newpkg')
   end
 
   test 'sync_all_recently_updated_packages_async' do
@@ -286,4 +598,273 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal 3, stat_2022.packages_count
   end
 
+  test 'throttled_ids returns registries with a rate_limit' do
+    Registry.reset_throttle_cache
+    throttled = Registry.create!(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm', metadata: { 'rate_limit' => 1 })
+    ids = Registry.throttled_ids
+    assert_includes ids, throttled.id
+    refute_includes ids, @registry.id
+  ensure
+    Registry.reset_throttle_cache
+  end
+
+  test 'sync_budget returns rate_limit times period seconds' do
+    @registry.rate_limit = 2
+    assert_equal 1800, @registry.sync_budget(15.minutes)
+    @registry.rate_limit = nil
+    assert_nil @registry.sync_budget(15.minutes)
+  end
+
+  test 'sync_budget floors fractional rate_limit' do
+    @registry.rate_limit = 0.5
+    assert_equal 450, @registry.sync_budget(15.minutes)
+  end
+
+  test 'rate_limit accepts positive floats and rejects zero' do
+    @registry.rate_limit = 0.5
+    assert @registry.valid?
+    @registry.rate_limit = 0
+    refute @registry.valid?
+    @registry.rate_limit = -1
+    refute @registry.valid?
+  end
+
+  test 'throttle_limit_for and throttle_period_for handle integer, fractional, and nil rate limits' do
+    Registry.reset_throttle_cache
+    fast = Registry.create!(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm', metadata: { 'rate_limit' => 3 })
+    slow = Registry.create!(name: 'artifacthub.io', url: 'https://artifacthub.io', ecosystem: 'helm', metadata: { 'rate_limit' => 0.5 })
+
+    assert_equal 3, Registry.throttle_limit_for(fast.id)
+    assert_equal 1, Registry.throttle_period_for(fast.id)
+
+    assert_equal 1, Registry.throttle_limit_for(slow.id)
+    assert_equal 2, Registry.throttle_period_for(slow.id)
+
+    assert_nil Registry.throttle_limit_for(@registry.id)
+    assert_equal 1, Registry.throttle_period_for(@registry.id)
+  ensure
+    Registry.reset_throttle_cache
+  end
+
+  test 'sync_one_percent_of_packages caps at sync_budget' do
+    @registry.stubs(:one_percent_of_packages_count).returns(4000)
+    @registry.rate_limit = 1
+    scope = mock
+    scope.expects(:limit).with(1200).returns([])
+    @registry.packages.stubs(:active).returns(stub(outdated: stub(order: scope)))
+    @registry.sync_one_percent_of_packages(period: 20.minutes)
+  end
+
+  test 'sync_one_percent_of_packages uses one_percent when unthrottled' do
+    @registry.stubs(:one_percent_of_packages_count).returns(300)
+    scope = mock
+    scope.expects(:limit).with(300).returns([])
+    @registry.packages.stubs(:active).returns(stub(outdated: stub(order: scope)))
+    @registry.sync_one_percent_of_packages
+  end
+
+  test 'sync_worst_one_percent skips when critical queue is backed up' do
+    Sidekiq::Queue.any_instance.stubs(:size).returns(20_000)
+    Registry.any_instance.expects(:sync_one_percent_of_packages).never
+    Registry.sync_worst_one_percent
+  end
+
+  test 'keywords includes active packages and excludes inactive ones' do
+    Rails.cache.delete("registries_keywords/#{@registry.id}")
+    @registry.packages.create!(name: 'active-gem', ecosystem: @registry.ecosystem, status: 'active', keywords: ['audit-keyword'])
+    @registry.packages.create!(name: 'removed-gem', ecosystem: @registry.ecosystem, status: 'removed', keywords: ['removed-keyword'])
+
+    keywords = @registry.keywords.to_h { |keyword, count| [keyword, count.to_i] }
+
+    assert_equal 1, keywords['audit-keyword']
+    assert_nil keywords['removed-keyword']
+  end
+
+  def stub_go_subpackage(subpackage, module_path, versions)
+    available_versions = (versions + ['v1.0.0']).uniq
+    stub_request(:get, "https://pkg.go.dev/v1beta/module/#{subpackage}?licenses=true")
+      .to_return(status: 400, body: Oj.dump(code: 400, message: "#{subpackage} is a package, not a module"))
+    stub_request(:get, "https://pkg.go.dev/v1beta/package/#{subpackage}")
+      .to_return(status: 200, body: Oj.dump(
+        modulePath: module_path,
+        version: versions.first,
+        path: subpackage,
+        synopsis: 'Package rand provides random number utilities.'
+      ))
+    stub_request(:get, "https://pkg.go.dev/v1beta/module/#{module_path}?licenses=true")
+      .to_return(status: 200, body: Oj.dump(
+        path: module_path,
+        version: versions.first,
+        repoUrl: 'https://github.com/aws/aws-sdk-go-v2',
+        licenses: [{ types: ['Apache-2.0'] }]
+      ))
+    stub_request(:get, "https://pkg.go.dev/v1beta/versions/#{module_path}?limit=1000")
+      .to_return(status: 200, body: Oj.dump(
+        items: available_versions.map.with_index do |version, index|
+          {
+            modulePath: module_path,
+            version: version,
+            commitTime: (Time.utc(2026, 9, 9) - index.days).iso8601,
+            retracted: false,
+            deprecated: false
+          }
+        end
+      ))
+    versions.each do |version|
+      stub_request(:get, "https://proxy.golang.org/cached-only/#{module_path}/@v/#{version}.mod")
+        .to_return(status: 200, body: "module #{module_path}\n")
+    end
+  end
+
+
+  def declaring_package(registry, name, repositories, dependencies, latest: true)
+    package = registry.packages.create!(name: name, namespace: name.split(':').first, ecosystem: 'maven', metadata: { 'repositories' => repositories })
+    version = package.versions.create!(number: '1.0', latest: latest, registry_id: registry.id)
+    dependencies.each do |dependency|
+      version.dependencies.create!(package_name: dependency, ecosystem: 'maven', requirements: '1.0', package_id: package.id)
+    end
+    package
+  end
+
+  test 'normalize_repository_url drops scheme, case and trailing slashes' do
+    assert_equal 'packages.confluent.io/maven', Ecosystem::Base.normalize_repository_url(' HTTPS://Packages.Confluent.io/maven// ')
+    assert_equal 'packages.confluent.io/maven', Ecosystem::Base.normalize_repository_url('http://packages.confluent.io/maven')
+  end
+
+  test 'unresolved_dependency_names keeps latest-version dependencies missing from every Maven registry' do
+    central = Registry.create!(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
+    central.packages.create!(name: 'com.google.guava:guava', namespace: 'com.google.guava', ecosystem: 'maven')
+    current = declaring_package(central, 'com.example:app', ['https://packages.confluent.io/maven/'],
+                                ['io.confluent:kafka-avro-serializer', 'com.google.guava:guava', '${project.groupId}:core'])
+    old = declaring_package(central, 'com.example:old', ['https://packages.confluent.io/maven/'], ['io.confluent:old-only'], latest: false)
+
+    assert_equal ['io.confluent:kafka-avro-serializer'], Registry.unresolved_dependency_names('maven', [current.id, old.id])
+  end
+
+  test 'declared_dependency_names matches the declared URL however it is written' do
+    central = Registry.create!(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
+    confluent = Registry.create!(name: 'packages.confluent.io', url: 'https://packages.confluent.io/maven', ecosystem: 'maven')
+    declaring_package(central, 'com.example:app', ['http://Packages.Confluent.io/maven/'], ['io.confluent:kafka-avro-serializer'])
+    declaring_package(central, 'com.example:other', ['https://repo.spring.io/release'], ['org.springframework:spring-unlisted'])
+
+    assert_equal ['io.confluent:kafka-avro-serializer'], confluent.declared_dependency_names
+  end
+
+  test 'declared_dependency_names includes declarations from packages in non-Central registries' do
+    central = Registry.create!(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
+    confluent = Registry.create!(name: 'packages.confluent.io', url: 'https://packages.confluent.io/maven', ecosystem: 'maven')
+    osgeo = Registry.create!(name: 'repo.osgeo.org', url: 'https://repo.osgeo.org/repository/release', ecosystem: 'maven')
+    declaring_package(confluent, 'io.confluent:geo-thing', ['https://repo.osgeo.org/repository/release/'], ['org.geotools:gt-main'])
+
+    assert_equal ['org.geotools:gt-main'], osgeo.declared_dependency_names
+  end
+
+  test 'print_declared_repositories lists tracked registries and untracked repositories in separate sections' do
+    central = Registry.create!(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
+    Registry.create!(name: 'packages.confluent.io', url: 'https://packages.confluent.io/maven', ecosystem: 'maven')
+    declaring_package(central, 'com.example:app', ['https://packages.confluent.io/maven/', 'https://repo.osgeo.org/repository/release'],
+                      ['io.confluent:kafka-avro-serializer', 'org.geotools:gt-main'])
+
+    io = StringIO.new
+    Registry.print_declared_repositories('maven', io: io)
+
+    assert_equal [
+      '=== tracked registries ===',
+      "namespaces\tunresolved\tregistry\trepo",
+      "1\t2\tpackages.confluent.io\tpackages.confluent.io/maven",
+      '=== untracked repositories ===',
+      "namespaces\tunresolved\trepo",
+      "1\t2\trepo.osgeo.org/repository/release"
+    ], io.string.lines.map(&:chomp)
+  end
+
+  test 'sync_declared_dependency_packages queues dependencies declared against the registry' do
+    central = Registry.create!(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
+    confluent = Registry.create!(name: 'packages.confluent.io', url: 'https://packages.confluent.io/maven', ecosystem: 'maven')
+    confluent.packages.create!(name: 'io.confluent:already-here', namespace: 'io.confluent', ecosystem: 'maven')
+    declaring_package(central, 'com.example:app', ['https://packages.confluent.io/maven/'], ['io.confluent:kafka-avro-serializer', 'io.confluent:already-here'])
+
+    confluent.expects(:sync_packages_spread_async).with(['io.confluent:kafka-avro-serializer'])
+    assert_equal ['io.confluent:kafka-avro-serializer'], confluent.sync_declared_dependency_packages
+  end
+
+  test 'sync_declared_dependency_packages does nothing for ecosystems without declared repositories' do
+    @registry.packages.create!(name: 'rails', ecosystem: 'rubygems', metadata: { 'repositories' => ['https://rubygems.org'] })
+    @registry.expects(:sync_packages_async).never
+    assert_equal [], @registry.sync_declared_dependency_packages
+    assert_equal [], Registry.declared_repositories('rubygems')
+  end
+
+  test 'seed merges seeded metadata into existing metadata' do
+    @registry.update!(metadata: { 'funded_packages_count' => 27, 'archetype_catalog' => false })
+    Registry.seed(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems', metadata: { 'archetype_catalog' => true })
+
+    assert_equal({ 'funded_packages_count' => 27, 'archetype_catalog' => true }, @registry.reload.metadata)
+  end
+
+  test 'seed creates a registry that does not exist yet' do
+    registry = Registry.seed(name: 'repository.jboss.org', url: 'https://repository.jboss.org/nexus/content/repositories/releases', ecosystem: 'maven', metadata: { 'archetype_catalog' => true })
+
+    assert registry.persisted?
+    assert_equal({ 'archetype_catalog' => true }, registry.metadata)
+  end
+
+  test 'seed keeps rate_limit alongside existing metadata' do
+    @registry.update!(metadata: { 'funded_packages_count' => 27, 'rate_limit' => 1 })
+    Registry.seed(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems', rate_limit: 2)
+
+    assert_equal({ 'funded_packages_count' => 27, 'rate_limit' => 2 }, @registry.reload.metadata)
+  end
+
+  test 'seed sets rate_limit on a new registry' do
+    registry = Registry.seed(name: 'repository.cloudera.com', url: 'https://repository.cloudera.com/repository/cloudera-repos', ecosystem: 'maven', rate_limit: 2)
+
+    assert_equal 2, registry.reload.rate_limit
+  end
+
+  test 'declared_dependency_names matches packages that declare a registry alias' do
+    central = Registry.create!(name: 'repo1.maven.org', url: 'https://maven-central.storage-download.googleapis.com/maven2', ecosystem: 'maven',
+                               metadata: { 'aliases' => ['https://repo.maven.apache.org/maven2', 'https://repo1.maven.org/maven2'] })
+    declaring_package(central, 'com.example:app', ['https://repo.maven.apache.org/maven2/'], ['org.example:from-alias'])
+    declaring_package(central, 'com.example:other', ['https://repo1.maven.org/maven2'], ['org.example:from-repo1'])
+
+    assert_equal ['org.example:from-alias', 'org.example:from-repo1'], central.declared_dependency_names.sort
+  end
+
+  test 'print_declared_repositories lists aliases under their registry' do
+    central = Registry.create!(name: 'repo1.maven.org', url: 'https://maven-central.storage-download.googleapis.com/maven2', ecosystem: 'maven',
+                               metadata: { 'aliases' => ['https://repo.maven.apache.org/maven2'] })
+    declaring_package(central, 'com.example:app', ['https://repo.maven.apache.org/maven2'], ['org.example:from-alias'])
+
+    io = StringIO.new
+    Registry.print_declared_repositories('maven', io: io)
+
+    assert_equal [
+      '=== tracked registries ===',
+      "namespaces\tunresolved\tregistry\trepo",
+      "1\t1\trepo1.maven.org\trepo.maven.apache.org/maven2",
+      '=== untracked repositories ===',
+      "namespaces\tunresolved\trepo"
+    ], io.string.lines.map(&:chomp)
+  end
+
+  test 'sync_packages_spread_async schedules one budget per period instead of dropping the rest' do
+    SyncPackageWorker.clear
+    registry = Registry.create!(name: 'slow.example', url: 'https://slow.example', ecosystem: 'maven', rate_limit: 0.0025)
+    freeze_time do
+      registry.sync_packages_spread_async(%w[a b c d e])
+
+      jobs = SyncPackageWorker.jobs
+      assert_equal %w[a b c d e], jobs.map { |job| job['args'][1] }.sort
+      offsets = jobs.map { |job| ((job['at'] || Time.now.to_f) - Time.now.to_f).round }.sort
+      assert_equal [0, 0, 900, 900, 1800], offsets
+    end
+  end
+
+  test 'sync_packages_spread_async queues everything at once without a rate limit' do
+    SyncPackageWorker.clear
+    @registry.sync_packages_spread_async(%w[a b c])
+    assert_equal 3, SyncPackageWorker.jobs.size
+    assert SyncPackageWorker.jobs.none? { |job| job['at'] }
+  end
 end

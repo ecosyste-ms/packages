@@ -103,6 +103,7 @@ class PackagistTest < ActiveSupport::TestCase
 
     first_version = versions_metadata.first
     assert_equal first_version[:number], "3.0.0"
+    assert_nil first_version[:integrity]
     assert_equal first_version[:published_at], "2021-07-14T16:46:02+00:00"
     assert_equal first_version[:metadata][:php_version], ">=8.0.0"
     assert_equal first_version[:metadata][:autoload], {"psr-4"=>{"Psr\\Log\\"=>"src"}}

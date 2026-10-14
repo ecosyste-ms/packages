@@ -21,6 +21,7 @@ module Ecosystem
       url = check_status_url(package)
       connection = Faraday.new do |faraday|
         faraday.use Faraday::FollowRedirects::Middleware
+        faraday.request :instrumentation
         faraday.adapter Faraday.default_adapter
       end
 

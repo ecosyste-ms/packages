@@ -95,6 +95,35 @@ class CpanTest < ActiveSupport::TestCase
     assert_equal package_metadata[:metadata][:author], 'GUILLEM'
   end
 
+  test 'repository_url falls back to bugtracker when repository is missing' do
+    @ecosystem.stubs(:fetch_version_metadata).returns([])
+    pkg = {
+      "distribution" => "Foo",
+      "resources" => {
+        "homepage" => "https://foo.example.com",
+        "bugtracker" => { "web" => "https://github.com/foo/bar/issues" },
+      },
+      "license" => [],
+    }
+    mapped = @ecosystem.map_package_metadata(pkg)
+
+    assert_equal "https://github.com/foo/bar", mapped[:repository_url]
+  end
+
+  test 'repository_url uses repository.url when repository.web is missing' do
+    @ecosystem.stubs(:fetch_version_metadata).returns([])
+    pkg = {
+      "distribution" => "Foo",
+      "resources" => {
+        "repository" => { "url" => "git://github.com/foo/bar.git" },
+      },
+      "license" => [],
+    }
+    mapped = @ecosystem.map_package_metadata(pkg)
+
+    assert_equal "https://github.com/foo/bar", mapped[:repository_url]
+  end
+
   test 'versions_metadata' do
     stub_request(:get, "https://fastapi.metacpan.org/v1/release/Dpkg")
       .to_return({ status: 200, body: file_fixture('cpan/Dpkg') })

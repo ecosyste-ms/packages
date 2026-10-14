@@ -19,8 +19,33 @@ class DenoTest < ActiveSupport::TestCase
   end
 
   test 'download_url' do
-    download_url = @ecosystem.download_url(@package, @version)
-    assert_nil download_url
+    version = @package.versions.build(number: 'v0.4.2', metadata: {
+      'source_type' => 'github',
+      'source_repository' => 'denosaurs/deno_es',
+      'source_ref' => 'v0.4.2'
+    })
+    assert_equal 'https://codeload.github.com/denosaurs/deno_es/tar.gz/refs/tags/v0.4.2', @ecosystem.download_url(@package, version)
+  end
+
+  test 'download_url without version returns nil' do
+    assert_nil @ecosystem.download_url(@package)
+  end
+
+  test 'download_url returns nil for non-github source' do
+    version = @package.versions.build(number: 'v0.4.2', metadata: { 'source_type' => 'other' })
+    assert_nil @ecosystem.download_url(@package, version)
+  end
+  test 'versions_metadata captures github source for download_url' do
+    stub_request(:get, "https://cdn.deno.land/deno_es/versions/v0.4.2/meta/meta.json")
+      .to_return(status: 200, body: '{"uploaded_at":"2021-01-01T00:00:00Z","upload_options":{"type":"github","repository":"denosaurs/deno_es","ref":"v0.4.2"}}')
+    vm = @ecosystem.versions_metadata({ name: 'deno_es', versions: ['v0.4.2'] })
+    assert_equal 'github', vm.first[:metadata]['source_type']
+    assert_equal 'denosaurs/deno_es', vm.first[:metadata]['source_repository']
+    assert_equal 'v0.4.2', vm.first[:metadata]['source_ref']
+  end
+  test 'download_url returns nil when metadata missing' do
+    version = @package.versions.build(number: 'v0.4.2', metadata: {})
+    assert_nil @ecosystem.download_url(@package, version)
   end
 
   test 'documentation_url' do
@@ -110,9 +135,9 @@ class DenoTest < ActiveSupport::TestCase
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata, [
-      {:number=>"v0.4.3", :published_at=>"2022-05-07T07:05:25.556Z"},
-      {:number=>"v0.4.2", :published_at=>"2022-03-25T06:16:54.883Z"},
-      {:number=>"v0.4.1", :published_at=>"2022-01-18T05:37:36.728Z"}
+      {:number=>"v0.4.3", :published_at=>"2022-05-07T07:05:25.556Z", :metadata=>{"source_type"=>"github", "source_repository"=>"jiawei397/deno_es", "source_ref"=>"v0.4.3"}},
+      {:number=>"v0.4.2", :published_at=>"2022-03-25T06:16:54.883Z", :metadata=>{"source_type"=>"github", "source_repository"=>"jiawei397/deno_es", "source_ref"=>"v0.4.2"}},
+      {:number=>"v0.4.1", :published_at=>"2022-01-18T05:37:36.728Z", :metadata=>{"source_type"=>"github", "source_repository"=>"jiawei397/deno_es", "source_ref"=>"v0.4.1"}}
     ]
   end
 

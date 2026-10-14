@@ -23,6 +23,12 @@ class VersionTest < ActiveSupport::TestCase
     assert_equal @version.published_at, @version.created_at
   end
 
+  test 'immutable reads version metadata' do
+    @version.update!(metadata: { immutable: false })
+
+    assert_equal false, @version.immutable
+  end
+
   test 'sort' do
     sorted = [@version, @version2].sort
     assert_equal sorted.first, @version2
@@ -57,22 +63,16 @@ class VersionTest < ActiveSupport::TestCase
     assert Purl.parse(@version.purl)
   end
 
-  test "transitive_dependencies delegates to resolver" do
-    TransitiveDependencyResolver.any_instance.expects(:resolve).returns([])
-    
-    result = @version.transitive_dependencies
-    assert_equal [], result
-  end
+  test 'as_live_event_json includes API fields' do
+    json = @version.as_live_event_json
 
-  test "transitive_dependencies passes options to resolver" do
-    TransitiveDependencyResolver.expects(:new).with(
-      @version,
-      max_depth: 5,
-      max_dependencies: 30,
-      include_optional: true,
-      kind: "dev"
-    ).returns(mock(resolve: []))
-    
-    @version.transitive_dependencies(max_depth: 5, include_optional: true, kind: "dev")
+    assert_equal '1.0.0', json['number']
+    assert_equal 'pkg:gem/foo@1.0.0', json['purl']
+    assert_equal 'https://rubygems.org/downloads/foo-1.0.0.gem', json['download_url']
+    assert_equal 'https://rubygems.org/gems/foo/versions/1.0.0', json['registry_url']
+    assert json.key?('published_at')
+    assert json.key?('integrity')
+    assert json.key?('status')
+    refute json.key?('dependencies')
   end
 end

@@ -13,8 +13,9 @@ module Ecosystem
       url
     end
 
-    def download_url(_package, _version = nil)
-      nil
+    def download_url(_package, version = nil)
+      return nil unless version.respond_to?(:metadata) && version.metadata
+      version.metadata['content_url'].presence
     end
 
     def documentation_url(package, _version = nil)
@@ -61,8 +62,8 @@ module Ecosystem
       return [] unless parts.length == 2
 
       repository, package_name = parts
-      data = get_json("https://artifacthub.io/api/v1/packages/helm/#{repository}/#{package_name}/#{version}")
-      deps = data.dig('data', 'dependencies') || []
+      data = fetch_version_details(repository, package_name, version)
+      deps = data.is_a?(Hash) && data.dig('data', 'dependencies') || []
 
       deps.map do |dep|
         dep_name = if dep['artifacthub_repository_name']
@@ -147,13 +148,24 @@ module Ecosystem
       }
     end
 
+    NEW_VERSIONS_PER_SYNC = 5
+
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       return [] unless pkg_metadata[:versions]
+      parts = pkg_metadata[:name].to_s.split('/')
+      repository, name = parts.length == 2 ? parts : [nil, nil]
 
       pkg_metadata[:versions]
         .select { |v| v['version'].present? }
         .reject { |v| existing_version_numbers.include?(v['version']) }
-        .map do |version|
+        .sort_by { |v| -v['ts'].to_i }
+        .first(NEW_VERSIONS_PER_SYNC)
+        .filter_map do |version|
+          if repository && name
+            details = fetch_version_details(repository, name, version['version'])
+            next if details.nil?
+            content_url = details['content_url'].presence
+          end
           {
             number: version['version'],
             published_at: version['ts'] ? Time.at(version['ts']).utc : nil,
@@ -161,10 +173,25 @@ module Ecosystem
             metadata: {
               'app_version' => version['app_version'],
               'contains_security_updates' => version['contains_security_updates'] || false,
-              'prerelease' => version['prerelease'] || false
+              'prerelease' => version['prerelease'] || false,
+              'content_url' => content_url,
             }
           }
         end
+    end
+
+    def fetch_content_url(repository, name, number)
+      data = fetch_version_details(repository, name, number)
+      data.is_a?(Hash) ? data['content_url'].presence : nil
+    end
+
+    def fetch_version_details(repository, name, number)
+      @version_details ||= {}
+      key = [repository, name, number]
+      return @version_details[key] if @version_details.key?(key)
+      @version_details[key] = get_json("https://artifacthub.io/api/v1/packages/helm/#{repository}/#{name}/#{number}")
+    rescue Faraday::Error, Oj::ParseError
+      @version_details[key] = nil
     end
 
     def self.purl_type
