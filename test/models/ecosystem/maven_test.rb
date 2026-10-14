@@ -801,6 +801,63 @@ class MavenTest < ActiveSupport::TestCase
     assert_requested listing, times: 1
   end
 
+  def stub_google_mirror_sync(pom_headers)
+    mirror = 'https://maven-central.storage-download.googleapis.com/maven2'
+    stub_request(:get, "#{mirror}/net/jcip/jcip-annotations/maven-metadata.xml")
+      .to_return(status: 200, body: "<metadata><versioning><versions><version>1.0</version></versions></versioning></metadata>")
+    stub_request(:head, "#{mirror}/net/jcip/jcip-annotations/maven-metadata.xml").to_return(status: 200)
+    stub_request(:get, "#{mirror}/net/jcip/jcip-annotations/1.0/jcip-annotations-1.0.pom")
+      .to_return(status: 200, body: file_fixture('maven/jcip-annotations-1.0.pom'), headers: pom_headers)
+    stub_request(:get, "#{mirror}/net/jcip/index.html").to_return(status: 200, body: '<html></html>')
+    Registry.create!(url: mirror, name: 'repo1.maven.org', ecosystem: 'maven')
+  end
+
+  test 'syncing from the Google mirror dates a version by its upload time, not the bucket time' do
+    MavenCentralPublishedAtWorker.clear
+    registry = stub_google_mirror_sync('last-modified' => 'Sun, 14 Jul 2019 15:07:46 GMT',
+                                       'x-goog-meta-last-modified' => '"Thu, 14 Aug 2008 02:49:00 GMT"')
+
+    registry.sync_package('net.jcip:jcip-annotations')
+
+    version = registry.packages.find_by(name: 'net.jcip:jcip-annotations').versions.find_by(number: '1.0')
+    assert_equal Time.utc(2008, 8, 14, 2, 49, 0), version.published_at
+    assert_equal 0, MavenCentralPublishedAtWorker.jobs.size
+  end
+
+  test 'syncing from the Google mirror leaves bulk-imported versions undated and dates them from Central later' do
+    MavenCentralPublishedAtWorker.clear
+    registry = stub_google_mirror_sync('last-modified' => 'Sun, 14 Jul 2019 15:07:46 GMT')
+    central = stub_request(:head, "https://repo1.maven.org/maven2/net/jcip/jcip-annotations/1.0/jcip-annotations-1.0.pom")
+      .to_return(status: 200, headers: { 'Last-Modified' => 'Thu, 14 Aug 2008 02:49:00 GMT' })
+
+    registry.sync_package('net.jcip:jcip-annotations')
+
+    version = registry.packages.find_by(name: 'net.jcip:jcip-annotations').versions.find_by(number: '1.0')
+    assert_nil version.read_attribute(:published_at)
+    assert_not_requested central
+    assert_equal [[registry.id, 'net.jcip:jcip-annotations', '1.0']], MavenCentralPublishedAtWorker.jobs.map { |job| job['args'] }
+
+    MavenCentralPublishedAtWorker.drain
+
+    assert_equal Time.utc(2008, 8, 14, 2, 49, 0), version.reload.read_attribute(:published_at)
+    assert_requested central, times: 1
+  end
+
+  test 'syncing from Maven Central uses Last-Modified and queues no Central lookups' do
+    MavenCentralPublishedAtWorker.clear
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/foo/maven-metadata.xml")
+      .to_return(status: 200, body: "<metadata><versioning><versions><version>1.0.0</version></versions></versioning></metadata>")
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/foo/1.0.0/foo-1.0.0.pom")
+      .to_return(status: 200, body: file_fixture('maven/jcip-annotations-1.0.pom'), headers: { 'Last-Modified' => 'Wed, 01 Jan 2025 00:00:00 GMT' })
+    registry = Registry.create!(url: 'https://repo1.maven.org/maven2', name: 'repo1.maven.org', ecosystem: 'maven')
+    eco = Ecosystem::Maven.new(registry)
+
+    versions = eco.versions_metadata(eco.package_metadata('com.example:foo'))
+
+    assert_equal Time.utc(2025, 1, 1), versions.first[:published_at]
+    assert_equal 0, MavenCentralPublishedAtWorker.jobs.size
+  end
+
   test 'sync_subpackages_async lists each namespace at most once a day' do
     Rails.stubs(:cache).returns(ActiveSupport::Cache::MemoryStore.new)
     r = Registry.create!(url: 'https://repo1.maven.org/maven2', name: 'repo1.maven.org', ecosystem: 'maven')
