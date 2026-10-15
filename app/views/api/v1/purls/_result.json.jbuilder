@@ -16,5 +16,6 @@ if result.version
     json.dependencies version.dependencies do |dependency|
       json.partial! "api/v1/dependencies/dependency", dependency: dependency
     end
+    json.advisories version.version_scoped_advisories
   end
 end

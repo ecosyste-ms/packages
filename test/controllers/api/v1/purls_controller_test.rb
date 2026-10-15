@@ -103,6 +103,52 @@ class ApiV1PurlsControllerTest < ActionDispatch::IntegrationTest
     assert_equal ["6.0", "5.5.2"], response.map { |result| result.dig("version", "version") }
   end
 
+  test "includes only advisories affecting the matched version" do
+    @package.update!(advisories: [
+      {
+        "uuid" => "GHSA-old",
+        "identifiers" => ["GHSA-old", "CVE-2020-0001"],
+        "url" => "https://github.com/advisories/GHSA-old",
+        "title" => "Old rand issue",
+        "severity" => "HIGH",
+        "packages" => [
+          {
+            "ecosystem" => "cargo",
+            "package_name" => "rand",
+            "versions" => [{ "vulnerable_version_range" => ">= 0.7.0, < 0.8.0", "first_patched_version" => "0.8.0" }]
+          }
+        ]
+      }
+    ])
+    affected = {
+      "uuid" => "GHSA-old",
+      "identifiers" => ["GHSA-old", "CVE-2020-0001"],
+      "url" => "https://github.com/advisories/GHSA-old",
+      "title" => "Old rand issue",
+      "severity" => "HIGH",
+      "affected" => true,
+      "fixed" => false,
+      "fixed_versions" => ["0.8.0"]
+    }
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:cargo/rand@0.7.0" }
+
+    assert_response :success
+    assert_equal [affected], Oj.load(@response.body).dig("version", "advisories")
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:cargo/rand@0.8.0" }
+
+    assert_response :success
+    assert_equal [], Oj.load(@response.body).dig("version", "advisories")
+
+    post bulk_lookup_api_v1_purls_path, params: { purls: ["pkg:cargo/rand@0.7.0", "pkg:cargo/rand@0.8.0", "pkg:cargo/rand"] }
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert_equal ["0.7.0", "0.8.0", "0.8.0"], response.map { |result| result.dig("version", "version") }
+    assert_equal [[affected], [], []], response.map { |result| result.dig("version", "advisories") }
+  end
+
   test "returns missing when the PURL does not match a version" do
     get lookup_api_v1_purls_path, params: { purl: "pkg:cargo/rand@9.9.9" }
 
