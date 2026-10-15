@@ -10,6 +10,14 @@ class MavenCentralPublishedAtWorker
     return if version.nil? || version.read_attribute(:published_at).present?
 
     published_at = registry.ecosystem_instance.central_published_at(name, number)
-    version.update_column(:published_at, published_at) if published_at
+    return unless published_at
+
+    package = version.package
+    package.with_lock do
+      version.update!(published_at: published_at)
+      package.set_first_release_published_at
+      package.set_latest_release_published_at
+      package.save!
+    end
   end
 end

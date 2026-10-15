@@ -713,6 +713,7 @@ module Ecosystem
       connection = Faraday.new do |builder|
         builder.use Faraday::FollowRedirects::Middleware
         builder.request :instrumentation
+        builder.response :raise_error, allowed_statuses: [404, 410]
         builder.adapter Faraday.default_adapter
         builder.options.timeout = 10
         builder.options.open_timeout = 5
@@ -720,7 +721,7 @@ module Ecosystem
       response = connection.head(url) { |req| req.headers["User-Agent"] = "packages.ecosyste.ms" }
       last_modified = response.headers["Last-Modified"] if response.success?
       last_modified.present? ? Time.parse(last_modified) : nil
-    rescue Faraday::Error, ArgumentError
+    rescue ArgumentError
       nil
     end
 

@@ -840,6 +840,9 @@ class MavenTest < ActiveSupport::TestCase
     MavenCentralPublishedAtWorker.drain
 
     assert_equal Time.utc(2008, 8, 14, 2, 49, 0), version.reload.read_attribute(:published_at)
+    package = version.package.reload
+    assert_equal Time.utc(2008, 8, 14, 2, 49, 0), package.first_release_published_at
+    assert_equal Time.utc(2008, 8, 14, 2, 49, 0), package.latest_release_published_at
     assert_requested central, times: 1
   end
 
