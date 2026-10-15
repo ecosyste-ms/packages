@@ -34,8 +34,8 @@ class PurlVersionLookup
     return Package.none if ecosystem.blank? || separator.nil?
 
     name = [namespace, @purl.name].compact.join(separator)
-    registry_ids = matching_registry_ids(ecosystem)
-    Package.where(name: name, registry_id: registry_ids)
+    scope = Package.where(registry_id: matching_registry_ids(ecosystem))
+    ecosystem == "pypi" ? scope.with_pypi_name(name) : scope.where(name: name)
   end
 
   def matching_registry_ids(ecosystem)
@@ -66,15 +66,10 @@ class PurlVersionLookup
     return marked_versions if missing_package_ids.empty?
 
     fallback_version_ids = Package.where(id: missing_package_ids).preload(:versions).filter_map do |package|
-      latest_version_id_for(package.versions.to_a)
+      package.latest_version_from(package.versions.to_a)&.id
     end
 
     Version.where(id: marked_versions.select(:id)).or(Version.where(id: fallback_version_ids))
-  end
-
-  def latest_version_id_for(versions)
-    active_versions = versions.select { |version| version.status.nil? }
-    (active_versions.select(&:stable?).sort.first || active_versions.sort.first)&.id
   end
 
   def normalize_url(url)

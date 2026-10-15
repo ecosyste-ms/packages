@@ -51,6 +51,58 @@ class ApiV1PurlsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "0.8.0", Oj.load(@response.body).dig("version", "version")
   end
 
+  test "fallback prefers the npm latest dist-tag over the highest stable version" do
+    registry = Registry.create!(name: "npmjs.org", url: "https://registry.npmjs.org", ecosystem: "npm")
+    package = registry.packages.create!(ecosystem: "npm", name: "tagged", metadata: { "dist-tags" => { "latest" => "1.0.0" } })
+    package.versions.create!(number: "1.0.0")
+    package.versions.create!(number: "2.0.0")
+    expected = package.reload.latest_version.number
+    Package.any_instance.expects(:latest_version).never
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:npm/tagged" }
+
+    assert_response :success
+    assert_equal "1.0.0", expected
+    assert_equal expected, Oj.load(@response.body).dig("version", "version")
+  end
+
+  test "fallback skips archived opam releases" do
+    registry = Registry.create!(name: "opam.ocaml.org", url: "https://opam.ocaml.org", ecosystem: "opam")
+    package = registry.packages.create!(ecosystem: "opam", name: "lwt")
+    package.versions.create!(number: "1.0.0", metadata: { "archived" => false })
+    package.versions.create!(number: "2.0.0", metadata: { "archived" => true })
+    expected = package.reload.latest_version.number
+    Package.any_instance.expects(:latest_version).never
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:opam/lwt" }
+
+    assert_response :success
+    assert_equal "1.0.0", expected
+    assert_equal expected, Oj.load(@response.body).dig("version", "version")
+  end
+
+  test "resolves canonical PyPI names against stored distribution names" do
+    registry = Registry.create!(name: "pypi.org", url: "https://pypi.org", ecosystem: "pypi")
+    package = registry.packages.create!(ecosystem: "pypi", name: "zope.interface", metadata: { "normalized_name" => "zope-interface" })
+    package.versions.create!(number: "6.0", latest: true)
+    package.versions.create!(number: "5.5.2")
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:pypi/zope-interface@5.5.2" }
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert_equal "matched", response["match_status"]
+    assert_equal "zope.interface", response.dig("version", "name")
+    assert_equal "5.5.2", response.dig("version", "version")
+
+    post bulk_lookup_api_v1_purls_path, params: { purls: ["pkg:pypi/zope-interface", "pkg:pypi/zope_interface@5.5.2"] }
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert_equal ["matched", "matched"], response.pluck("match_status")
+    assert_equal ["6.0", "5.5.2"], response.map { |result| result.dig("version", "version") }
+  end
+
   test "returns missing when the PURL does not match a version" do
     get lookup_api_v1_purls_path, params: { purl: "pkg:cargo/rand@9.9.9" }
 

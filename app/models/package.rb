@@ -381,6 +381,15 @@ class Package < ApplicationRecord
     @latest_stable_version ||= versions.active.reject(&:opam_archived?).select(&:stable?).sort.first
   end
 
+  # latest_version's rules applied to versions already in memory, so callers can preload many packages at once
+  def latest_version_from(loaded_versions)
+    active = loaded_versions.select { |version| version.status.nil? }
+    tag = metadata.dig('dist-tags', 'latest') if metadata.is_a?(Hash)
+    tagged = active.find { |version| version.number == tag } if tag.present?
+    unarchived = active.reject(&:opam_archived?)
+    tagged || unarchived.select(&:stable?).sort.first || unarchived.sort.first
+  end
+
   def set_latest_release_published_at
     self.latest_release_published_at = (latest_version.try(:published_at).presence || updated_at)
   end
