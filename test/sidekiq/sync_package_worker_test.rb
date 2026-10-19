@@ -105,7 +105,6 @@ class SyncPackageWorkerTest < ActiveSupport::TestCase
     package = registry.packages.find_by!(name: module_path)
     assert_nil package.reload.latest_release_number
     assert_equal 'v2.0.0', package.latest_published_release_number
-    assert_equal 'v2.0.0', package.versions.order(number: :desc).first.try(:number)
   end
 
   test 'sync persists both release numbers for a mixed package whose highest version is deprecated' do

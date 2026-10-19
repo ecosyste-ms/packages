@@ -54,15 +54,24 @@ class PackagesRakeTest < ActiveSupport::TestCase
     Rake::Task["packages:backfill_nuget_verified"].invoke
   end
 
-  test "backfills latest_published_release_number for existing packages" do
-    registry = Registry.create(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
+  test "backfills latest_published_release_number only for packages with versions and no latest release" do
+    registry = Registry.create!(name: 'Rubygems.org', url: 'https://rubygems.org', ecosystem: 'rubygems')
+
     all_deprecated = registry.packages.create!(name: 'all-deprecated', ecosystem: 'rubygems')
     all_deprecated.versions.create!(number: '2.0.0', published_at: 1.year.ago, status: 'deprecated')
+
     deprecated_package = registry.packages.create!(name: 'deprecated-package', ecosystem: 'rubygems', status: 'deprecated')
     deprecated_package.versions.create!(number: '1.0.0', published_at: 2.years.ago)
-    populated = registry.packages.create!(name: 'populated', ecosystem: 'rubygems', latest_published_release_number: '1.0.0')
 
-    expected = [[all_deprecated.id], [deprecated_package.id]]
+    populated = registry.packages.create!(name: 'populated', ecosystem: 'rubygems', latest_published_release_number: '1.0.0')
+    populated.versions.create!(number: '1.0.0', published_at: 2.years.ago, status: 'deprecated')
+
+    with_latest_release = registry.packages.create!(name: 'with-latest-release', ecosystem: 'rubygems', latest_release_number: '3.0.0')
+    with_latest_release.versions.create!(number: '3.0.0', published_at: 1.month.ago)
+
+    registry.packages.create!(name: 'without-versions', ecosystem: 'rubygems')
+
+    expected = [[all_deprecated.id], [deprecated_package.id], [populated.id]]
 
     UpdateDetailsWorker.expects(:perform_bulk).with { |arg| arg.sort == expected.sort }
 
