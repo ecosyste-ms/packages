@@ -267,6 +267,9 @@ module Ecosystem
 
           properties = extract_pom_properties(pom)
           published_at_node = pom.locate("publishedAt").first
+          if published_at_node.nil? && @registry_url == MAVEN_CENTRAL_GCS_MIRROR && @registry.id
+            MavenCentralPublishedAtWorker.perform_in(5.minutes, @registry.id, pkg_metadata[:name], version)
+          end
           {
             number: version,
             published_at: published_at_node ? Time.parse(published_at_node.text) : nil,
@@ -599,7 +602,7 @@ module Ecosystem
       url = "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.pom"
       resp = request(url)
       return @effective_pom_cache[key] = nil if resp.status == 404
-      @effective_pom_cache[key] = { body: generate_effective_pom(resp.body), last_modified: resp.headers["Last-Modified"] }
+      @effective_pom_cache[key] = { body: generate_effective_pom(resp.body), last_modified: pom_last_modified(resp.headers) }
     rescue URI::InvalidURIError
       @effective_pom_cache[key] = nil
     end
@@ -681,6 +684,8 @@ module Ecosystem
 
     MAVEN_CENTRAL_GCS_MIRROR = "https://maven-central.storage-download.googleapis.com/maven2"
 
+    MAVEN_CENTRAL_ORIGIN = "https://repo1.maven.org/maven2"
+
     SONATYPE_RECENT_PAGES = 5
 
     def directory_listing_url(group_id, artifact_id)
@@ -691,6 +696,33 @@ module Ecosystem
     def listing_url(path)
       base = "#{@registry_url}/#{path}/"
       @registry_url == MAVEN_CENTRAL_GCS_MIRROR ? "#{base}index.html" : base
+    end
+
+    # The Google mirror's Last-Modified is when the file reached the bucket. The upload time is in
+    # x-goog-meta-last-modified, which files from its 2019 bulk import lack; those are dated later
+    # from Central by MavenCentralPublishedAtWorker.
+    def pom_last_modified(headers)
+      return headers["Last-Modified"] unless @registry_url == MAVEN_CENTRAL_GCS_MIRROR
+
+      headers["x-goog-meta-last-modified"]&.delete('"').presence
+    end
+
+    def central_published_at(name, version)
+      group_id, artifact_id = *name.split(':', 2)
+      url = "#{MAVEN_CENTRAL_ORIGIN}/#{group_id.gsub('.', '/')}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.pom"
+      connection = Faraday.new do |builder|
+        builder.use Faraday::FollowRedirects::Middleware
+        builder.request :instrumentation
+        builder.response :raise_error, allowed_statuses: [404, 410]
+        builder.adapter Faraday.default_adapter
+        builder.options.timeout = 10
+        builder.options.open_timeout = 5
+      end
+      response = connection.head(url) { |req| req.headers["User-Agent"] = "packages.ecosyste.ms" }
+      last_modified = response.headers["Last-Modified"] if response.success?
+      last_modified.present? ? Time.parse(last_modified) : nil
+    rescue ArgumentError
+      nil
     end
 
     def self.declared_repositories_key
