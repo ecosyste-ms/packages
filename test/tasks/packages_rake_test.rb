@@ -73,7 +73,9 @@ class PackagesRakeTest < ActiveSupport::TestCase
 
     expected = [[all_deprecated.id], [deprecated_package.id], [populated.id]]
 
-    UpdateDetailsWorker.expects(:perform_bulk).with { |arg| arg.sort == expected.sort }
+    setter = mock
+    UpdateDetailsWorker.expects(:set).with(wait: 0.minutes).returns(setter)
+    setter.expects(:perform_bulk).with { |arg| arg.sort == expected.sort }
 
     task = Rake::Task["packages:backfill_latest_published_release_number"]
     task.reenable

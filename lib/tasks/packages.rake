@@ -65,8 +65,8 @@ namespace :packages do
   desc 'backfill latest_published_release_number'
   task backfill_latest_published_release_number: :environment do
     with_rake_lock('packages:backfill_latest_published_release_number', ttl: 24.hours.to_i) do
-      Package.where(latest_release_number: nil).where("versions_count > 0").in_batches(of: 1_000) do |batch|
-        UpdateDetailsWorker.perform_bulk(batch.pluck(:id).map { |id| [id] })
+      Package.where(latest_release_number: nil).where("versions_count > 0").in_batches(of: 1_000).each_with_index do |batch, i|
+        UpdateDetailsWorker.set(wait: i.minutes).perform_bulk(batch.pluck(:id).map { |id| [id] })
       end
     end
   end
