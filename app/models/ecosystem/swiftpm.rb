@@ -1,9 +1,14 @@
 # frozen_string_literal: true
 module Ecosystem
   class Swiftpm < Base
+    VERSION_TAG = /\Av?\d+\.\d+(?:\.\d+)?(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:@swift-\d+(?:\.\d+){0,2})?\z/
 
     def self.purl_type
       'swift'
+    end
+
+    def self.normalized_package_name(name)
+      name.downcase if name.to_s.match?(%r{\Agithub\.com/[^/]+/[^/]+\z}i)
     end
 
     def purl_params(package, version = nil)
@@ -22,8 +27,8 @@ module Ecosystem
     end
 
     def registry_url(package, version = nil)
-      if package['name'].starts_with?('github.com')
-        "https://swiftpackageindex.com/#{package['name'].gsub('github.com/', '')}"
+      if full_name = github_repository_name("https://#{package['name']}")
+        "https://swiftpackageindex.com/#{full_name}"
       else
         package['repository_url']
       end
@@ -46,8 +51,8 @@ module Ecosystem
     end
 
     def documentation_url(package, version = nil)
-      if package['name'].starts_with?('github.com')
-        "https://swiftpackageindex.com/#{package['name'].gsub('github.com/', '')}#{"/#{version}" if version}/documentation"
+      if full_name = github_repository_name("https://#{package['name']}")
+        "https://swiftpackageindex.com/#{full_name}#{"/#{version}" if version}/documentation"
       else
         nil
       end
@@ -65,20 +70,26 @@ module Ecosystem
       if version.present?
         version.metadata["download_url"]
       else
-        return nil if package.repository_url.blank?
-        return nil unless package.repository_url.include?('/github.com/')
-        full_name = package.repository_url.gsub('https://github.com/', '').gsub('.git', '')
-        
-        "https://codeload.github.com/#{full_name}/tar.gz/refs/heads/master"
+        full_name = github_repository_name(package.repository_url)
+        branch = package.metadata&.dig('default_branch').presence || package.repo_metadata&.dig('default_branch').presence
+        return nil unless full_name && branch
+
+        "https://codeload.github.com/#{full_name}/tar.gz/refs/heads/#{ERB::Util.url_encode(branch)}"
       end
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
+      @tags_complete = false
       return [] unless pkg_metadata[:tags_url]
-      tags_json = get_json(pkg_metadata[:tags_url]+"?per_page=#{REPOS_TAGS_PER_PAGE}")
-      return [] if tags_json.blank?
+      body = get_raw_no_exception(pkg_metadata[:tags_url]+"?per_page=#{REPOS_TAGS_PER_PAGE}", headers: {'Accept' => 'application/json'})
+      return [] unless body
+      tags_json = Oj.load(body)
+      return [] unless tags_json.is_a?(Array) && tags_json.all? { |tag| tag.is_a?(Hash) && tag['name'].is_a?(String) }
+      @tags_complete = tags_json.size < REPOS_TAGS_PER_PAGE
 
-      tags_json.map do |tag|
+      tags_json.filter_map do |tag|
+        next unless tag['name'].match?(VERSION_TAG)
+
         {
           number: tag['name'],
           published_at: tag['published_at'],
@@ -89,11 +100,12 @@ module Ecosystem
         }
       end
     rescue StandardError
+      @tags_complete = false
       []
     end
 
     def update_existing_versions(package, versions_metadata)
-      sync_tag_backed_versions(package, versions_metadata)
+      sync_tag_backed_versions(package, versions_metadata, complete: @tags_complete == true)
     end
 
     def fetch_package_metadata_uncached(name)
@@ -114,22 +126,42 @@ module Ecosystem
         homepage: package["homepage"],
         description: description(package["description"]),
         tags_url: package["tags_url"],
-        namespace: package['owner']
+        namespace: package['owner'],
+        metadata: {
+          'normalized_name' => self.class.normalized_package_name(package['name']),
+          'default_branch' => package['default_branch'],
+          'tuist_registry_identity' => tuist_registry_identity(package['repository_url'])
+        }.compact
       }
     end
 
+    def github_repository_name(url)
+      uri = URI.parse(url.to_s)
+      return unless uri.is_a?(URI::HTTPS) && uri.host&.casecmp?('github.com') && uri.userinfo.nil?
+      path = uri.path.delete_prefix('/').delete_suffix('/').delete_suffix('.git')
+      path if path.match?(%r{\A[A-Za-z0-9-]+/[A-Za-z0-9._-]+\z})
+    rescue URI::InvalidURIError
+      nil
+    end
+
+    def tuist_registry_identity(repository_url)
+      full_name = github_repository_name(repository_url)
+      return unless full_name
+      owner, repository = full_name.split('/')
+      "#{owner}.#{repository.tr('.', '_')}"
+    end
+
     def dependencies_metadata(name, version, package)
-      return [] unless package[:repository_url]
-      github_name_with_owner = GithubUrlParser.parse(package[:repository_url]) # TODO this could be any host
-      return [] unless github_name_with_owner
-      deps = get_raw("https://raw.githubusercontent.com/#{github_name_with_owner}/#{version}/Package.resolved")
+      url = resolved_file_url(package[:repository_url], version)
+      return [] unless url
+      deps = get_raw_no_exception(url)
       return [] unless deps.present?
       result = Bibliothecary::Parsers::SwiftPM.parse_package_resolved(deps)
       dependencies = result.is_a?(Bibliothecary::ParserResult) ? result.dependencies : result
       dependencies.map do |dep|
         dep_hash = dep.is_a?(Bibliothecary::Dependency) ? dep.to_h : dep
         {
-          package_name: dep_hash[:name],
+          package_name: self.class.normalized_package_name(dep_hash[:name]) || dep_hash[:name],
           requirements: dep_hash[:requirement],
           kind: dep_hash[:type],
           ecosystem: 'swiftpm'
@@ -137,6 +169,54 @@ module Ecosystem
       end
     rescue StandardError
       []
+    end
+
+    def resolved_file_url(repository_url, version)
+      uri = URI.parse(repository_url.to_s)
+      return unless uri.is_a?(URI::HTTPS) && uri.userinfo.nil?
+      ref = ERB::Util.url_encode(version.to_s)
+
+      if full_name = github_repository_name(repository_url)
+        "https://raw.githubusercontent.com/#{full_name}/#{ref}/Package.resolved"
+      elsif uri.host&.casecmp?('gitlab.com') && (full_name = GitlabUrlParser.parse(repository_url))
+        "https://gitlab.com/api/v4/projects/#{ERB::Util.url_encode(full_name)}/repository/files/Package.resolved/raw?ref=#{ref}"
+      elsif uri.host&.casecmp?('bitbucket.org') && (full_name = BitbucketUrlParser.parse(repository_url))
+        "https://api.bitbucket.org/2.0/repositories/#{full_name}/src/#{ref}/Package.resolved"
+      elsif full_name = ForgeUrlParser.parse(repository_url)
+        base = ForgeUrlParser.parse_to_full_url(repository_url).delete_suffix("/#{full_name}")
+        "#{base}/api/v1/repos/#{full_name}/raw/Package.resolved?ref=#{ref}"
+      end
+    rescue URI::InvalidURIError
+      nil
+    end
+
+    def update_dependency_links(package)
+      dependencies = Dependency.where(version_id: package.versions.select(:id), ecosystem: 'swiftpm', package_id: nil)
+      linked_ids = dependencies.distinct.pluck(:package_name).filter_map do |name|
+        id = Package.dependency_package_id(package.registry_id, 'swiftpm', name)
+        next unless id
+        dependencies.where(package_name: name).in_batches.update_all(package_id: id)
+        id
+      end
+      Package.where(id: linked_ids.uniq + [package.id]).find_each(&:update_dependent_packages_details)
+    end
+
+    def normalize_names(dry_run: true, batch_size: 1000)
+      source_packages = registry.packages.where('name ~* ?', '^github[.]com/[^/]+/[^/]+$')
+      collisions = source_packages.group('lower(name)').having('count(*) > 1').pluck(Arel.sql('lower(name)'))
+      packages = source_packages.where("metadata->>'normalized_name' IS DISTINCT FROM lower(name)")
+      versions = Version.where(package_id: registry.packages.select(:id))
+      dependencies = Dependency.where(version_id: versions.select(:id), ecosystem: 'swiftpm')
+        .where('package_name ~* ?', '^github[.]com/[^/]+/[^/]+$')
+        .where('package_name <> lower(package_name)')
+      result = { packages: packages.count, dependencies: dependencies.count, collisions: collisions, applied: false }
+      return result if dry_run || collisions.any?
+
+      packages.in_batches(of: batch_size).update_all(
+        "metadata = jsonb_set(COALESCE(metadata::jsonb, '{}'::jsonb), '{normalized_name}', to_jsonb(lower(name)))::json"
+      )
+      dependencies.in_batches(of: batch_size).update_all('package_name = lower(package_name)')
+      result.merge(applied: true)
     end
 
     def description(string)

@@ -130,12 +130,17 @@ class Package < ApplicationRecord
     where(name: [name, normalized_name]).or(where("metadata->>'normalized_name' = ?", normalized_name))
   end
 
-  def self.find_by_normalized_name(name)
-    normalized_name = name.downcase.gsub(/[-_.]+/, '-')
+  def self.find_by_normalized_name(name, normalized_name: nil)
+    explicit_normalization = normalized_name.present?
+    normalized_name ||= name.downcase.gsub(/[-_.]+/, '-')
     pkg = where(name: name).limit(1).take
-    pkg = where(name: normalized_name).limit(1).take if pkg.nil?
-    # for pypi
-    pkg = where("metadata->>'normalized_name' = ?", normalized_name).limit(1).take if pkg.nil?
+    pkg = where(name: normalized_name).limit(1).take if pkg.nil? && normalized_name != name
+    if pkg.nil?
+      matches = where("metadata->>'normalized_name' = ?", normalized_name).limit(explicit_normalization ? 2 : 1).to_a
+      pkg = matches.first if matches.one?
+    end
+    return pkg if explicit_normalization
+
     legacy_normalized_name = name.downcase.tr('_.', '--')
     if pkg.nil? && legacy_normalized_name != normalized_name
       pkg = where(name: legacy_normalized_name).limit(1).take
@@ -144,8 +149,8 @@ class Package < ApplicationRecord
     pkg
   end
 
-  def self.find_by_normalized_name!(name)
-    project = find_by_normalized_name(name)
+  def self.find_by_normalized_name!(name, **options)
+    project = find_by_normalized_name(name, **options)
     raise ActiveRecord::RecordNotFound if project.nil?
     project
   end
@@ -211,9 +216,22 @@ class Package < ApplicationRecord
 
   def update_dependent_package_ids
     version_ids = Version.joins(:package).where(packages: { registry_id: registry_id }).select(:id)
-    Dependency.where(package_id: nil, ecosystem: registry.ecosystem, package_name: name)
+    names = [name]
+    normalized_name = registry.ecosystem_class.normalized_package_name(name)
+    if normalized_name && self.class.dependency_package_id(registry_id, registry.ecosystem, normalized_name) == id
+      names << normalized_name
+    end
+    Dependency.where(package_id: nil, ecosystem: registry.ecosystem, package_name: names.uniq)
       .where(version_id: version_ids)
       .in_batches.update_all(package_id: id)
+  end
+
+  def self.dependency_package_id(registry_id, ecosystem, name)
+    packages = where(registry_id: registry_id)
+    normalized_name = Ecosystem::Base.find(ecosystem)&.normalized_package_name(name)
+    return packages.where(name: name).pick(:id) unless normalized_name
+
+    packages.select(:id).find_by_normalized_name(name, normalized_name: normalized_name)&.id
   end
 
   def update_dependent_packages_count
