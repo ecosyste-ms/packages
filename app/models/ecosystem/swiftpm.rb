@@ -163,8 +163,10 @@ module Ecosystem
         package_name = dep_hash[:name]
         normalized_name = self.class.normalized_package_name(package_name)
         if normalized_name && normalized_name != package_name
-          matches = registry.packages.with_ecosystem_name(package_name, 'swiftpm').limit(2)
-          package_name = normalized_name if matches.count < 2
+          exact_id = registry.packages.where(name: package_name).pick(:id)
+          if exact_id.nil? || Package.dependency_package_id(registry.id, 'swiftpm', normalized_name) == exact_id
+            package_name = normalized_name
+          end
         end
         {
           package_name: package_name,

@@ -138,6 +138,7 @@ class SwiftpmSyncTest < ActiveSupport::TestCase
 
   {
     'exact legacy names' => ['github.com/krzyzanowskim/cryptoswift', {}],
+    'mixed-case legacy names' => ['github.com/KRZYZANOWSKIM/CRYPTOSWIFT', {}],
     'normalized metadata' => ['github.com/KRZYZANOWSKIM/CRYPTOSWIFT', {'normalized_name' => 'github.com/krzyzanowskim/cryptoswift'}]
   }.each do |collision, (duplicate_name, metadata)|
     test "sync preserves the declared dependency name when #{collision} collide" do
@@ -154,6 +155,23 @@ class SwiftpmSyncTest < ActiveSupport::TestCase
       assert_equal target.id, dependency.package_id
       assert_equal 1, target.reload.dependent_packages_count
       assert_empty duplicate.dependencies
+    end
+  end
+
+  [false, true].each do |normalized|
+    test "sync keeps the exact target #{normalized ? 'with' : 'without'} normalized metadata" do
+      declared_name = 'github.com/krzyzanowskim/CryptoSwift'
+      metadata = normalized ? {'normalized_name' => declared_name.downcase} : {}
+      target = @registry.packages.create!(name: declared_name, ecosystem: 'swiftpm', metadata: metadata)
+      stub_request(:get, 'https://raw.githubusercontent.com/swift-cloud/Compute/1.0.0/Package.resolved')
+        .to_return(status: 200, body: file_fixture('swiftpm/Package.resolved'))
+
+      package = sync(tags: tags('1.0.0'))
+
+      dependency = package.versions.first.dependencies.find_by!(requirements: '1.6.0')
+      expected_name = normalized ? declared_name.downcase : declared_name
+      assert_equal expected_name, dependency.package_name
+      assert_equal target.id, dependency.package_id
     end
   end
 
