@@ -126,12 +126,35 @@ class SwiftpmSyncTest < ActiveSupport::TestCase
 
   test 'sync links existing GitHub case variants and refreshes dependent counts' do
     target = @registry.packages.create!(name: 'github.com/Krzyzanowskim/cryptoswift', ecosystem: 'swiftpm', metadata: {'normalized_name' => 'github.com/krzyzanowskim/cryptoswift'})
+    other = Registry.create!(name: 'Other Swift', url: 'https://swift.example', ecosystem: 'swiftpm')
+    other.packages.create!(name: 'github.com/krzyzanowskim/CryptoSwift', ecosystem: 'swiftpm')
     stub_request(:get, 'https://raw.githubusercontent.com/swift-cloud/Compute/1.0.0/Package.resolved')
       .to_return(status: 200, body: file_fixture('swiftpm/Package.resolved'))
     package = sync(tags: tags('1.0.0'))
     dependency = package.versions.first.dependencies.find_by!(package_name: 'github.com/krzyzanowskim/cryptoswift')
     assert_equal target.id, dependency.package_id
     assert_equal 1, target.reload.dependent_packages_count
+  end
+
+  {
+    'exact legacy names' => ['github.com/krzyzanowskim/cryptoswift', {}],
+    'normalized metadata' => ['github.com/KRZYZANOWSKIM/CRYPTOSWIFT', {'normalized_name' => 'github.com/krzyzanowskim/cryptoswift'}]
+  }.each do |collision, (duplicate_name, metadata)|
+    test "sync preserves the declared dependency name when #{collision} collide" do
+      declared_name = 'github.com/krzyzanowskim/CryptoSwift'
+      target = @registry.packages.create!(name: declared_name, ecosystem: 'swiftpm', metadata: metadata)
+      duplicate = @registry.packages.create!(name: duplicate_name, ecosystem: 'swiftpm', metadata: metadata)
+      stub_request(:get, 'https://raw.githubusercontent.com/swift-cloud/Compute/1.0.0/Package.resolved')
+        .to_return(status: 200, body: file_fixture('swiftpm/Package.resolved'))
+
+      package = sync(tags: tags('1.0.0'))
+
+      dependency = package.versions.first.dependencies.find_by!(requirements: '1.6.0')
+      assert_equal declared_name, dependency.package_name
+      assert_equal target.id, dependency.package_id
+      assert_equal 1, target.reload.dependent_packages_count
+      assert_empty duplicate.dependencies
+    end
   end
 
   test 'sync links old dependency rows without a new version' do

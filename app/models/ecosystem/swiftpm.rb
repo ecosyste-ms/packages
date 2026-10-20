@@ -160,8 +160,14 @@ module Ecosystem
       dependencies = result.is_a?(Bibliothecary::ParserResult) ? result.dependencies : result
       dependencies.map do |dep|
         dep_hash = dep.is_a?(Bibliothecary::Dependency) ? dep.to_h : dep
+        package_name = dep_hash[:name]
+        normalized_name = self.class.normalized_package_name(package_name)
+        if normalized_name && normalized_name != package_name
+          matches = registry.packages.with_ecosystem_name(package_name, 'swiftpm').limit(2)
+          package_name = normalized_name if matches.count < 2
+        end
         {
-          package_name: self.class.normalized_package_name(dep_hash[:name]) || dep_hash[:name],
+          package_name: package_name,
           requirements: dep_hash[:requirement],
           kind: dep_hash[:type],
           ecosystem: 'swiftpm'
