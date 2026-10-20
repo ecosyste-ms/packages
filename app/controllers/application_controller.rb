@@ -54,7 +54,7 @@ class ApplicationController < ActionController::Base
       end
 
       scope = Package.where(registry_id: registry_ids)
-      ecosystem == 'pypi' ? scope.with_pypi_name(name) : scope.where(name: name)
+      scope.with_ecosystem_name(name, ecosystem)
     end
   rescue
     Package.none

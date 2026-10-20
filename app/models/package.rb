@@ -130,6 +130,15 @@ class Package < ApplicationRecord
     where(name: [name, normalized_name]).or(where("metadata->>'normalized_name' = ?", normalized_name))
   end
 
+  def self.with_ecosystem_name(name, ecosystem)
+    return with_pypi_name(name) if ecosystem == 'pypi'
+
+    normalized_name = Ecosystem::Base.find(ecosystem.to_s)&.normalized_package_name(name)
+    return where(name: name) unless normalized_name
+
+    where(name: [name, normalized_name]).or(where("metadata->>'normalized_name' = ?", normalized_name))
+  end
+
   def self.find_by_normalized_name(name, normalized_name: nil)
     explicit_normalization = normalized_name.present?
     normalized_name ||= name.downcase.gsub(/[-_.]+/, '-')

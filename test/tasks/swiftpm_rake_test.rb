@@ -45,14 +45,53 @@ class SwiftpmRakeTest < ActiveSupport::TestCase
     assert_includes out, 'dependencies: 0'
   end
 
-  test 'case collisions prevent normalization without merging or deleting records' do
-    @registry.packages.create!(name: @package.name.downcase, ecosystem: 'swiftpm')
-    out, = capture_io { Rake::Task['packages:normalize_swift_names'].invoke(@registry.id, 'true') }
+  test 'normalization skips colliding names and their dependencies while applying the rest' do
+    duplicate = @registry.packages.create!(name: @package.name.downcase, ecosystem: 'swiftpm')
+    unlinked = @version.dependencies.create!(package_name: @package.name, ecosystem: 'swiftpm', requirements: '*')
+    unaffected = @registry.packages.create!(name: 'github.com/Other/Library', ecosystem: 'swiftpm')
+    dependency = @version.dependencies.create!(package_name: unaffected.name, ecosystem: 'swiftpm', requirements: '*')
+
+    out, = capture_io { Rake::Task['packages:normalize_swift_names'].invoke(@registry.id) }
+    assert_includes out, 'packages: 1'
+    assert_includes out, 'dependencies: 1'
     assert_includes out, 'github.com/example/library'
     assert_includes out, 'applied: false'
-    assert_equal 2, @registry.packages.count
+    assert_nil unaffected.reload.metadata['normalized_name']
+    assert_equal unaffected.name, dependency.reload.package_name
+
+    Rake::Task['packages:normalize_swift_names'].reenable
+    out, = capture_io { Rake::Task['packages:normalize_swift_names'].invoke(@registry.id, 'true') }
+    assert_includes out, 'github.com/example/library'
+    assert_includes out, 'applied: true'
+    assert_equal 3, @registry.packages.count
     assert_nil @package.reload.metadata['normalized_name']
+    assert_nil duplicate.reload.metadata['normalized_name']
     assert_equal @package.name, @dependency.reload.package_name
+    assert_equal @package.id, @dependency.package_id
+    assert_equal @package.name, unlinked.reload.package_name
+    unlinked.update_package_id
+    assert_equal @package.id, unlinked.reload.package_id
+    assert_equal 'github.com/other/library', unaffected.reload.metadata['normalized_name']
+    assert_equal 'github.com/other/library', dependency.reload.package_name
+  end
+
+  test 'normalization updates dependencies through bounded version batches' do
+    versions = Version.insert_all!((1..1000).map { |i| { package_id: @package.id, number: "1.0.#{i}" } }, returning: [:id])
+    Dependency.insert_all!(versions.rows.map do |(id)|
+      { version_id: id, package_name: @package.name, ecosystem: 'swiftpm', requirements: '*' }
+    end)
+    queries = []
+    callback = ->(*, payload) { queries << payload[:sql] }
+
+    ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+      capture_io { Rake::Task['packages:normalize_swift_names'].invoke(@registry.id, 'true') }
+    end
+
+    updates = queries.grep(/\AUPDATE "dependencies"/)
+    assert_equal 2, updates.size
+    updates.each { |sql| assert_match(/"dependencies"\."version_id" IN \(SELECT "versions"\."id"/, sql) }
+    assert_empty queries.grep(/\ASELECT.*FROM "dependencies".*ORDER BY.*"id"/)
+    assert_equal 1001, Dependency.where(version_id: @package.versions.select(:id), package_name: @package.name.downcase).count
   end
 
   test 'normalization refuses another ecosystem' do

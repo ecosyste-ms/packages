@@ -7,7 +7,7 @@ class SwiftpmSyncTest < ActiveSupport::TestCase
     @lookup = JSON.parse(file_fixture('swiftpm/lookup?url=https:%2F%2Fgithub.com%2Fswift-cloud%2FCompute').read)
     Package.any_instance.stubs(:update_repo_metadata_async)
     Package.any_instance.stubs(:update_dependent_repos_count_async)
-    stub_request(:get, %r{\Ahttps://raw.githubusercontent.com/swift-cloud/Compute/.+/Package.resolved\z})
+    stub_request(:get, %r{\Ahttps://raw\.githubusercontent\.com/swift-cloud/Compute/.+/Package\.resolved\z})
       .to_return(status: 404)
   end
 
@@ -155,10 +155,21 @@ class SwiftpmSyncTest < ActiveSupport::TestCase
   end
 
   test 'sync accepts Swift version tags and rejects arbitrary labels' do
-    accepted = %w[1.2.3 v2.0.0 3.0.0-beta.1 3.0.0+build.1 1.2 1.2.3@swift-6 1.2.3@swift-6.1 1.2.3@swift-6.1.2]
-    rejected = %w[nightly release-candidate release-1.2.3 1 1.2.3.4 V1.2.3 1.2.3@swift-nope]
+    accepted = %w[1.2.3 v2.0.0 3.0.0-beta.1 3.0.0+build.1 1.2]
+    rejected = %w[nightly release-candidate release-1.2.3 1 1.2.3.4 V1.2.3 1.2.3@swift-nope 1.2.3@swift-6 1.2.3@swift-6.1 1.2.3@swift-6.1.2]
     package = sync(tags: tags(*(accepted + rejected)))
     assert_equal accepted.sort, package.versions.pluck(:number).sort
+  end
+
+  test 'toolchain alternate tags do not determine the latest release' do
+    package = sync(tags: tags('1.0.0'))
+    alternate = package.versions.create!(number: '9.0.0@swift-6')
+
+    package = sync(tags: tags('1.0.0', alternate.number))
+
+    assert_equal 'removed', alternate.reload.status
+    assert_equal '1.0.0', package.latest_release_number
+    assert_equal ['1.0.0'], package.versions.active.pluck(:number)
   end
 
   test 'filtering a full tag page does not remove older versions' do

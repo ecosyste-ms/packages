@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 module Ecosystem
   class Swiftpm < Base
-    VERSION_TAG = /\Av?\d+\.\d+(?:\.\d+)?(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:@swift-\d+(?:\.\d+){0,2})?\z/
+    VERSION_TAG = /\Av?\d+\.\d+(?:\.\d+)?(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?\z/
 
     def self.purl_type
       'swift'
@@ -209,13 +209,19 @@ module Ecosystem
       dependencies = Dependency.where(version_id: versions.select(:id), ecosystem: 'swiftpm')
         .where('package_name ~* ?', '^github[.]com/[^/]+/[^/]+$')
         .where('package_name <> lower(package_name)')
+      if collisions.any?
+        packages = packages.where('lower(name) NOT IN (?)', collisions)
+        dependencies = dependencies.where('lower(package_name) NOT IN (?)', collisions)
+      end
       result = { packages: packages.count, dependencies: dependencies.count, collisions: collisions, applied: false }
-      return result if dry_run || collisions.any?
+      return result if dry_run
 
       packages.in_batches(of: batch_size).update_all(
         "metadata = jsonb_set(COALESCE(metadata::jsonb, '{}'::jsonb), '{normalized_name}', to_jsonb(lower(name)))::json"
       )
-      dependencies.in_batches(of: batch_size).update_all('package_name = lower(package_name)')
+      versions.in_batches(of: batch_size) do |batch|
+        dependencies.rewhere(version_id: batch.select(:id)).update_all('package_name = lower(package_name)')
+      end
       result.merge(applied: true)
     end
 
