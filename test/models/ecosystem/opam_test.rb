@@ -217,6 +217,22 @@ class OpamTest < ActiveSupport::TestCase
     end
   end
 
+  test 'unavailable archived manifests raise an ignored error through the sync worker' do
+    stub_archive_index('lwt' => ['4.1.0'])
+    stub_request(:post, Ecosystem::Opam::API_URL).to_return(status: 200, body: @response.to_json)
+    stub_request(:get, "#{Ecosystem::Opam::ARCHIVE_RAW_URL}/packages/lwt/lwt.4.1.0/opam")
+      .to_return(status: 502)
+
+    assert_no_difference ['Package.count', 'Version.count', 'Dependency.count'] do
+      error = assert_raises(Ecosystem::Opam::ManifestUnavailable) do
+        SyncPackageWorker.new.perform(@registry.id, 'lwt', true)
+      end
+      assert_equal 'Opam manifest unavailable: lwt.4.1.0 (HTTP 502)', error.message
+      config = YAML.load_file(Rails.root.join('config/appsignal.yml'))
+      assert_includes config.fetch('production').fetch('ignore_errors'), error.class.name
+    end
+  end
+
   test 'an invalid raw manifest aborts import' do
     stub_request(:post, 'https://ocaml.org/graphql').to_return(status: 200, body: @response.to_json)
     stub_request(:get, 'https://opam.ocaml.org/packages/lwt/lwt.5.9.2/opam')
