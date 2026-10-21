@@ -6,6 +6,14 @@ module Ecosystem
       "#{@registry_url}/pods/#{package.name}"
     end
 
+    # Pod names never contain a slash in the CocoaPods CDN list, but subspec
+    # references arrive as "RootPod/Subspec/Nested" (Parlay sends the whole
+    # PURL name segment encoded, e.g. pkg:cocoapods/KSCrash%2FReporting%2FFilters).
+    # Lookups resolve to the root pod; nil for names without a slash.
+    def self.root_pod_name(name)
+      name.include?('/') ? name.partition('/').first : nil
+    end
+
     def download_url(package, version = nil)
       if version.present?
         version.metadata["download_url"]

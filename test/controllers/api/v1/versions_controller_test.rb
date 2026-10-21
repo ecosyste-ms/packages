@@ -25,6 +25,35 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.length, 1
   end
 
+  test 'list versions for a cocoapods package by encoded subspec name returns the root pod versions' do
+    @cocoapods_registry = Registry.create(name: 'cocoapods.org', url: 'https://cocoapods.org/', ecosystem: 'cocoapods', default: true)
+    @cocoapods_package = @cocoapods_registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
+    @cocoapods_version = @cocoapods_package.versions.create(number: '1.17.6', registry_id: @cocoapods_registry.id)
+
+    get '/api/v1/registries/cocoapods.org/packages/KSCrash%2FReporting%2FFilters/versions'
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal '1.17.6', actual_response.first['number']
+  end
+
+  test 'get a version of a cocoapods package by encoded subspec name returns the root pod version' do
+    @cocoapods_registry = Registry.create(name: 'cocoapods.org', url: 'https://cocoapods.org/', ecosystem: 'cocoapods', default: true)
+    @cocoapods_package = @cocoapods_registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
+    @cocoapods_version = @cocoapods_package.versions.create(number: '1.17.6', registry_id: @cocoapods_registry.id)
+
+    get '/api/v1/registries/cocoapods.org/packages/KSCrash%2FReporting%2FFilters/versions/1.17.6'
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal @cocoapods_version.id, actual_response['id']
+    assert_equal '1.17.6', actual_response['number']
+    assert_equal 'pkg:cocoapods/KSCrash@1.17.6', actual_response['purl']
+  end
+
   test 'list Conda versions with install commands' do
     registry = Registry.create!(name: 'anaconda.org', url: 'https://anaconda.org', ecosystem: 'conda', metadata: { kind: 'conda-forge' })
     package = registry.packages.create!(name: 'llama.cpp', ecosystem: 'conda')

@@ -559,6 +559,15 @@ class PackageTest < ActiveSupport::TestCase
     assert_includes result, @package
   end
 
+  test 'Package.purl class method resolves cocoapods subspec purls to the root pod' do
+    cocoapods_registry = Registry.create(name: 'cocoapods.org', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+    root = cocoapods_registry.packages.create(name: 'KSCrash', ecosystem: 'cocoapods')
+
+    result = Package.purl(['pkg:cocoapods/KSCrash%2FReporting%2FFilters', 'pkg:cocoapods/KSCrash/Reporting'])
+
+    assert_equal [root.id], result.pluck(:id)
+  end
+
   test 'Package.purl class method handles docker purl without namespace' do
     docker_registry = Registry.create(name: 'hub.docker.com', url: 'https://hub.docker.com', ecosystem: 'docker')
     docker_package = docker_registry.packages.create(name: 'library/python', ecosystem: 'docker', namespace: 'library')
