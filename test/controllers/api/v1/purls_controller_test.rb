@@ -103,6 +103,24 @@ class ApiV1PurlsControllerTest < ActionDispatch::IntegrationTest
     assert_equal ["6.0", "5.5.2"], response.map { |result| result.dig("version", "version") }
   end
 
+  test "resolves Swift PURLs case-insensitively against stored GitHub identities" do
+    registry = Registry.create!(name: "swiftpackageindex.com", url: "https://swiftpackageindex.com", ecosystem: "swiftpm")
+    package = registry.packages.create!(ecosystem: "swiftpm", name: "github.com/Apple/swift-nio", metadata: { "normalized_name" => "github.com/apple/swift-nio" })
+    package.versions.create!(number: "2.65.0", latest: true)
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:swift/github.com/apple/swift-nio@2.65.0" }
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert_equal "matched", response["match_status"]
+    assert_equal "github.com/Apple/swift-nio", response.dig("version", "name")
+
+    post bulk_lookup_api_v1_purls_path, params: { purls: ["pkg:swift/github.com/apple/swift-nio"] }
+
+    assert_response :success
+    assert_equal ["matched"], Oj.load(@response.body).pluck("match_status")
+  end
+
   test "includes only advisories affecting the matched version" do
     @package.update!(advisories: [
       {

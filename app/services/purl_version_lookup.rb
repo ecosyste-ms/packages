@@ -35,7 +35,7 @@ class PurlVersionLookup
 
     name = [namespace, @purl.name].compact.join(separator)
     scope = Package.where(registry_id: matching_registry_ids(ecosystem))
-    ecosystem == "pypi" ? scope.with_pypi_name(name) : scope.where(name: name)
+    scope.with_ecosystem_name(name, ecosystem)
   end
 
   def matching_registry_ids(ecosystem)
