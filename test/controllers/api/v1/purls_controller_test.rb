@@ -121,6 +121,42 @@ class ApiV1PurlsControllerTest < ActionDispatch::IntegrationTest
     assert_equal ["matched"], Oj.load(@response.body).pluck("match_status")
   end
 
+  test "resolves cocoapods subspec PURLs to the root package version" do
+    registry = Registry.create!(name: "cocoapods.org", url: "https://cocoapods.org", ecosystem: "cocoapods", default: true)
+    package = registry.packages.create!(ecosystem: "cocoapods", name: "KSCrash")
+    package.versions.create!(number: "1.17.6", latest: true)
+
+    ["pkg:cocoapods/KSCrash%2FReporting%2FFilters@1.17.6#Base",
+     "pkg:cocoapods/KSCrash/Reporting/Filters@1.17.6",
+     "pkg:cocoapods/KSCrash@1.17.6#Reporting/Filters/Base"].each do |purl|
+      get lookup_api_v1_purls_path, params: { purl: purl }
+
+      assert_response :success, purl
+      response = Oj.load(@response.body)
+      assert_equal "matched", response["match_status"], purl
+      assert_equal "KSCrash", response.dig("version", "name"), purl
+      assert_equal "1.17.6", response.dig("version", "version"), purl
+    end
+
+    post bulk_lookup_api_v1_purls_path, params: { purls: ["pkg:cocoapods/KSCrash%2FReporting%2FFilters@1.17.6#Base"] }
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert_equal ["matched"], response.pluck("match_status")
+    assert_equal ["KSCrash"], response.map { |result| result.dig("version", "name") }
+  end
+
+  test "returns missing for cocoapods subspec PURLs with an unknown root" do
+    Registry.create!(name: "cocoapods.org", url: "https://cocoapods.org", ecosystem: "cocoapods", default: true)
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:cocoapods/MissingPod%2FSubspec@1.0.0" }
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert_equal "missing", response["match_status"]
+    assert_nil response["version"]
+  end
+
   test "includes only advisories affecting the matched version" do
     @package.update!(advisories: [
       {

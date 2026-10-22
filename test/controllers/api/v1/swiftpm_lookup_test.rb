@@ -16,6 +16,17 @@ class Api::V1::SwiftpmLookupTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test 'ping prefers an exact name over its normalized name' do
+    @registry.packages.create!(name: @package.name.downcase, ecosystem: 'swiftpm')
+    Registry.any_instance.expects(:sync_package_async).never
+    SyncPackageByIdWorker.expects(:perform_async).with(@registry.id, @package.id).once
+
+    get ping_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+
+    assert_response :success
+    assert_equal 'pong', Oj.load(response.body)['message']
+  end
+
   test 'PURL lookup resolves casing variants without scheduling a sync' do
     other = Registry.create!(name: 'other', url: 'https://other.example', ecosystem: 'carthage')
     other.packages.create!(name: @package.name.downcase, ecosystem: 'carthage', metadata: @package.metadata)

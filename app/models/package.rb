@@ -1205,6 +1205,7 @@ class Package < ApplicationRecord
       name = [namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
       name = name.downcase if ecosystem == 'nuget'
       by_ecosystem[ecosystem] << name
+      by_ecosystem[ecosystem] << (Ecosystem::Base.find(ecosystem.to_s)&.normalized_package_name(name) || name)
     rescue => e
       Rails.logger.warn("Invalid PURL in bulk lookup: #{purl_string} - #{e.message}")
     end

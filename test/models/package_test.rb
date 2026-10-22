@@ -559,6 +559,38 @@ class PackageTest < ActiveSupport::TestCase
     assert_includes result, @package
   end
 
+  test 'Package.purl class method resolves cocoapods subspec purls to the root pod' do
+    cocoapods_registry = Registry.create(name: 'cocoapods.org', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+    root = cocoapods_registry.packages.create(name: 'KSCrash', ecosystem: 'cocoapods')
+
+    result = Package.purl(['pkg:cocoapods/KSCrash%2FReporting%2FFilters', 'pkg:cocoapods/KSCrash/Reporting'])
+
+    assert_equal [root.id], result.pluck(:id)
+  end
+
+  test 'dependency_package_id resolves cocoapods subspecs within the owning registry' do
+    registry = Registry.create(name: 'cocoapods.org', url: 'https://cocoapods.org', ecosystem: 'cocoapods')
+    root = registry.packages.create(name: 'Firebase', ecosystem: 'cocoapods')
+
+    other = Registry.create(name: 'other-cocoapods', url: 'https://pods.example', ecosystem: 'cocoapods')
+    other.packages.create(name: 'Firebase', ecosystem: 'cocoapods')
+    other.packages.create(name: 'OtherPod', ecosystem: 'cocoapods')
+
+    assert_equal root.id, Package.dependency_package_id(registry.id, 'cocoapods', 'Firebase/Analytics')
+    assert_equal root.id, Package.dependency_package_id(registry.id, 'cocoapods', 'Firebase/Core/Nested')
+    assert_nil Package.dependency_package_id(registry.id, 'cocoapods', 'firebase/Analytics')
+    assert_nil Package.dependency_package_id(registry.id, 'cocoapods', 'OtherPod/Analytics')
+  end
+
+  test 'Package.purl class method preserves exact SwiftPM names' do
+    swiftpm_registry = Registry.create(name: 'swiftpm', url: 'https://swiftpm.dev', ecosystem: 'swiftpm')
+    package = swiftpm_registry.packages.create(name: 'github.com/groue/GRDB.swift', ecosystem: 'swiftpm')
+
+    result = Package.purl('pkg:swift/github.com/groue/GRDB.swift')
+
+    assert_equal [package.id], result.pluck(:id)
+  end
+
   test 'Package.purl class method handles docker purl without namespace' do
     docker_registry = Registry.create(name: 'hub.docker.com', url: 'https://hub.docker.com', ecosystem: 'docker')
     docker_package = docker_registry.packages.create(name: 'library/python', ecosystem: 'docker', namespace: 'library')

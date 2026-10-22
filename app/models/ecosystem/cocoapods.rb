@@ -6,6 +6,11 @@ module Ecosystem
       "#{@registry_url}/pods/#{package.name}"
     end
 
+    # Resolve subspec names to the root pod; return nil for names without a slash.
+    def self.normalized_package_name(name)
+      name.partition('/').first if name.include?('/')
+    end
+
     def download_url(package, version = nil)
       if version.present?
         version.metadata["download_url"]

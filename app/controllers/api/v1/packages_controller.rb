@@ -104,7 +104,10 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
           name = [purl.namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
           ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type)
           registry = Registry.find_by_ecosystem(ecosystem)
-          registry.sync_package_async(name) if registry
+          if registry
+            sync_name = registry.ecosystem_class&.normalized_package_name(name) || name
+            registry.sync_package_async(sync_name)
+          end
         rescue ArgumentError => e
           Rails.logger.error("ArgumentError in PURL parsing: #{e.message}")
           if e.message.include?("type is required")
@@ -119,7 +122,10 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
         end
       elsif params[:ecosystem].present? && params[:name].present?
         registry = Registry.find_by_ecosystem(params[:ecosystem])
-        registry.sync_package_async(params[:name]) if registry
+        if registry
+          sync_name = registry.ecosystem_class&.normalized_package_name(params[:name]) || params[:name]
+          registry.sync_package_async(sync_name)
+        end
       end
     end
 
@@ -136,7 +142,14 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     elsif params[:purls].present?
       @packages = Package.purl(params[:purls]).limit(1000)
     else
-      @packages = Package.where(name: params[:names])
+      names = params[:names]
+      if names.present?
+        ecosystem_class = Ecosystem::Base.find(params[:ecosystem].to_s)
+        names = Array(names).flat_map do |name|
+          [name, ecosystem_class&.normalized_package_name(name) || name]
+        end.uniq
+      end
+      @packages = Package.where(name: names)
       @packages = @packages.where(registry_id: Registry.where(ecosystem: params[:ecosystem]).pluck(:id)) if params[:ecosystem].present?
       @packages = @packages.limit(1000)
     end
@@ -240,13 +253,20 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
 
   def ping
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = @registry.packages.find_by_name(params[:id])
+    name = params[:id]
+    @package = @registry.packages.find_by_name(name)
+    sync_name = @registry.ecosystem_class&.normalized_package_name(name) || name
+
+    if @package.nil? && sync_name != name
+      @package = @registry.packages.find_by_name(sync_name)
+    end
+
     if @package
       @package.sync_async
       @package.update_repo_metadata_async if request.user_agent&.include?('repos.ecosyste.ms')
       @package.update_advisories_async if request.user_agent&.include?('advisories.ecosyste.ms')
     else
-      @registry.sync_package_async(params[:id])
+      @registry.sync_package_async(sync_name)
     end
     render json: { message: 'pong' }
   end
