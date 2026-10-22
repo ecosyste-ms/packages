@@ -209,30 +209,6 @@ module Ecosystem
       Package.where(id: linked_ids.uniq + [package.id]).find_each(&:update_dependent_packages_details)
     end
 
-    def normalize_names(dry_run: true, batch_size: 1000)
-      source_packages = registry.packages.where('name ~* ?', '^github[.]com/[^/]+/[^/]+$')
-      collisions = source_packages.group('lower(name)').having('count(*) > 1').pluck(Arel.sql('lower(name)'))
-      packages = source_packages.where("metadata->>'normalized_name' IS DISTINCT FROM lower(name)")
-      versions = Version.where(package_id: registry.packages.select(:id))
-      dependencies = Dependency.where(version_id: versions.select(:id), ecosystem: 'swiftpm')
-        .where('package_name ~* ?', '^github[.]com/[^/]+/[^/]+$')
-        .where('package_name <> lower(package_name)')
-      if collisions.any?
-        packages = packages.where('lower(name) NOT IN (?)', collisions)
-        dependencies = dependencies.where('lower(package_name) NOT IN (?)', collisions)
-      end
-      result = { packages: packages.count, dependencies: dependencies.count, collisions: collisions, applied: false }
-      return result if dry_run
-
-      packages.in_batches(of: batch_size).update_all(
-        "metadata = jsonb_set(COALESCE(metadata::jsonb, '{}'::jsonb), '{normalized_name}', to_jsonb(lower(name)))::json"
-      )
-      versions.in_batches(of: batch_size) do |batch|
-        dependencies.rewhere(version_id: batch.select(:id)).update_all('package_name = lower(package_name)')
-      end
-      result.merge(applied: true)
-    end
-
     def description(string)
       return nil if string.nil?
       return '' unless string.to_s.force_encoding('UTF-8').valid_encoding?
