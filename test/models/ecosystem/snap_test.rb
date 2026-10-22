@@ -197,6 +197,22 @@ class SnapTest < ActiveSupport::TestCase
     assert_equal 654, version.metadata['revision']
   end
 
+  test 'sync_package clears channels for versions no longer released' do
+    @registry.save!
+    info = JSON.parse(file_fixture('snap/info_gimp.json').read)
+    superseded = info.deep_dup
+    superseded['channel-map'].reject! { |e| e['version'] == '3.2.0-RC3' }
+    stub_request(:get, %r{\Ahttps://api\.snapcraft\.io/v2/snaps/info/gimp})
+      .to_return({ status: 200, body: info.to_json }, { status: 200, body: info.to_json },
+                 { status: 200, body: superseded.to_json })
+
+    @registry.sync_package('gimp', force: true)
+    Registry.find(@registry.id).sync_package('gimp', force: true)
+    package = @registry.packages.find_by!(name: 'gimp')
+    assert_equal [], package.versions.find_by!(number: '3.2.0-RC3').metadata['channels']
+    assert_equal ['stable'], package.versions.find_by!(number: '3.2.4').metadata['channels']
+  end
+
   test 'check_status preserves persisted status on unsuccessful responses' do
     @registry.save!
     package = @registry.packages.create!(name: 'gimp', ecosystem: 'snap', status: 'removed')

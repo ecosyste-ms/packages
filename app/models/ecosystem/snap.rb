@@ -138,7 +138,11 @@ module Ecosystem
       remote = versions_metadata.index_by { |v| v[:number] }
       package.versions.select(:id, :number, :metadata, :integrity).find_each do |version|
         incoming = remote[version.number]
-        next if incoming.nil?
+        if incoming.nil?
+          next if version.metadata.blank? || version.metadata['channels'].blank?
+          version.update_columns(metadata: version.metadata.merge('channels' => []), updated_at: Time.current)
+          next
+        end
         metadata = (version.metadata || {}).merge(incoming[:metadata].stringify_keys)
         next if metadata == version.metadata && incoming[:integrity] == version.integrity
         version.update_columns(metadata: metadata, integrity: incoming[:integrity], updated_at: Time.current)
