@@ -365,7 +365,7 @@ class Package < ApplicationRecord
   end
 
   def latest_version
-    @latest_version ||= (dist_tag_latest_version || latest_stable_version || versions.active.reject(&:opam_archived?).sort.first)
+    @latest_version ||= dist_tag_latest_version || latest_version_from(versions.active.to_a)
   end
 
   def dist_tag_latest_version
