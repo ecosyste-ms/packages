@@ -113,7 +113,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
             render json: { error: "Invalid PURL format: #{params[:purl]}" }, status: :unprocessable_content and return
           end
           raise e
-        rescue Purl::MalformedUrlError, Purl::ValidationError => e
+        rescue Purl::ParseError, Purl::ValidationError => e
           Rails.logger.error("Purl error in PURL parsing: #{e.message}")
           render json: { error: "Invalid PURL format: #{params[:purl]}" }, status: :unprocessable_content and return
         end

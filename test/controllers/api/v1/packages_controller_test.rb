@@ -172,6 +172,15 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_match 'bulk_lookup', actual_response['error']
   end
 
+  test 'lookup by purl without the pkg scheme returns 422' do
+    get lookup_api_v1_packages_path(purl: 'garbage')
+
+    assert_response :unprocessable_content
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 'Invalid PURL format: garbage', actual_response['error']
+  end
+
   test 'lookup by purl with missing type' do
     invalid_purl = 'pkg:/software.amazon.awssdk%3Ametrics-spi'
   
