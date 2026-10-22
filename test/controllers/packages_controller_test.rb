@@ -30,6 +30,7 @@ class PackagesControllerTest < ActionDispatch::IntegrationTest
 
   test 'lookup by name prefers an exact match over its normalized name' do
     registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+    root = registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
     exact = registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash/Reporting')
 
     get packages_lookup_path(ecosystem: 'cocoapods', name: 'KSCrash/Reporting')

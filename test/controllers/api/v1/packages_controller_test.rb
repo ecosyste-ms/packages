@@ -393,6 +393,17 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal @package.name, actual_response.first['name']
   end
 
+  test 'lookup by name with an unknown ecosystem still syncs the original name' do
+    Registry.create(name: 'unknown.example', url: 'https://unknown.example/', ecosystem: 'unknown')
+
+    Registry.any_instance.expects(:sync_package_async).with('SomePackage').once
+
+    get lookup_api_v1_packages_path, params: { ecosystem: 'unknown', name: 'SomePackage' }
+    assert_response :success
+
+    assert_empty Oj.load(@response.body)
+  end
+
   test 'lookup by name cocoapods subspec with unknown root syncs the root name' do
     Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
 
@@ -704,6 +715,30 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
 
     actual_response = Oj.load(@response.body)
     assert_equal actual_response['message'], 'pong'
+  end
+
+  test 'ping with an unknown ecosystem still enqueues the original name' do
+    @registry = Registry.create(name: 'unknown.example', url: 'https://unknown.example/', ecosystem: 'unknown')
+
+    Registry.any_instance.expects(:sync_package_async).with('SomePackage').once
+
+    get ping_api_v1_registry_package_path(registry_id: @registry.name, id: 'SomePackage')
+    assert_response :success
+
+    assert_equal 'pong', Oj.load(@response.body)['message']
+  end
+
+  test 'ping a recently synced exact package does not enqueue anything' do
+    @registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+    @package = @registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash', last_synced_at: 1.minute.ago)
+
+    Registry.any_instance.expects(:sync_package_async).never
+    SyncPackageByIdWorker.expects(:perform_async).never
+
+    get ping_api_v1_registry_package_path(registry_id: @registry.name, id: 'KSCrash')
+    assert_response :success
+
+    assert_equal 'pong', Oj.load(@response.body)['message']
   end
 
   test 'ping nonexistent cocoapods subspec enqueues the root name' do

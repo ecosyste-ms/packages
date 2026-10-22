@@ -105,7 +105,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
           ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type)
           registry = Registry.find_by_ecosystem(ecosystem)
           if registry
-            sync_name = registry.ecosystem_class.normalized_package_name(name) || name
+            sync_name = registry.ecosystem_class&.normalized_package_name(name) || name
             registry.sync_package_async(sync_name)
           end
         rescue ArgumentError => e
@@ -123,7 +123,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       elsif params[:ecosystem].present? && params[:name].present?
         registry = Registry.find_by_ecosystem(params[:ecosystem])
         if registry
-          sync_name = registry.ecosystem_class.normalized_package_name(params[:name]) || params[:name]
+          sync_name = registry.ecosystem_class&.normalized_package_name(params[:name]) || params[:name]
           registry.sync_package_async(sync_name)
         end
       end
@@ -255,7 +255,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     @registry = Registry.find_by_name!(params[:registry_id])
     name = params[:id]
     @package = @registry.packages.find_by_name(name)
-    sync_name = @registry.ecosystem_class.normalized_package_name(name) || name
+    sync_name = @registry.ecosystem_class&.normalized_package_name(name) || name
 
     if @package.nil? && sync_name != name
       @package = @registry.packages.find_by_name(sync_name)
