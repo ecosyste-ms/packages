@@ -23,6 +23,13 @@ Rails.application.routes.draw do
         end
       end
 
+      resources :purls, only: [] do
+        collection do
+          get :lookup
+          post :bulk_lookup
+        end
+      end
+
       resources :keywords, only: [:index, :show], constraints: { id: /.*/ }, defaults: { format: :json }
 
       resources :critical, only: [:index] do
