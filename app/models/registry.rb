@@ -285,7 +285,13 @@ class Registry < ApplicationRecord
       end
     end
 
-    package = packages.find_or_initialize_by(name: package_metadata[:name])
+    normalized_name = ecosystem_class.normalized_package_name(package_metadata[:name])
+    package = packages.find_by_normalized_name(package_metadata[:name], normalized_name: normalized_name) if normalized_name
+    if normalized_name && package.nil? && packages.where("metadata->>'normalized_name' = ?", normalized_name).exists?
+      logger.error "Failed to sync #{name}: ambiguous normalized package name"
+      return false
+    end
+    package ||= packages.find_or_initialize_by(name: package_metadata[:name])
 
     if !force && package.last_synced_at && package.last_synced_at > 1.day.ago
       unless sync_in_batches?
@@ -362,6 +368,7 @@ class Registry < ApplicationRecord
 
     package.update(versions_count: package.versions.count, last_synced_at: Time.zone.now)
     package.update_details
+    ecosystem_instance.update_dependency_links(package)
     package.update_dependent_repos_count_async if ecosystem_instance.has_dependent_repos?
     if ecosystem_class.instance_methods(false).include? :maintainers_metadata
       if ecosystem_instance.sync_maintainers_inline?

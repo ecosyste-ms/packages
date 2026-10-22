@@ -118,7 +118,8 @@ class SwiftpmTest < ActiveSupport::TestCase
       :homepage=>"https://compute-runtime.swift.cloud/documentation/compute/",
       :description=>"Swift runtime for Fastly Compute@Edge",
       :tags_url=>"http://repos.ecosyste.ms/api/v1/hosts/GitHub/repositories/swift-cloud%2FCompute/tags",
-      :namespace=>"swift-cloud"
+      :namespace=>"swift-cloud",
+      :metadata=>{'normalized_name' => 'github.com/swift-cloud/compute', 'default_branch' => 'main', 'tuist_registry_identity' => 'swift-cloud.Compute'}
     }
   end
 
@@ -174,13 +175,13 @@ class SwiftpmTest < ActiveSupport::TestCase
     dependencies_metadata = @ecosystem.dependencies_metadata('github.com/swift-cloud/Compute', '1.11.0', package_metadata)
     
     assert_equal [
-      {:package_name=>"github.com/krzyzanowskim/CryptoSwift", :requirements=>"1.6.0", :kind=>"runtime", :ecosystem=>"swiftpm"},
+      {:package_name=>"github.com/krzyzanowskim/cryptoswift", :requirements=>"1.6.0", :kind=>"runtime", :ecosystem=>"swiftpm"},
       {:package_name=>"github.com/apple/swift-docc-plugin", :requirements=>"1.0.0", :kind=>"runtime", :ecosystem=>"swiftpm"}
     ], dependencies_metadata
   end
 
   test 'update_existing_versions syncs tag-backed changes' do
-    @ecosystem.expects(:sync_tag_backed_versions).with(@package, [{ number: '2.3.1' }])
+    @ecosystem.expects(:sync_tag_backed_versions).with(@package, [{ number: '2.3.1' }], complete: false)
     @ecosystem.update_existing_versions(@package, [{ number: '2.3.1' }])
   end
 end

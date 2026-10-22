@@ -38,6 +38,10 @@ module Ecosystem
       true
     end
 
+    def self.normalized_package_name(_name)
+      nil
+    end
+
     def self.normalize_repository_url(url)
       url.to_s.strip.downcase.sub(%r{\Ahttps?://}, '').sub(%r{/+\z}, '')
     end
@@ -272,16 +276,20 @@ module Ecosystem
       nil
     end
 
+    def update_dependency_links(_package)
+      nil
+    end
+
     REPOS_TAGS_PER_PAGE = 1000
 
-    def sync_tag_backed_versions(package, versions_metadata)
-      return if versions_metadata.blank?
+    def sync_tag_backed_versions(package, versions_metadata, complete: nil)
+      return if versions_metadata.blank? && complete != true
 
       remote = versions_metadata.each_with_object({}) do |version, result|
         version = version.with_indifferent_access
         result[version[:number].to_s.downcase] = version
       end
-      mark_removed = versions_metadata.size < REPOS_TAGS_PER_PAGE
+      mark_removed = complete.nil? ? versions_metadata.size < REPOS_TAGS_PER_PAGE : complete
       now = Time.current
 
       package.versions.select(:id, :number, :status, :published_at, :metadata).find_each do |version|
