@@ -21,11 +21,26 @@ module Ecosystem
       "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/maven-metadata.xml"
     end
 
+    # Maven artifact handlers map packaging to the published file extension.
+    # Packaging types not listed here (jar, bundle, maven-plugin, ejb, ...) publish a JAR.
+    PACKAGING_EXTENSIONS = {
+      "pom" => "pom",
+      "aar" => "aar",
+      "war" => "war",
+      "ear" => "ear",
+      "rar" => "rar",
+    }.freeze
+
     def download_url(package, version)
       return nil unless version.present?
       group_id, artifact_id = *package.name.split(':', 2)
-      
-      "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.jar"
+      packaging = version.respond_to?(:metadata) ? version.metadata&.dig("packaging") : nil
+
+      "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.#{artifact_extension(packaging)}"
+    end
+
+    def artifact_extension(packaging)
+      PACKAGING_EXTENSIONS.fetch(packaging.to_s.strip.downcase.presence || "jar", "jar")
     end
 
     def registry_url(package, version = nil)
@@ -259,6 +274,11 @@ module Ecosystem
         .map do |version|
           pom = get_pom(*pkg_metadata[:name].split(':', 2), version)
           next if pom.nil?
+          # Packaging and relocation describe the artifact published at these
+          # coordinates, so read them from the original POM (get_pom follows relocations).
+          original_pom = download_pom(*pkg_metadata[:name].split(':', 2), version)
+          packaging = extract_packaging(original_pom)
+          relocation = extract_relocation(original_pom, pkg_metadata[:name], version)
           begin
             license_list = licenses(pom).join(',')
           rescue StandardError
@@ -274,7 +294,7 @@ module Ecosystem
             number: version,
             published_at: published_at_node ? Time.parse(published_at_node.text) : nil,
             licenses: license_list,
-            integrity: version_integrity(pkg_metadata[:name], version),
+            integrity: version_integrity(pkg_metadata[:name], version, packaging),
             metadata: {
               properties: properties,
               java_version: extract_java_version(pom),
@@ -282,7 +302,9 @@ module Ecosystem
               maven_compiler_target: properties["maven.compiler.target"],
               maven_compiler_release: properties["maven.compiler.release"],
               repositories: extract_repository_urls(pom),
-              distribution_repositories: extract_distribution_repository_urls(pom)
+              distribution_repositories: extract_distribution_repository_urls(pom),
+              packaging: packaging,
+              relocation: relocation
             }
           }
       rescue Ox::Error
@@ -291,9 +313,9 @@ module Ecosystem
         .compact
     end
 
-    def version_integrity(name, version)
+    def version_integrity(name, version, packaging = nil)
       group_id, artifact_id = *name.split(':', 2)
-      url = "#{@registry_url}/#{group_id.gsub('.', '/')}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.jar.sha1"
+      url = "#{@registry_url}/#{group_id.gsub('.', '/')}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.#{artifact_extension(packaging)}.sha1"
       resp = request(url)
       return nil unless resp.respond_to?(:success?) && resp.success?
       sha1 = resp.body.to_s.strip[/\A[0-9a-fA-F]{40}/]
@@ -403,6 +425,23 @@ module Ecosystem
 
     def extract_pom_value(xml, location, parent_properties = {})
       Bibliothecary::Parsers::Maven.extract_pom_info(xml, location, parent_properties) rescue nil
+    end
+
+    def extract_packaging(pom)
+      return nil if pom.nil?
+      packaging = pom.locate("packaging/?[0]").first
+      packaging.to_s.strip.presence || "jar"
+    end
+
+    def extract_relocation(pom, name, version)
+      return nil if pom.nil?
+      return nil if pom.locate("distributionManagement/relocation").first.nil?
+      group_id, artifact_id = *name.split(':', 2)
+      {
+        "groupId" => pom.locate("distributionManagement/relocation/groupId/?[0]").first&.to_s || group_id,
+        "artifactId" => pom.locate("distributionManagement/relocation/artifactId/?[0]").first&.to_s || artifact_id,
+        "version" => pom.locate("distributionManagement/relocation/version/?[0]").first&.to_s || version,
+      }
     end
 
     def extract_pom_properties(xml)

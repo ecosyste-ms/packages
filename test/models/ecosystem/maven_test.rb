@@ -25,6 +25,22 @@ class MavenTest < ActiveSupport::TestCase
     assert_equal download_url, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/5.17.224.2/zio-aws-autoscaling_3-5.17.224.2.jar"
   end
 
+  test 'download_url uses the recorded packaging extension' do
+    aar_version = @package.versions.build(number: '6.7.1', metadata: { 'packaging' => 'aar' })
+    assert_equal "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/6.7.1/zio-aws-autoscaling_3-6.7.1.aar", @ecosystem.download_url(@package, aar_version)
+
+    pom_version = @package.versions.build(number: '7.0.9', metadata: { 'packaging' => 'pom' })
+    assert_equal "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/7.0.9/zio-aws-autoscaling_3-7.0.9.pom", @ecosystem.download_url(@package, pom_version)
+  end
+
+  test 'download_url falls back to jar for jar-like or unknown packaging' do
+    bundle_version = @package.versions.build(number: '1.0.0', metadata: { 'packaging' => 'bundle' })
+    assert_equal "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/1.0.0/zio-aws-autoscaling_3-1.0.0.jar", @ecosystem.download_url(@package, bundle_version)
+
+    unknown_version = @package.versions.build(number: '1.0.0', metadata: { 'packaging' => 'dotnet-clr' })
+    assert_equal "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/1.0.0/zio-aws-autoscaling_3-1.0.0.jar", @ecosystem.download_url(@package, unknown_version)
+  end
+
   test 'documentation_url' do
     documentation_url = @ecosystem.documentation_url(@package)
     assert_equal documentation_url, "https://appdoc.app/artifact/dev.zio/zio-aws-autoscaling_3/"
@@ -698,6 +714,36 @@ class MavenTest < ActiveSupport::TestCase
       .to_return(status: 404, body: "")
     integrity = @ecosystem.send(:version_integrity, 'com.example:pom-only', '1.0.0')
     assert_nil integrity
+  end
+
+  test 'version_integrity checks the sidecar of the artifact the packaging selects' do
+    stub_request(:get, "https://repo1.maven.org/maven2/com/airbnb/android/lottie/6.7.1/lottie-6.7.1.aar.sha1")
+      .to_return(status: 200, body: "16d2a89f307bc09e96af26d938ade5812550606a")
+    integrity = @ecosystem.send(:version_integrity, 'com.airbnb.android:lottie', '6.7.1', 'aar')
+    assert_equal "sha1-16d2a89f307bc09e96af26d938ade5812550606a", integrity
+
+    stub_request(:get, "https://repo1.maven.org/maven2/org/springframework/spring-framework-bom/7.0.9/spring-framework-bom-7.0.9.pom.sha1")
+      .to_return(status: 200, body: "16d2a89f307bc09e96af26d938ade5812550606a")
+    integrity = @ecosystem.send(:version_integrity, 'org.springframework:spring-framework-bom', '7.0.9', 'pom')
+    assert_equal "sha1-16d2a89f307bc09e96af26d938ade5812550606a", integrity
+  end
+
+  test 'versions_metadata records packaging and relocation from the published pom' do
+    pom = '<project xmlns="http://maven.apache.org/POM/4.0.0"><groupId>com.example</groupId><artifactId>old</artifactId><version>1.0.0</version><packaging>pom</packaging><distributionManagement><relocation><groupId>com.example</groupId><artifactId>new</artifactId></relocation></distributionManagement></project>'
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/old/1.0.0/old-1.0.0.pom")
+      .to_return(status: 200, body: pom)
+    relocated_pom = '<project xmlns="http://maven.apache.org/POM/4.0.0"><groupId>com.example</groupId><artifactId>new</artifactId><version>1.0.0</version><packaging>jar</packaging></project>'
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/new/1.0.0/new-1.0.0.pom")
+      .to_return(status: 200, body: relocated_pom)
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/old/1.0.0/old-1.0.0.pom.sha1")
+      .to_return(status: 404, body: "")
+    @ecosystem.stubs(:generate_effective_pom).with(pom).returns(pom)
+    @ecosystem.stubs(:generate_effective_pom).with(relocated_pom).returns(relocated_pom)
+
+    versions = @ecosystem.versions_metadata({ name: 'com.example:old', versions: ['1.0.0'] })
+    assert_equal 1, versions.length
+    assert_equal 'pom', versions.first[:metadata][:packaging]
+    assert_equal({ 'groupId' => 'com.example', 'artifactId' => 'new', 'version' => '1.0.0' }, versions.first[:metadata][:relocation])
   end
 
   test 'versions_metadata and dependencies_metadata share one .pom fetch per version' do
