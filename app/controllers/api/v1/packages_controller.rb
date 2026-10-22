@@ -83,7 +83,6 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       name = params[:name]
       ecosystem = @registry&.ecosystem || params[:ecosystem]
       name = name.downcase if ecosystem == 'nuget'
-      name = Ecosystem::Cocoapods.root_pod_name(name) || name if ecosystem == 'cocoapods'
       if @registry.nil? && params[:ecosystem].present?
         scope = scope.where(registry_id: Registry.where(ecosystem: params[:ecosystem]).pluck(:id))
       end
@@ -104,9 +103,11 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
           purl = Purl.parse(params[:purl])
           name = [purl.namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
           ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type)
-          name = Ecosystem::Cocoapods.root_pod_name(name) || name if ecosystem == 'cocoapods'
           registry = Registry.find_by_ecosystem(ecosystem)
-          registry.sync_package_async(name) if registry
+          if registry
+            sync_name = registry.ecosystem_class.normalized_package_name(name) || name
+            registry.sync_package_async(sync_name)
+          end
         rescue ArgumentError => e
           Rails.logger.error("ArgumentError in PURL parsing: #{e.message}")
           if e.message.include?("type is required")
@@ -121,8 +122,10 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
         end
       elsif params[:ecosystem].present? && params[:name].present?
         registry = Registry.find_by_ecosystem(params[:ecosystem])
-        sync_name = params[:ecosystem] == 'cocoapods' ? (Ecosystem::Cocoapods.root_pod_name(params[:name]) || params[:name]) : params[:name]
-        registry.sync_package_async(sync_name) if registry
+        if registry
+          sync_name = registry.ecosystem_class.normalized_package_name(params[:name]) || params[:name]
+          registry.sync_package_async(sync_name)
+        end
       end
     end
 
@@ -140,8 +143,11 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       @packages = Package.purl(params[:purls]).limit(1000)
     else
       names = params[:names]
-      if names.present? && params[:ecosystem] == 'cocoapods'
-        names = names.map { |n| Ecosystem::Cocoapods.root_pod_name(n) || n }
+      if names.present?
+        ecosystem_class = Ecosystem::Base.find(params[:ecosystem].to_s)
+        names = Array(names).flat_map do |name|
+          [name, ecosystem_class&.normalized_package_name(name) || name]
+        end.uniq
       end
       @packages = Package.where(name: names)
       @packages = @packages.where(registry_id: Registry.where(ecosystem: params[:ecosystem]).pluck(:id)) if params[:ecosystem].present?
@@ -247,19 +253,19 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
 
   def ping
     @registry = Registry.find_by_name!(params[:registry_id])
-    @package = @registry.packages.find_by_name(params[:id])
-    if @package.nil? && @registry.ecosystem == 'cocoapods' && (root_name = Ecosystem::Cocoapods.root_pod_name(params[:id]))
-      @package = @registry.packages.find_by_name(root_name)
+    name = params[:id]
+    @package = @registry.packages.find_by_name(name)
+    sync_name = @registry.ecosystem_class.normalized_package_name(name) || name
+
+    if @package.nil? && sync_name != name
+      @package = @registry.packages.find_by_name(sync_name)
     end
+
     if @package
       @package.sync_async
       @package.update_repo_metadata_async if request.user_agent&.include?('repos.ecosyste.ms')
       @package.update_advisories_async if request.user_agent&.include?('advisories.ecosyste.ms')
     else
-      sync_name = params[:id]
-      if @registry.ecosystem == 'cocoapods'
-        sync_name = Ecosystem::Cocoapods.root_pod_name(sync_name) || sync_name
-      end
       @registry.sync_package_async(sync_name)
     end
     render json: { message: 'pong' }

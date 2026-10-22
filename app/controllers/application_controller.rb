@@ -42,7 +42,6 @@ class ApplicationController < ActionController::Base
       name = [namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
       ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type)
       name = name.downcase if ecosystem == 'nuget'
-      name = Ecosystem::Cocoapods.root_pod_name(name) || name if ecosystem == 'cocoapods'
 
       # Filter by repository_url qualifier if provided
       if purl.qualifiers && purl.qualifiers['repository_url'].present?

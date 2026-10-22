@@ -557,6 +557,38 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal @package.name, actual_response.first['name']
   end
 
+  test 'bulk_lookup by a single name string resolves cocoapods subspecs to the root pod' do
+    @registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+    @package = @registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
+
+    post bulk_lookup_api_v1_packages_path, params: { names: 'KSCrash/Reporting/Filters', ecosystem: 'cocoapods' }
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal [@package.id], actual_response.pluck('id')
+  end
+
+  test 'bulk_lookup accepts a single name string without an ecosystem' do
+    post bulk_lookup_api_v1_packages_path, params: { names: @package.name }
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal [@package.id], actual_response.pluck('id')
+  end
+
+  test 'bulk_lookup preserves exact ecosystem names alongside normalized ones' do
+    swiftpm_registry = Registry.create(name: 'swiftpm', url: 'https://swiftpm.dev', ecosystem: 'swiftpm')
+    swiftpm_package = swiftpm_registry.packages.create(name: 'github.com/groue/GRDB.swift', ecosystem: 'swiftpm')
+
+    post bulk_lookup_api_v1_packages_path, params: { names: ['github.com/groue/GRDB.swift'], ecosystem: 'swiftpm' }
+    assert_response :success
+
+    ids = Oj.load(@response.body).pluck('id')
+    assert_includes ids, swiftpm_package.id
+  end
+
   test 'bulk_lookup with empty purls and ecosystem returns an empty result' do
     Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
 
@@ -664,7 +696,8 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     @registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
     @package = @registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
 
-    Package.any_instance.expects(:sync_async).once
+    Registry.any_instance.expects(:sync_package_async).never
+    SyncPackageByIdWorker.expects(:perform_async).with(@registry.id, @package.id).once
 
     get ping_api_v1_registry_package_path(registry_id: @registry.name, id: 'KSCrash/Reporting/Filters')
     assert_response :success
