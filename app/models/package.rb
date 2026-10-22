@@ -130,12 +130,26 @@ class Package < ApplicationRecord
     where(name: [name, normalized_name]).or(where("metadata->>'normalized_name' = ?", normalized_name))
   end
 
-  def self.find_by_normalized_name(name)
-    normalized_name = name.downcase.gsub(/[-_.]+/, '-')
+  def self.with_ecosystem_name(name, ecosystem)
+    return with_pypi_name(name) if ecosystem == 'pypi'
+
+    normalized_name = Ecosystem::Base.find(ecosystem.to_s)&.normalized_package_name(name)
+    return where(name: name) unless normalized_name
+
+    where(name: [name, normalized_name]).or(where("metadata->>'normalized_name' = ?", normalized_name))
+  end
+
+  def self.find_by_normalized_name(name, normalized_name: nil)
+    explicit_normalization = normalized_name.present?
+    normalized_name ||= name.downcase.gsub(/[-_.]+/, '-')
     pkg = where(name: name).limit(1).take
-    pkg = where(name: normalized_name).limit(1).take if pkg.nil?
-    # for pypi
-    pkg = where("metadata->>'normalized_name' = ?", normalized_name).limit(1).take if pkg.nil?
+    pkg = where(name: normalized_name).limit(1).take if pkg.nil? && normalized_name != name
+    if pkg.nil?
+      matches = where("metadata->>'normalized_name' = ?", normalized_name).limit(explicit_normalization ? 2 : 1).to_a
+      pkg = matches.first if matches.one?
+    end
+    return pkg if explicit_normalization
+
     legacy_normalized_name = name.downcase.tr('_.', '--')
     if pkg.nil? && legacy_normalized_name != normalized_name
       pkg = where(name: legacy_normalized_name).limit(1).take
@@ -144,8 +158,8 @@ class Package < ApplicationRecord
     pkg
   end
 
-  def self.find_by_normalized_name!(name)
-    project = find_by_normalized_name(name)
+  def self.find_by_normalized_name!(name, **options)
+    project = find_by_normalized_name(name, **options)
     raise ActiveRecord::RecordNotFound if project.nil?
     project
   end
@@ -211,9 +225,22 @@ class Package < ApplicationRecord
 
   def update_dependent_package_ids
     version_ids = Version.joins(:package).where(packages: { registry_id: registry_id }).select(:id)
-    Dependency.where(package_id: nil, ecosystem: registry.ecosystem, package_name: name)
+    names = [name]
+    normalized_name = registry.ecosystem_class.normalized_package_name(name)
+    if normalized_name && self.class.dependency_package_id(registry_id, registry.ecosystem, normalized_name) == id
+      names << normalized_name
+    end
+    Dependency.where(package_id: nil, ecosystem: registry.ecosystem, package_name: names.uniq)
       .where(version_id: version_ids)
       .in_batches.update_all(package_id: id)
+  end
+
+  def self.dependency_package_id(registry_id, ecosystem, name)
+    packages = where(registry_id: registry_id)
+    normalized_name = Ecosystem::Base.find(ecosystem)&.normalized_package_name(name)
+    return packages.where(name: name).pick(:id) unless normalized_name
+
+    packages.select(:id).find_by_normalized_name(name, normalized_name: normalized_name)&.id
   end
 
   def update_dependent_packages_count
@@ -299,7 +326,7 @@ class Package < ApplicationRecord
 
   LIVE_EVENT_ATTRS = [:id, :name, :ecosystem, :description, :homepage, :licenses, :normalized_licenses,
                       :repository_url, :keywords_array, :namespace, :versions_count, :first_release_published_at,
-                      :latest_release_published_at, :latest_release_number, :last_synced_at, :created_at,
+                      :latest_release_published_at, :latest_release_number, :latest_published_release_number, :last_synced_at, :created_at,
                       :updated_at, :dependent_packages_count, :downloads, :downloads_period,
                       :dependent_repos_count, :rankings, :docker_dependents_count, :docker_downloads_count,
                       :status, :critical].freeze
@@ -353,6 +380,7 @@ class Package < ApplicationRecord
     normalize_licenses
     set_latest_release_published_at
     set_latest_release_number
+    set_latest_published_release_number
     set_first_release_published_at
     combine_keywords_and_topics
     saved = save if changed?
@@ -366,6 +394,10 @@ class Package < ApplicationRecord
 
   def latest_version
     @latest_version ||= dist_tag_latest_version || latest_version_from(versions.active.to_a)
+  end
+
+  def latest_published_version
+    @latest_published_version ||= versions.reject(&:opam_archived?).sort.first
   end
 
   def dist_tag_latest_version
@@ -396,6 +428,10 @@ class Package < ApplicationRecord
 
   def set_latest_release_number
     self.latest_release_number = latest_version.try(:number)
+  end
+
+  def set_latest_published_release_number
+    self.latest_published_release_number = latest_published_version.try(:number)
   end
 
   def set_latest_on_latest_version

@@ -9,6 +9,7 @@ module Ecosystem
     ARCHIVE_INDEX_URL = 'https://github.com/ocaml/opam-repository-archive/archive/refs/heads/main.tar.gz'.freeze
     ARCHIVE_RAW_URL = 'https://raw.githubusercontent.com/ocaml/opam-repository-archive/main'.freeze
     class PackageNotFound < RuntimeError; end
+    class ManifestUnavailable < RuntimeError; end
     PAGE_SIZE = 500
     VERSION_FIELDS = <<~GRAPHQL.freeze
       name version license publication
@@ -157,7 +158,7 @@ module Ecosystem
       url = "#{root}/packages/#{name}/#{name}.#{version}/opam"
       response = request(url)
       raise PackageNotFound, "Opam manifest not found: #{name}.#{version}" if [404, 410].include?(response.status)
-      raise "Opam manifest unavailable: #{name}.#{version} (HTTP #{response.status})" unless response.success?
+      raise ManifestUnavailable, "Opam manifest unavailable: #{name}.#{version} (HTTP #{response.status})" unless response.success?
       manifest = OpamManifest.new(response.body)
       raise ArgumentError, 'Missing opam-version field' if manifest.strings('opam-version').empty?
       manifest.formula('depends')

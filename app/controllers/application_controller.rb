@@ -54,7 +54,7 @@ class ApplicationController < ActionController::Base
       end
 
       scope = Package.where(registry_id: registry_ids)
-      ecosystem == 'pypi' ? scope.with_pypi_name(name) : scope.where(name: name)
+      scope.with_ecosystem_name(name, ecosystem)
     end
   rescue
     Package.none
@@ -80,6 +80,8 @@ class ApplicationController < ActionController::Base
 
     if registry.ecosystem == 'pypi'
       registry.packages.find_by_normalized_name!(name)
+    elsif normalized_name = registry.ecosystem_class.normalized_package_name(name)
+      registry.packages.find_by_normalized_name!(name, normalized_name: normalized_name)
     elsif registry.ecosystem == 'docker' && !name.include?('/')
       registry.packages.find_by_name!("library/#{name}")
     else

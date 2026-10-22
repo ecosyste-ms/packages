@@ -1,5 +1,6 @@
 production:
   ignore_errors:
+    - Ecosystem::Opam::ManifestUnavailable
     - ActiveRecord::RecordNotFound
     - ActionController::RoutingError
     - ActiveRecord::QueryCanceled

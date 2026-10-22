@@ -23,7 +23,7 @@ class Dependency < ApplicationRecord
   def find_package_id
     registry_id, registry_ecosystem = Version.joins(package: :registry).where(id: version_id).pick('packages.registry_id', 'registries.ecosystem')
     return unless registry_id && registry_ecosystem == ecosystem
-    Package.where(registry_id: registry_id, name: package_name).pick(:id)
+    Package.dependency_package_id(registry_id, ecosystem, package_name)
   end
 
   def update_package_id
@@ -44,7 +44,7 @@ class Dependency < ApplicationRecord
 
         cache_key = [registry_id, dependency.package_name]
         package_id = processed_packages[cache_key] = processed_packages.fetch(cache_key) do
-          Package.where(registry_id: registry_id, name: dependency.package_name).pick(:id)
+          Package.dependency_package_id(registry_id, dependency.ecosystem, dependency.package_name)
         end
 
         next unless package_id
