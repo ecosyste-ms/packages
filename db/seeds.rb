@@ -61,6 +61,7 @@ default_registries = [
   {name: 'opam.ocaml.org', url: 'https://opam.ocaml.org', ecosystem: 'opam', github: 'ocaml', default: true},
   {name: 'code.dlang.org', url: 'https://code.dlang.org', ecosystem: 'dub', github: 'dlang', default: true},
   {name: 'packages.octave.org', url: 'https://packages.octave.org', ecosystem: 'octave', github: 'gnu-octave', default: true},
+  {name: 'docs.easybuild.io', url: 'https://docs.easybuild.io/version-specific/supported-software', ecosystem: 'easybuild', github: 'easybuilders', default: true},
 ]
 
 default_registries.each do |data|
