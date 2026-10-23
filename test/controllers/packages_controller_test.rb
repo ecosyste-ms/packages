@@ -38,6 +38,17 @@ class PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to registry_package_path(exact.registry, exact)
   end
 
+  test 'lookup by purl with version redirects to version path' do
+    version = @package.versions.create!(number: '0.8.0')
+    get packages_lookup_path(purl: 'pkg:cargo/rand@0.8.0')
+    assert_redirected_to registry_package_version_path(@package.registry, @package, version)
+  end
+
+  test 'lookup by purl without version redirects to package path' do
+    get packages_lookup_path(purl: 'pkg:cargo/rand')
+    assert_redirected_to registry_package_path(@package.registry, @package)
+  end
+
   test 'lookup returns bad request without a package selector' do
     get packages_lookup_path(ecosystem: 'docker')
     assert_response :bad_request

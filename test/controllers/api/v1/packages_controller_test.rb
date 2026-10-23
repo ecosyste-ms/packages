@@ -165,6 +165,59 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.first['name'], @package.name
   end
 
+  test 'lookup by purl with version includes version in response' do
+    version = @package.versions.create!(number: '0.8.0')
+
+    get lookup_api_v1_packages_path(purl: 'pkg:cargo/rand@0.8.0')
+    assert_response :success
+    assert_template 'packages/lookup', file: 'packages/lookup.json.jbuilder'
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal @package.name, actual_response.first['name']
+    assert_not_nil actual_response.first['version']
+    assert_equal '0.8.0', actual_response.first['version']['number']
+  end
+
+  test 'lookup by purl without version does not include version field' do
+    @package.versions.create!(number: '0.8.0')
+
+    get lookup_api_v1_packages_path(purl: 'pkg:cargo/rand')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal @package.name, actual_response.first['name']
+    assert_nil actual_response.first['version']
+  end
+
+  test 'lookup by purl with unrecorded version returns nil version field' do
+    get lookup_api_v1_packages_path(purl: 'pkg:cargo/rand@9.9.9')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal @package.name, actual_response.first['name']
+    assert actual_response.first.key?('version')
+    assert_nil actual_response.first['version']
+  end
+
+  test 'lookup by purl with v prefix in version matches version' do
+    @package.versions.create!(number: '4')
+
+    get lookup_api_v1_packages_path(purl: 'pkg:cargo/rand@v4')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_not_nil actual_response.first['version']
+    assert_equal '4', actual_response.first['version']['number']
+  end
+
   test 'lookup by name and ecosystem only matches packages in that ecosystem' do
     other = Registry.create(name: 'npmjs.org', url: 'https://npmjs.org', ecosystem: 'npm')
     other.packages.create(ecosystem: 'npm', name: 'rand')

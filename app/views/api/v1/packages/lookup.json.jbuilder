@@ -1,6 +1,17 @@
 json.array! @packages do |package|
   json.partial! 'api/v1/packages/package', package: package
 
+  if @purl_version.present?
+    version = package.versions.find { |v| v.number == @purl_version || v.number == @purl_version.delete_prefix('v') }
+    if version
+      json.version do
+        json.partial! 'api/v1/versions/version', version: version
+      end
+    else
+      json.version nil
+    end
+  end
+
   json.registry do
     json.extract!package.registry, :name, :url, :ecosystem, :default, :packages_count, :maintainers_count, :namespaces_count, :keywords_count, :github, :metadata, :icon_url, :created_at, :updated_at
     json.packages_url api_v1_registry_packages_url(registry_id:package.registry.name)

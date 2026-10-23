@@ -127,7 +127,11 @@ class PackagesController < ApplicationController
     if @package.nil?
       raise ActiveRecord::RecordNotFound
     else
-      redirect_to registry_package_path(@package.registry, @package)
+      if @purl_version.present? && (version = @package.versions.find { |v| v.number == @purl_version || v.number == @purl_version.delete_prefix('v') })
+        redirect_to registry_package_version_path(@package.registry, @package, version)
+      else
+        redirect_to registry_package_path(@package.registry, @package)
+      end
     end
   end
 end

@@ -94,7 +94,9 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       scope = scope.order(package_sort_order)
     end
 
-    @pagy, @packages = pagy_countless(scope.includes(:registry, {maintainers: :registry}))
+    includes = [:registry, {maintainers: :registry}]
+    includes << :versions if @purl_version.present?
+    @pagy, @packages = pagy_countless(scope.includes(*includes))
 
     # if packages are not found, try to sync them
     if @packages.empty?

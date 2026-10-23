@@ -30,6 +30,7 @@ class ApplicationController < ActionController::Base
   def lookup_by_purl(purl_string)
     purl_param = purl_string.gsub('npm/@', 'npm/%40')
     purl = Purl.parse(purl_param)
+    @purl_version = purl.version.presence
     if purl.type == 'docker' && purl.namespace.nil?
       namespace = 'library'
     else
