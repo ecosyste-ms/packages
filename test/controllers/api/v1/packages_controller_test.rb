@@ -187,6 +187,20 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal 'Missing repository_url, purl or name parameter', actual_response['error']
   end
 
+  test 'lookup by julia purl returns the uuid-qualified purl' do
+    registry = Registry.create(default: true, name: 'juliahub.com', url: 'https://juliahub.com', ecosystem: 'julia')
+    registry.packages.create(ecosystem: 'julia', name: 'Dates', metadata: { 'uuid' => 'ade2ca70-3891-5945-98fb-dc099432e06a' })
+
+    ['pkg:julia/Dates', 'pkg:julia/Dates?uuid=ade2ca70-3891-5945-98fb-dc099432e06a'].each do |purl|
+      get lookup_api_v1_packages_path(purl: purl)
+      assert_response :success
+
+      actual_response = Oj.load(@response.body)
+      assert_equal 1, actual_response.length
+      assert_equal 'pkg:julia/Dates?uuid=ade2ca70-3891-5945-98fb-dc099432e06a', actual_response.first['purl']
+    end
+  end
+
   test 'lookup by purl with array returns 422' do
     get lookup_api_v1_packages_path(purl: ['pkg:npm/lodash', 'pkg:gem/rails'])
     assert_response :unprocessable_content
