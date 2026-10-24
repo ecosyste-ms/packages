@@ -713,6 +713,9 @@ class Package < ApplicationRecord
     response.headers['location'].presence
   rescue Faraday::Error, URI::InvalidURIError
     nil
+  rescue ArgumentError => error
+    raise unless error.message == 'invalid byte sequence in UTF-8'
+    nil
   end
 
   def repo_metadata_fallback_url?(url)

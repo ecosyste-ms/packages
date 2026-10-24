@@ -2,6 +2,24 @@ require "test_helper"
 
 class SyncPackageWorkerTest < ActiveSupport::TestCase
   {
+    'empty error response' => { status: 402, body: '' },
+    'null response' => { status: 200, body: 'null' },
+    'missing distribution' => { status: 404, body: '{"message":"Not found","code":404}' }
+  }.each do |description, response|
+    test "CPAN sync returns false for #{description}" do
+      registry = Registry.create!(name: 'cpan.org', url: 'https://cpan.org', ecosystem: 'cpan')
+      name = 'JavaScript::Minifier::XS'
+      url = "https://fastapi.metacpan.org/v1/release/#{name}"
+      stub_request(:get, url).to_return(response)
+
+      assert_equal false, SyncPackageWorker.new.perform(registry.id, name)
+
+      assert_empty registry.packages
+      assert_requested :get, url, times: 1
+    end
+  end
+
+  {
     'GitHub' => 'https://github.com/github-community-projects/graphql-client',
     'GitLab' => 'https://gitlab.com/gitlab-community-projects/subgroup/graphql-client',
     'Bitbucket' => 'https://bitbucket.org/bitbucket-org/graphql-client'
