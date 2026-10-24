@@ -62,6 +62,37 @@ class SwiftpmTest < ActiveSupport::TestCase
     assert_nil @ecosystem.check_status(@package)
   end
 
+  test 'check_status marks packages named after feed commit titles as removed' do
+    package = @registry.packages.create!(ecosystem: 'swiftpm', name: 'HeatMap (#12740)', repository_url: 'https://HeatMap (#12740)')
+
+    package.check_status
+
+    assert_equal 'removed', package.reload.status
+  end
+
+  test 'check_status marks bare package names as removed' do
+    package = @registry.packages.create!(ecosystem: 'swiftpm', name: 'PhoneNumberKit', repository_url: 'https://PhoneNumberKit')
+
+    package.check_status
+
+    assert_equal 'removed', package.reload.status
+  end
+
+  test 'purl is nil for package names that are not repository paths' do
+    package = @registry.packages.create!(ecosystem: 'swiftpm', name: 'HeatMap (#12740)', repository_url: 'https://HeatMap (#12740)')
+
+    assert_nil package.purl
+  end
+
+  test 'valid_package_name?' do
+    assert Ecosystem::Swiftpm.valid_package_name?('github.com/swift-cloud/Compute')
+    assert Ecosystem::Swiftpm.valid_package_name?('gitlab.com/group/subgroup/repo')
+    assert Ecosystem::Swiftpm.valid_package_name?('github.com/weichsel/ZIPFoundation/')
+    refute Ecosystem::Swiftpm.valid_package_name?('HeatMap (#12740)')
+    refute Ecosystem::Swiftpm.valid_package_name?('PhoneNumberKit')
+    refute Ecosystem::Swiftpm.valid_package_name?('github.com/owner')
+  end
+
   test 'purl' do
     purl = @ecosystem.purl(@package)
     assert_equal purl, 'pkg:swift/github.com/swift-cloud/Compute'
