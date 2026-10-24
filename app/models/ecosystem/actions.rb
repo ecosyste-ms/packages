@@ -230,7 +230,11 @@ module Ecosystem
 
       deps = get_raw_no_exception(url)
       return [] unless deps.present?
-      Bibliothecary::Parsers::Actions.parse_manifest(deps).map do |dep|
+      Bibliothecary::Parsers::Actions.parse_manifest(deps).dependencies.filter_map do |dep|
+        # The parser also reports a node action's entry file, a Dockerfile path and local actions
+        next if dep[:type] == 'javascript'
+        next if dep[:type] == 'docker' && !dep[:name].start_with?('docker://')
+        next if dep[:name].start_with?('./')
         {
           package_name: dep[:name],
           requirements: dep[:requirement].chomp.presence || '*',

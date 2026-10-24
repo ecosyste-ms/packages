@@ -287,6 +287,40 @@ class ActionsTest < ActiveSupport::TestCase
     assert @version.reload.immutable
   end
 
+  def synced_dependencies(manifest)
+    @ecosystem.stubs(:package_metadata).with('example/fixture').returns({ name: 'example/fixture', repository_url: 'https://github.com/example/fixture', licenses: 'MIT', metadata: {} })
+    @ecosystem.stubs(:versions_metadata).returns([{ number: 'v1', metadata: {} }])
+    @registry.stubs(:ecosystem_instance).returns(@ecosystem)
+    Package.any_instance.stubs(:check_status)
+    stub_request(:get, 'https://raw.githubusercontent.com/example/fixture/v1/action.yml').to_return(status: 200, body: manifest)
+
+    package = @registry.sync_package('example/fixture')
+    package.versions.find_by!(number: 'v1').dependencies.order(:package_name).map { |d| [d.ecosystem, d.package_name, d.requirements, d.kind] }
+  end
+
+  test 'sync_package stores dependencies from a composite action.yml' do
+    manifest = "name: Fixture\nruns:\n  using: composite\n  steps:\n    - uses: actions/checkout@v4\n    - uses: docker://alpine:3.20\n    - uses: ./local-action\n"
+    assert_equal [['actions', 'actions/checkout', 'v4', 'composite'], ['actions', 'docker://alpine', '3.20', 'composite']], synced_dependencies(manifest)
+  end
+
+  test 'sync_package stores the image of a docker action' do
+    manifest = "name: Fixture\nruns:\n  using: docker\n  image: docker://ghcr.io/example/img:1.2\n"
+    assert_equal [['actions', 'docker://ghcr.io/example/img', '1.2', 'docker']], synced_dependencies(manifest)
+  end
+
+  test 'sync_package keeps the registry port of a docker image' do
+    manifest = "name: Fixture\nruns:\n  using: docker\n  image: docker://localhost:5000/img@sha256:abc123\n"
+    assert_equal [['actions', 'docker://localhost:5000/img', 'sha256:abc123', 'docker']], synced_dependencies(manifest)
+  end
+
+  test 'sync_package skips the entry file of a node action' do
+    assert_empty synced_dependencies("name: Fixture\nruns:\n  using: node20\n  main: dist/index.js\n")
+  end
+
+  test 'sync_package skips the Dockerfile of a docker action' do
+    assert_empty synced_dependencies("name: Fixture\nruns:\n  using: docker\n  image: Dockerfile\n")
+  end
+
   test 'purl' do
     purl = @ecosystem.purl(@package)
     assert_equal purl, 'pkg:githubactions/getsentry/action-git-diff-suggestions'
