@@ -189,6 +189,22 @@ class RegistryTest < ActiveSupport::TestCase
     @registry.sync_packages_async(%w[a b c], period: 1.second)
   end
 
+  test 'sync_package removes the misnamed record with its versions and dependencies' do
+    registry = Registry.create!(name: 'swiftpackageindex.com', url: 'https://swiftpackageindex.com', ecosystem: 'swiftpm')
+    canonical = registry.packages.create!(name: 'github.com/ggerganov/llama.cpp', ecosystem: 'swiftpm', last_synced_at: 1.hour.ago)
+    misnamed = registry.packages.create!(name: 'github.com/ggerganov/llama.cpp/', ecosystem: 'swiftpm')
+    version = misnamed.versions.create!(number: 'b1000')
+    version.dependencies.create!(ecosystem: 'swiftpm', package_name: 'github.com/apple/swift-syntax', requirements: '*')
+    registry.ecosystem_instance.stubs(:package_metadata).with('github.com/ggerganov/llama.cpp/').returns({ name: 'github.com/ggerganov/llama.cpp' })
+
+    registry.sync_package('github.com/ggerganov/llama.cpp/')
+
+    assert_not Package.exists?(misnamed.id)
+    assert_not Version.exists?(version.id)
+    assert_not Dependency.exists?(version_id: version.id)
+    assert Package.exists?(canonical.id)
+  end
+
   test 'sync_package' do
     # TODO stub ecosystem_instance calls instead
     stub_request(:get, "https://rubygems.org/api/v1/gems/rubystats.json")

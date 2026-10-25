@@ -124,6 +124,7 @@ class Package < ApplicationRecord
 
   after_create :update_rankings_async
   after_update :mark_versions_removed, if: :saved_change_to_removed_status?
+  before_destroy :delete_versions_and_dependencies
 
   def self.with_pypi_name(name)
     normalized_name = name.downcase.gsub(/[-_.]+/, '-')
@@ -581,6 +582,14 @@ class Package < ApplicationRecord
 
   def mark_versions_removed
     versions.update_all(status: 'removed', updated_at: Time.current)
+  end
+
+  # There are no foreign keys to cascade, so clear rows that would otherwise keep this package's id
+  def delete_versions_and_dependencies
+    version_ids = Version.where(package_id: id).select(:id)
+    Dependency.where(version_id: version_ids).delete_all
+    Version.where(package_id: id).delete_all
+    Dependency.where(package_id: id).update_all(package_id: nil)
   end
 
   def check_status

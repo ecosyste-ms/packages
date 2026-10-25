@@ -1021,4 +1021,27 @@ class PackageTest < ActiveSupport::TestCase
 
     packages.each { |package| assert_equal 100, package.reload.rankings["average"] }
   end
+
+  test 'destroy deletes versions and their dependencies and detaches dependents' do
+    registry = Registry.create!(name: 'crates.io', url: 'https://crates.io', ecosystem: 'cargo')
+    package = registry.packages.create!(name: 'doomed', ecosystem: 'cargo')
+    other = registry.packages.create!(name: 'survivor', ecosystem: 'cargo')
+    doomed_versions = %w[1.0.0 2.0.0].map { |number| package.versions.create!(number: number) }
+    doomed_versions.each { |version| version.dependencies.create!(ecosystem: 'cargo', package_name: 'survivor', package: other, requirements: '*') }
+    other_version = other.versions.create!(number: '1.0.0')
+    dependent = other_version.dependencies.create!(ecosystem: 'cargo', package_name: 'doomed', package: package, requirements: '*')
+    unrelated = other_version.dependencies.create!(ecosystem: 'cargo', package_name: 'serde', requirements: '*')
+
+    assert_difference -> { Version.count } => -2, -> { Dependency.count } => -2 do
+      package.destroy!
+    end
+
+    assert_not Version.exists?(id: doomed_versions.map(&:id))
+    assert_not Dependency.exists?(version_id: doomed_versions.map(&:id))
+    assert_nil dependent.reload.package_id
+    assert_equal 'doomed', dependent.package_name
+    assert_equal other_version, dependent.version
+    assert unrelated.reload
+    assert_equal [other_version], other.versions.reload.to_a
+  end
 end
