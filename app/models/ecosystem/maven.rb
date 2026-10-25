@@ -34,7 +34,7 @@ module Ecosystem
     def download_url(package, version)
       return nil unless version.present?
       group_id, artifact_id = *package.name.split(':', 2)
-      packaging = version.respond_to?(:metadata) ? version.metadata&.dig("packaging") : nil
+      packaging = version.metadata&.dig("packaging")
 
       "#{@registry_url}/#{group_id.gsub(".", "/")}/#{artifact_id}/#{version}/#{artifact_id}-#{version}.#{artifact_extension(packaging)}"
     end
@@ -429,6 +429,10 @@ module Ecosystem
 
     def extract_packaging(pom)
       return nil if pom.nil?
+      # A relocation POM only redirects to new coordinates: nothing but the POM
+      # itself is published at the old ones, whatever the default would be.
+      return "pom" unless pom.locate("distributionManagement/relocation").first.nil?
+
       packaging = pom.locate("packaging/?[0]").first
       packaging.to_s.strip.presence || "jar"
     end
