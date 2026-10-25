@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 module Ecosystem
   class Swiftpm < Base
+    # Swift package identities are repository paths like github.com/owner/repo
+    PACKAGE_NAME = %r{\A[^/\s]+\.[^/\s]+(/[^/\s]+){2,}/?\z}
     VERSION_TAG = /\Av?\d+\.\d+(?:\.\d+)?(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?\z/
 
     def self.purl_type
@@ -9,6 +11,15 @@ module Ecosystem
 
     def self.normalized_package_name(name)
       name.downcase if name.to_s.match?(%r{\Agithub\.com/[^/]+/[^/]+\z}i)
+    end
+
+    def self.valid_package_name?(name)
+      name.to_s.match?(PACKAGE_NAME)
+    end
+
+    def purl(package, version = nil)
+      return nil unless self.class.valid_package_name?(package.name)
+      super
     end
 
     def purl_params(package, version = nil)
@@ -35,6 +46,8 @@ module Ecosystem
     end
 
     def check_status(package)
+      return "removed" unless self.class.valid_package_name?(package.name)
+
       pkg = fetch_package_metadata(package.name)
       return nil if pkg.present? && pkg.is_a?(Hash) && pkg['name'].present?
 
