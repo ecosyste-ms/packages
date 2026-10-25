@@ -242,7 +242,8 @@ module Ecosystem
           ecosystem: 'actions'
         }
       end
-    rescue StandardError
+    rescue StandardError => e
+      Rails.logger.error("Actions dependencies_metadata #{name}@#{version}: #{e.class} #{e.message}")
       []
     end
 

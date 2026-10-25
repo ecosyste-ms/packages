@@ -98,7 +98,8 @@ module Ecosystem
           ecosystem: 'carthage'
         }
       end
-    rescue StandardError
+    rescue StandardError => e
+      Rails.logger.error("Carthage dependencies_metadata #{name}@#{version}: #{e.class} #{e.message}")
       []
     end
   end
