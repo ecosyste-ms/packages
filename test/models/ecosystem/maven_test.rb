@@ -746,6 +746,24 @@ class MavenTest < ActiveSupport::TestCase
     assert_equal({ 'groupId' => 'com.example', 'artifactId' => 'new', 'version' => '1.0.0' }, versions.first[:metadata][:relocation])
   end
 
+  test 'versions_metadata treats a relocation pom without packaging as pom-only' do
+    pom = '<project xmlns="http://maven.apache.org/POM/4.0.0"><groupId>com.example</groupId><artifactId>old</artifactId><version>1.0.0</version><distributionManagement><relocation><groupId>com.example</groupId><artifactId>new</artifactId></relocation></distributionManagement></project>'
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/old/1.0.0/old-1.0.0.pom")
+      .to_return(status: 200, body: pom)
+    relocated_pom = '<project xmlns="http://maven.apache.org/POM/4.0.0"><groupId>com.example</groupId><artifactId>new</artifactId><version>1.0.0</version><packaging>jar</packaging></project>'
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/new/1.0.0/new-1.0.0.pom")
+      .to_return(status: 200, body: relocated_pom)
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/old/1.0.0/old-1.0.0.pom.sha1")
+      .to_return(status: 200, body: "16d2a89f307bc09e96af26d938ade5812550606a")
+    @ecosystem.stubs(:generate_effective_pom).with(pom).returns(pom)
+    @ecosystem.stubs(:generate_effective_pom).with(relocated_pom).returns(relocated_pom)
+
+    versions = @ecosystem.versions_metadata({ name: 'com.example:old', versions: ['1.0.0'] })
+    assert_equal 1, versions.length
+    assert_equal 'pom', versions.first[:metadata][:packaging]
+    assert_equal 'sha1-16d2a89f307bc09e96af26d938ade5812550606a', versions.first[:integrity]
+  end
+
   test 'versions_metadata and dependencies_metadata share one .pom fetch per version' do
     pom = '<project xmlns="http://maven.apache.org/POM/4.0.0"><groupId>com.example</groupId><artifactId>foo</artifactId><version>1.0.0</version><dependencies><dependency><groupId>junit</groupId><artifactId>junit</artifactId><version>4.13</version></dependency></dependencies></project>'
     pom_stub = stub_request(:get, "https://repo1.maven.org/maven2/com/example/foo/1.0.0/foo-1.0.0.pom")
