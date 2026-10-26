@@ -214,6 +214,20 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal 'Invalid PURL format: pkg:/software.amazon.awssdk%3Ametrics-spi', actual_response['error']
   end
 
+  test 'lookup by purl accepts the legacy and current Open VSX purl types' do
+    @registry = Registry.create(name: 'open-vsx.org', url: 'https://open-vsx.org', ecosystem: 'openvsx', default: true)
+    @package = @registry.packages.create(ecosystem: 'openvsx', name: 'redhat/vscode-yaml')
+
+    ['pkg:openvsx/redhat/vscode-yaml', 'pkg:vscode-extension/redhat/vscode-yaml', 'pkg:vscode-extension/redhat/vscode-yaml?repository_url=https://open-vsx.org'].each do |purl|
+      get lookup_api_v1_packages_path(purl: purl)
+      assert_response :success
+      actual_response = Oj.load(@response.body)
+      assert_equal 1, actual_response.length, purl
+      assert_equal @package.name, actual_response.first['name'], purl
+      assert_equal 'pkg:vscode-extension/redhat/vscode-yaml?repository_url=https://open-vsx.org', actual_response.first['purl'], purl
+    end
+  end
+
   test 'lookup by purl github actions' do
     @registry = Registry.create(name: 'github actions', url: 'https://github.com/marketplace/actions/', ecosystem: 'actions')
     @package = @registry.packages.create(ecosystem: 'actions', name: 'actions/checkout')
