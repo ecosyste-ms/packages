@@ -205,7 +205,9 @@ module Ecosystem
     end
 
     def artifacts_metadata(package_metadata)
-      releases = package_metadata[:releases] || package_metadata['releases'] || {}
+      releases = package_metadata[:releases] || package_metadata['releases']
+      return unless releases.is_a?(Hash)
+
       releases.to_h do |number, files|
         [number.to_s, Array(files).map { |file| artifact_metadata(file) }]
       end

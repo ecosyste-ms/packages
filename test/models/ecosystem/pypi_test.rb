@@ -166,6 +166,19 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal 'yiban-0.7.0.1.tar.gz', sdist[:identifier]
   end
 
+  test 'artifact sync preserves stored files when releases are absent' do
+    registry = Registry.create!(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    package = registry.packages.create!(name: 'urllib3', ecosystem: 'pypi')
+    version = package.versions.create!(number: '1.26.8')
+    artifact = version.artifacts.create!(identifier: 'urllib3.whl')
+
+    [{}, { releases: nil }].each do |metadata|
+      package.sync_artifacts(metadata)
+
+      assert_nil artifact.reload.status
+    end
+  end
+
   test 'registry sync stores package response artifacts idempotently' do
     registry = Registry.create!(default: true, name: 'Pypi artifacts', url: 'https://pypi.org', ecosystem: 'pypi')
     ecosystem = registry.ecosystem_instance

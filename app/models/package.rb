@@ -568,9 +568,8 @@ class Package < ApplicationRecord
     artifacts_by_version = ecosystem.artifacts_metadata(package_metadata)
     return if artifacts_by_version.nil?
 
-    versions_by_number = versions.where(number: artifacts_by_version.keys).index_by(&:number)
-    artifacts_by_version.each do |number, artifacts_metadata|
-      versions_by_number[number.to_s]&.sync_artifacts(artifacts_metadata)
+    versions.find_each do |version|
+      version.sync_artifacts(artifacts_by_version.fetch(version.number, []))
     end
   end
 

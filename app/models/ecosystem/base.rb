@@ -141,6 +141,7 @@ module Ecosystem
       []
     end
 
+    # A non-nil snapshot is complete; omitted versions have no files.
     def artifacts_metadata(_package_metadata)
       nil
     end

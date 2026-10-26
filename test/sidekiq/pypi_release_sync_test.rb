@@ -77,6 +77,38 @@ class PypiReleaseSyncTest < ActiveSupport::TestCase
       assert_equal [nil, 'yanked'], @package.versions.find_by!(number: '7.1.2').artifacts.order(:filename).pluck(:status)
     end
 
+    test "#{mode} sync retains artifacts when a release disappears and restores them when it returns" do
+      sync_package(mode)
+      version = @package.versions.find_by!(number: '7.0.3')
+      artifact = version.artifacts.first
+      original = artifact.attributes.except('status', 'updated_at')
+      files = @releases.delete('7.0.3')
+
+      sync_package(mode)
+
+      assert_equal 'removed', artifact.reload.status
+      assert_equal original, artifact.attributes.except('status', 'updated_at')
+      assert_equal ['yanked'], @package.versions.find_by!(number: '7.1.2').artifacts.pluck(:status)
+
+      @releases['7.0.3'] = files
+      sync_package(mode)
+
+      assert_nil artifact.reload.status
+      assert_equal original, artifact.attributes.except('status', 'updated_at')
+      assert_equal [artifact.id], version.artifacts.pluck(:id)
+    end
+
+    test "#{mode} sync marks all artifacts removed for an empty releases response" do
+      sync_package(mode)
+      artifact_ids = Artifact.joins(:version).where(versions: { package_id: @package.id }).order(:id).pluck(:id)
+      @releases.clear
+
+      sync_package(mode)
+
+      assert_equal 2, @package.versions.count
+      assert_equal ['removed', 'removed'], Artifact.where(id: artifact_ids).order(:id).pluck(:status)
+    end
+
     test "#{mode} sync clears latest when all releases are yanked" do
       sync_package(mode)
       @releases['7.0.3'].first.merge!('yanked' => true, 'yanked_reason' => 'Broken build')
