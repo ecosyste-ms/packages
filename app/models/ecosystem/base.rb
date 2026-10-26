@@ -141,6 +141,11 @@ module Ecosystem
       []
     end
 
+    # A non-nil snapshot is complete; omitted versions have no files.
+    def artifacts_metadata(_package_metadata)
+      nil
+    end
+
     def fetch_package_metadata(name, version: nil)
       cache_key = [name, version]
       return @last_fetched_metadata if @last_fetched_key == cache_key

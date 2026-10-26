@@ -274,6 +274,7 @@ class RegistryTest < ActiveSupport::TestCase
 
     releases.each do |number, published_at|
       metadata['releases'][number] = [{
+        'filename' => "pytz-#{number}.tar.gz",
         'upload_time' => published_at,
         'digests' => { 'sha256' => 'a' * 64 },
         'url' => "https://files.pythonhosted.org/packages/pytz-#{number}.tar.gz",

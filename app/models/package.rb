@@ -547,11 +547,13 @@ class Package < ApplicationRecord
         else
           created = versions.create(version)
           created_versions << created if created.persisted?
+          v = created
         end
       rescue ActiveRecord::RecordNotUnique
         Rails.logger.warn("Version not unique: #{version[:number]}")
       end
     end
+    sync_artifacts(package_metadata, ecosystem)
     update_columns(versions_count: versions.count, versions_updated_at: Time.now)
     if self.ecosystem == 'opam'
       update_columns(metadata: (metadata || {}).merge('archived' => package_metadata.dig(:metadata, :archived)))
@@ -560,6 +562,15 @@ class Package < ApplicationRecord
     end
     update_details
     emit_new_version_events(created_versions)
+  end
+
+  def sync_artifacts(package_metadata, ecosystem = registry.ecosystem_instance)
+    artifacts_by_version = ecosystem.artifacts_metadata(package_metadata)
+    return if artifacts_by_version.nil?
+
+    versions.find_each do |version|
+      version.sync_artifacts(artifacts_by_version.fetch(version.number, []))
+    end
   end
 
   def update_versions_async

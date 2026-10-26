@@ -27,6 +27,7 @@ class PypiReleaseSyncTest < ActiveSupport::TestCase
       assert_equal 'yanked', version.status
       assert_equal true, version.metadata['yanked']
       assert_equal 'Broken build', version.metadata['yanked_reason']
+      assert_equal ['yanked'], version.artifacts.pluck(:status)
     end
 
     test "#{mode} sync updates existing releases when yanked and restored" do
@@ -45,9 +46,11 @@ class PypiReleaseSyncTest < ActiveSupport::TestCase
         if yanked
           assert_equal 'yanked', version.status
           assert_equal 'Broken build', version.metadata['yanked_reason']
+          assert_equal ['yanked'], version.artifacts.pluck(:status)
         else
           assert_nil version.status
           assert_nil version.metadata['yanked_reason']
+          assert_equal [nil], version.artifacts.pluck(:status)
         end
         assert_equal yanked, version.metadata['yanked']
         assert_equal original, version.attributes.slice('integrity', 'licenses', 'published_at')
@@ -61,12 +64,49 @@ class PypiReleaseSyncTest < ActiveSupport::TestCase
 
     test "#{mode} sync keeps releases with an unyanked file eligible" do
       sync_package(mode)
-      @releases['7.1.2'] << release_file('7.1.2', '2026-08-25T12:38:42', false)
+      @releases['7.1.2'] << release_file('7.1.2', '2026-08-25T12:38:42', false).merge(
+        'filename' => 'pbr-7.1.2-py3-none-any.whl',
+        'url' => 'https://files.pythonhosted.org/packages/pbr-7.1.2-py3-none-any.whl',
+        'packagetype' => 'bdist_wheel'
+      )
 
       sync_package(mode)
 
       assert_latest_release '7.1.2'
       assert_nil @package.versions.find_by!(number: '7.1.2').status
+      assert_equal [nil, 'yanked'], @package.versions.find_by!(number: '7.1.2').artifacts.order(:filename).pluck(:status)
+    end
+
+    test "#{mode} sync retains artifacts when a release disappears and restores them when it returns" do
+      sync_package(mode)
+      version = @package.versions.find_by!(number: '7.0.3')
+      artifact = version.artifacts.first
+      original = artifact.attributes.except('status', 'updated_at')
+      files = @releases.delete('7.0.3')
+
+      sync_package(mode)
+
+      assert_equal 'removed', artifact.reload.status
+      assert_equal original, artifact.attributes.except('status', 'updated_at')
+      assert_equal ['yanked'], @package.versions.find_by!(number: '7.1.2').artifacts.pluck(:status)
+
+      @releases['7.0.3'] = files
+      sync_package(mode)
+
+      assert_nil artifact.reload.status
+      assert_equal original, artifact.attributes.except('status', 'updated_at')
+      assert_equal [artifact.id], version.artifacts.pluck(:id)
+    end
+
+    test "#{mode} sync marks all artifacts removed for an empty releases response" do
+      sync_package(mode)
+      artifact_ids = Artifact.joins(:version).where(versions: { package_id: @package.id }).order(:id).pluck(:id)
+      @releases.clear
+
+      sync_package(mode)
+
+      assert_equal 2, @package.versions.count
+      assert_equal ['removed', 'removed'], Artifact.where(id: artifact_ids).order(:id).pluck(:status)
     end
 
     test "#{mode} sync clears latest when all releases are yanked" do
@@ -108,6 +148,7 @@ class PypiReleaseSyncTest < ActiveSupport::TestCase
 
   def release_file(number, published_at, yanked)
     {
+      'filename' => "pbr-#{number}.tar.gz",
       'upload_time' => published_at,
       'digests' => { 'sha256' => number.delete('.').ljust(64, '0') },
       'url' => "https://files.pythonhosted.org/packages/pbr-#{number}.tar.gz",
