@@ -28,16 +28,23 @@ class OpenvsxTest < ActiveSupport::TestCase
     assert_equal check_status_url, "https://open-vsx.org/api/redhat/vscode-yaml"
   end
 
-  test 'purl' do
+  test 'purl names the registry explicitly even for the default registry' do
     purl = @ecosystem.purl(@package)
-    assert_equal purl, 'pkg:openvsx/redhat/vscode-yaml'
+    assert_equal purl, 'pkg:vscode-extension/redhat/vscode-yaml?repository_url=https://open-vsx.org'
     assert Purl.parse(purl)
   end
 
   test 'purl with version' do
     purl = @ecosystem.purl(@package, @version)
-    assert_equal purl, 'pkg:openvsx/redhat/vscode-yaml@1.18.0'
+    assert_equal purl, 'pkg:vscode-extension/redhat/vscode-yaml@1.18.0?repository_url=https://open-vsx.org'
     assert Purl.parse(purl)
+  end
+
+  test 'purl type lookups support current and legacy types' do
+    ['vscode-extension', 'openvsx'].each do |purl_type|
+      assert_equal 'openvsx', Ecosystem::Base.purl_type_to_ecosystem(purl_type)
+      assert_equal '/', Ecosystem::Base.purl_type_to_namespace_separator(purl_type)
+    end
   end
 
   test 'all_package_names' do

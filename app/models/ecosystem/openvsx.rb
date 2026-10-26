@@ -2,6 +2,14 @@
 
 module Ecosystem
   class Openvsx < Base
+    def self.purl_type
+      'vscode-extension'
+    end
+
+    def self.legacy_purl_types
+      ['openvsx']
+    end
+
     def sync_maintainers_inline?
       true
     end
@@ -11,7 +19,10 @@ module Ecosystem
         type: purl_type,
         namespace: package.name.split('/').first,
         name: package.name.split('/').last,
-        version: version.try(:number).try(:encode,'iso-8859-1')
+        version: version.try(:number).try(:encode,'iso-8859-1'),
+        # The vscode-extension purl type defaults to the VS Code Marketplace,
+        # so Open VSX always names its registry explicitly
+        qualifiers: { 'repository_url' => @registry_url }
       }
     end
 

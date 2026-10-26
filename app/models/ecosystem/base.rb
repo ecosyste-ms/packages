@@ -256,16 +256,20 @@ module Ecosystem
       name.demodulize.downcase
     end
 
+    def self.legacy_purl_types
+      []
+    end
+
     def self.namespace_separator
       '/'
     end
 
     def self.purl_type_to_ecosystem(purl_type)
-      list.find { |p| p.purl_type == purl_type }.try(:lowercase_name)
+      list.find { |p| p.purl_type == purl_type || p.legacy_purl_types.include?(purl_type) }.try(:lowercase_name)
     end
 
     def self.purl_type_to_namespace_separator(purl_type)
-      list.find { |p| p.purl_type == purl_type }.try(:namespace_separator)
+      list.find { |p| p.purl_type == purl_type || p.legacy_purl_types.include?(purl_type) }.try(:namespace_separator)
     end
 
     def namespace_package_names(namespace)
