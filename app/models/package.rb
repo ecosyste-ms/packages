@@ -14,6 +14,8 @@ class Package < ApplicationRecord
   REPO_METADATA_REFRESH_INTERVAL = 5.minutes.to_f / REPO_METADATA_REFRESH_BATCH_SIZE
   REPO_METADATA_REFRESH_SCAN_SIZE = 100_000
   REPO_METADATA_REFRESH_MAX_AGE = 1.month
+  SYNC_COOLDOWN = 1.day
+  POPULAR_SYNC_COOLDOWN = 12.hours
   RANKED_FIELDS = %i[downloads dependent_repos_count dependent_packages_count stargazers_count forks_count docker_downloads_count].freeze
   REPO_METADATA_RANKED_FIELDS = %i[stargazers_count forks_count].freeze
   
@@ -177,12 +179,12 @@ class Package < ApplicationRecord
 
   def self.sync_least_recent_async
     return if Sidekiq::Queue.new('critical').size > 10_000
-    Package.active.outdated.frequently_synced.where.not(registry_id: Registry.throttled_ids).order('RANDOM()').limit(4000).select('packages.id, packages.last_synced_at, packages.registry_id').each(&:sync_async)
+    Package.active.outdated.frequently_synced.where.not(registry_id: Registry.throttled_ids).order('RANDOM()').limit(4000).select('packages.id, packages.last_synced_at, packages.registry_id, packages.rankings').each(&:sync_async)
   end
 
   def self.sync_least_recent_top_async
     return if Sidekiq::Queue.new('critical').size > 10_000
-    Package.active.frequently_synced.order('RANDOM()').top(2).where('packages.last_synced_at < ?', 12.hours.ago).select('packages.id, packages.last_synced_at, packages.registry_id').limit(500).each(&:sync_async)
+    Package.active.frequently_synced.order('RANDOM()').top(1).where('packages.last_synced_at < ?', POPULAR_SYNC_COOLDOWN.ago).select('packages.id, packages.last_synced_at, packages.registry_id, packages.rankings').limit(500).each(&:sync_async)
   end
 
   def self.check_statuses_async
@@ -195,7 +197,7 @@ class Package < ApplicationRecord
     Package.active.frequently_synced
             .where(downloads: nil)
             .where(ecosystem: ['cargo','clojars','conda','hackage','hex','homebrew','julia','npm','nuget','packagist','puppet','rubygems','pypi'])
-            .limit(1000).select('packages.id, packages.last_synced_at, packages.registry_id').each(&:sync_async)
+            .limit(1000).select('packages.id, packages.last_synced_at, packages.registry_id, packages.rankings').each(&:sync_async)
   end
 
   def self.sync_maintainers_async
@@ -514,8 +516,17 @@ class Package < ApplicationRecord
     end
   end
 
+  def sync_cooldown
+    rank = rankings&.fetch('average', nil)
+    rank && rank < 1 ? POPULAR_SYNC_COOLDOWN : SYNC_COOLDOWN
+  end
+
+  def next_sync_at
+    last_synced_at + sync_cooldown if last_synced_at
+  end
+
   def sync_async
-    return if last_synced_at && last_synced_at > 1.day.ago
+    return if next_sync_at && next_sync_at > Time.current
     return if registry&.sync_in_batches?
     SyncPackageByIdWorker.perform_async(registry_id, id)
   end

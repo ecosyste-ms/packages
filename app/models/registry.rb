@@ -220,7 +220,14 @@ class Registry < ApplicationRecord
 
   def sync_recently_updated_packages_async(period: 15.minutes)
     return if sync_in_batches?
-    sync_packages_async(recently_updated_package_names_excluding_recently_synced, period: period, force: true)
+    names = Array(recently_updated_package_names).compact.map(&:to_s).uniq
+    budget = sync_budget(period)
+    names = names.first(budget) if budget
+    recent_syncs = packages.where(name: names).where('last_synced_at > ?', 10.minutes.ago).pluck(:name, :last_synced_at)
+    recent_syncs.each do |name, last_synced_at|
+      SyncPackageWorker.perform_at(last_synced_at + 10.minutes, id, name, true)
+    end
+    sync_packages_async(names - recent_syncs.map(&:first), period: period, force: true)
   end
 
   def sync_packages(package_names, force: false)
@@ -293,11 +300,9 @@ class Registry < ApplicationRecord
     end
     package ||= packages.find_or_initialize_by(name: package_metadata[:name])
 
-    if !force && package.last_synced_at && package.last_synced_at > 1.day.ago
+    if !force && package.next_sync_at && package.next_sync_at > Time.current
       unless sync_in_batches?
-        # if recently synced, schedule for syncing 1 day later
-        delay = (package.last_synced_at + 1.day) - Time.now
-        SyncPackageWorker.perform_in(delay, id, name)
+        SyncPackageWorker.perform_at(package.next_sync_at, id, name)
       end
       return
     end
