@@ -2017,6 +2017,7 @@ components:
           format: date-time
           nullable: true
         dependent_packages_count:
+          description: Cached count of existing packages with a dependency in any release. The dependent_packages endpoint defaults to latest releases only; use latest=false for historical dependents.
           type: integer
         downloads:
           type: integer

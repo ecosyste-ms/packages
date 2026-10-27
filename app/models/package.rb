@@ -237,19 +237,58 @@ class Package < ApplicationRecord
   end
 
   def self.dependency_package_id(registry_id, ecosystem, name)
-    packages = where(registry_id: registry_id)
-    normalized_name = Ecosystem::Base.find(ecosystem)&.normalized_package_name(name)
-    return packages.where(name: name).pick(:id) unless normalized_name
+    dependency_package_ids(registry_id, ecosystem, [name])[name]
+  end
 
-    packages.select(:id).find_by_normalized_name(name, normalized_name: normalized_name)&.id
+  def self.dependency_package_ids(registry_id, ecosystem, names)
+    names = names.compact.uniq
+    return {} if names.empty?
+
+    normalizer = Ecosystem::Base.find(ecosystem)
+    normalized = names.to_h do |name|
+      canonical = ecosystem.casecmp?('pypi') ? name.downcase.gsub(/[-_.]+/, '-') : normalizer&.normalized_package_name(name)
+      [name, canonical]
+    end
+    scope = where(registry_id: registry_id)
+    matches = scope.where(name: names + normalized.values.compact)
+    if normalized.values.any?
+      matches = matches.or(scope.where("metadata->>'normalized_name' IN (?)", normalized.values.compact.uniq))
+      rows = matches.pluck(:id, :name, Arel.sql("metadata->>'normalized_name'"))
+    else
+      rows = matches.pluck(:id, :name)
+    end
+    exact = rows.to_h { |id, name, _| [name, id] }
+    aliases = rows.group_by { |_, _, name| name }
+    names.to_h do |name|
+      canonical = normalized[name]
+      candidates = canonical && aliases[canonical]
+      id = exact[name] || exact[canonical]
+      id ||= candidates.first.first if candidates&.one?
+      [name, id]
+    end
   end
 
   def update_dependent_packages_count
-    update(dependent_packages_count: Dependency.where(package_id: id).joins(:version).count('distinct(versions.package_id)'))
+    count = dependent_packages.count
+    update_columns(dependent_packages_count: count, updated_at: Time.current) if count != dependent_packages_count
+  end
+
+  def self.with_dependency_query_limits
+    transaction(requires_new: true) do
+      settings = %w[statement_timeout lock_timeout max_parallel_workers_per_gather].to_h do |name|
+        [name, connection.select_value("SHOW #{name}")]
+      end
+      connection.execute("SET LOCAL statement_timeout = '2s'")
+      connection.execute("SET LOCAL lock_timeout = '250ms'")
+      connection.execute('SET LOCAL max_parallel_workers_per_gather = 0')
+      result = yield
+      settings.each { |name, value| connection.execute("SET LOCAL #{name} = #{connection.quote(value)}") }
+      result
+    end
   end
 
   def update_dependent_packages_count_async
-    UpdateDependentPackagesCountWorker.perform_async(id)
+    UpdateDependentPackagesCountWorker.enqueue([id])
   end
 
   def update_dependent_packages_details

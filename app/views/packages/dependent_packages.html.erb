@@ -8,6 +8,8 @@
     <div class="col-lg-8">
       <%= render 'tabs' %>
 
+      <p class="text-muted">The dependent package count includes all releases. This list shows <%= params[:latest] == 'false' ? 'all releases' : 'latest releases only' %>.</p>
+
       <% if @dependent_packages.any? %>
         <%= render @dependent_packages %>
         <%== pagy_bootstrap_nav(@pagy) if @pagy.pages && @pagy.pages > 1 %>

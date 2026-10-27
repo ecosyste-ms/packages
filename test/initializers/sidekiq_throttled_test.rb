@@ -92,4 +92,36 @@ class SidekiqThrottledTest < ActiveSupport::TestCase
     assert @strategy.throttled?(SecureRandom.hex, @npm.id, 'c')
     assert @strategy.throttled?(SecureRandom.hex, other.id, 'c')
   end
+
+  test 'dependent counts run one at a time without delaying the next count' do
+    strategy = Sidekiq::Throttled::Registry.get('UpdateDependentPackagesCountWorker')
+    job_id = SecureRandom.hex
+    refute strategy.throttled?(job_id, 1)
+    assert strategy.throttled?(SecureRandom.hex, 2)
+    strategy.finalize!(job_id, 1)
+    refute strategy.throttled?(job_id, 2)
+    strategy.finalize!(job_id, 2)
+    assert_equal :enqueue, strategy.requeue_with
+  end
+
+  test 'throttled unique count jobs keep their payload and lock when requeued' do
+    worker = UpdateDependentPackagesCountWorker
+    queue = "queue:count-test-#{SecureRandom.hex}"
+    job = nil
+    SidekiqUniqueJobs.use_config(enabled: true) do
+      jid = worker.perform_async(-SecureRandom.random_number(1_000_000_000))
+      job = worker.jobs.find { |item| item['jid'] == jid }
+      assert job
+      assert_nil worker.perform_async(*job['args'])
+      work = Struct.new(:queue, :job).new(queue, job.to_json)
+      Sidekiq::Throttled::Registry.get(worker.name).requeue_throttled(work)
+      queued = Sidekiq.redis { |connection| connection.rpop(queue) }
+      assert_equal job, JSON.parse(queued)
+      assert_nil worker.perform_async(*job['args'])
+    end
+  ensure
+    SidekiqUniqueJobs::Unlockable.unlock(job) if job
+    worker.jobs.delete(job) if job
+    Sidekiq.redis { |connection| connection.del(queue) } if queue
+  end
 end

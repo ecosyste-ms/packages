@@ -3,6 +3,7 @@ require "test_helper"
 class SwiftpmSyncTest < ActiveSupport::TestCase
   setup do
     @registry = Registry.create!(default: true, name: 'Swiftpm.io', url: 'https://swiftpm.io', ecosystem: 'swiftpm')
+    UpdateDependentPackagesCountWorker.clear
     @name = 'github.com/swift-cloud/Compute'
     @lookup = JSON.parse(file_fixture('swiftpm/lookup?url=https:%2F%2Fgithub.com%2Fswift-cloud%2FCompute').read)
     Package.any_instance.stubs(:update_repo_metadata_async)
@@ -133,6 +134,7 @@ class SwiftpmSyncTest < ActiveSupport::TestCase
     package = sync(tags: tags('1.0.0'))
     dependency = package.versions.first.dependencies.find_by!(package_name: 'github.com/krzyzanowskim/cryptoswift')
     assert_equal target.id, dependency.package_id
+    UpdateDependentPackagesCountWorker.drain
     assert_equal 1, target.reload.dependent_packages_count
   end
 
@@ -153,6 +155,7 @@ class SwiftpmSyncTest < ActiveSupport::TestCase
       dependency = package.versions.first.dependencies.find_by!(requirements: '1.6.0')
       assert_equal declared_name, dependency.package_name
       assert_equal target.id, dependency.package_id
+      UpdateDependentPackagesCountWorker.drain
       assert_equal 1, target.reload.dependent_packages_count
       assert_empty duplicate.dependencies
     end
@@ -182,8 +185,24 @@ class SwiftpmSyncTest < ActiveSupport::TestCase
     target = @registry.packages.create!(name: 'github.com/Krzyzanowskim/cryptoswift', ecosystem: 'swiftpm', metadata: {'normalized_name' => 'github.com/krzyzanowskim/cryptoswift'})
     sync(tags: tags('1.0.0'))
     assert_equal target.id, package.versions.first.dependencies.find_by!(package_name: 'github.com/krzyzanowskim/cryptoswift').package_id
+    UpdateDependentPackagesCountWorker.drain
     assert_equal 1, target.reload.dependent_packages_count
     assert_requested(:get, 'https://raw.githubusercontent.com/swift-cloud/Compute/1.0.0/Package.resolved', times: 1)
+  end
+
+  test 'sync does not recount previously linked targets inline or enqueue them again without new versions' do
+    target = @registry.packages.create!(name: 'github.com/Krzyzanowskim/cryptoswift', ecosystem: 'swiftpm', metadata: { 'normalized_name' => 'github.com/krzyzanowskim/cryptoswift' })
+    stub_request(:get, 'https://raw.githubusercontent.com/swift-cloud/Compute/1.0.0/Package.resolved')
+      .to_return(status: 200, body: file_fixture('swiftpm/Package.resolved'))
+    Package.any_instance.expects(:update_dependent_packages_details).never
+    Package.any_instance.expects(:update_dependent_packages_count).never
+    package = sync(tags: tags('1.0.0'))
+    assert_includes UpdateDependentPackagesCountWorker.jobs.map { |job| job['args'] }, [target.id]
+    UpdateDependentPackagesCountWorker.clear
+
+    sync(tags: tags('1.0.0'))
+
+    assert_equal [[package.id]], UpdateDependentPackagesCountWorker.jobs.map { |job| job['args'] }
   end
 
   test 'sync of a dependency target links previously imported case variants' do
@@ -192,6 +211,7 @@ class SwiftpmSyncTest < ActiveSupport::TestCase
     dependency = version.dependencies.create!(package_name: @name.downcase, ecosystem: 'swiftpm', requirements: '*', kind: 'runtime')
     package = sync
     assert_equal package.id, dependency.reload.package_id
+    UpdateDependentPackagesCountWorker.drain
     assert_equal 1, package.reload.dependent_packages_count
   end
 
