@@ -178,4 +178,46 @@ class DependencyResolutionTest < ActiveSupport::TestCase
   def create_dependency(version, **attributes)
     version.dependencies.create!({ package_name: @source_library.name, ecosystem: 'maven', requirements: '*' }.merge(attributes))
   end
+
+  test 'insertion resolves a batch with one package lookup and preserves registry boundaries' do
+    rows = Array.new(100) do
+      { version_id: @source_version.id, package_name: @source_library.name, ecosystem: 'maven', requirements: '*' }
+    end
+    rows << rows.first.merge(ecosystem: 'npm')
+    rows << rows.first.merge(package_name: 'com.example:missing')
+
+    ids = nil
+    assert_queries_match(/\ASELECT .* FROM "packages"/, count: 1) do
+      ids = Dependency.insert_linked(rows, registry: @source)
+    end
+
+    assert_equal [@source_library.id], ids
+    assert_equal 100, Dependency.where(package_id: @source_library.id).count
+    assert_equal 2, Dependency.without_package.count
+    assert_empty Dependency.where(package_id: @other_library.id)
+  end
+
+  test 'batch lookup normalizes PyPI names without guessing ambiguous aliases' do
+    registry = Registry.create!(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
+    cryptography = registry.packages.create!(name: 'cryptography', ecosystem: 'pypi')
+    tomli = registry.packages.create!(name: 'tomli_w', ecosystem: 'pypi', metadata: { normalized_name: 'tomli-w' })
+    first = registry.packages.create!(name: 'some_library', ecosystem: 'pypi', metadata: { normalized_name: 'some-library' })
+    registry.packages.create!(name: 'some.library', ecosystem: 'pypi', metadata: { normalized_name: 'some-library' })
+    names = %w[Cryptography TOMLI.W Some-Library some_library absent]
+    ids = nil
+    assert_queries_match(/\ASELECT .* FROM "packages"/, count: 1) do
+      ids = Package.dependency_package_ids(registry.id, registry.ecosystem, names)
+    end
+    assert_equal({ 'Cryptography' => cryptography.id, 'TOMLI.W' => tomli.id, 'Some-Library' => nil,
+                   'some_library' => first.id, 'absent' => nil }, ids)
+    assert_equal cryptography.id, Package.dependency_package_id(registry.id, 'pypi', 'Cryptography')
+  end
+
+  test 'batch lookup keeps exact and normalized-name precedence for CocoaPods' do
+    registry = Registry.create!(name: 'cocoapods.org', url: 'https://cocoapods.org', ecosystem: 'cocoapods')
+    root = registry.packages.create!(name: 'Example', ecosystem: 'cocoapods')
+    exact = registry.packages.create!(name: 'Example/Core', ecosystem: 'cocoapods')
+    assert_equal({ 'Example/Core' => exact.id, 'Example/Other' => root.id },
+                 Package.dependency_package_ids(registry.id, 'cocoapods', %w[Example/Core Example/Other]))
+  end
 end

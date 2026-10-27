@@ -13,6 +13,27 @@ def with_rake_lock(task_name, ttl: 3600)
 end
 
 namespace :packages do
+  desc 'start the recurring dependent count reconciliation sweep'
+  task reconcile_dependent_counts: :environment do
+    job_id = ReconcileDependentPackageCountsWorker.perform_async
+    puts(job_id ? "Scheduled dependent count reconciliation: #{job_id}" : 'Dependent count reconciliation is already scheduled')
+  end
+
+  desc 'start the recurring scan for dependencies whose target packages now exist'
+  task relink_missing_dependencies: :environment do
+    job_id = RelinkDependenciesWorker.perform_async
+    puts(job_id ? "Scheduled dependency relinking: #{job_id}" : 'Dependency relinking is already scheduled')
+  end
+
+  desc 'link one batch of dependencies by registry and declared name; print the next dependency ID cursor'
+  task :relink_dependencies, [:registry, :name, :after_id, :batch_size] => :environment do |_task, args|
+    raise ArgumentError, 'registry and name are required' if args[:registry].blank? || args[:name].blank?
+    registry = Registry.where('lower(name) = ?', args[:registry].downcase).sole
+    result = Dependency.relink_batch(registry: registry, name: args[:name],
+                                    after_id: Integer(args[:after_id] || 0), batch_size: Integer(args[:batch_size] || 1000))
+    puts result.to_json
+  end
+
   desc 'queue dependencies that packages declare against each registry but are missing from the ecosystem'
   task sync_declared_dependencies: :environment do
     ecosystems = Ecosystem::Base.list.select(&:declared_repositories_key).map(&:lowercase_name)

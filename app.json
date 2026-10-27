@@ -1,6 +1,14 @@
 {
   "cron": [
     {
+      "command": "bundle exec rake packages:reconcile_dependent_counts",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "command": "bundle exec rake packages:relink_missing_dependencies",
+      "schedule": "*/5 * * * *"
+    },
+    {
       "command": "bundle exec rake packages:sync_recent_npm",
       "schedule": "*/5 * * * *"
     },

@@ -35,9 +35,13 @@ class UniqueJobOptionsTest < ActiveSupport::TestCase
   end
 
   test "other unique workers use the global lock ttl" do
-    (unique_workers - throttled_unique_workers).each do |worker|
+    (unique_workers - throttled_unique_workers - [ReconcileDependentPackageCountsWorker]).each do |worker|
       assert_equal SidekiqUniqueJobs.config.lock_ttl, worker.get_sidekiq_options["lock_ttl"], worker.name
     end
+  end
+
+  test 'recurring reconciliation keeps its uniqueness lock through the daily pause' do
+    assert_operator ReconcileDependentPackageCountsWorker.get_sidekiq_options['lock_ttl'], :>, 1.day.to_i
   end
 
   test "prepared unique jobs retain a positive lock ttl" do

@@ -313,6 +313,7 @@ class Registry < ApplicationRecord
     package.update_repo_metadata_async if update_repo_metadata_after_save
 
     new_versions = []
+    dependent_package_ids = Set.new
     existing_version_numbers = package.versions.pluck('number')
 
     versions_metadata = ecosystem_instance.versions_metadata(package_metadata, existing_version_numbers)
@@ -323,6 +324,7 @@ class Registry < ApplicationRecord
     end
 
     if new_versions.any?
+      dependent_package_ids.merge(Dependency.with_package.where(version_id: package.versions.where(latest: true).select(:id)).distinct.pluck(:package_id))
       new_versions.uniq! { |v| v.with_indifferent_access[:number].to_s }
 
       new_versions.each_slice(100) do |s|
@@ -361,14 +363,15 @@ class Registry < ApplicationRecord
       end
       
       all_deps.flatten.each_slice(100) do |s|
-        # TODO upsert dependencies instead
-        Dependency.insert_all(s) 
+        dependent_package_ids.merge(Dependency.insert_linked(s, registry: self))
       end
     end
 
     package.update(versions_count: package.versions.count, last_synced_at: Time.zone.now)
     package.update_details
     ecosystem_instance.update_dependency_links(package)
+    RelinkDependenciesWorker.perform_async if new_package
+    UpdateDependentPackagesCountWorker.enqueue(dependent_package_ids.to_a) if dependent_package_ids.any?
     package.update_dependent_repos_count_async if ecosystem_instance.has_dependent_repos?
     if ecosystem_class.instance_methods(false).include? :maintainers_metadata
       if ecosystem_instance.sync_maintainers_inline?

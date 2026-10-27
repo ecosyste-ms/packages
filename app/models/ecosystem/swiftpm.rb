@@ -219,7 +219,8 @@ module Ecosystem
         dependencies.where(package_name: name).in_batches.update_all(package_id: id)
         id
       end
-      Package.where(id: linked_ids.uniq + [package.id]).find_each(&:update_dependent_packages_details)
+      package.update_dependent_package_ids
+      UpdateDependentPackagesCountWorker.enqueue(linked_ids + [package.id])
     end
 
     def description(string)

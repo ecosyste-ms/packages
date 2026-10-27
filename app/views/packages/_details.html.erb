@@ -46,7 +46,7 @@
       <% end %>
       <% if @package.dependent_packages_count && @package.dependent_packages_count > 0 %>
         <div class="col-md-4 mb-2">
-          <strong>Dependent Packages</strong><br>
+          <strong>Dependent Packages (all releases)</strong><br>
           <%= number_with_delimiter(@package.dependent_packages_count) %>
         </div>
       <% end %>
