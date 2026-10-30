@@ -76,7 +76,7 @@
       },
       "publication": 1777422722.0
     },
-    "packgeByVersions": {
+    "packageByVersions": {
       "packages": [
         {
           "name": "lwt",

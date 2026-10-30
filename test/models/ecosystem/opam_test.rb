@@ -13,17 +13,19 @@ class OpamTest < ActiveSupport::TestCase
         .to_return(status: 200, body: file_fixture("opam/lwt.#{version}.opam").read)
     end
     stub_request(:post, 'https://ocaml.org/graphql')
-      .with { |req| !JSON.parse(req.body)['query'].include?('packgeByVersions') }
+      .with { |req| !JSON.parse(req.body)['query'].include?('packageByVersions') }
       .to_return(status: 200, body: { data: { package: { name: 'lwt' } } }.to_json)
   end
 
-  test 'sync package persists registry metadata, releases and conditional dependencies' do
+  test 'sync worker persists registry metadata, releases and conditional dependencies' do
     request = stub_request(:post, 'https://ocaml.org/graphql').with do |req|
       body = JSON.parse(req.body)
-      body['variables'] == { 'name' => 'lwt' } && body['query'].include?('packgeByVersions')
+      body['variables'] == { 'name' => 'lwt' } && body['query'].include?('packageByVersions')
     end.to_return(status: 200, body: @response.to_json)
 
-    package = @registry.sync_package('lwt').reload
+    package = @registry.packages.create!(name: 'lwt', ecosystem: 'opam')
+    SyncPackageByIdWorker.new.perform(@registry.id, package.id)
+    package.reload
 
     assert_equal 'Promises and event-driven I/O', package.description
     assert_equal 'https://github.com/ocsigen/lwt', package.repository_url
@@ -124,7 +126,7 @@ class OpamTest < ActiveSupport::TestCase
   end
 
   test 'sync supports packages without source archives or publication dates' do
-    @response['data']['packgeByVersions']['packages'].each do |version|
+    @response['data']['packageByVersions']['packages'].each do |version|
       version['url'] = nil
       version['publication'] = 0
     end
@@ -137,7 +139,7 @@ class OpamTest < ActiveSupport::TestCase
   end
 
   test 'compound dependency filters remain intact' do
-    version = @response['data']['packgeByVersions']['packages'].first
+    version = @response['data']['packageByVersions']['packages'].first
     stub_request(:get, "https://opam.ocaml.org/packages/lwt/lwt.#{version['version']}/opam")
       .to_return(status: 200, body: <<~OPAM)
         opam-version: "2.0"
@@ -159,7 +161,7 @@ class OpamTest < ActiveSupport::TestCase
 
   test 'sync chooses opam versions by version order rather than publication date' do
     versions = %w[1.0~beta2 1.0 1.0+2 1.0+10 2.0~beta1]
-    @response['data']['packgeByVersions']['packages'] = versions.each_with_index.map do |number, index|
+    @response['data']['packageByVersions']['packages'] = versions.each_with_index.map do |number, index|
       @response['data']['package'].merge('version' => number, 'publication' => 1756310969 - index)
     end
     versions.each do |version|
@@ -188,7 +190,7 @@ class OpamTest < ActiveSupport::TestCase
   test 'sync retains alternative dependency groups from raw opam metadata' do
     entry = { name: 'ocaml-variants', version: '4.14.2+options', synopsis: 'OCaml compiler', homepage: ['https://ocaml.org'] }
     stub_request(:post, 'https://ocaml.org/graphql').to_return(status: 200, body: {
-      data: { package: entry, packgeByVersions: { packages: [entry] } }
+      data: { package: entry, packageByVersions: { packages: [entry] } }
     }.to_json)
     stub_request(:get, 'https://opam.ocaml.org/packages/ocaml-variants/ocaml-variants.4.14.2+options/opam')
       .to_return(status: 200, body: file_fixture('opam/ocaml-variants.4.14.2+options.opam').read)
@@ -349,7 +351,7 @@ class OpamTest < ActiveSupport::TestCase
   end
 
   test 'a stale GraphQL listing falls back to the archive when a manifest moves' do
-    @response['data']['packgeByVersions']['packages'].find { |entry| entry['version'] == '6.1.2' }['url']['uri'] = 'https://old.example.org/lwt.tar.gz'
+    @response['data']['packageByVersions']['packages'].find { |entry| entry['version'] == '6.1.2' }['url']['uri'] = 'https://old.example.org/lwt.tar.gz'
     stub_request(:post, Ecosystem::Opam::API_URL).to_return(status: 200, body: @response.to_json)
     stub_request(:get, 'https://opam.ocaml.org/packages/lwt/lwt.6.1.2/opam').to_return(status: 404)
     stub_archived_manifest('6.1.2', file_fixture('opam/lwt.6.1.2.opam').read)
@@ -411,7 +413,7 @@ class OpamTest < ActiveSupport::TestCase
     stub_archive_index('lwt' => ['6.1.2'])
     content = file_fixture('opam/lwt.6.1.2.opam').read.sub('>= "4.14"', '>= "4.14" & < "5.0"')
     stub_archived_manifest('6.1.2', content + "\nx-reason-for-archiving: [\"maintenance-intent\"]\n")
-    @response['data']['packgeByVersions']['packages'].reject! { |version| version['version'] == '6.1.2' }
+    @response['data']['packageByVersions']['packages'].reject! { |version| version['version'] == '6.1.2' }
     @response['data']['package']['version'] = '5.10.1'
     stub_request(:post, Ecosystem::Opam::API_URL).to_return(status: 200, body: @response.to_json)
   end
