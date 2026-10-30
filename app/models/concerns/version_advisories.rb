@@ -54,7 +54,9 @@ module VersionAdvisories
     if package.ecosystem == "packagist"
       SemanticRange.satisfies?(number, range)
     else
-      Vers.satisfies?(number, range, vers_scheme)
+      scheme = vers_scheme
+      range = range.tr(',', ' ') if scheme == 'npm'
+      Vers.satisfies?(number, range, scheme, include_prerelease: true)
     end
   rescue ArgumentError
     false
