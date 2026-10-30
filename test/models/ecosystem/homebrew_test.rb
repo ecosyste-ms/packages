@@ -69,11 +69,28 @@ class HomebrewTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
-    stub_request(:get, "https://github.com/Homebrew/homebrew-core/commits/master.atom")
+    stub_request(:get, "https://github.com/Homebrew/homebrew-core/commits/main.atom")
       .to_return({ status: 200, body: file_fixture('homebrew/master.atom') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
     assert_equal recently_updated_package_names.length, 10
     assert_equal recently_updated_package_names.last, 'jql'
+  end
+
+  test 'recently_updated_package_names skips merge and maintenance commits' do
+    feed = <<~XML
+      <?xml version="1.0" encoding="UTF-8"?>
+      <feed xmlns="http://www.w3.org/2005/Atom">
+        <entry><title>Merge pull request #322283 from Homebrew/bump-keploy-3.6.180</title></entry>
+        <entry><title>keploy: update 3.6.180 bottle.</title></entry>
+        <entry><title>build(deps): bump the github-actions group across 1 directory with 16 updates</title></entry>
+        <entry><title>keploy 3.6.180</title></entry>
+        <entry><title>python@3.13 3.13.9</title></entry>
+      </feed>
+    XML
+    stub_request(:get, "https://github.com/Homebrew/homebrew-core/commits/main.atom")
+      .to_return(status: 200, body: feed)
+
+    assert_equal ['keploy', 'python@3.13'], @ecosystem.recently_updated_package_names
   end
 
   test 'package_metadata' do

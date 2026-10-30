@@ -54,6 +54,21 @@ class ConanTest < ActiveSupport::TestCase
     assert_includes recently_updated_package_names, 'zlib'
   end
 
+  test 'recently_updated_package_names reads package-prefixed commit titles' do
+    feed = <<~XML
+      <?xml version="1.0" encoding="UTF-8"?>
+      <feed xmlns="http://www.w3.org/2005/Atom">
+        <entry><title>trantor: publish version 1.5.29 (#31235)</title></entry>
+        <entry><title>msys2: update base tarball from 2025-12-13 to 2026-09-27 (#31208)</title></entry>
+        <entry><title>Bump CI runners</title></entry>
+      </feed>
+    XML
+    stub_request(:get, "https://github.com/conan-io/conan-center-index/commits/master.atom")
+      .to_return(status: 200, body: feed)
+
+    assert_equal ['trantor', 'msys2'], @ecosystem.recently_updated_package_names
+  end
+
   test 'package_metadata' do
     stub_request(:get, "https://conan.io/api/search/all?topics=&licenses=")
       .to_return({ status: 200, body: file_fixture('conan/search_all.json') })

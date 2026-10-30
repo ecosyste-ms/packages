@@ -65,7 +65,7 @@ module Ecosystem
     def recently_updated_package_names
       begin
         u = "#{@registry_url}/-/rss?descending=true&limit=50"
-        rss_names = SimpleRSS.parse(get_raw(u)).items.map(&:title).uniq
+        rss_names = feed_titles(u).uniq
       rescue
         rss_names = []
       end

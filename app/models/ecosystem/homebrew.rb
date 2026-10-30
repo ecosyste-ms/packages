@@ -32,9 +32,9 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      u = "https://github.com/Homebrew/homebrew-core/commits/master.atom"
-      titles = SimpleRSS.parse(get_raw(u)).items.map(&:title)
-      titles.map { |t| t.split(/[\s,:]/)[0] }.uniq
+      u = "https://github.com/Homebrew/homebrew-core/commits/main.atom"
+      titles = feed_titles(u)
+      titles.map { |t| t[/\A([\w@+.-]+)(?::| \d)/, 1] }.compact.uniq
     rescue
       []
     end
