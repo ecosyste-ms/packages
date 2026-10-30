@@ -173,6 +173,8 @@ class OpamTest < ActiveSupport::TestCase
     package = @registry.sync_package('lwt').reload
 
     assert_equal '1.0+10', package.latest_release_number
+    assert_equal ['1.0+10'], package.versions.where(latest: true).pluck(:number)
+    refute package.versions.find_by!(number: '2.0~beta1').latest
     assert_equal versions.reverse, package.versions.sort.map(&:number)
     assert package.versions.find_by!(number: '2.0~beta1').prerelease?
     assert package.versions.find_by!(number: '1.0+10').stable?
