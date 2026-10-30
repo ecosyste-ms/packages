@@ -252,6 +252,10 @@ module Ecosystem
       self.class.purl_type
     end
 
+    def version_scheme
+      purl_type
+    end
+
     def self.purl_type
       name.demodulize.downcase
     end

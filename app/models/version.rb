@@ -137,15 +137,21 @@ class Version < ApplicationRecord
       return Ecosystem::Opam.compare_versions(other.number, number)
     end
 
-    if parsed_number.is_a?(String) || other.parsed_number.is_a?(String)
-      other.published_at <=> published_at
-    else
-      begin
-        other.parsed_number <=> parsed_number
-      rescue ArgumentError
-        other.published_at <=> published_at
-      end
+    if valid_number? && Vers.valid?(other.number, version_scheme)
+      comparison = Vers.compare_with_scheme(other.number, number, version_scheme)
+      return comparison unless comparison.zero?
     end
+
+    compare_by_published_at_and_number(other)
+  rescue ArgumentError
+    compare_by_published_at_and_number(other)
+  end
+
+  def compare_by_published_at_and_number(other)
+    comparison = (other.published_at || Time.at(0)) <=> (published_at || Time.at(0))
+    return comparison unless comparison.zero?
+
+    other.number.to_s <=> number.to_s
   end
 
   def related_versions
@@ -166,29 +172,6 @@ class Version < ApplicationRecord
 
   def to_s
     number
-  end
-
-  def semantic_version
-    @semantic_version ||= begin
-      Semantic::Version.new(clean_number)
-    rescue ArgumentError
-      nil
-    end
-  end
-
-  def parsed_number
-    @parsed_number ||= semantic_version || number
-  end
-
-  def clean_number
-    @clean_number ||= (SemanticRange.clean(number) || two_component_number || number)
-  end
-
-  # Some ecosystems publish calendar versions like "2026.4" with only two
-  # components. Semantic::Version rejects them, which drops every such release
-  # from stable-version selection. Pad them to a valid "major.minor.patch".
-  def two_component_number
-    number.match(/\A(\d+)\.(\d+)\z/) { "#{Regexp.last_match(1)}.#{Regexp.last_match(2)}.0" }
   end
 
   def update_integrity_async
@@ -260,7 +243,9 @@ class Version < ApplicationRecord
   end
 
   def valid_number?
-    !!semantic_version
+    return @valid_number if defined?(@valid_number)
+
+    @valid_number = Vers.valid?(number, version_scheme)
   end
 
   def stable?
@@ -270,18 +255,11 @@ class Version < ApplicationRecord
 
   def prerelease?
     return number.include?('~') if package&.ecosystem == 'opam'
-    if semantic_version && semantic_version.pre.present?
-      true
-    else
-      case package.try(:ecosystem)
-      when "rubygems"
-        !!number[/[a-zA-Z]/]
-      when "pypi"
-        !!(number =~ /(a|b|rc|dev)[-_.]?[0-9]*$/)
-      else
-        false
-      end
-    end
+    Vers.prerelease?(number, version_scheme)
+  end
+
+  def version_scheme
+    @version_scheme ||= package.registry.ecosystem_instance.version_scheme
   end
 
 end
