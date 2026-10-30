@@ -85,6 +85,19 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal recently_updated_package_names.last, 'lgy'
   end
 
+  test 'recently_updated_package_names reads binary feeds with non-ASCII descriptions' do
+    feed = <<~XML.b
+      <?xml version="1.0" encoding="UTF-8"?>
+      <rss version="2.0"><channel><title>PyPI recent updates</title>
+      <item><title>langchain-arcmira 0.1.7</title><description>Arcmira’s LangChain integration</description></item>
+      </channel></rss>
+    XML
+    stub_request(:get, "https://pypi.org/rss/updates.xml").to_return(status: 200, body: feed)
+    stub_request(:get, "https://pypi.org/rss/packages.xml").to_return(status: 200, body: feed)
+
+    assert_equal ['langchain-arcmira'], @ecosystem.recently_updated_package_names
+  end
+
   test 'normalized_name collapses separator runs' do
     body = JSON.parse(file_fixture('pypi/yiban.json').read)
     body['info']['name'] = 'Foo__Bar.-baz'

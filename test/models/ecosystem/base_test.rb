@@ -7,6 +7,13 @@ class BaseTest < ActiveSupport::TestCase
     @package = @registry.packages.create(ecosystem: 'test', name: 'test-package')
   end
 
+  test 'feed_titles logs and returns an empty list when the feed fails' do
+    stub_request(:get, 'https://test.example.com/feed.xml').to_timeout
+    Rails.logger.expects(:warn).with(regexp_matches(%r{Failed to read feed https://test.example.com/feed.xml: Faraday::TimeoutError}))
+
+    assert_equal [], @ecosystem.feed_titles('https://test.example.com/feed.xml')
+  end
+
   test 'check_status returns nil when URL is blank' do
     @package.update(repository_url: nil, homepage: nil)
     status = @ecosystem.check_status(@package)

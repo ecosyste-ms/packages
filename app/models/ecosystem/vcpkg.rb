@@ -25,7 +25,7 @@ module Ecosystem
 
     def recently_updated_package_names
       u = "https://github.com/microsoft/vcpkg/commits/master.atom"
-      titles = SimpleRSS.parse(get_raw(u)).items.map(&:title)
+      titles = feed_titles(u)
       titles.map { |t| t.match(/\[(.*?)\]/) && t.match(/\[(.*?)\]/)[1] }.uniq.compact
     rescue
       []

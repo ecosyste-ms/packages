@@ -43,9 +43,9 @@ module Ecosystem
 
     def recently_updated_package_names
       u = "#{@registry_url}/rss/updates.xml"
-      updated = SimpleRSS.parse(get_raw(u)).items.map(&:title)
+      updated = feed_titles(u)
       u = "#{@registry_url}/rss/packages.xml"
-      new_packages = SimpleRSS.parse(get_raw(u)).items.map(&:title)
+      new_packages = feed_titles(u)
       (updated.map { |t| t.split(" ").first } + new_packages.map { |t| t.split(" ").first }).map(&:downcase).uniq
     rescue
       []

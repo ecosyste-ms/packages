@@ -387,6 +387,14 @@ module Ecosystem
       packages
     end
 
+    def feed_titles(url)
+      # Faraday returns binary bodies, which SimpleRSS fails to encode on any non-ASCII byte
+      SimpleRSS.parse(get_raw(url).to_s.dup.force_encoding(Encoding::UTF_8)).items.map(&:title)
+    rescue => e
+      Rails.logger.warn("Failed to read feed #{url}: #{e.class} #{e.message}")
+      []
+    end
+
     private
 
     def get_raw_no_exception(url, options = {})

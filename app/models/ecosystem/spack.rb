@@ -32,7 +32,7 @@ module Ecosystem
 
     def recently_updated_package_names
       u = "https://github.com/spack/spack/commits/develop.atom"
-      titles = SimpleRSS.parse(get_raw(u)).items.map(&:title)
+      titles = feed_titles(u)
       titles.map { |t| t.split(/[\s,:]/)[0] }.uniq
     rescue
       []

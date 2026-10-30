@@ -138,10 +138,9 @@ module Ecosystem
       # fall back to watching the GitHub repo commits
       url = "https://github.com/NixOS/nixpkgs/commits/nixos-#{channel}.atom"
       begin
-        feed = SimpleRSS.parse(get_raw(url))
         # Extract package names from commit titles like "package-name: 1.0 -> 1.1"
-        feed.items.flat_map do |item|
-          title = item.title.to_s
+        feed_titles(url).flat_map do |title|
+          title = title.to_s
           if title.include?(':')
             [title.split(':').first.strip]
           else
