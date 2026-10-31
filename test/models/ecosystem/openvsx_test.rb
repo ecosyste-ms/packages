@@ -87,14 +87,91 @@ class OpenvsxTest < ActiveSupport::TestCase
       .to_return({ status: 200, body: file_fixture('openvsx/vscode-yaml.json') })
     stub_request(:get, "https://open-vsx.org/api/redhat/vscode-yaml/1.18.0")
       .to_return({ status: 200, body: file_fixture('openvsx/vscode-yaml-1.18.0.json') })
+    stub_request(:get, "https://open-vsx.org/api/redhat/vscode-yaml/1.18.0/file/redhat.vscode-yaml-1.18.0.sha256")
+      .to_return(status: 200, body: "#{'A' * 64}\n")
     package_metadata = @ecosystem.package_metadata('redhat/vscode-yaml')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
     assert_equal versions_metadata[0], {
       number: "1.18.0",
       published_at: DateTime.parse("2025-04-28T15:41:07.089268Z"),
-      status: nil
+      status: nil,
+      integrity: "sha256-#{'a' * 64}",
+      metadata: {
+        download_url: 'https://open-vsx.org/api/redhat/vscode-yaml/1.18.0/file/redhat.vscode-yaml-1.18.0.vsix',
+        signature_url: 'https://open-vsx.org/api/redhat/vscode-yaml/1.18.0/file/redhat.vscode-yaml-1.18.0.sigzip',
+        public_key_url: 'https://open-vsx.org/api/-/public-key/14ccb407-4e79-41ed-be5a-6d608325c45a',
+        sha256_url: 'https://open-vsx.org/api/redhat/vscode-yaml/1.18.0/file/redhat.vscode-yaml-1.18.0.sha256',
+        target_platform: 'universal',
+        published_by: JSON.parse(file_fixture('openvsx/vscode-yaml-1.18.0.json').read)['publishedBy']
+      }
     }
+  end
+
+  test 'registry sync persists security metadata for new platform versions only' do
+    @registry = Registry.create!(name: 'open-vsx.org', url: 'https://open-vsx.org', ecosystem: 'openvsx')
+    package = @registry.packages.create!(name: @package.name, ecosystem: 'openvsx')
+    existing = package.versions.create!(number: '1.17.0', metadata: { 'keep' => true })
+    source = JSON.parse(file_fixture('openvsx/vscode-yaml-1.18.0.json').read)
+    source['allVersions'] = { 'latest' => 'unused', '1.18.0' => 'unused', '1.17.0' => 'unused' }
+    source['targetPlatform'] = 'linux-x64'
+    source['publishedWithTrustedPublishing'] = true
+    source['files'].transform_values! { |url| url.sub('/1.18.0/file/', '/linux-x64/1.18.0/file/') }
+    stub_request(:get, 'https://open-vsx.org/api/redhat/vscode-yaml')
+      .to_return(status: 200, body: source.to_json)
+    stub_request(:get, 'https://open-vsx.org/api/redhat/vscode-yaml/1.18.0')
+      .to_return(status: 200, body: source.to_json)
+    stub_request(:get, source['files']['sha256'])
+      .to_return(status: 200, body: 'b' * 64)
+
+    synced = @registry.sync_package(package.name)
+    version = synced.versions.find_by!(number: '1.18.0').reload
+
+    assert_equal "sha256-#{'b' * 64}", version.integrity
+    assert_equal source['files']['download'], version.download_url
+    assert_equal source['files']['signature'], version.metadata['signature_url']
+    assert_equal source['files']['publicKey'], version.metadata['public_key_url']
+    assert_equal source['files']['sha256'], version.metadata['sha256_url']
+    assert_equal 'linux-x64', version.metadata['target_platform']
+    assert_equal source['publishedBy'], version.metadata['published_by']
+    assert_equal true, version.metadata['published_with_trusted_publishing']
+    assert_equal({ 'keep' => true }, existing.reload.metadata)
+    assert_nil existing.integrity
+    assert_not_requested(:get, 'https://open-vsx.org/api/redhat/vscode-yaml/1.17.0')
+    assert_requested(:get, source['files']['sha256'], times: 1)
+  end
+
+  test 'versions without optional security fields still import' do
+    source = JSON.parse(file_fixture('openvsx/vscode-yaml-1.18.0.json').read)
+    source.except!('files', 'publishedBy', 'targetPlatform')
+    source['publishedWithTrustedPublishing'] = false
+    source['downloadable'] = false
+    stub_request(:get, 'https://open-vsx.org/api/redhat/vscode-yaml/1.18.0')
+      .to_return(status: 200, body: source.to_json)
+
+    version = @ecosystem.versions_metadata(name: @package.name, versions: { '1.18.0' => 'unused' }).sole
+
+    assert_nil version[:integrity]
+    assert_equal 'yanked', version[:status]
+    assert_equal({ published_with_trusted_publishing: false }, version[:metadata])
+  end
+
+  test 'checksum failures do not discard version metadata' do
+    source = JSON.parse(file_fixture('openvsx/vscode-yaml-1.18.0.json').read)
+    stub_request(:get, 'https://open-vsx.org/api/redhat/vscode-yaml/1.18.0')
+      .to_return(status: 200, body: source.to_json)
+    checksum = stub_request(:get, source['files']['sha256'])
+    checksum.to_return(status: 404, body: 'a' * 64)
+      .then.to_return(status: 200, body: 'not a checksum')
+      .then.to_return(status: 200, body: 'a' * 65)
+      .then.to_timeout
+
+    4.times do
+      version = @ecosystem.versions_metadata(name: @package.name, versions: { '1.18.0' => 'unused' }).sole
+      assert_equal '1.18.0', version[:number]
+      assert_nil version[:integrity]
+      assert_equal source['files']['signature'], version[:metadata][:signature_url]
+    end
   end
 
   test 'maintainers_metadata' do
