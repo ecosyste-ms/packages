@@ -1,8 +1,8 @@
 require 'test_helper'
 require 'rake'
 require 'stringio'
-require_relative '../../lib/package_corpus_export'
-require_relative '../../lib/corpus_upload'
+require_relative '../../lib/corpus/export'
+require_relative '../../lib/corpus/upload'
 
 class CorpusRakeTest < ActiveSupport::TestCase
   self.use_transactional_tests = false
@@ -131,7 +131,7 @@ class CorpusRakeTest < ActiveSupport::TestCase
     selection = JSON.parse(files.fetch('selection.json'))
     assert_equal 20, selection['selected']
     signals = selection.fetch('signals').select { |r| r['registry_id'] == npm.id }
-    assert_equal CorpusSelection::METRICS.sort, signals.map { |r| r['signal'] }.sort
+    assert_equal Corpus::Selection::METRICS.sort, signals.map { |r| r['signal'] }.sort
     assert signals.all? { |r| r['truncated'] && r['observed_packages'] == 50 }
     assert statements.any? { |sql| sql.include?('TABLESAMPLE SYSTEM') && sql.include?('REPEATABLE') }
     assert_equal 6, statements.count { |sql| sql.start_with?('SELECT id,') && sql.include?('ORDER BY') && sql.end_with?('LIMIT 51') }
@@ -284,7 +284,7 @@ class CorpusRakeTest < ActiveSupport::TestCase
   end
 
   test 'S3 signature matches the AWS published PUT object example' do
-    uploader = CorpusUpload.new(endpoint: 'https://s3.amazonaws.com', bucket: 'examplebucket', region: 'us-east-1',
+    uploader = Corpus::Upload.new(endpoint: 'https://s3.amazonaws.com', bucket: 'examplebucket', region: 'us-east-1',
       access_key: 'AKIAIOSFODNN7EXAMPLE', secret_key: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY')
     headers = uploader.headers(URI('https://examplebucket.s3.amazonaws.com/test%24file.text'), Digest::SHA256.hexdigest('Welcome to Amazon S3.'), Time.utc(2013, 5, 24),
       'date' => 'Fri, 24 May 2013 00:00:00 GMT', 'x-amz-storage-class' => 'REDUCED_REDUNDANCY')
