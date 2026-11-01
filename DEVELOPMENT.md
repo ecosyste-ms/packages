@@ -74,6 +74,34 @@ You can list all of the available rake tasks with the following command:
 
 `rake -T`
 
+### Package corpus exports
+
+`exports:corpus` creates an experimental data archive for the separate search service. It reuses a supplied package selection and project assignments. It does not select a new population, recalculate project identity or build a search index.
+
+Run with the project's Ruby and Bundler:
+
+```sh
+bundle exec rake exports:corpus ASSIGNMENTS=/path/to/assignment-manifest.json OUTPUT=/path/to/corpus.tar.gz
+```
+
+The input manifest identifies a compressed assignments file by `assignments_file` and `assignments_sha256`, with `packages` and `projects` counts. Each assignment contains `package_id`, `project_id`, `previous_project_id`, `display_name` and a `reason` enum. Supported reasons are `repository`, `package`, `distribution_release` and `registry_mirror`. Existing assignment exports can be used directly.
+
+The task refreshes those package IDs from the database in read-only batches of 250. `BATCH_SIZE` accepts 1–1000. It inspects table statistics, indexes and query plans, rejects costly sequential scans and applies a five-second statement timeout. It reads no versions and makes no requests to registries or repository services. Batches can observe different database states; refreshed metadata does not revalidate the supplied grouping.
+
+To replay a saved package snapshot without querying the database, add `SOURCE=/path/to/packages.ndjson.gz`. Its checksum must match the input manifest's `source_package_sha256`. Both modes exclude records with status `removed` and IDs in `known_newly_removed_package_ids`. Missing selected IDs cause an error. Existing output files are never overwritten.
+
+The archive contains `packages.ndjson.gz` with full exported metadata, `projects.ndjson.gz` with group names and original package IDs, `assignments.ndjson.gz`, their manifests, and `excluded.json`. PURLs come from the package service in database mode and remain unchanged in snapshot mode. Nulls and numeric zeros stay distinct. The manifest records counts by registry, null counts, source checksums and file checksums. Existing search importers that require a baseline corpus still need that matching baseline separately.
+
+Optional upload uses S3-compatible HTTPS PUT requests and requires no new gems or external upload tools. Set `UPLOAD=true`, `S3_ENDPOINT`, `S3_BUCKET`, `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`. `AWS_SESSION_TOKEN` is supported. For R2, use the account's S3 API endpoint and the default `S3_REGION=auto`; for AWS S3, set its regional endpoint and region. See the [R2 S3 API documentation](https://developers.cloudflare.com/r2/api/s3/api/).
+
+Objects use `package-corpus/<archive-sha256>.tar.gz`; set `S3_PREFIX` to choose another prefix. The task uploads no mutable latest pointer and does not change bucket visibility. An upload failure keeps the complete local file. Retry it without exporting again:
+
+```sh
+bundle exec rake exports:upload_corpus FILE=/path/to/corpus.tar.gz
+```
+
+The upload-only task uses the same storage environment variables. Uploads stream from disk, have connection and read/write timeouts, and support files up to 5 GB in a single request. Larger exports need multipart upload support.
+
 ## Background tasks
 
 Background tasks are handled by [sidekiq](https://github.com/mperham/sidekiq), the workers live in [app/sidekiq](app/sidekiq/).
