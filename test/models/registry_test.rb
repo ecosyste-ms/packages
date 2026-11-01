@@ -273,6 +273,35 @@ class RegistryTest < ActiveSupport::TestCase
     end
   end
 
+  test 'npm sync preserves repository declarations across releases and monorepo packages' do
+    registry = Registry.create!(name: 'registry.npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    old_repository = 'git+https://github.com/example/previous.git'
+
+    %w[core parser].each do |component|
+      name = "@example/#{component}"
+      repository = { 'type' => 'git', 'url' => 'git+https://github.com/example/monorepo.git', 'directory' => "packages/#{component}" }
+      source = { '_id' => name, 'versions' => {}, 'time' => {}, 'maintainers' => [] }
+      stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/#{name}")
+        .to_return(status: 200, body: { downloads: 100 }.to_json)
+
+      { '1.0.0' => old_repository, '2.0.0' => repository }.each do |number, declaration|
+        source['versions'][number] = { 'name' => name, 'version' => number, 'license' => 'MIT', 'repository' => declaration }
+        source['dist-tags'] = { 'latest' => number }
+        stub_request(:get, "https://registry.npmjs.org/#{name.gsub('/', '%2F')}")
+          .to_return(status: 200, body: source.to_json)
+
+        SyncPackageWorker.new.perform(registry.id, name, true)
+
+        package = registry.packages.find_by!(name: name).reload
+        assert_equal declaration, package.metadata['repository']
+        assert_equal declaration, package.versions.find_by!(number: number).metadata['repository']
+        assert_equal old_repository, package.versions.find_by!(number: '1.0.0').metadata['repository']
+      end
+
+      assert_equal 'https://github.com/example/monorepo', registry.packages.find_by!(name: name).repository_url
+    end
+  end
+
   test 'sync_package persists two-component PyPI releases on initial sync and resync' do
     registry = Registry.create!(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
     releases = {
