@@ -6,6 +6,8 @@ require 'set'
 require 'tempfile'
 require 'tmpdir'
 require 'zlib'
+require_relative 'corpus_selection'
+require_relative 'corpus_projects'
 
 class PackageCorpusExport
   REASONS = %w[repository package distribution_release registry_mirror].freeze
@@ -13,96 +15,111 @@ class PackageCorpusExport
   SIGNALS = %w[downloads downloads_period dependent_packages_count dependent_repos_count docker_downloads_count docker_dependents_count maintainers_count].freeze
   ACTIVITY = %w[latest_release_number latest_published_release_number latest_release_published_at first_release_published_at last_synced_at created_at updated_at repo_metadata_updated_at versions_count versions_updated_at].freeze
 
-  def initialize(manifest:, output:, source: nil, batch_size: 250)
-    @manifest_path = File.expand_path(manifest)
-    @input = JSON.parse(File.read(@manifest_path))
+  def initialize(output:, manifest: nil, source: nil, batch_size: 250, **selection)
+    @manifest_path = manifest && File.expand_path(manifest)
+    @input = @manifest_path ? JSON.parse(File.read(@manifest_path)) : {}
     @output = File.expand_path(output)
     @source = source && File.expand_path(source)
     @batch_size = Integer(batch_size)
+    @selection_options = selection
+    raise ArgumentError, 'SOURCE replay requires ASSIGNMENTS; database exports need neither' if @source && !@manifest_path
     raise ArgumentError, 'BATCH_SIZE must be between 1 and 1000' unless @batch_size.between?(1, 1000)
     raise ArgumentError, 'Output already exists' if File.exist?(@output)
   end
 
   def run
-    assignments = load_assignments
-    removed = @input.fetch('known_newly_removed_package_ids', []).to_set
     started = Time.now.utc.iso8601
+    if @manifest_path
+      assignments = load_assignments
+      ids = assignments.keys.sort
+    else
+      @database = CorpusDatabase.new
+      @selector = CorpusSelection.new(database: @database, **@selection_options)
+      ids = @selector.run
+      @registries = @selector.registries.transform_values { |r| Registry.instantiate(r) }
+      assignments = nil
+    end
+    raise 'No packages selected' if ids.empty?
+    removed = @input.fetch('known_newly_removed_package_ids', []).to_set
     FileUtils.mkdir_p(File.dirname(@output))
     Dir.mktmpdir('package-export-', File.dirname(@output)) do |dir|
-      counts = Hash.new(0)
-      missing = Hash.new(0)
-      groups = {}
-      retained = 0
-      seen = Set.new
-      excluded = []
+      rows, excluded, seen = [], [], Set.new
+      counts, missing = Hash.new(0), Hash.new(0)
       gzip(File.join(dir, 'packages.ndjson.gz')) do |packages|
-        gzip(File.join(dir, 'assignments.ndjson.gz')) do |members|
-          each_package(assignments.keys.sort) do |record|
-            id = record.fetch('package_id')
-            assignment = assignments.fetch(id)
-            raise "Duplicate source package #{id}" unless seen.add?(id)
-            if record['status'].to_s.downcase == 'removed' || removed.include?(id)
-              excluded << {'package_id' => id, 'reason' => 'removed'}
-              next
-            end
-            packages.puts(JSON.generate(record))
-            members.puts(JSON.generate(assignment))
-            retained += 1
-            counts[[record.dig('registry', 'id'), record.dig('registry', 'name'), record['ecosystem']]] += 1
-            %w[purl description homepage repository_url].each { |field| missing[field] += 1 if record[field].nil? }
-            signals = record.fetch('signals')
-            %w[downloads dependent_packages_count dependent_repos_count docker_downloads_count stargazers_count forks_count].each do |field|
-              missing["signals.#{field}"] += 1 if signals[field].nil?
-            end
-            group = (groups[assignment.fetch('project_id')] ||= {
-              'id' => assignment.fetch('project_id'), 'name' => assignment.fetch('display_name'),
-              'reason' => assignment.fetch('reason'), 'package_ids' => []
-            })
-            group['package_ids'] << id
+        each_package(ids) do |record|
+          id = record.fetch('package_id')
+          raise "Duplicate source package #{id}" unless seen.add?(id)
+          if record['status'].to_s.downcase == 'removed' || removed.include?(id)
+            excluded << {'package_id' => id, 'reason' => 'removed'}
+            next
           end
+          record['provenance']['selection'] = @selector.selected.fetch(id) if @selector
+          packages.puts(JSON.generate(record))
+          rows << projection(record).merge('source_line' => rows.size + 1)
+          counts[[record.dig('registry', 'id'), record.dig('registry', 'name'), record['ecosystem']]] += 1
+          %w[purl description homepage repository_url].each { |field| missing[field] += 1 if record[field].nil? }
+          CorpusSelection::METRICS.each { |field| missing["signals.#{field}"] += 1 if record.dig('signals', field).nil? }
         end
       end
-      absent = assignments.keys - seen.to_a
+      absent = ids - seen.to_a
       raise "Selected packages missing from source (#{absent.size}): #{absent.first(10).join(', ')}" unless absent.empty?
-      raise 'No retained packages' if retained.zero?
-      gzip(File.join(dir, 'projects.ndjson.gz')) { |gz| groups.sort.each { |_, group| gz.puts(JSON.generate(group)) } }
+      raise 'No retained packages' if rows.empty?
+      if assignments
+        retained = rows.map { |r| r['package_id'] }.to_set
+        assignments = assignments.values.select { |a| retained.include?(a['package_id']) }.sort_by { |a| a['package_id'] }
+      else
+        identity = CorpusIdentity.new
+        assignments = identity.assignments(rows)
+        File.write(File.join(dir, 'identity.json'), JSON.pretty_generate(identity.report))
+        File.write(File.join(dir, 'selection.json'), JSON.pretty_generate(@selector.report))
+        gzip(File.join(dir, 'selection.ndjson.gz')) { |gz| @selector.selected.sort.each { |_, r| gz.puts(JSON.generate(r)) } }
+      end
+      gzip(File.join(dir, 'assignments.ndjson.gz')) { |gz| assignments.each { |a| gz.puts(JSON.generate(a)) } }
+      package_sha = Digest::SHA256.file(File.join(dir, 'packages.ndjson.gz')).hexdigest
+      as_of = @input.fetch('as_of', started)
+      groups = CorpusProjects.new(rows: rows, assignments: assignments, as_of: as_of).write(dir, package_sha)
       File.write(File.join(dir, 'excluded.json'), JSON.pretty_generate(excluded))
-      files = Dir.children(dir).sort.to_h { |name| [name, file_info(File.join(dir, name))] }
-      assignment_manifest = @input.slice('source_corpus_sha256', 'as_of').merge(
-        'source_package_path' => 'packages.ndjson.gz', 'source_package_sha256' => files.fetch('packages.ndjson.gz').fetch('sha256'),
-        'assignments_file' => 'assignments.ndjson.gz', 'assignments_sha256' => files.fetch('assignments.ndjson.gz').fetch('sha256'),
-        'packages' => retained, 'projects' => groups.size, 'reason_values' => REASONS, 'experimental' => true,
-        'description' => 'Supplied project assignments, with removed packages excluded. Grouping and selection are not recalculated.'
+      assignment_manifest = @input.slice('source_corpus_sha256').merge(
+        'as_of' => as_of, 'source_package_path' => 'packages.ndjson.gz', 'source_package_sha256' => package_sha,
+        'assignments_file' => 'assignments.ndjson.gz', 'assignments_sha256' => Digest::SHA256.file(File.join(dir, 'assignments.ndjson.gz')).hexdigest,
+        'packages' => rows.size, 'projects' => groups, 'reason_values' => REASONS, 'experimental' => true,
+        'description' => @manifest_path ? 'Supplied assignments with removed packages excluded.' : 'Generated from stored package metadata. corpus.json is self-contained; no prior corpus is required.'
       )
       File.write(File.join(dir, 'assignment-manifest.json'), JSON.pretty_generate(assignment_manifest))
-      files['assignment-manifest.json'] = file_info(File.join(dir, 'assignment-manifest.json'))
+      files = Dir.children(dir).sort.to_h { |name| [name, file_info(File.join(dir, name))] }
       manifest = {
-        'experimental' => true, 'records' => retained, 'projects' => groups.size,
-        'sha256' => files.fetch('packages.ndjson.gz').fetch('sha256'),
-        'extraction_started_at' => started, 'extraction_finished_at' => Time.now.utc.iso8601,
+        'experimental' => true, 'records' => rows.size, 'projects' => groups, 'sha256' => package_sha,
+        'extraction_started_at' => started, 'extraction_finished_at' => Time.now.utc.iso8601, 'as_of' => as_of,
         'source' => @source ? 'snapshot' : 'database', 'source_snapshot_sha256' => @source && Digest::SHA256.file(@source).hexdigest,
-        'parent_assignment_manifest_sha256' => Digest::SHA256.file(@manifest_path).hexdigest,
-        'selection' => 'All package IDs in the supplied assignments, excluding removed records.',
-        'grouping' => 'Supplied assignments preserved; refreshed metadata does not revalidate identity.',
+        'parent_assignment_manifest_sha256' => @manifest_path && Digest::SHA256.file(@manifest_path).hexdigest,
+        'selection' => @selector ? @selector.report : 'Supplied package selection.',
+        'grouping' => identity ? identity.report : 'Supplied assignments preserved.',
         'consistency' => @source ? 'Checksum-verified source snapshot.' : 'Read-only batches; records can change between batches.',
         'registries' => counts.sort_by { |key, _| key.map(&:to_s) }.map { |(id, name, ecosystem), count| {id: id, name: name, ecosystem: ecosystem, packages: count} },
-        'null_counts' => missing, 'excluded_packages' => excluded.size, 'files' => files
+        'null_counts' => missing, 'excluded_packages' => excluded.size, 'files' => files,
+        'project_records_file' => 'projects.ndjson.gz', 'corpus_file' => 'corpus.json', 'package_records_file' => 'packages.ndjson.gz'
       }
-      if @source && manifest.fetch('source_snapshot_sha256') != @input.fetch('source_package_sha256')
-        raise 'Source changed during export'
-      end
-      manifest['database'] = @database if @database
+      raise 'Source changed during export' if @source && manifest['source_snapshot_sha256'] != @input.fetch('source_package_sha256')
+      manifest['database'] = @database.catalog.merge('queries' => @database.queries, 'batch_size' => @batch_size, 'statement_timeout_ms' => 5000, 'lock_timeout_ms' => 500) if @database
       File.write(File.join(dir, 'manifest.json'), JSON.pretty_generate(manifest))
       archive(dir)
       manifest.merge('archive' => @output, 'archive_sha256' => Digest::SHA256.file(@output).hexdigest)
     end
   end
 
+  def projection(record)
+    result = record.dup
+    metadata = record['metadata'].is_a?(Hash) ? record['metadata'] : {}
+    result['metadata'] = metadata.slice('origin', 'binary', 'architecture', 'maintainers', 'maintainer', 'urls', 'source_url')
+    result['repository'] = (record['repository'] || {}).slice('id', 'html_url', 'full_name', 'description', 'language', 'license', 'topics', 'previous_names', 'pushed_at', 'archived', 'fork', 'stargazers_count', 'last_synced_at')
+    result.delete('provenance')
+    result
+  end
+
   def load_assignments
     path = File.expand_path(@input.fetch('assignments_file'), File.dirname(@manifest_path))
     raise 'Assignment checksum differs' unless Digest::SHA256.file(path).hexdigest == @input.fetch('assignments_sha256')
-    assignments = {}
-    groups = {}
+    assignments, groups = {}, {}
     Zlib::GzipReader.open(path) do |gz|
       gz.each_line do |line|
         row = JSON.parse(line)
@@ -111,10 +128,9 @@ class PackageCorpusExport
         raise "Duplicate assignment #{id}" if assignments.key?(id)
         %w[project_id display_name previous_project_id].each { |key| raise "Missing #{key}" if row[key].to_s.strip.empty? }
         raise 'Unknown grouping reason' unless REASONS.include?(row['reason'])
-        identity = row.values_at('display_name', 'reason')
-        prior = groups[row['project_id']]
-        raise 'Conflicting group metadata' if prior && prior != identity
-        groups[row['project_id']] = identity
+        metadata = row.values_at('display_name', 'reason')
+        raise 'Conflicting group metadata' if groups[row['project_id']] && groups[row['project_id']] != metadata
+        groups[row['project_id']] = metadata
         assignments[id] = row
       end
     end
@@ -126,12 +142,7 @@ class PackageCorpusExport
     if @source
       raise 'Source checksum differs' unless Digest::SHA256.file(@source).hexdigest == @input.fetch('source_package_sha256')
       selected = ids.to_set
-      Zlib::GzipReader.open(@source) do |gz|
-        gz.each_line do |line|
-          record = JSON.parse(line)
-          yield record if selected.include?(record.fetch('package_id'))
-        end
-      end
+      Zlib::GzipReader.open(@source) { |gz| gz.each_line { |line| record = JSON.parse(line); yield record if selected.include?(record.fetch('package_id')) } }
     else
       ids.each_slice(@batch_size) do |batch|
         database_batch(batch).each { |record| yield record }
@@ -141,46 +152,36 @@ class PackageCorpusExport
   end
 
   def database_batch(ids)
-    Package.connection_pool.with_connection do |connection|
-      connection.transaction do
-        connection.execute('SET TRANSACTION READ ONLY')
-        connection.execute("SET LOCAL statement_timeout = '5s'")
-        connection.execute("SET LOCAL lock_timeout = '500ms'")
-        connection.execute("SET LOCAL idle_in_transaction_session_timeout = '15s'")
-        @database ||= {
-          'table' => connection.select_one("SELECT reltuples::bigint AS estimated_rows, pg_total_relation_size(oid) AS total_bytes FROM pg_class WHERE oid = 'packages'::regclass"),
-          'indexes' => connection.select_values("SELECT indexdef FROM pg_indexes WHERE schemaname = current_schema() AND tablename = 'packages'"),
-          'batch_size' => @batch_size, 'statement_timeout_ms' => 5000, 'lock_timeout_ms' => 500
-        }
-        relation = Package.where(id: ids).order(:id).select(:id, :registry_id, :repo_metadata, *FIELDS, *SIGNALS, *ACTIVITY)
-        plan = JSON.parse(connection.select_value("EXPLAIN (FORMAT JSON) #{relation.to_sql}"))
-        # Tiny tables may legitimately use a sequential scan during local runs.
-        if plan.to_json.include?('Seq Scan') && plan.first.fetch('Plan').fetch('Total Cost') > 100
-          raise 'Export would scan packages sequentially'
-        end
-        rows = relation.to_a
-        registries = Registry.where(id: rows.map(&:registry_id).uniq).index_by(&:id)
-        rows.map do |package|
-          package.registry = registries.fetch(package.registry_id)
-          repository = package.repo_metadata.is_a?(Hash) ? package.repo_metadata : nil
-          package.attributes.slice(*FIELDS).merge(
-            'package_id' => package.id, 'purl' => package.purl,
-            'registry' => package.registry.attributes.slice('id', 'name', 'url', 'ecosystem'),
-            'repository' => repository,
-            'signals' => package.attributes.slice(*SIGNALS).merge('stargazers_count' => repository&.[]('stargazers_count'), 'forks_count' => repository&.[]('forks_count')),
-            'activity' => package.attributes.slice(*ACTIVITY),
-            'provenance' => {'source_database' => Rails.env, 'retrieved_at' => Time.now.utc.iso8601, 'source_registry_id' => package.registry_id}
-          )
-        end
-      end
+    @database ||= CorpusDatabase.new
+    relation = Package.where(id: ids).order(:id).select(:id, :registry_id, :repo_metadata, *FIELDS, *SIGNALS, *ACTIVITY)
+    packages = @database.read(relation.to_sql, limit: ids.size).map { |row| Package.instantiate(row) }
+    @registries ||= {}
+    missing = packages.map(&:registry_id).uniq - @registries.keys
+    unless missing.empty?
+      @database.read(Registry.where(id: missing).to_sql, limit: missing.size).each { |r| @registries[r['id']] = Registry.instantiate(r) }
+    end
+    people = {}
+    with_people = packages.select { |p| p.maintainers_count.to_i.positive? }.map(&:id)
+    unless with_people.empty?
+      sql = "SELECT ms.package_id, m.id, m.registry_id, m.email, m.url, m.login FROM maintainerships ms JOIN maintainers m ON m.id = ms.maintainer_id WHERE ms.package_id IN (#{with_people.join(',')}) LIMIT 50001"
+      people = @database.read(sql, limit: 50_000).group_by { |r| r.fetch('package_id') }
+    end
+    packages.map do |package|
+      package.registry = @registries.fetch(package.registry_id)
+      repository = package.repo_metadata.is_a?(Hash) ? package.repo_metadata : nil
+      package.attributes.slice(*FIELDS).merge(
+        'package_id' => package.id, 'purl' => package.purl,
+        'registry' => package.registry.attributes.slice('id', 'name', 'url', 'ecosystem', 'version', 'metadata'),
+        'repository' => repository, 'maintainers' => people.fetch(package.id, []),
+        'signals' => package.attributes.slice(*SIGNALS).merge('stargazers_count' => repository&.[]('stargazers_count'), 'forks_count' => repository&.[]('forks_count')),
+        'activity' => package.attributes.slice(*ACTIVITY),
+        'provenance' => {'source_database' => Rails.env, 'retrieved_at' => Time.now.utc.iso8601, 'source_registry_id' => package.registry_id}
+      )
     end
   end
 
   def gzip(path)
-    Zlib::GzipWriter.open(path) do |gz|
-      gz.mtime = 0
-      yield gz
-    end
+    Zlib::GzipWriter.open(path) { |gz| gz.mtime = 0; yield gz }
   end
 
   def file_info(path)

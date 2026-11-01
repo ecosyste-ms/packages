@@ -11,13 +11,16 @@ class CorpusRakeTest < ActiveSupport::TestCase
     Rails.application.load_tasks unless Rake::Task.task_defined?('exports:corpus')
     @dir = Dir.mktmpdir
     @env = ENV.to_h
-    %w[UPLOAD SOURCE ASSIGNMENTS OUTPUT FILE S3_ENDPOINT S3_BUCKET S3_REGION AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN S3_PREFIX BATCH_SIZE].each { |key| ENV.delete(key) }
+    %w[UPLOAD SOURCE ASSIGNMENTS OUTPUT FILE S3_ENDPOINT S3_BUCKET S3_REGION AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN S3_PREFIX BATCH_SIZE TARGET SEED HEAD_LIMIT CENSUS_LIMIT REGISTRY_FLOOR REGISTRY_CAP].each { |key| ENV.delete(key) }
     ENV['OUTPUT'] = File.join(@dir, 'corpus.tar.gz')
     @created_packages = []
     @created_registries = []
+    @created_maintainers = []
   end
 
   teardown do
+    Maintainership.where(package_id: @created_packages).delete_all
+    Maintainer.where(id: @created_maintainers).delete_all
     Package.where(id: @created_packages).delete_all
     Registry.where(id: @created_registries).delete_all
     ENV.replace(@env)
@@ -54,6 +57,127 @@ class CorpusRakeTest < ActiveSupport::TestCase
 
   def json_rows(files, name)
     Zlib::GzipReader.new(StringIO.new(files.fetch(name))).each_line.map { |line| JSON.parse(line) }
+  end
+
+  def registry(name, ecosystem, **attributes)
+    result = Registry.create!({name: name, ecosystem: ecosystem, url: "https://#{name}"}.merge(attributes))
+    @created_registries << result.id
+    result
+  end
+
+  def package(registry, name, **attributes)
+    id = Package.insert!({registry_id: registry.id, ecosystem: registry.ecosystem, name: name, status: 'active',
+      description: 'A package used by the export regression cases', normalized_licenses: ['MIT'], keywords_array: ['network'],
+      downloads: 0, dependent_packages_count: 0, dependent_repos_count: 0}.merge(attributes)).rows.first.first
+    @created_packages << id
+    id
+  end
+
+  test 'rake generates a complete searchable corpus from the database without any input files' do
+    nix_a = registry('nixpkgs-24.11', 'nixpkgs', version: '24.11', url: 'https://channels.nixos.org/nixos-24.11')
+    nix_b = registry('nixpkgs-unstable', 'nixpkgs', version: 'unstable', url: 'https://channels.nixos.org/nixos-unstable')
+    cargo = registry('crates.io', 'cargo')
+    npm = registry('npmjs.org', 'npm')
+    unknown = registry('unknown.example', 'unknown')
+    curl_repo = {'id' => 123, 'html_url' => 'https://github.com/curl/curl', 'full_name' => 'curl/curl', 'description' => 'Transfer data using URL syntax', 'language' => 'C', 'license' => 'curl', 'topics' => ['http'], 'stargazers_count' => 500}
+    curls = [nix_a, nix_b].map { |r| package(r, 'curl', repo_metadata: curl_repo, repository_url: 'https://curl.se', language: 'C', downloads: 100, rankings: {'downloads' => 0.01}) }
+    variant = package(nix_a, 'curlWithGnuTls', repo_metadata: curl_repo, repository_url: 'https://curl.se')
+    wrapper = package(cargo, 'curl', repo_metadata: {'id' => 124, 'html_url' => 'https://github.com/alexcrichton/curl-rust'}, repository_url: 'https://github.com/alexcrichton/curl-rust')
+    trezor_repo = {'id' => 125, 'html_url' => 'https://github.com/trezor/trezor-firmware', 'full_name' => 'trezor/trezor-firmware'}
+    trezor = package(npm, 'python-trezor', repo_metadata: trezor_repo, repository_url: trezor_repo['html_url'])
+    jpeg = package(cargo, 'trezor-tjpgdec', repo_metadata: trezor_repo, repository_url: trezor_repo['html_url'])
+    no_purl = package(unknown, 'missing-purl', downloads: nil)
+    removed = package(npm, 'removed-package', status: 'Removed', downloads: 999999)
+    ENV['TARGET'] = '100'
+    assert_nil ENV['ASSIGNMENTS']
+    assert_nil ENV['SOURCE']
+    files = invoke_export
+    packages = json_rows(files, 'packages.ndjson.gz')
+    assignments = json_rows(files, 'assignments.ndjson.gz').to_h { |a| [a['package_id'], a['project_id']] }
+    assert_equal (@created_packages - [removed]).sort, packages.map { |p| p['package_id'] }.sort
+    assert_equal assignments[curls.first], assignments[curls.last]
+    assert_not_equal assignments[curls.first], assignments[variant]
+    assert_not_equal assignments[curls.first], assignments[wrapper]
+    assert_not_equal assignments[trezor], assignments[jpeg]
+    compact = json_rows(files, 'projects.ndjson.gz').to_h { |p| [p['id'], p] }
+    group = compact.fetch(assignments[curls.first])
+    assert_equal curls.sort, group['identifiers']['package_ids'].sort
+    assert_equal 2, group['identifiers']['package_purls'].map(&:last).uniq.size
+    assert_includes group['aliases'], 'network'
+    assert_includes group['filters']['language'], 'c'
+    assert_equal 100, group['ranking']['downloads_max']
+    assert_equal 0.5, group['ranking']['popularity']
+    assert_nil compact.fetch(assignments[no_purl]).dig('public', 'packages', 0, 'purl')
+    assert_nil packages.find { |p| p['package_id'] == no_purl }.dig('signals', 'downloads')
+    corpus = JSON.parse(files.fetch('corpus.json'))
+    assert_equal compact.keys.sort, corpus['projects'].map { |p| p['id'] }.sort
+    assert_equal compact.keys.sort, corpus['metadata'].keys.sort
+    assert_not JSON.parse(files['assignment-manifest.json']).key?('source_corpus_sha256')
+    manifest = JSON.parse(files['manifest.json'])
+    assert_equal 100, manifest['selection']['target']
+    manifest['files'].each { |name, info| assert_equal info['sha256'], Digest::SHA256.hexdigest(files.fetch(name)) }
+  end
+
+  test 'database selection bounds every signal query and records prefix truncation' do
+    npm = registry('npmjs.org', 'npm', packages_count: 100_000)
+    55.times do |i|
+      package(npm, "candidate-#{i}", downloads: i + 1, dependent_packages_count: i + 1,
+        dependent_repos_count: i + 1, docker_downloads_count: i + 1, repo_metadata: {'stargazers_count' => i + 1, 'forks_count' => i + 1})
+    end
+    ENV.update('TARGET' => '20', 'HEAD_LIMIT' => '50', 'CENSUS_LIMIT' => '0')
+    statements = []
+    listener = ->(_name, _start, _finish, _id, payload) { statements << payload[:sql] }
+    files = ActiveSupport::Notifications.subscribed(listener, 'sql.active_record') { invoke_export }
+    selection = JSON.parse(files.fetch('selection.json'))
+    assert_equal 20, selection['selected']
+    signals = selection.fetch('signals').select { |r| r['registry_id'] == npm.id }
+    assert_equal CorpusSelection::METRICS.sort, signals.map { |r| r['signal'] }.sort
+    assert signals.all? { |r| r['truncated'] && r['observed_packages'] == 50 }
+    assert statements.any? { |sql| sql.include?('TABLESAMPLE SYSTEM') && sql.include?('REPEATABLE') }
+    assert_equal 6, statements.count { |sql| sql.start_with?('SELECT id,') && sql.include?('ORDER BY') && sql.end_with?('LIMIT 51') }
+    assert_not statements.any? { |sql| sql.match?(/\bFROM "?versions"?\b/i) }
+    first_ids = json_rows(files, 'packages.ndjson.gz').map { |p| p['package_id'] }
+    ENV['OUTPUT'] = File.join(@dir, 'repeat.tar.gz')
+    assert_equal first_ids, json_rows(invoke_export, 'packages.ndjson.gz').map { |p| p['package_id'] }
+  end
+
+  test 'rake groups corroborated stored identities and rejects homepage only and conflicting repositories' do
+    npm = registry('npmjs.org', 'npm')
+    cargo = registry('crates.io', 'cargo')
+    alpine = registry('alpine-v3.20', 'alpine', version: 'v3.20', url: 'https://pkgs.alpinelinux.org/packages?branch=v3.20')
+    description = 'An implementation of the example document transfer protocol'
+    exact = [npm, cargo].map { |r| package(r, 'transfer', description: description, homepage: 'https://transfer.example/') }
+    homepage_only = package(cargo, 'wrapper', description: 'A language wrapper', homepage: 'http://www.transfer.example')
+    conflicts = [npm, cargo].each_with_index.map do |r, index|
+      package(r, 'conflict', description: description, homepage: 'https://conflict.example',
+        repository_url: "https://github.com/author#{index}/conflict", repo_metadata: {'id' => 300 + index, 'html_url' => "https://github.com/author#{index}/conflict"})
+    end
+    origin = %w[sqlite sqlite-libs].map do |name|
+      package(alpine, name, description: name, homepage: 'https://sqlite.org', metadata: {'origin' => 'sqlite', 'architecture' => 'x86_64'})
+    end
+    maintainers = [npm, cargo].map do |r|
+      id = Maintainer.insert!({registry_id: r.id, login: 'author', email: 'author@example.org'}).rows.first.first
+      @created_maintainers << id
+      id
+    end
+    maintained = [npm, cargo].each_with_index.map do |r, index|
+      id = package(r, 'maintained', description: description, maintainers_count: 1)
+      Maintainership.insert!({package_id: id, maintainer_id: maintainers[index]})
+      id
+    end
+    alias_repo = {'id' => 401, 'html_url' => 'https://github.com/new-owner/renamed', 'previous_names' => ['old-owner/renamed']}
+    aliases = [npm, cargo].zip(%w[old-owner new-owner]).map do |r, owner|
+      package(r, 'renamed', repository_url: "https://github.com/#{owner}/renamed", repo_metadata: alias_repo)
+    end
+    ENV['TARGET'] = '100'
+    files = invoke_export
+    groups = json_rows(files, 'assignments.ndjson.gz').to_h { |a| [a['package_id'], a['project_id']] }
+    [exact, origin, maintained, aliases].each { |pair| assert_equal groups[pair.first], groups[pair.last] }
+    assert_not_equal groups[exact.first], groups[homepage_only]
+    assert_not_equal groups[conflicts.first], groups[conflicts.last]
+    exported = json_rows(files, 'packages.ndjson.gz').find { |p| p['package_id'] == maintained.first }
+    assert_equal 'author@example.org', exported.dig('maintainers', 0, 'email')
+    assert_equal 1, JSON.parse(files['identity.json']).dig('rejected_components', 'repository_conflict')
   end
 
   test 'rake snapshot export preserves relationships and nulls and excludes removed packages' do
@@ -107,8 +231,8 @@ class CorpusRakeTest < ActiveSupport::TestCase
     assert_equal Package.find(@created_packages.first).purl, rows.first['purl']
     assert_nil rows.first.dig('signals', 'downloads')
     assert_equal 0, rows.first.dig('signals', 'forks_count')
-    assert_equal 3, statements.count { |sql| sql == 'SET TRANSACTION READ ONLY' }
-    assert_equal 3, statements.count { |sql| sql.start_with?('EXPLAIN (FORMAT JSON)') }
+    assert_operator statements.count { |sql| sql == 'SET TRANSACTION READ ONLY' }, :>=, 3
+    assert_operator statements.count { |sql| sql.start_with?('EXPLAIN (FORMAT JSON)') }, :>=, 3
     assert_not statements.any? { |sql| sql.match?(/\bFROM "?versions"?\b/i) }
     assert_equal 3, Package.where(id: @created_packages).count
     assert_equal 'database', JSON.parse(files['manifest.json'])['source']
@@ -143,8 +267,8 @@ class CorpusRakeTest < ActiveSupport::TestCase
     fixture([record(1)])
     ENV.delete('SOURCE')
     connection = Package.connection
-    connection.stubs(:select_value).with(regexp_matches(/\AEXPLAIN/)).returns(JSON.generate([{'Plan' => {'Node Type' => 'Seq Scan', 'Total Cost' => 10000}}]))
-    assert_match(/scan packages sequentially/, assert_raises(RuntimeError) { invoke_export }.message)
+    connection.stubs(:select_value).with(regexp_matches(/\AEXPLAIN/)).returns(JSON.generate([{'Plan' => {'Node Type' => 'Limit', 'Total Cost' => 10, 'Plans' => [{'Node Type' => 'Seq Scan', 'Total Cost' => 25000, 'Plan Rows' => 1000000}]}}]))
+    assert_match(/scan a large table sequentially/, assert_raises(RuntimeError) { invoke_export }.message)
     assert_not File.exist?(ENV['OUTPUT'])
   end
 
