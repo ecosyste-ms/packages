@@ -181,6 +181,7 @@ module Ecosystem
         repository_url: repo_fallback('', meta['homepage']),
         keywords_array: extract_keywords(pkg),
         metadata: {
+          pname: pkg['pname'],
           nix_attribute: pkg['name'],
           position: meta['position'],
           platforms: meta['platforms'],
@@ -191,6 +192,7 @@ module Ecosystem
           upstream_ecosystem: upstream&.dig(:ecosystem),
           upstream_name: upstream&.dig(:name),
           upstream_purl: upstream&.dig(:purl),
+          upstream_inferred_from: upstream ? 'attribute_path' : nil,
         }.compact
       }
     end
