@@ -111,7 +111,8 @@ module Ecosystem
         metadata: {
           "funding" => latest_version["funding"],
           "dist-tags" => package["dist-tags"],
-          "contentPolicy" => latest_version["contentPolicy"]
+          "contentPolicy" => latest_version["contentPolicy"],
+          "repository" => repository(package, latest_version)
         }
       }
 
@@ -122,12 +123,16 @@ module Ecosystem
     end
 
     def repository_url(package, latest_version)
-      repo_url = extract_repository_url(latest_version.fetch("repository", {}))
-      repo_url = extract_repository_url(package.fetch("repository", {})) if repo_url.blank?
+      repo_url = extract_repository_url(repository(package, latest_version))
 
       url = repo_fallback(repo_url, package["homepage"])
       return nil if ['https://github.com/npm/deprecate-holder',"https://github.com/npm/security-holder"].include?(url)
       url
+    end
+
+    def repository(package, latest_version)
+      declared = latest_version["repository"]
+      extract_repository_url(declared).present? ? declared : package["repository"]
     end
 
     # npm metadata supplies `repository` as an object (`{"type":"git","url":...}`),
@@ -204,6 +209,7 @@ module Ecosystem
             "_npmUser" => v["_npmUser"],
             "dist" => v["dist"],
             "gitHead" => v["gitHead"],
+            "repository" => v["repository"],
             "main" => v["main"],
             "scripts" => v["scripts"],
             "_npmVersion" => v["_npmVersion"],
