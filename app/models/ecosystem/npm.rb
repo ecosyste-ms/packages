@@ -132,7 +132,9 @@ module Ecosystem
 
     def repository(package, latest_version)
       declared = latest_version["repository"]
-      extract_repository_url(declared).present? ? declared : package["repository"]
+      return declared if extract_repository_url(declared).present?
+
+      package["repository"].presence || declared
     end
 
     # npm metadata supplies `repository` as an object (`{"type":"git","url":...}`),

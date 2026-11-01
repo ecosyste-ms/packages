@@ -302,6 +302,32 @@ class RegistryTest < ActiveSupport::TestCase
     end
   end
 
+  test 'npm sync preserves a directory-only repository without a package fallback' do
+    registry = Registry.create!(name: 'registry.npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    repository = { 'directory' => 'packages/core' }
+    source = {
+      '_id' => '@example/core',
+      'homepage' => 'https://github.com/example/monorepo',
+      'dist-tags' => { 'latest' => '1.0.0' },
+      'time' => { '1.0.0' => '2026-01-01T00:00:00Z' },
+      'maintainers' => [],
+      'versions' => {
+        '1.0.0' => { 'name' => '@example/core', 'version' => '1.0.0', 'license' => 'MIT', 'repository' => repository }
+      }
+    }
+    stub_request(:get, 'https://registry.npmjs.org/@example%2Fcore')
+      .to_return(status: 200, body: source.to_json)
+    stub_request(:get, 'https://api.npmjs.org/downloads/point/last-month/@example/core')
+      .to_return(status: 200, body: { downloads: 100 }.to_json)
+
+    SyncPackageWorker.new.perform(registry.id, '@example/core', true)
+
+    package = registry.packages.find_by!(name: '@example/core').reload
+    assert_equal repository, package.metadata['repository']
+    assert_equal repository, package.versions.find_by!(number: '1.0.0').metadata['repository']
+    assert_equal 'https://github.com/example/monorepo', package.repository_url
+  end
+
   test 'sync_package persists two-component PyPI releases on initial sync and resync' do
     registry = Registry.create!(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
     releases = {
