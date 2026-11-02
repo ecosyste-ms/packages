@@ -50,14 +50,68 @@ module Ecosystem
     end
 
     def fetch_package_metadata_uncached(name)
-      get_json("https://packagist.org/packages/#{name}.json")['package']
-      # get_json("https://repo.packagist.org/p2/#{name}.json")&.dig("packages", name).presence || get_json("https://repo.packagist.org/p2/#{name}~dev.json")&.dig("packages", name)
-    rescue
+      package = fetch_package_enrichment(name)
+      package.merge('versions' => fetch_tagged_versions(package.fetch('name')))
+    rescue StandardError => e
+      Rails.logger.warn("Failed to fetch Packagist metadata for #{name}: #{e.message}")
       false
     end
 
+    def fetch_package_enrichment(name)
+      Rails.cache.fetch(['packagist', 'enrichment', name], expires_in: 12.hours) do
+        response = request("https://packagist.org/packages/#{name}.json")
+        raise "Package metadata returned HTTP #{response.status}" unless response.success?
+        data = JSON.parse(response.body).fetch('package')
+        data.except('versions').merge('package_version' => data.fetch('versions').values.first)
+      end
+    end
+
+    def fetch_tagged_versions(name)
+      key = ['packagist', 'tagged_versions', name]
+      cached = Rails.cache.read(key)
+      headers = {}
+      headers['If-Modified-Since'] = cached['last_modified'] if cached && cached['last_modified'].present?
+      response = request("https://repo.packagist.org/p2/#{name}.json", headers: headers)
+      if response.status == 304 && cached
+        return expand_tagged_versions(cached.fetch('body'), name)
+      end
+      raise "Tagged metadata returned HTTP #{response.status}" unless response.success?
+
+      versions = expand_tagged_versions(response.body, name)
+      Rails.cache.write(key, {'body' => response.body, 'last_modified' => response.headers['last-modified']}, expires_in: 1.day)
+      versions
+    end
+
+    def expand_tagged_versions(body, name)
+      data = JSON.parse(body)
+      minified = data['minified']
+      raise "Unsupported metadata minification #{minified}" unless minified.nil? || minified == 'composer/2.0'
+      entries = data.fetch('packages').fetch(name)
+      raise 'Expected a tagged version list' unless entries.is_a?(Array)
+
+      previous = {}
+      entries.each_with_object({}) do |entry, versions|
+        expanded = minified ? previous.dup : {}
+        entry.each do |key, value|
+          if minified && value == '__unset'
+            expanded.delete(key)
+          else
+            expanded[key] = value
+          end
+        end
+        number = expanded.fetch('version')
+        raise 'Missing version number' if number.blank?
+        versions[number] = expanded
+        previous = expanded
+      end
+    end
+
     def check_status(package)
-      json = fetch_package_metadata(package.name)
+      json = begin
+        fetch_package_enrichment(package.name)
+      rescue StandardError
+        false
+      end
 
       if json.blank? || json == false
         url = check_status_url(package)
@@ -84,7 +138,7 @@ module Ecosystem
 
     def map_package_metadata(pkg_metadata)
       return false unless pkg_metadata
-      latest_version = pkg_metadata['versions'][pkg_metadata['versions'].keys.first]
+      latest_version = pkg_metadata['package_version'] || pkg_metadata['versions'].values.first
       return false if latest_version.nil?
 
       {
@@ -145,7 +199,7 @@ module Ecosystem
     end
 
     def maintainers_metadata(name)
-      json = fetch_package_metadata(name)
+      json = fetch_package_enrichment(name)
       json['maintainers'].map do |user|
         {
           uuid: user["name"],
