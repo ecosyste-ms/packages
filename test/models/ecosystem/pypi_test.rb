@@ -536,6 +536,17 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal body, @ecosystem.licenses(package)
   end
 
+  test 'licenses falls back to classifiers when license is UNKNOWN' do
+    package = {
+      "info" => {
+        "license_expression" => nil,
+        "license" => "UNKNOWN",
+        "classifiers" => ["License :: OSI Approved :: MIT License"]
+      }
+    }
+    assert_equal "MIT License", @ecosystem.licenses(package)
+  end
+
   test 'pypi package_metadata funding_url flask' do
     stub_request(:get, "https://pypi.org/pypi/flask/json")
       .to_return({ status: 200, body: file_fixture('pypi/flask/flask.json') })
