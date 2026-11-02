@@ -190,7 +190,15 @@ module Ecosystem
         Rails.logger.warn("Failed to fetch Packagist metadata for #{name}: #{e.message}")
         return false
       end
-      package.merge(fetch_tagged_metadata(package.fetch('name')))
+      name = package.fetch('name')
+      metadata = fetch_tagged_metadata(name)
+      constraint = @registry.metadata.to_h.dig(MALWARE_STATE_KEY, 'packages', name.downcase)
+      if constraint
+        previous = @registry.packages.where(name: name).pick(:metadata)
+        previous ||= @registry.packages.where('lower(name) = ?', name.downcase).pick(:metadata)
+        metadata['malware'] = complete_malware_flags(metadata.fetch('malware'), constraint, previous.to_h.fetch('malware', []))
+      end
+      package.merge(metadata, 'packagist_malware_constraint' => constraint)
     end
 
     def fetch_package_enrichment(name)
@@ -291,6 +299,7 @@ module Ecosystem
         licenses: Array.wrap(latest_version["license"]).join(","),
         repository_url: repo_fallback(latest_version["source"]&.fetch("url"), latest_version["homepage"]),
         versions: pkg_metadata['versions'],
+        packagist_malware_constraint: pkg_metadata['packagist_malware_constraint'],
         downloads: pkg_metadata["downloads"]&.fetch("total"),
         downloads_period: 'total',
         namespace: pkg_metadata["name"].split("/").first,

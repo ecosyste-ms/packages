@@ -288,6 +288,10 @@ module Ecosystem
       nil
     end
 
+    def with_package_sync_lock(_package_metadata)
+      yield
+    end
+
     def update_dependency_links(_package)
       nil
     end

@@ -287,95 +287,98 @@ class Registry < ApplicationRecord
     end
     package_metadata[:ecosystem] = ecosystem.downcase
 
-    # clean up incorrectly named package records
-    unless sync_in_batches?
-      if package_metadata[:name] != name
-        # example: request 'aracnid_utils' from pypi but get 'aracnid-utils' back
-        packages.find_by_name(name).try(:destroy)
-      end
-    end
-
-    normalized_name = ecosystem_class.normalized_package_name(package_metadata[:name])
-    package = packages.find_by_normalized_name(package_metadata[:name], normalized_name: normalized_name) if normalized_name
-    if normalized_name && package.nil? && packages.where("metadata->>'normalized_name' = ?", normalized_name).exists?
-      logger.error "Failed to sync #{name}: ambiguous normalized package name"
-      return false
-    end
-    package ||= packages.find_or_initialize_by(name: package_metadata[:name])
-
-    if !force && package.next_sync_at && package.next_sync_at > Time.current
+    package = ecosystem_instance.with_package_sync_lock(package_metadata) do
+      # clean up incorrectly named package records
       unless sync_in_batches?
-        SyncPackageWorker.perform_at(package.next_sync_at, id, name)
-      end
-      return
-    end
-
-    package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page, :time, :download_stats, :tags_url, :releases_url))
-
-    update_repo_metadata_after_save = package.changed?
-    new_package = package.new_record?
-
-    package.save!
-
-    package.emit_new_package_event if new_package
-    package.update_repo_metadata_async if update_repo_metadata_after_save
-
-    new_versions = []
-    existing_version_numbers = package.versions.pluck('number')
-
-    versions_metadata = ecosystem_instance.versions_metadata(package_metadata, existing_version_numbers)
-    ecosystem_instance.update_existing_versions(package, versions_metadata)
-
-    versions_metadata.each do |version|
-      new_versions << version.merge(package_id: package.id, registry_id: id, created_at: Time.now, updated_at: Time.now) unless existing_version_numbers.find { |v| v == version.with_indifferent_access[:number].to_s && version.with_indifferent_access[:status].nil? }
-    end
-
-    if new_versions.any?
-      new_versions.uniq! { |v| v.with_indifferent_access[:number].to_s }
-
-      new_versions.each_slice(100) do |s|
-        Version.upsert_all(s, unique_by: [:package_id, :number])
-      end
-
-      if LiveEvent.enabled?
-        new_numbers = new_versions.map { |v| v.with_indifferent_access[:number].to_s } - existing_version_numbers
-        package.emit_new_version_events(package.versions.where(number: new_numbers).to_a) if new_numbers.any?
-      end
-
-      all_deps = []
-      all_versions = package.versions
-
-      # Find versions without dependencies using a single efficient LEFT JOIN query
-      # This avoids both N+1 queries and large IN clauses on the dependencies table
-      version_ids_without_dependencies = package.versions
-        .left_joins(:dependencies)
-        .where(dependencies: { id: nil })
-        .pluck(:id)
-        .to_set
-
-      all_versions.each do |version|
-        next unless version_ids_without_dependencies.include?(version.id)
-
-        deps = begin
-                ecosystem_instance.dependencies_metadata(name, version.number, package_metadata)
-              rescue StandardError
-                []
-              end
-        next unless deps&.any?
-
-        all_deps << deps.map do |dep|
-          dep.merge(version_id: version.id)
+        if package_metadata[:name] != name
+          # example: request 'aracnid_utils' from pypi but get 'aracnid-utils' back
+          packages.find_by_name(name).try(:destroy)
         end
       end
-      
-      all_deps.flatten.each_slice(100) do |s|
-        # TODO upsert dependencies instead
-        Dependency.insert_all(s) 
-      end
-    end
 
-    package.update(versions_count: package.versions.count, last_synced_at: Time.zone.now)
-    package.update_details
+      normalized_name = ecosystem_class.normalized_package_name(package_metadata[:name])
+      package = packages.find_by_normalized_name(package_metadata[:name], normalized_name: normalized_name) if normalized_name
+      if normalized_name && package.nil? && packages.where("metadata->>'normalized_name' = ?", normalized_name).exists?
+        logger.error "Failed to sync #{name}: ambiguous normalized package name"
+        return false
+      end
+      package ||= packages.find_or_initialize_by(name: package_metadata[:name])
+
+      if !force && package.next_sync_at && package.next_sync_at > Time.current
+        unless sync_in_batches?
+          SyncPackageWorker.perform_at(package.next_sync_at, id, name)
+        end
+        return
+      end
+
+      package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page, :time, :download_stats, :tags_url, :releases_url, :packagist_malware_constraint))
+
+      update_repo_metadata_after_save = package.changed?
+      new_package = package.new_record?
+
+      package.save!
+
+      package.emit_new_package_event if new_package
+      package.update_repo_metadata_async if update_repo_metadata_after_save
+
+      new_versions = []
+      existing_version_numbers = package.versions.pluck('number')
+
+      versions_metadata = ecosystem_instance.versions_metadata(package_metadata, existing_version_numbers)
+      ecosystem_instance.update_existing_versions(package, versions_metadata)
+
+      versions_metadata.each do |version|
+        new_versions << version.merge(package_id: package.id, registry_id: id, created_at: Time.now, updated_at: Time.now) unless existing_version_numbers.find { |v| v == version.with_indifferent_access[:number].to_s && version.with_indifferent_access[:status].nil? }
+      end
+
+      if new_versions.any?
+        new_versions.uniq! { |v| v.with_indifferent_access[:number].to_s }
+
+        new_versions.each_slice(100) do |s|
+          Version.upsert_all(s, unique_by: [:package_id, :number])
+        end
+
+        if LiveEvent.enabled?
+          new_numbers = new_versions.map { |v| v.with_indifferent_access[:number].to_s } - existing_version_numbers
+          package.emit_new_version_events(package.versions.where(number: new_numbers).to_a) if new_numbers.any?
+        end
+
+        all_deps = []
+        all_versions = package.versions
+
+        # Find versions without dependencies using a single efficient LEFT JOIN query
+        # This avoids both N+1 queries and large IN clauses on the dependencies table
+        version_ids_without_dependencies = package.versions
+          .left_joins(:dependencies)
+          .where(dependencies: { id: nil })
+          .pluck(:id)
+          .to_set
+
+        all_versions.each do |version|
+          next unless version_ids_without_dependencies.include?(version.id)
+
+          deps = begin
+                  ecosystem_instance.dependencies_metadata(name, version.number, package_metadata)
+                rescue StandardError
+                  []
+                end
+          next unless deps&.any?
+
+          all_deps << deps.map do |dep|
+            dep.merge(version_id: version.id)
+          end
+        end
+
+        all_deps.flatten.each_slice(100) do |s|
+          # TODO upsert dependencies instead
+          Dependency.insert_all(s)
+        end
+      end
+
+      package.update(versions_count: package.versions.count, last_synced_at: Time.zone.now)
+      package.update_details
+      package
+    end
     ecosystem_instance.update_dependency_links(package)
     package.update_dependent_repos_count_async if ecosystem_instance.has_dependent_repos?
     if ecosystem_class.instance_methods(false).include? :maintainers_metadata
