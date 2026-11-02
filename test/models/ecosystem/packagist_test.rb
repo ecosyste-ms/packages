@@ -11,7 +11,7 @@ class PackagistTest < ActiveSupport::TestCase
       versions = JSON.parse(file_fixture("packagist/#{fixture}").read).fetch('package').fetch('versions').values
       versions.reject! { |v| v['version'].match?(/^dev-|\.x-dev$/i) }
       stub_request(:get, "https://repo.packagist.org/p2/#{name}.json")
-        .to_return(status: 200, body: {packages: {name => versions}}.to_json)
+        .to_return(status: 200, body: {packages: {name => versions}}.to_json, headers: {'Last-Modified' => Time.utc(2026, 11, 1).httpdate})
     end
     @registry = Registry.new(default: true, name: 'Packagist.org', url: 'https://packagist.org', ecosystem: 'Packagist')
     @ecosystem = Ecosystem::Packagist.new(@registry)
@@ -211,7 +211,7 @@ class PackagistTest < ActiveSupport::TestCase
   test 'sync worker does not fall back to stale versions after a p2 failure' do
     registry = packagist_sync_registry
     stub_request(:get, 'https://repo.packagist.org/p2/psr/log.json')
-      .to_return(status: 200, body: file_fixture('packagist/log.p2.json'))
+      .to_return(status: 200, body: file_fixture('packagist/log.p2.json'), headers: {'Last-Modified' => Time.utc(2026, 11, 1).httpdate})
     package = SyncPackageWorker.new.perform(registry.id, 'psr/log', true)
     synced_at = package.reload.last_synced_at
 
@@ -267,7 +267,7 @@ class PackagistTest < ActiveSupport::TestCase
     assert_equal [version.id], package.versions.pluck(:id)
     assert_not_requested(:get, 'https://repo.packagist.org/p2/psr/log~dev.json')
 
-    request.to_return(status: 200, body: file_fixture('packagist/log.p2.json'))
+    request.to_return(status: 200, body: file_fixture('packagist/log.p2.json'), headers: {'Last-Modified' => Time.utc(2026, 11, 1).httpdate})
     SyncPackageByIdWorker.new.perform(registry.id, package.id)
     assert_operator package.reload.last_synced_at, :>, synced_at
     assert_equal '3.0.2', package.latest_release_number
@@ -292,7 +292,7 @@ class PackagistTest < ActiveSupport::TestCase
     data['package']['versions'].select! { |number, _| number == 'dev-master' }
     stub_request(:get, 'https://packagist.org/packages/psr/log.json').to_return(status: 200, body: data.to_json)
     stub_request(:get, 'https://repo.packagist.org/p2/psr/log.json')
-      .to_return(status: 200, body: {minified: 'composer/2.0', packages: {'psr/log' => []}}.to_json)
+      .to_return(status: 200, body: {minified: 'composer/2.0', packages: {'psr/log' => []}}.to_json, headers: {'Last-Modified' => Time.utc(2026, 11, 1).httpdate})
 
     package = SyncPackageWorker.new.perform(registry.id, 'psr/log', true)
     assert_equal 'psr/log', package.name

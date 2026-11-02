@@ -9,6 +9,7 @@ module Ecosystem
 
     CHANGES_STATE_KEY = 'packagist_changes'.freeze
     RECOVERY_BATCH_SIZE = 1_000
+    VERSION_METADATA_KEYS = %w[download_url php_version platform_requirements autoload extra suggest malware].freeze
 
     def sync_recent_packages_incrementally?
       true
@@ -228,6 +229,7 @@ module Ecosystem
     end
 
     def fetch_tagged_metadata(name)
+      @tagged_cache_entry = nil
       key = ['packagist', 'tagged_versions', name]
       cached = Rails.cache.read(key)
       headers = {}
@@ -235,14 +237,42 @@ module Ecosystem
       response = @tagged_response || request("https://repo.packagist.org/p2/#{name}.json", headers: headers)
       if response.status == 304 && cached
         verify_metadata_time(cached['last_modified'], @minimum_metadata_time, name: name)
-        return parse_tagged_metadata(cached.fetch('body'), name)
+        return tagged_snapshot(cached.fetch('body'), cached['last_modified'], name)
       end
       check_metadata_response(response, "Tagged metadata for #{name}")
       verify_metadata_time(response.headers['last-modified'], @minimum_metadata_time, name: name)
 
-      metadata = parse_tagged_metadata(response.body, name)
-      Rails.cache.write(key, {'body' => response.body, 'last_modified' => response.headers['last-modified']}, expires_in: 1.day)
-      metadata
+      tagged_snapshot(response.body, response.headers['last-modified'], name)
+    end
+
+    def tagged_snapshot(body, last_modified, name)
+      metadata = parse_tagged_metadata(body, name)
+      snapshot = {'last_modified' => last_modified.present? ? Time.httpdate(last_modified).to_i : nil,
+        'sha256' => Digest::SHA256.hexdigest(body)}
+      @tagged_cache_entry = {'body' => body, 'last_modified' => last_modified}
+      metadata.merge('packagist_snapshot' => snapshot)
+    end
+
+    def verify_tagged_snapshot(package_metadata)
+      name = package_metadata.fetch(:name)
+      snapshot = package_metadata.fetch(:metadata).fetch('packagist_snapshot')
+      previous = @registry.packages.where(name: name).pick(:metadata).to_h['packagist_snapshot']
+      invalid = snapshot['last_modified'].nil?
+      if previous && previous['last_modified']
+        invalid ||= snapshot['last_modified'].to_i < previous['last_modified'] ||
+          (snapshot['last_modified'] == previous['last_modified'] && snapshot['sha256'] != previous['sha256'])
+      end
+      return unless invalid
+
+      key = ['packagist', 'tagged_versions', name]
+      Rails.cache.delete(key) if @tagged_cache_entry && Rails.cache.read(key) == @tagged_cache_entry
+      @last_fetched_key = @last_fetched_metadata = @tagged_cache_entry = nil
+      retry_metadata("Packagist snapshot is missing a timestamp or conflicts with the last applied snapshot: #{name}")
+    end
+
+    def cache_tagged_snapshot(package_metadata)
+      return unless @tagged_cache_entry
+      Rails.cache.write(['packagist', 'tagged_versions', package_metadata.fetch(:name)], @tagged_cache_entry, expires_in: 1.day)
     end
 
     def parse_tagged_metadata(body, name)
@@ -257,6 +287,7 @@ module Ecosystem
       raise 'Expected a tagged version list' unless entries.is_a?(Array)
 
       previous = {}
+      identities = Set.new
       entries.each_with_object({}) do |entry, versions|
         expanded = minified ? previous.dup : {}
         entry.each do |key, value|
@@ -267,7 +298,8 @@ module Ecosystem
           end
         end
         number = expanded.fetch('version')
-        raise 'Missing version number' if number.blank?
+        raise 'Invalid version number' unless number.is_a?(String) && number.present?
+        raise "Duplicate tagged version #{number}" unless identities.add?(release_key(number))
         versions[number] = expanded
         previous = expanded
       end
@@ -305,8 +337,7 @@ module Ecosystem
 
     def map_package_metadata(pkg_metadata)
       return false unless pkg_metadata
-      latest_version = pkg_metadata['package_version'] || pkg_metadata['versions'].values.first
-      return false if latest_version.nil?
+      latest_version = pkg_metadata['package_version'] || pkg_metadata['versions'].values.first || {}
 
       {
         name: pkg_metadata["name"],
@@ -323,20 +354,45 @@ module Ecosystem
         metadata: {
           "funding" => latest_version["funding"],
           "malware" => pkg_metadata.fetch('malware', []),
+          "packagist_snapshot" => pkg_metadata.fetch('packagist_snapshot'),
         }
       }
     end
 
     def update_existing_versions(package, versions_metadata)
-      versions_metadata.map { |version| version.fetch(:number) }.each_slice(1_000) do |numbers|
-        package.versions.where(number: numbers, status: 'removed').update_all(status: nil, updated_at: Time.current)
+      incoming = versions_metadata.index_by { |version| release_key(version.fetch(:number)) }
+      package.versions.find_each do |version|
+        attributes = incoming[release_key(version.number)]
+        if attributes
+          attributes = attributes.except(:number, :status)
+          metadata = attributes.fetch(:metadata).stringify_keys
+          if attributes[:integrity].nil? && version.metadata.to_h['download_url'] == metadata['download_url']
+            attributes = attributes.except(:integrity)
+          end
+          version.assign_attributes(attributes.merge(metadata: merge_version_metadata(version.metadata, metadata)))
+          version.status = nil if version.status == 'removed'
+        elsif version.status.nil? || version.status == 'malware'
+          version.status = 'removed'
+        end
+        version.update_columns(version.changes.transform_values(&:last).merge(updated_at: Time.current)) if version.changed?
       end
       apply_malware_flags(package, package.metadata.fetch('malware', []), versions_metadata.map { |v| v.fetch(:number) })
     end
 
+    def release_key(number)
+      number.sub(/\Av(?=\d)/i, '').downcase
+    end
+
+    def merge_version_metadata(existing_metadata, new_metadata)
+      existing_metadata.to_h.except(*VERSION_METADATA_KEYS).merge(new_metadata.stringify_keys)
+    end
+
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       ranges = malware_ranges(pkg_metadata.fetch(:metadata, {}).fetch('malware', []))
+      existing = existing_version_numbers.group_by { |number| release_key(number) }
       acceptable_versions(pkg_metadata[:versions]).map do |name, version|
+        aliases = existing[release_key(version.fetch('version'))] || []
+        number = aliases.include?(version['version']) ? version['version'] : aliases.first || version['version']
         metadata = {}
         matches = matching_malware_flags(ranges, version.fetch('version'))
         metadata[:malware] = matches if matches.any?
@@ -354,11 +410,12 @@ module Ecosystem
         metadata[:suggest] = version["suggest"] if version["suggest"].present?
         
         {
-          number: version["version"],
+          number: number,
+          registry_id: @registry.id,
           published_at: version["time"],
           integrity: (version['dist'] && version['dist']['shasum'].present?) ? "sha1-#{version['dist']['shasum']}" : nil,
           metadata: metadata
-        }.merge(status: matches.any? && !existing_version_numbers.include?(version['version']) ? 'malware' : nil)
+        }.merge(status: matches.any? && aliases.empty? ? 'malware' : nil)
       end
     end
 
@@ -371,6 +428,7 @@ module Ecosystem
 
     def dependencies_metadata(_name, version, package)
       vers = package[:versions][version]
+      vers ||= package[:versions].values.find { |entry| release_key(entry.fetch('version')) == release_key(version) }
       return [] if vers.nil?
 
       map_dependencies(vers.fetch("require", {}).reject { |k, _v| k == "php" }, "runtime") +
