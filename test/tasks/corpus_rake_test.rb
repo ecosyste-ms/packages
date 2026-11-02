@@ -120,11 +120,11 @@ class CorpusRakeTest < ActiveSupport::TestCase
 
   test 'database selection bounds every signal query and records prefix truncation' do
     npm = registry('npmjs.org', 'npm', packages_count: 100_000)
-    55.times do |i|
+    505.times do |i|
       package(npm, "candidate-#{i}", downloads: i + 1, dependent_packages_count: i + 1,
         dependent_repos_count: i + 1, docker_downloads_count: i + 1, repo_metadata: {'stargazers_count' => i + 1, 'forks_count' => i + 1})
     end
-    ENV.update('TARGET' => '20', 'HEAD_LIMIT' => '50', 'CENSUS_LIMIT' => '0')
+    ENV.update('TARGET' => '20', 'HEAD_LIMIT' => '500', 'CENSUS_LIMIT' => '0')
     statements = []
     listener = ->(_name, _start, _finish, _id, payload) { statements << payload[:sql] }
     files = ActiveSupport::Notifications.subscribed(listener, 'sql.active_record') { invoke_export }
@@ -132,13 +132,22 @@ class CorpusRakeTest < ActiveSupport::TestCase
     assert_equal 20, selection['selected']
     signals = selection.fetch('signals').select { |r| r['registry_id'] == npm.id }
     assert_equal Corpus::Selection::METRICS.sort, signals.map { |r| r['signal'] }.sort
-    assert signals.all? { |r| r['truncated'] && r['observed_packages'] == 50 }
+    assert signals.all? { |r| r['truncated'] && r['observed_packages'] == 500 && r['observed_total'] == (6..505).sum }
     assert statements.any? { |sql| sql.include?('TABLESAMPLE SYSTEM') && sql.include?('REPEATABLE') }
-    assert_equal 6, statements.count { |sql| sql.start_with?('SELECT id,') && sql.include?('ORDER BY') && sql.end_with?('LIMIT 51') }
+    assert_equal 6, statements.count { |sql| sql.start_with?('DECLARE corpus_rows') && sql.include?('ORDER BY') && sql.end_with?('LIMIT 501') }
+    assert_operator statements.count { |sql| sql == 'FETCH FORWARD 250 FROM corpus_rows' }, :>=, 24
     assert_not statements.any? { |sql| sql.match?(/\bFROM "?versions"?\b/i) }
     first_ids = json_rows(files, 'packages.ndjson.gz').map { |p| p['package_id'] }
     ENV['OUTPUT'] = File.join(@dir, 'repeat.tar.gz')
     assert_equal first_ids, json_rows(invoke_export, 'packages.ndjson.gz').map { |p| p['package_id'] }
+  end
+
+  test 'cursor reads enforce row limits and release the transaction after failure' do
+    database = Corpus::Database.new
+    sql = 'SELECT generate_series(1, 251) AS id'
+    error = assert_raises(RuntimeError) { database.read(sql, limit: 250, cursor: true) }
+    assert_match(/row limit/, error.message)
+    assert_equal (1..251).to_a, database.read(sql, limit: 251, cursor: true).map { |row| row['id'] }
   end
 
   test 'rake groups corroborated stored identities and rejects homepage only and conflicting repositories' do
@@ -196,6 +205,64 @@ class CorpusRakeTest < ActiveSupport::TestCase
     before = File.binread(ENV['OUTPUT'])
     assert_raises(ArgumentError) { invoke_export }
     assert_equal before, File.binread(ENV['OUTPUT'])
+  end
+
+  test 'compact projections preserve package identities and project output' do
+    original = fixture([record(1), record(2)])
+    original.each do |p|
+      p['repository'].merge!('tags' => [{'name' => 'v1', 'sha' => 'large tag history'}], 'scorecard' => {'checks' => ['large scorecard']})
+      p['language'] = 'C'
+      p['normalized_licenses'] = ['MIT']
+      p['rankings'] = {'downloads' => 0.2, 'dependent_repos_count' => 0.5, 'unused' => 'large ranking detail'}
+      p['signals'].merge!('downloads' => 100, 'dependent_repos_count' => 20, 'docker_downloads_count' => 999)
+      p['activity'] = {'latest_release_number' => '8.0', 'versions_updated_at' => '2026-01-01'}
+      p['registry'].merge!('ecosystem' => 'nixpkgs', 'url' => 'https://example.org', 'metadata' => {'codename' => 'stable', 'unused' => 'large registry detail'})
+      p['maintainers'] = [{'id' => 9, 'registry_id' => 1, 'email' => 'author@example.org', 'url' => 'https://github.com/author', 'login' => 'author'}]
+    end
+    fixture(original)
+    files = invoke_export
+    expected_packages = original.map { |p| p.merge('repository' => p['repository'].slice(*Corpus::Export::REPOSITORY_FIELDS)) }
+    assert_equal expected_packages, json_rows(files, 'packages.ndjson.gz')
+    assert original.all? { |p| p['repository'].key?('tags') }
+    expected = Dir.mktmpdir('expected-', @dir)
+    rows = original.each_with_index.map { |p, i| p.merge('source_line' => i + 1) }
+    assignments = json_rows(files, 'assignments.ndjson.gz')
+    Corpus::Projects.new(rows: rows, assignments: assignments, as_of: '2026-10-31T00:00:00Z').write(expected, JSON.parse(files['manifest.json']).fetch('sha256'))
+    assert_equal File.binread(File.join(expected, 'projects.ndjson.gz')), files['projects.ndjson.gz']
+    assert_equal JSON.parse(File.read(File.join(expected, 'corpus.json'))), JSON.parse(files['corpus.json'])
+    exporter = Corpus::Export.allocate
+    projected = exporter.projection(original.first)
+    assert_equal ['downloads', 'dependent_repos_count'].sort, projected['signals'].keys.sort
+    assert_equal ['latest_release_number'], projected['activity'].keys
+    assert_equal({'codename' => 'stable'}, projected.dig('registry', 'metadata'))
+    assert_same projected['registry'], exporter.projection(original.first)['registry']
+    changed = Marshal.load(Marshal.dump(original.first))
+    changed['registry']['metadata']['codename'] = 'testing'
+    assert_not_same projected['registry'], exporter.projection(changed)['registry']
+  end
+
+  test 'database export fetches compact repository metadata without changing stored records' do
+    npm = registry('npmjs.org', 'npm')
+    repository = {'id' => 77, 'html_url' => 'https://github.com/example/library', 'full_name' => 'example/library',
+      'description' => 'An HTTP client', 'topics' => ['http', nil], 'archived' => false, 'fork' => false,
+      'stargazers_count' => 10, 'forks_count' => 0, 'tags' => [{'name' => 'v1'}], 'scorecard' => {'checks' => ['details']}}
+    id = package(npm, 'library', repository_url: repository['html_url'], repo_metadata: repository)
+    empty = package(npm, 'empty', repo_metadata: {})
+    scalar = package(npm, 'scalar', repo_metadata: ['unexpected'])
+    missing = package(npm, 'missing', repo_metadata: nil)
+    statements = []
+    listener = ->(_name, _start, _finish, _id, payload) { statements << payload[:sql] }
+    files = ActiveSupport::Notifications.subscribed(listener, 'sql.active_record') { invoke_export }
+    rows = json_rows(files, 'packages.ndjson.gz').to_h { |r| [r['package_id'], r] }
+    assert_equal repository.slice(*Corpus::Export::REPOSITORY_FIELDS), rows[id]['repository']
+    assert_equal 10, rows[id].dig('signals', 'stargazers_count')
+    assert_equal 0, rows[id].dig('signals', 'forks_count')
+    assert_equal Package.find(id).purl, rows[id]['purl']
+    assert_equal({}, rows[empty]['repository'])
+    assert_nil rows[scalar]['repository']
+    assert_nil rows[missing]['repository']
+    assert_equal repository, Package.find(id).repo_metadata
+    assert statements.any? { |sql| sql.start_with?('SELECT') && sql.include?('json_each(repo_metadata)') }
   end
 
   test 'known removals are excluded even when the snapshot still says active' do

@@ -52,7 +52,7 @@ module Corpus
           else
             expr = expression(metric)
             order = metric == 'docker_downloads_count' ? 'DESC' : 'DESC NULLS LAST'
-            rows = @database.read("SELECT id, #{expr} AS value FROM packages WHERE registry_id = #{id} AND #{RETAINED} AND #{expr} > 0 ORDER BY #{expr} #{order} LIMIT #{@head_limit + 1}", limit: @head_limit + 1)
+            rows = @database.read("SELECT id, #{expr} AS value FROM packages WHERE registry_id = #{id} AND #{RETAINED} AND #{expr} > 0 ORDER BY #{expr} #{order} LIMIT #{@head_limit + 1}", limit: @head_limit + 1, cursor: true)
             truncated = rows.size > @head_limit
             pairs = rows.first(@head_limit).map { |p| [p['id'], p['value']] }
           end

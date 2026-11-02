@@ -10,7 +10,7 @@ module Corpus
       @catalog['indexes'] = read("SELECT tablename, indexdef FROM pg_indexes WHERE schemaname = current_schema() AND tablename IN ('packages', 'maintainerships', 'maintainers')", limit: 200, catalog: true)
     end
 
-    def read(sql, limit:, sample: false, catalog: false)
+    def read(sql, limit:, sample: false, catalog: false, cursor: false)
       ActiveRecord::Base.connection_pool.with_connection do |connection|
         connection.transaction do
           connection.execute('SET TRANSACTION READ ONLY')
@@ -27,12 +27,27 @@ module Corpus
             raise 'Export query exceeds the cost budget or would scan a large table sequentially'
           end
           raise 'Unexpected sample query' if !sample && plan.to_json.include?('Sample Scan')
-          result = connection.select_all(sql).to_a
+          result = cursor ? read_cursor(connection, sql, limit) : connection.select_all(sql).to_a
           raise 'Export query exceeded its row limit' if result.size > limit
           @queries += 1
           result
         end
       end
+    end
+
+    def read_cursor(connection, sql, limit)
+      connection.execute("DECLARE corpus_rows NO SCROLL CURSOR FOR #{sql}")
+      result = []
+      loop do
+        # FETCH must bypass the query cache because every call advances the cursor.
+        rows = connection.exec_query('FETCH FORWARD 250 FROM corpus_rows').to_a
+        break if rows.empty?
+        raise 'Export query exceeded its row limit' if result.size + rows.size > limit
+        result.concat(rows)
+        sleep 0.1
+      end
+      connection.execute('CLOSE corpus_rows')
+      result
     end
   end
 end

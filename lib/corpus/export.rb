@@ -13,6 +13,7 @@ module Corpus
   class Export
     REASONS = %w[repository package distribution_release registry_mirror].freeze
     FIELDS = %w[name ecosystem namespace description homepage repository_url licenses normalized_licenses language status critical keywords keywords_array metadata rankings].freeze
+    REPOSITORY_FIELDS = %w[id html_url full_name description language license topics previous_names pushed_at archived fork stargazers_count forks_count last_synced_at].freeze
     SIGNALS = %w[downloads downloads_period dependent_packages_count dependent_repos_count docker_downloads_count docker_dependents_count maintainers_count].freeze
     ACTIVITY = %w[latest_release_number latest_published_release_number latest_release_published_at first_release_published_at last_synced_at created_at updated_at repo_metadata_updated_at versions_count versions_updated_at].freeze
 
@@ -54,6 +55,7 @@ module Corpus
               excluded << {'package_id' => id, 'reason' => 'removed'}
               next
             end
+            record['repository'] = record['repository'].slice(*REPOSITORY_FIELDS) if record['repository'].is_a?(Hash)
             record['provenance']['selection'] = @selector.selected.fetch(id) if @selector
             packages.puts(JSON.generate(record))
             rows << projection(record).merge('source_line' => rows.size + 1)
@@ -109,11 +111,18 @@ module Corpus
     end
 
     def projection(record)
-      result = record.dup
+      result = record.slice('package_id', 'purl', 'name', 'language', 'ecosystem', 'namespace', 'description', 'homepage', 'repository_url', 'normalized_licenses', 'keywords', 'keywords_array')
+      result['signals'] = (record['signals'] || {}).slice('downloads', 'dependent_repos_count')
+      result['rankings'] = (record['rankings'] || {}).slice('downloads', 'dependent_repos_count')
+      result['activity'] = (record['activity'] || {}).slice('latest_release_number')
+      result['maintainers'] = Array(record['maintainers']).map { |m| m.slice('id', 'registry_id', 'email', 'url') }
+      registry = record.fetch('registry').slice('id', 'name', 'ecosystem', 'url', 'version')
+      registry['metadata'] = (record.dig('registry', 'metadata') || {}).slice('codename')
+      @project_registries ||= {}
+      result['registry'] = @project_registries[registry] ||= registry
       metadata = record['metadata'].is_a?(Hash) ? record['metadata'] : {}
       result['metadata'] = metadata.slice('origin', 'binary', 'architecture', 'maintainers', 'maintainer', 'urls', 'source_url')
       result['repository'] = (record['repository'] || {}).slice('id', 'html_url', 'full_name', 'description', 'language', 'license', 'topics', 'previous_names', 'pushed_at', 'archived', 'fork', 'stargazers_count', 'last_synced_at')
-      result.delete('provenance')
       result
     end
 
@@ -152,9 +161,14 @@ module Corpus
       end
     end
 
+    def repository_sql
+      keys = REPOSITORY_FIELDS.map { |key| "'#{key}'" }.join(', ')
+      Arel.sql("CASE WHEN json_typeof(repo_metadata) = 'object' THEN COALESCE((SELECT json_object_agg(entry.key, entry.value) FROM json_each(repo_metadata) AS entry WHERE entry.key IN (#{keys})), '{}'::json) END AS repo_metadata")
+    end
+
     def database_batch(ids)
       @database ||= Database.new
-      relation = Package.where(id: ids).order(:id).select(:id, :registry_id, :repo_metadata, *FIELDS, *SIGNALS, *ACTIVITY)
+      relation = Package.where(id: ids).order(:id).select(:id, :registry_id, repository_sql, *FIELDS, *SIGNALS, *ACTIVITY)
       packages = @database.read(relation.to_sql, limit: ids.size).map { |row| Package.instantiate(row) }
       @registries ||= {}
       missing = packages.map(&:registry_id).uniq - @registries.keys
