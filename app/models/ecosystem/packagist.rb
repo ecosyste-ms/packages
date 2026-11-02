@@ -9,6 +9,7 @@ module Ecosystem
 
     CHANGES_STATE_KEY = 'packagist_changes'.freeze
     RECOVERY_BATCH_SIZE = 1_000
+    VERSION_METADATA_KEYS = %w[download_url php_version platform_requirements autoload extra suggest malware].freeze
 
     def sync_recent_packages_incrementally?
       true
@@ -257,6 +258,7 @@ module Ecosystem
       raise 'Expected a tagged version list' unless entries.is_a?(Array)
 
       previous = {}
+      identities = Set.new
       entries.each_with_object({}) do |entry, versions|
         expanded = minified ? previous.dup : {}
         entry.each do |key, value|
@@ -267,7 +269,8 @@ module Ecosystem
           end
         end
         number = expanded.fetch('version')
-        raise 'Missing version number' if number.blank?
+        raise 'Invalid version number' unless number.is_a?(String) && number.present?
+        raise "Duplicate tagged version #{number}" unless identities.add?(release_key(number))
         versions[number] = expanded
         previous = expanded
       end
@@ -305,8 +308,7 @@ module Ecosystem
 
     def map_package_metadata(pkg_metadata)
       return false unless pkg_metadata
-      latest_version = pkg_metadata['package_version'] || pkg_metadata['versions'].values.first
-      return false if latest_version.nil?
+      latest_version = pkg_metadata['package_version'] || pkg_metadata['versions'].values.first || {}
 
       {
         name: pkg_metadata["name"],
@@ -328,15 +330,39 @@ module Ecosystem
     end
 
     def update_existing_versions(package, versions_metadata)
-      versions_metadata.map { |version| version.fetch(:number) }.each_slice(1_000) do |numbers|
-        package.versions.where(number: numbers, status: 'removed').update_all(status: nil, updated_at: Time.current)
+      incoming = versions_metadata.index_by { |version| release_key(version.fetch(:number)) }
+      package.versions.find_each do |version|
+        attributes = incoming[release_key(version.number)]
+        if attributes
+          attributes = attributes.except(:number, :status)
+          metadata = attributes.fetch(:metadata).stringify_keys
+          if attributes[:integrity].nil? && version.metadata.to_h['download_url'] == metadata['download_url']
+            attributes = attributes.except(:integrity)
+          end
+          version.assign_attributes(attributes.merge(metadata: merge_version_metadata(version.metadata, metadata)))
+          version.status = nil if version.status == 'removed'
+        elsif version.status.nil? || version.status == 'malware'
+          version.status = 'removed'
+        end
+        version.update_columns(version.changes.transform_values(&:last).merge(updated_at: Time.current)) if version.changed?
       end
       apply_malware_flags(package, package.metadata.fetch('malware', []), versions_metadata.map { |v| v.fetch(:number) })
     end
 
+    def release_key(number)
+      number.sub(/\Av(?=\d)/i, '').downcase
+    end
+
+    def merge_version_metadata(existing_metadata, new_metadata)
+      existing_metadata.to_h.except(*VERSION_METADATA_KEYS).merge(new_metadata.stringify_keys)
+    end
+
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       ranges = malware_ranges(pkg_metadata.fetch(:metadata, {}).fetch('malware', []))
+      existing = existing_version_numbers.group_by { |number| release_key(number) }
       acceptable_versions(pkg_metadata[:versions]).map do |name, version|
+        aliases = existing[release_key(version.fetch('version'))] || []
+        number = aliases.include?(version['version']) ? version['version'] : aliases.first || version['version']
         metadata = {}
         matches = matching_malware_flags(ranges, version.fetch('version'))
         metadata[:malware] = matches if matches.any?
@@ -354,11 +380,12 @@ module Ecosystem
         metadata[:suggest] = version["suggest"] if version["suggest"].present?
         
         {
-          number: version["version"],
+          number: number,
+          registry_id: @registry.id,
           published_at: version["time"],
           integrity: (version['dist'] && version['dist']['shasum'].present?) ? "sha1-#{version['dist']['shasum']}" : nil,
           metadata: metadata
-        }.merge(status: matches.any? && !existing_version_numbers.include?(version['version']) ? 'malware' : nil)
+        }.merge(status: matches.any? && aliases.empty? ? 'malware' : nil)
       end
     end
 
@@ -371,6 +398,7 @@ module Ecosystem
 
     def dependencies_metadata(_name, version, package)
       vers = package[:versions][version]
+      vers ||= package[:versions].values.find { |entry| release_key(entry.fetch('version')) == release_key(version) }
       return [] if vers.nil?
 
       map_dependencies(vers.fetch("require", {}).reject { |k, _v| k == "php" }, "runtime") +

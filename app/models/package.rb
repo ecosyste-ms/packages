@@ -539,12 +539,16 @@ class Package < ApplicationRecord
       if ecosystem.is_a?(Ecosystem::Packagist)
         update!(metadata: metadata.to_h.merge('malware' => package_metadata.fetch(:metadata).fetch('malware')))
       end
-      versions_metadata = ecosystem.versions_metadata(package_metadata)
+      existing_packagist_numbers = versions.pluck(:number).to_set if ecosystem.is_a?(Ecosystem::Packagist)
+      versions_metadata = ecosystem.versions_metadata(package_metadata, existing_packagist_numbers || [])
       ecosystem.update_existing_versions(self, versions_metadata)
 
       created_versions = []
       versions_metadata.each do |version|
-        if version[:integrity].present?
+        if existing_packagist_numbers
+          next if existing_packagist_numbers.include?(version[:number])
+          v = nil
+        elsif version[:integrity].present?
           v = versions.find{|ver| ver.integrity == version[:integrity] }
         else
           v = versions.find{|ver| ver.number == version[:number] }
@@ -552,7 +556,6 @@ class Package < ApplicationRecord
         begin
           if v
             version = version.except(:published_at) if self.ecosystem == 'opam' && version[:published_at].nil?
-            version = version.except(:status) if ecosystem.is_a?(Ecosystem::Packagist)
             v.registry_id = registry_id
             metadata_key = version.key?(:metadata) ? :metadata : 'metadata'
             if version.key?(metadata_key)
