@@ -1,5 +1,6 @@
 production:
   ignore_errors:
+    - Ecosystem::Packagist::RetryableError
     - Ecosystem::Opam::ManifestUnavailable
     - ActiveRecord::RecordNotFound
     - ActionController::RoutingError

@@ -4,6 +4,9 @@ module Ecosystem
   class Packagist < Base
     include PackagistMalware
 
+    class RetryableError < RuntimeError; end
+    class PackageNotFound < RuntimeError; end
+
     CHANGES_STATE_KEY = 'packagist_changes'.freeze
     RECOVERY_BATCH_SIZE = 1_000
 
@@ -30,7 +33,7 @@ module Ecosystem
 
     def metadata_changes(cursor)
       response = request("https://packagist.org/metadata/changes.json?since=#{cursor}")
-      raise "Metadata changes returned HTTP #{response.status}" unless response.success?
+      check_metadata_response(response, 'Metadata changes')
       data = JSON.parse(response.body)
       timestamp = data.fetch('timestamp')
       raise 'Invalid metadata changes cursor' unless timestamp.is_a?(Integer) && timestamp >= cursor
@@ -114,7 +117,7 @@ module Ecosystem
       name = action.fetch('package').delete_suffix('~dev')
       if %w[delete refresh].include?(action['type'])
         @tagged_response = request("https://repo.packagist.org/p2/#{name}.json")
-        if @tagged_response.status == 404
+        if @tagged_response.status == 404 && action['type'] == 'delete'
           package = @registry.packages.find_by(name: name)
           package ||= @registry.packages.where('lower(name) = ?', name.downcase).first
           package&.update!(status: 'removed', last_synced_at: Time.current)
@@ -125,19 +128,32 @@ module Ecosystem
         @minimum_metadata_time = action.fetch('time') if action['type'] == 'delete'
       elsif action.fetch('package').end_with?('~dev')
         response = request("https://repo.packagist.org/p2/#{name}~dev.json")
-        raise "Development metadata returned HTTP #{response.status}" unless response.success?
-        verify_metadata_time(response.headers['last-modified'], action.fetch('time'))
+        check_metadata_response(response, "Development metadata for #{name}")
+        verify_metadata_time(response.headers['last-modified'], action.fetch('time'), name: "#{name}~dev")
       else
         @minimum_metadata_time = action.fetch('time')
       end
-      raise "Failed to sync Packagist package #{name}" unless @registry.sync_package(name, force: true)
+      retry_metadata("Failed to sync Packagist package #{name}") unless @registry.sync_package(name, force: true)
     ensure
       @minimum_metadata_time = @tagged_response = nil
     end
 
-    def verify_metadata_time(last_modified, minimum)
+    def verify_metadata_time(last_modified, minimum, name:)
       return unless minimum
-      raise 'Packagist metadata is older than its change event' unless last_modified.present? && Time.httpdate(last_modified).to_i >= minimum
+      modified = Time.httpdate(last_modified).to_i if last_modified.present?
+      retry_metadata("Packagist metadata is older than its change event: #{name}, expected=#{minimum}, last_modified=#{last_modified.inspect}") unless modified && modified >= minimum
+    end
+
+    def retry_metadata(message)
+      Rails.logger.warn(message)
+      raise RetryableError, message
+    end
+
+    def check_metadata_response(response, context)
+      return if response.success?
+      message = "#{context} returned HTTP #{response.status}"
+      retry_metadata(message) if [404, 408, 425, 429].include?(response.status) || (500..599).cover?(response.status)
+      raise message
     end
 
     def sync_maintainers_inline?
@@ -186,7 +202,7 @@ module Ecosystem
     def fetch_package_metadata_uncached(name)
       package = begin
         fetch_package_enrichment(name)
-      rescue StandardError => e
+      rescue PackageNotFound => e
         Rails.logger.warn("Failed to fetch Packagist metadata for #{name}: #{e.message}")
         return false
       end
@@ -204,7 +220,8 @@ module Ecosystem
     def fetch_package_enrichment(name)
       Rails.cache.fetch(['packagist', 'enrichment', name], expires_in: 12.hours) do
         response = request("https://packagist.org/packages/#{name}.json")
-        raise "Package metadata returned HTTP #{response.status}" unless response.success?
+        raise PackageNotFound, "Package metadata for #{name} returned HTTP 404" if response.status == 404
+        check_metadata_response(response, "Package metadata for #{name}")
         data = JSON.parse(response.body).fetch('package')
         data.except('versions').merge('package_version' => data.fetch('versions').values.first)
       end
@@ -217,11 +234,11 @@ module Ecosystem
       headers['If-Modified-Since'] = cached['last_modified'] if cached && cached['last_modified'].present?
       response = @tagged_response || request("https://repo.packagist.org/p2/#{name}.json", headers: headers)
       if response.status == 304 && cached
-        verify_metadata_time(cached['last_modified'], @minimum_metadata_time)
+        verify_metadata_time(cached['last_modified'], @minimum_metadata_time, name: name)
         return parse_tagged_metadata(cached.fetch('body'), name)
       end
-      raise "Tagged metadata returned HTTP #{response.status}" unless response.success?
-      verify_metadata_time(response.headers['last-modified'], @minimum_metadata_time)
+      check_metadata_response(response, "Tagged metadata for #{name}")
+      verify_metadata_time(response.headers['last-modified'], @minimum_metadata_time, name: name)
 
       metadata = parse_tagged_metadata(response.body, name)
       Rails.cache.write(key, {'body' => response.body, 'last_modified' => response.headers['last-modified']}, expires_in: 1.day)
