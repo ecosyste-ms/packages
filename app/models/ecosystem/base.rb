@@ -18,6 +18,10 @@ module Ecosystem
       false
     end
 
+    def sync_recent_packages_incrementally?
+      false
+    end
+
     def sync_maintainers_inline?
       false
     end

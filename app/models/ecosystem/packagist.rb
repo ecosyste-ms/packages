@@ -2,6 +2,142 @@
 
 module Ecosystem
   class Packagist < Base
+    CHANGES_STATE_KEY = 'packagist_changes'.freeze
+    RECOVERY_BATCH_SIZE = 1_000
+
+    def sync_recent_packages_incrementally?
+      true
+    end
+
+    def sync_recently_updated_packages_async(period: 15.minutes)
+      @registry.with_lock do
+        state = @registry.metadata.to_h.fetch(CHANGES_STATE_KEY, {}).dup
+        cursor = state['cursor'] || 15.minutes.ago.to_i * 10_000
+        data = metadata_changes(cursor)
+        actions = data.fetch('actions')
+
+        if actions.any? { |action| action['type'] == 'resync' }
+          state['recovery'] = {'phase' => 'known', 'after' => ''}
+        end
+        enqueue_metadata_actions(actions.reject { |action| action['type'] == 'resync' }, state, period)
+        state['cursor'] = data.fetch('timestamp')
+        @registry.update!(metadata: @registry.metadata.to_h.merge(CHANGES_STATE_KEY => state))
+      end
+      recover_metadata_changes(period: period)
+    end
+
+    def metadata_changes(cursor)
+      response = request("https://packagist.org/metadata/changes.json?since=#{cursor}")
+      raise "Metadata changes returned HTTP #{response.status}" unless response.success?
+      data = JSON.parse(response.body)
+      timestamp = data.fetch('timestamp')
+      raise 'Invalid metadata changes cursor' unless timestamp.is_a?(Integer) && timestamp >= cursor
+      actions = data.fetch('actions')
+      raise 'Expected metadata actions' unless actions.is_a?(Array)
+      actions.each { |action| validate_metadata_action(action) }
+      data
+    end
+
+    def validate_metadata_action(action)
+      raise 'Invalid metadata action' unless action.is_a?(Hash) && %w[update delete resync].include?(action['type'])
+      raise 'Invalid metadata action time' unless action['time'].is_a?(Integer) && action['time'].positive?
+      name = action['package']
+      valid_name = name.is_a?(String) && name.match?(%r{\A[a-z0-9_.-]+/[a-z0-9_.-]+(?:~dev)?\z}i)
+      valid_name = name == '*' if action['type'] == 'resync'
+      raise 'Invalid metadata action package' unless valid_name
+    end
+
+    def enqueue_metadata_actions(actions, state, period)
+      budget = @registry.sync_budget(period)
+      batch_size = budget ? [[budget, 1].max, 1_000].min : 1_000
+      next_at = [state['enqueue_at'].to_f, Time.current.to_f].max
+      actions.each_slice(batch_size) do |batch|
+        jobs = SyncPackagistChangeWorker.set(wait_until: next_at).perform_bulk(batch.map { |action| [@registry.id, action] })
+        raise 'Packagist changes were not fully enqueued' unless jobs.size == batch.size && jobs.all?
+        next_at += batch.size / @registry.rate_limit.to_f if budget
+      end
+      state['enqueue_at'] = next_at
+    end
+
+    def recover_metadata_changes(period:)
+      @registry.with_lock do
+        state = @registry.metadata.to_h.fetch(CHANGES_STATE_KEY).deep_dup
+        recovery = state['recovery']
+        return unless recovery
+
+        limit = RECOVERY_BATCH_SIZE
+        if @registry.rate_limit
+          next_at = [state['enqueue_at'].to_f, Time.current.to_f].max
+          available = ((Time.current.to_f + period.to_f - next_at) * @registry.rate_limit).floor
+          limit = [limit, available].min
+        end
+        return if limit <= 0
+
+        names, next_recovery = metadata_recovery_batch(recovery, limit: limit)
+        enqueue_metadata_actions(names.map { |name| {'type' => 'refresh', 'package' => name} }, state, period)
+        next_recovery ? state['recovery'] = next_recovery : state.delete('recovery')
+        @registry.update!(metadata: @registry.metadata.to_h.merge(CHANGES_STATE_KEY => state))
+      end
+    end
+
+    def metadata_recovery_batch(recovery, limit:)
+      if recovery['phase'] == 'known'
+        names = @registry.packages.where('name > ?', recovery['after']).order(:name).limit(limit).pluck(:name)
+        next_recovery = if names.size == limit
+                          {'phase' => 'known', 'after' => names.last}
+                        else
+                          {'phase' => 'catalogue', 'after' => ''}
+                        end
+        return [names, next_recovery]
+      end
+
+      response = request('https://packagist.org/packages/list.json')
+      raise "Package list returned HTTP #{response.status}" unless response.success?
+      catalogue = JSON.parse(response.body).fetch('packageNames')
+      raise 'Invalid package list' unless catalogue.is_a?(Array) && catalogue.all? { |name| name.is_a?(String) && name.include?('/') }
+      catalogue = catalogue.sort.drop_while { |name| name <= recovery['after'] }
+      names = []
+      after = recovery['after']
+      catalogue.each_slice(1_000) do |batch|
+        missing = batch - @registry.packages.where(name: batch).pluck(:name)
+        names.concat(missing.first(limit - names.size))
+        after = names.size == limit ? names.last : batch.last
+        break if names.size == limit
+      end
+      next_recovery = {'phase' => 'catalogue', 'after' => after} unless catalogue.empty? || after == catalogue.last
+      [names, next_recovery]
+    end
+
+    def sync_metadata_change(action)
+      name = action.fetch('package').delete_suffix('~dev')
+      if %w[delete refresh].include?(action['type'])
+        @tagged_response = request("https://repo.packagist.org/p2/#{name}.json")
+        if @tagged_response.status == 404
+          package = @registry.packages.find_by(name: name)
+          package ||= @registry.packages.where('lower(name) = ?', name.downcase).first
+          package&.update!(status: 'removed', last_synced_at: Time.current)
+          Rails.cache.delete(['packagist', 'enrichment', name])
+          Rails.cache.delete(['packagist', 'tagged_versions', name])
+          return
+        end
+        @minimum_metadata_time = action.fetch('time') if action['type'] == 'delete'
+      elsif action.fetch('package').end_with?('~dev')
+        response = request("https://repo.packagist.org/p2/#{name}~dev.json")
+        raise "Development metadata returned HTTP #{response.status}" unless response.success?
+        verify_metadata_time(response.headers['last-modified'], action.fetch('time'))
+      else
+        @minimum_metadata_time = action.fetch('time')
+      end
+      raise "Failed to sync Packagist package #{name}" unless @registry.sync_package(name, force: true)
+    ensure
+      @minimum_metadata_time = @tagged_response = nil
+    end
+
+    def verify_metadata_time(last_modified, minimum)
+      return unless minimum
+      raise 'Packagist metadata is older than its change event' unless last_modified.present? && Time.httpdate(last_modified).to_i >= minimum
+    end
+
     def sync_maintainers_inline?
       true
     end
@@ -40,13 +176,9 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      u = "#{@registry_url}/feeds/releases.rss"
-      updated = feed_titles(u)
-      u = "#{@registry_url}/feeds/packages.rss"
-      new_packages = feed_titles(u)
-      (updated.map { |t| t.split(" ").first } + new_packages).uniq
-    rescue
-      []
+      cursor = @registry.metadata.to_h.dig(CHANGES_STATE_KEY, 'cursor') || 15.minutes.ago.to_i * 10_000
+      metadata_changes(cursor).fetch('actions').reject { |action| action['type'] == 'resync' }
+        .map { |action| action['package'].delete_suffix('~dev') }.uniq
     end
 
     def fetch_package_metadata_uncached(name)
@@ -73,11 +205,13 @@ module Ecosystem
       cached = Rails.cache.read(key)
       headers = {}
       headers['If-Modified-Since'] = cached['last_modified'] if cached && cached['last_modified'].present?
-      response = request("https://repo.packagist.org/p2/#{name}.json", headers: headers)
+      response = @tagged_response || request("https://repo.packagist.org/p2/#{name}.json", headers: headers)
       if response.status == 304 && cached
+        verify_metadata_time(cached['last_modified'], @minimum_metadata_time)
         return expand_tagged_versions(cached.fetch('body'), name)
       end
       raise "Tagged metadata returned HTTP #{response.status}" unless response.success?
+      verify_metadata_time(response.headers['last-modified'], @minimum_metadata_time)
 
       versions = expand_tagged_versions(response.body, name)
       Rails.cache.write(key, {'body' => response.body, 'last_modified' => response.headers['last-modified']}, expires_in: 1.day)
@@ -158,6 +292,12 @@ module Ecosystem
           "funding" => latest_version["funding"],
         }
       }
+    end
+
+    def update_existing_versions(package, versions_metadata)
+      versions_metadata.map { |version| version.fetch(:number) }.each_slice(1_000) do |numbers|
+        package.versions.where(number: numbers, status: 'removed').update_all(status: nil, updated_at: Time.current)
+      end
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
