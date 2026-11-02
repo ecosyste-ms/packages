@@ -81,13 +81,12 @@ class PackagistTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
-    stub_request(:get, "https://packagist.org/feeds/releases.rss")
-      .to_return({ status: 200, body: file_fixture('packagist/releases.rss') })
-    stub_request(:get, "https://packagist.org/feeds/packages.rss")
-    .to_return({ status: 200, body: file_fixture('packagist/packages.rss') })
-    recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 75
-    assert_equal recently_updated_package_names.last, 'pringuin/pimcore-lucene-search'
+    stub_request(:get, %r{https://packagist.org/metadata/changes.json\?since=\d+})
+      .to_return(body: {timestamp: Time.current.to_i * 10_000, actions: [
+        {type: 'update', package: 'psr/log', time: Time.current.to_i},
+        {type: 'update', package: 'psr/log~dev', time: Time.current.to_i}
+      ]}.to_json)
+    assert_equal ['psr/log'], @ecosystem.recently_updated_package_names
   end
 
   test 'package_metadata' do

@@ -220,6 +220,9 @@ class Registry < ApplicationRecord
 
   def sync_recently_updated_packages_async(period: 15.minutes)
     return if sync_in_batches?
+    if ecosystem_instance.sync_recent_packages_incrementally?
+      return ecosystem_instance.sync_recently_updated_packages_async(period: period)
+    end
     names = Array(recently_updated_package_names).compact.map(&:to_s).uniq
     budget = sync_budget(period)
     names = names.first(budget) if budget
