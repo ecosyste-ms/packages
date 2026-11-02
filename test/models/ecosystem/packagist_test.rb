@@ -218,7 +218,8 @@ class PackagistTest < ActiveSupport::TestCase
 
     stub_request(:get, 'https://repo.packagist.org/p2/psr/log.json').to_return(status: 503)
     travel 1.hour do
-      assert_equal false, SyncPackageWorker.new.perform(registry.id, 'psr/log', true)
+      error = assert_raises(RuntimeError) { SyncPackageWorker.new.perform(registry.id, 'psr/log', true) }
+      assert_includes error.message, 'HTTP 503'
     end
     assert_equal synced_at, package.reload.last_synced_at
     assert_equal 12, package.versions.count
@@ -227,19 +228,63 @@ class PackagistTest < ActiveSupport::TestCase
   test 'sync worker rejects invalid p2 snapshots without caching them' do
     registry = packagist_sync_registry
     invalid = [
-      'not json',
-      {packages: {}},
-      {packages: {'psr/log' => {}}},
-      {packages: {'psr/log' => [{'version' => ''}]}},
-      {minified: 'unknown', packages: {'psr/log' => []}}
+      ['not json', JSON::ParserError],
+      [{packages: {}}, KeyError],
+      [{packages: {'psr/log' => {}}}, RuntimeError],
+      [{packages: {'psr/log' => [{'version' => ''}]}}, RuntimeError],
+      [{minified: 'unknown', packages: {'psr/log' => []}}, RuntimeError]
     ]
-    invalid.each do |body|
+    invalid.each do |body, error_class|
       stub_request(:get, 'https://repo.packagist.org/p2/psr/log.json')
         .to_return(status: 200, body: body.is_a?(String) ? body : body.to_json)
-      assert_equal false, SyncPackageWorker.new.perform(registry.id, 'psr/log', true)
+      assert_raises(error_class) { SyncPackageWorker.new.perform(registry.id, 'psr/log', true) }
       assert_nil Rails.cache.read(['packagist', 'tagged_versions', 'psr/log'])
       assert_empty registry.packages
     end
+  end
+
+  test 'by-id sync propagates p2 failures without checking status or advancing the cooldown' do
+    registry = packagist_sync_registry
+    package = registry.packages.create!(name: 'psr/log', ecosystem: 'packagist', last_synced_at: 2.days.ago)
+    synced_at = package.reload.last_synced_at
+    next_sync_at = package.next_sync_at
+    version = package.versions.create!(number: '3.0.0')
+    request = stub_request(:get, 'https://repo.packagist.org/p2/psr/log.json')
+
+    request.to_return(status: 503)
+    error = assert_raises(RuntimeError) { SyncPackageByIdWorker.new.perform(registry.id, package.id) }
+    assert_includes error.message, 'HTTP 503'
+    assert_equal synced_at, package.reload.last_synced_at
+
+    request.to_timeout
+    assert_raises(Faraday::TimeoutError) { SyncPackageByIdWorker.new.perform(registry.id, package.id) }
+    assert_equal synced_at, package.reload.last_synced_at
+
+    request.to_return(status: 200, body: 'not json')
+    assert_raises(JSON::ParserError) { SyncPackageByIdWorker.new.perform(registry.id, package.id) }
+    assert_equal synced_at, package.reload.last_synced_at
+    assert_equal next_sync_at, package.next_sync_at
+    assert_equal 'active', package[:status]
+    assert_equal [version.id], package.versions.pluck(:id)
+    assert_not_requested(:get, 'https://repo.packagist.org/p2/psr/log~dev.json')
+
+    request.to_return(status: 200, body: file_fixture('packagist/log.p2.json'))
+    SyncPackageByIdWorker.new.perform(registry.id, package.id)
+    assert_operator package.reload.last_synced_at, :>, synced_at
+    assert_equal '3.0.2', package.latest_release_number
+    assert_equal 12, package.versions.count
+  end
+
+  test 'by-id sync still checks removal when package enrichment returns not found' do
+    registry = packagist_sync_registry
+    package = registry.packages.create!(name: 'psr/log', ecosystem: 'packagist', last_synced_at: 2.days.ago)
+    stub_request(:get, 'https://packagist.org/packages/psr/log.json')
+      .to_return(status: 404, body: {status: 'error', message: 'Package not found'}.to_json)
+    stub_request(:head, 'https://packagist.org/packages/psr/log').to_return(status: 404)
+
+    SyncPackageByIdWorker.new.perform(registry.id, package.id)
+    assert_equal 'removed', package.reload[:status]
+    assert_not_requested(:get, 'https://repo.packagist.org/p2/psr/log.json')
   end
 
   test 'sync worker preserves development-only packages with no tagged releases' do

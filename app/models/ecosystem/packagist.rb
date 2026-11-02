@@ -50,11 +50,13 @@ module Ecosystem
     end
 
     def fetch_package_metadata_uncached(name)
-      package = fetch_package_enrichment(name)
+      package = begin
+        fetch_package_enrichment(name)
+      rescue StandardError => e
+        Rails.logger.warn("Failed to fetch Packagist metadata for #{name}: #{e.message}")
+        return false
+      end
       package.merge('versions' => fetch_tagged_versions(package.fetch('name')))
-    rescue StandardError => e
-      Rails.logger.warn("Failed to fetch Packagist metadata for #{name}: #{e.message}")
-      false
     end
 
     def fetch_package_enrichment(name)
