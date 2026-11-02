@@ -2,6 +2,8 @@
 
 module Ecosystem
   class Packagist < Base
+    include PackagistMalware
+
     CHANGES_STATE_KEY = 'packagist_changes'.freeze
     RECOVERY_BATCH_SIZE = 1_000
 
@@ -188,7 +190,7 @@ module Ecosystem
         Rails.logger.warn("Failed to fetch Packagist metadata for #{name}: #{e.message}")
         return false
       end
-      package.merge('versions' => fetch_tagged_versions(package.fetch('name')))
+      package.merge(fetch_tagged_metadata(package.fetch('name')))
     end
 
     def fetch_package_enrichment(name)
@@ -200,7 +202,7 @@ module Ecosystem
       end
     end
 
-    def fetch_tagged_versions(name)
+    def fetch_tagged_metadata(name)
       key = ['packagist', 'tagged_versions', name]
       cached = Rails.cache.read(key)
       headers = {}
@@ -208,18 +210,22 @@ module Ecosystem
       response = @tagged_response || request("https://repo.packagist.org/p2/#{name}.json", headers: headers)
       if response.status == 304 && cached
         verify_metadata_time(cached['last_modified'], @minimum_metadata_time)
-        return expand_tagged_versions(cached.fetch('body'), name)
+        return parse_tagged_metadata(cached.fetch('body'), name)
       end
       raise "Tagged metadata returned HTTP #{response.status}" unless response.success?
       verify_metadata_time(response.headers['last-modified'], @minimum_metadata_time)
 
-      versions = expand_tagged_versions(response.body, name)
+      metadata = parse_tagged_metadata(response.body, name)
       Rails.cache.write(key, {'body' => response.body, 'last_modified' => response.headers['last-modified']}, expires_in: 1.day)
-      versions
+      metadata
     end
 
-    def expand_tagged_versions(body, name)
+    def parse_tagged_metadata(body, name)
       data = JSON.parse(body)
+      {'versions' => expand_tagged_versions(data, name), 'malware' => malware_flags(data)}
+    end
+
+    def expand_tagged_versions(data, name)
       minified = data['minified']
       raise "Unsupported metadata minification #{minified}" unless minified.nil? || minified == 'composer/2.0'
       entries = data.fetch('packages').fetch(name)
@@ -290,6 +296,7 @@ module Ecosystem
         namespace: pkg_metadata["name"].split("/").first,
         metadata: {
           "funding" => latest_version["funding"],
+          "malware" => pkg_metadata.fetch('malware', []),
         }
       }
     end
@@ -298,11 +305,15 @@ module Ecosystem
       versions_metadata.map { |version| version.fetch(:number) }.each_slice(1_000) do |numbers|
         package.versions.where(number: numbers, status: 'removed').update_all(status: nil, updated_at: Time.current)
       end
+      apply_malware_flags(package, package.metadata.fetch('malware', []), versions_metadata.map { |v| v.fetch(:number) })
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
+      ranges = malware_ranges(pkg_metadata.fetch(:metadata, {}).fetch('malware', []))
       acceptable_versions(pkg_metadata[:versions]).map do |name, version|
         metadata = {}
+        matches = matching_malware_flags(ranges, version.fetch('version'))
+        metadata[:malware] = matches if matches.any?
         
         metadata[:download_url] = version['dist']['url'] if version['dist']
         
@@ -321,7 +332,7 @@ module Ecosystem
           published_at: version["time"],
           integrity: (version['dist'] && version['dist']['shasum'].present?) ? "sha1-#{version['dist']['shasum']}" : nil,
           metadata: metadata
-        }
+        }.merge(status: matches.any? && !existing_version_numbers.include?(version['version']) ? 'malware' : nil)
       end
     end
 

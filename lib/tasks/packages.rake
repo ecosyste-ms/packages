@@ -13,6 +13,15 @@ def with_rake_lock(task_name, ttl: 3600)
 end
 
 namespace :packages do
+  desc 'sync Packagist malware flags'
+  task sync_packagist_malware: :environment do
+    with_rake_lock('packages:sync_packagist_malware') do
+      Registry.where('lower(ecosystem) = ?', 'packagist').find_each do |registry|
+        registry.ecosystem_instance.sync_malware_async
+      end
+    end
+  end
+
   desc 'queue dependencies that packages declare against each registry but are missing from the ecosystem'
   task sync_declared_dependencies: :environment do
     ecosystems = Ecosystem::Base.list.select(&:declared_repositories_key).map(&:lowercase_name)
