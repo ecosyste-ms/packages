@@ -171,6 +171,41 @@ class PackagistChangesTest < ActiveSupport::TestCase
     assert_requested(:get, 'https://repo.packagist.org/p2/psr/log.json', times: 1)
   end
 
+  test 'restoring a deleted package restores only releases in the current snapshot before selecting latest' do
+    SyncPackagistChangeWorker.new.perform(@registry.id, action)
+    absent = @package.versions.create!(number: '99.0.0', published_at: @time)
+    latest = @package.versions.find_by!(number: '3.0.2')
+    dependency = latest.dependencies.create!(package_name: 'vendor/dependency', ecosystem: 'packagist', requirements: '*', kind: 'runtime')
+    original_ids = @package.versions.order(:id).pluck(:id)
+    stub_request(:get, 'https://repo.packagist.org/p2/psr/log.json').to_return(status: 404)
+    SyncPackagistChangeWorker.new.perform(@registry.id, action.merge('type' => 'delete'))
+    assert_equal 13, @package.versions.where(status: 'removed').count
+
+    tagged_metadata
+    SyncPackagistChangeWorker.new.perform(@registry.id, action)
+
+    assert_equal 'active', @package.reload[:status]
+    assert_equal 12, @package.versions.active.count
+    assert_equal 'removed', absent.reload.status
+    assert_equal original_ids, @package.versions.order(:id).pluck(:id)
+    assert_equal '3.0.2', @package.latest_release_number
+    assert_equal ['3.0.2'], @package.versions.where(latest: true).pluck(:number)
+    assert Dependency.exists?(dependency.id)
+  end
+
+  test 'restoring removed releases preserves other statuses and packages' do
+    @package.versions.first.update!(status: 'removed')
+    yanked = @package.versions.create!(number: '3.0.1', status: 'yanked')
+    other = @registry.packages.create!(name: 'vendor/other', ecosystem: 'packagist')
+    other_version = other.versions.create!(number: '3.0.0', status: 'removed')
+
+    SyncPackagistChangeWorker.new.perform(@registry.id, action)
+
+    assert_nil @package.versions.find_by!(number: '3.0.0').status
+    assert_equal 'yanked', yanked.reload.status
+    assert_equal 'removed', other_version.reload.status
+  end
+
   test 'a cached pre-deletion snapshot is retried instead of restoring the package' do
     @package.update!(status: 'removed')
     tagged_metadata(last_modified: (@time - 1).httpdate)
@@ -179,6 +214,7 @@ class PackagistChangesTest < ActiveSupport::TestCase
     end
     assert_equal 'removed', @package.reload[:status]
     assert_equal ['3.0.0'], @package.versions.pluck(:number)
+    assert_equal ['removed'], @package.versions.pluck(:status)
   end
 
   test 'deletion matches existing capitalized names without creating a package for unknown names' do
@@ -228,6 +264,25 @@ class PackagistChangesTest < ActiveSupport::TestCase
       poll
       assert_equal 'vendor/z', state.dig('recovery', 'after')
       assert_equal ['psr/log', 'vendor/new', 'vendor/z'], SyncPackagistChangeWorker.jobs.map { |j| j['args'].last['package'] }
+    end
+  end
+
+  %w[known catalogue].each do |phase|
+    test "a new resync restarts an unfinished #{phase} recovery" do
+      @registry.update!(metadata: @registry.metadata.merge(Ecosystem::Packagist::CHANGES_STATE_KEY =>
+        {'cursor' => @cursor, 'recovery' => {'phase' => phase, 'after' => 'zzzz/already-scanned'}}))
+      changes([{'type' => 'resync', 'package' => '*', 'time' => @time.to_i}])
+      stub_request(:get, 'https://packagist.org/packages/list.json')
+        .to_return(body: {packageNames: ['aaa/missed', 'psr/log']}.to_json)
+
+      poll
+
+      assert_equal ['psr/log'], SyncPackagistChangeWorker.jobs.map { |job| job['args'].last['package'] }
+      assert_equal({'phase' => 'catalogue', 'after' => ''}, state['recovery'])
+      changes([], since: @next_cursor, timestamp: @next_cursor + 1)
+      poll
+      assert_equal ['psr/log', 'aaa/missed'], SyncPackagistChangeWorker.jobs.map { |job| job['args'].last['package'] }
+      assert_nil state['recovery']
     end
   end
 
@@ -300,6 +355,8 @@ class PackagistChangesTest < ActiveSupport::TestCase
     Rails.application.load_tasks if Rake::Task.tasks.empty?
     Rake::Task['packages:sync_recent'].reenable
     Rake::Task['packages:sync_recent'].invoke
+  ensure
+    Rake::Task['packages:sync_recent'].reenable
   end
 
   def state

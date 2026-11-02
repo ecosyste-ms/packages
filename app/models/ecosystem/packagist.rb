@@ -17,7 +17,7 @@ module Ecosystem
         actions = data.fetch('actions')
 
         if actions.any? { |action| action['type'] == 'resync' }
-          state['recovery'] ||= {'phase' => 'known', 'after' => ''}
+          state['recovery'] = {'phase' => 'known', 'after' => ''}
         end
         enqueue_metadata_actions(actions.reject { |action| action['type'] == 'resync' }, state, period)
         state['cursor'] = data.fetch('timestamp')
@@ -292,6 +292,12 @@ module Ecosystem
           "funding" => latest_version["funding"],
         }
       }
+    end
+
+    def update_existing_versions(package, versions_metadata)
+      versions_metadata.map { |version| version.fetch(:number) }.each_slice(1_000) do |numbers|
+        package.versions.where(number: numbers, status: 'removed').update_all(status: nil, updated_at: Time.current)
+      end
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
