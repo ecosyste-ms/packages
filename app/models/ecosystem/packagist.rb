@@ -190,7 +190,15 @@ module Ecosystem
         Rails.logger.warn("Failed to fetch Packagist metadata for #{name}: #{e.message}")
         return false
       end
-      package.merge(fetch_tagged_metadata(package.fetch('name')))
+      name = package.fetch('name')
+      metadata = fetch_tagged_metadata(name)
+      constraint = @registry.metadata.to_h.dig(MALWARE_STATE_KEY, 'packages', name.downcase)
+      if constraint
+        previous = @registry.packages.where(name: name).pick(:metadata)
+        previous ||= @registry.packages.where('lower(name) = ?', name.downcase).pick(:metadata)
+        metadata['malware'] = complete_malware_flags(metadata.fetch('malware'), constraint, previous.to_h.fetch('malware', []))
+      end
+      package.merge(metadata)
     end
 
     def fetch_package_enrichment(name)
