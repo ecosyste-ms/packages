@@ -8,6 +8,7 @@ module Corpus
     BACKGROUND = 1 << 18
     CENSUS = 1 << 19
     ANCHOR_SHIFT = 20
+    USAGE_MASK = 4.times.sum { |i| (7 << (3 * i)) | (1 << (ANCHOR_SHIFT + i)) }
     HEAD_MASK = 6.times.sum { |i| 1 << (3 * i) }
     OUTER_MASK = 6.times.sum { |i| 4 << (3 * i) }
     HASH_MASK = (1 << 64) - 1
@@ -24,6 +25,7 @@ module Corpus
       raise ArgumentError, 'Invalid registry floor or cap' unless @floor >= 0 && @cap.positive? && @floor <= @cap
       raise ArgumentError, 'SEED must be a nonnegative 32-bit integer' unless @seed.between?(0, 2**32 - 1)
       @pool = {}
+      @usage_registries = []
     end
 
     def expression(metric)
@@ -45,6 +47,7 @@ module Corpus
         end
         census&.each { |row| add(row['id'], id, CENSUS) }
         large << id unless census
+        usage_only = false
         METRICS.each_with_index do |metric, index|
           if census
             pairs = census.filter_map { |p| [p['id'], p[metric]] if p[metric] && p[metric].positive? }
@@ -56,7 +59,11 @@ module Corpus
             truncated = rows.size > @head_limit
             pairs = rows.first(@head_limit).map { |p| [p['id'], p['value']] }
           end
-          coverage << classify(id, metric, index, pairs, truncated)
+          if metric == 'downloads' && !census && !pairs.empty?
+            usage_only = true
+            @usage_registries << id
+          end
+          coverage << classify(id, metric, index, pairs, truncated, eligible: !usage_only || index < 4)
           sleep 0.01
         end
       end
@@ -77,8 +84,11 @@ module Corpus
         round_robin(6.times.map { |i| ids.select { |id| @pool[id] & (1 << (ANCHOR_SHIFT + i)) != 0 } }, choices, (quota * 0.7).floor, 'signal_anchor')
         round_robin(6.times.map { |i| ids.select { |id| @pool[id] & (1 << (3 * i)) != 0 } }, choices, (quota * 0.7).floor, 'head90')
         round_robin(6.times.map { |i| ids.select { |id| @pool[id] & HEAD_MASK == 0 && @pool[id] & (4 << (3 * i)) != 0 } }, choices, (quota * 0.9).floor, 'outer90_to99')
-        round_robin([ids.select { |id| @pool[id] & OUTER_MASK == 0 && @pool[id] & (BACKGROUND | CENSUS) != 0 }], choices, quota, 'background_outside99')
-        round_robin([ids], choices, quota, 'registry_fill')
+        usage_only = @usage_registries.include?(registry)
+        background_limit = usage_only ? [quota, choices.size + quota / 10].min : quota
+        round_robin([ids.select { |id| @pool[id] & OUTER_MASK == 0 && @pool[id] & (BACKGROUND | CENSUS) != 0 }], choices, background_limit, 'background_outside99')
+        fill = usage_only ? ids.select { |id| @pool[id] & USAGE_MASK != 0 } : ids
+        round_robin([fill], choices, quota, 'registry_fill')
         choices.each { |id, reason| @selected[id] = {package_id: id, registry_id: registry, reason: reason, signal_membership: @pool[id] & ((1 << REGISTRY_SHIFT) - 1)} }
       end
       @report = {
@@ -86,6 +96,8 @@ module Corpus
         head_limit: @head_limit, census_limit: @census_limit, candidates: @pool.size,
         allocation: 'Registry floors, then square-root population weights, subject to candidate capacity and registry caps.',
         mix: '70% signal anchors and 90% heads; 20% outer heads; 10% background where available, with deterministic registry fill.',
+        package_usage_registries: @usage_registries,
+        repository_signals: 'For non-census registries with observed positive downloads, stars and forks do not qualify packages. Background-only packages are capped at 10% of the registry quota; remaining slots require package-usage selection signals.',
         coverage_scope: 'Complete positive population for exhausted queries; observed indexed prefix otherwise. Prefix percentages are not registry-wide usage coverage.',
         ties: 'All cutoff ties within the observed pool are included. A bounded SQL prefix may cut a boundary tie; saved selection records freeze that choice.',
         background: 'Seeded SYSTEM page sample across the package population; small registries use a census. Sampling is approximate and changes when database storage changes.',
@@ -99,7 +111,7 @@ module Corpus
       @pool[id] = @pool.fetch(id, registry << REGISTRY_SHIFT) | flags
     end
 
-    def classify(registry, metric, index, pairs, truncated)
+    def classify(registry, metric, index, pairs, truncated, eligible: true)
       pairs.sort_by! { |id, value| [-value, id] }
       total = pairs.sum(&:last)
       cutoffs = {}
@@ -107,10 +119,10 @@ module Corpus
         sum = 0
         cutoff = pairs.find { |_, value| sum += value; sum * 100 >= total * percent }&.last
         cutoffs[percent] = cutoff
-        pairs.each { |id, value| add(id, registry, 1 << (3 * index + level)) if cutoff && value >= cutoff }
+        pairs.each { |id, value| add(id, registry, 1 << (3 * index + level)) if eligible && cutoff && value >= cutoff }
       end
-      pairs.first(50).each { |id, _| add(id, registry, 1 << (ANCHOR_SHIFT + index)) }
-      {registry_id: registry, signal: metric, observed_packages: pairs.size, observed_total: total, truncated: truncated, cutoffs: cutoffs}
+      pairs.first(50).each { |id, _| add(id, registry, 1 << (ANCHOR_SHIFT + index)) } if eligible
+      {registry_id: registry, signal: metric, observed_packages: pairs.size, observed_total: total, truncated: truncated, cutoffs: cutoffs, selection_eligible: eligible}
     end
 
     def stable_hash(id)

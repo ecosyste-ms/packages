@@ -125,6 +125,15 @@ class CorpusRakeTest < ActiveSupport::TestCase
         dependent_repos_count: i + 1, docker_downloads_count: i + 1, repo_metadata: {'stargazers_count' => i + 1, 'forks_count' => i + 1})
     end
     ENV.update('TARGET' => '20', 'HEAD_LIMIT' => '500', 'CENSUS_LIMIT' => '0')
+    database = Corpus::Database.new
+    database.define_singleton_method(:read) do |sql, **options|
+      if options[:sample]
+        @selection_sample ||= super(sql, **options)
+      else
+        super(sql, **options)
+      end
+    end
+    Corpus::Database.stubs(:new).returns(database)
     statements = []
     listener = ->(_name, _start, _finish, _id, payload) { statements << payload[:sql] }
     files = ActiveSupport::Notifications.subscribed(listener, 'sql.active_record') { invoke_export }
@@ -356,5 +365,30 @@ class CorpusRakeTest < ActiveSupport::TestCase
     headers = uploader.headers(URI('https://examplebucket.s3.amazonaws.com/test%24file.text'), Digest::SHA256.hexdigest('Welcome to Amazon S3.'), Time.utc(2013, 5, 24),
       'date' => 'Fri, 24 May 2013 00:00:00 GMT', 'x-amz-storage-class' => 'REDUCED_REDUNDANCY')
     assert headers.fetch('Authorization').end_with?('Signature=98ad721746da40c64f1a55b78f14c238d841ea1380cd77a1b5971af0ece108bd')
+  end
+
+  test 'usage selection does not admit packages through shared repository popularity or quota fill' do
+    npm = registry('npmjs.org', 'npm', packages_count: 100_000)
+    go = registry('proxy.golang.org', 'go', packages_count: 100_000)
+    used = package(npm, 'used-package', downloads: 5)
+    shared = {'id' => 400, 'html_url' => 'https://github.com/example/popular', 'stargazers_count' => 100_000, 'forks_count' => 50_000}
+    unrelated = [nil, 0].map.with_index { |downloads, i| package(npm, "unrelated-#{i}", downloads: downloads, repo_metadata: shared) }
+    fallback = package(go, 'example.org/no-download-metric', downloads: nil, repo_metadata: shared)
+    ENV.update('TARGET' => '20', 'CENSUS_LIMIT' => '0', 'HEAD_LIMIT' => '50')
+    files = invoke_export
+    records = json_rows(files, 'selection.ndjson.gz')
+    assert_includes records.map { |r| r['package_id'] }, used
+    assert_includes records.map { |r| r['package_id'] }, fallback
+    records.select { |r| unrelated.include?(r['package_id']) }.each do |r|
+      assert_equal 'background_outside99', r['reason']
+    end
+    report = JSON.parse(files.fetch('selection.json'))
+    assert_includes report['package_usage_registries'], npm.id
+    assert_not_includes report['package_usage_registries'], go.id
+    quota = report.fetch('registry_quotas').fetch(npm.id.to_s)
+    selected = records.select { |r| r['registry_id'] == npm.id }
+    assert_operator selected.size, :<=, 1 + quota / 10
+    assert_operator selected.count { |r| r['reason'] == 'background_outside99' }, :<=, quota / 10
+    assert_not report['signals'].find { |s| s['registry_id'] == npm.id && s['signal'] == 'stargazers_count' }.fetch('selection_eligible')
   end
 end
