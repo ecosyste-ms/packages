@@ -212,6 +212,7 @@ class PackagistReconciliationTest < ActiveSupport::TestCase
   end
 
   def tagged_body(body)
+    @time += 1.second
     stub_request(:get, 'https://repo.packagist.org/p2/psr/log.json')
       .to_return(body: body, headers: {'Last-Modified' => @time.httpdate})
   end

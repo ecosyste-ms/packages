@@ -229,6 +229,7 @@ module Ecosystem
     end
 
     def fetch_tagged_metadata(name)
+      @tagged_cache_entry = nil
       key = ['packagist', 'tagged_versions', name]
       cached = Rails.cache.read(key)
       headers = {}
@@ -236,14 +237,42 @@ module Ecosystem
       response = @tagged_response || request("https://repo.packagist.org/p2/#{name}.json", headers: headers)
       if response.status == 304 && cached
         verify_metadata_time(cached['last_modified'], @minimum_metadata_time, name: name)
-        return parse_tagged_metadata(cached.fetch('body'), name)
+        return tagged_snapshot(cached.fetch('body'), cached['last_modified'], name)
       end
       check_metadata_response(response, "Tagged metadata for #{name}")
       verify_metadata_time(response.headers['last-modified'], @minimum_metadata_time, name: name)
 
-      metadata = parse_tagged_metadata(response.body, name)
-      Rails.cache.write(key, {'body' => response.body, 'last_modified' => response.headers['last-modified']}, expires_in: 1.day)
-      metadata
+      tagged_snapshot(response.body, response.headers['last-modified'], name)
+    end
+
+    def tagged_snapshot(body, last_modified, name)
+      metadata = parse_tagged_metadata(body, name)
+      snapshot = {'last_modified' => last_modified.present? ? Time.httpdate(last_modified).to_i : nil,
+        'sha256' => Digest::SHA256.hexdigest(body)}
+      @tagged_cache_entry = {'body' => body, 'last_modified' => last_modified}
+      metadata.merge('packagist_snapshot' => snapshot)
+    end
+
+    def verify_tagged_snapshot(package_metadata)
+      name = package_metadata.fetch(:name)
+      snapshot = package_metadata.fetch(:metadata).fetch('packagist_snapshot')
+      previous = @registry.packages.where(name: name).pick(:metadata).to_h['packagist_snapshot']
+      invalid = snapshot['last_modified'].nil?
+      if previous && previous['last_modified']
+        invalid ||= snapshot['last_modified'].to_i < previous['last_modified'] ||
+          (snapshot['last_modified'] == previous['last_modified'] && snapshot['sha256'] != previous['sha256'])
+      end
+      return unless invalid
+
+      key = ['packagist', 'tagged_versions', name]
+      Rails.cache.delete(key) if @tagged_cache_entry && Rails.cache.read(key) == @tagged_cache_entry
+      @last_fetched_key = @last_fetched_metadata = @tagged_cache_entry = nil
+      retry_metadata("Packagist snapshot is missing a timestamp or conflicts with the last applied snapshot: #{name}")
+    end
+
+    def cache_tagged_snapshot(package_metadata)
+      return unless @tagged_cache_entry
+      Rails.cache.write(['packagist', 'tagged_versions', package_metadata.fetch(:name)], @tagged_cache_entry, expires_in: 1.day)
     end
 
     def parse_tagged_metadata(body, name)
@@ -325,6 +354,7 @@ module Ecosystem
         metadata: {
           "funding" => latest_version["funding"],
           "malware" => pkg_metadata.fetch('malware', []),
+          "packagist_snapshot" => pkg_metadata.fetch('packagist_snapshot'),
         }
       }
     end

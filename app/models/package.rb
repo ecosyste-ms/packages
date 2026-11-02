@@ -537,7 +537,7 @@ class Package < ApplicationRecord
     return false unless package_metadata
     ecosystem.with_package_sync_lock(package_metadata) do
       if ecosystem.is_a?(Ecosystem::Packagist)
-        update!(metadata: metadata.to_h.merge('malware' => package_metadata.fetch(:metadata).fetch('malware')))
+        update!(metadata: metadata.to_h.merge(package_metadata.fetch(:metadata).slice('malware', 'packagist_snapshot')))
       end
       existing_packagist_numbers = versions.pluck(:number).to_set if ecosystem.is_a?(Ecosystem::Packagist)
       versions_metadata = ecosystem.versions_metadata(package_metadata, existing_packagist_numbers || [])
