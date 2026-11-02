@@ -8,7 +8,7 @@ class PurlLookupResolver
   def ecosystem
     case @purl.type
     when "apk"
-      @purl.namespace if %w[alpine postmarketos].include?(@purl.namespace)
+      @purl.namespace if %w[alpine postmarketos adelie].include?(@purl.namespace)
     when "deb"
       @purl.namespace if %w[debian ubuntu].include?(@purl.namespace)
     else
@@ -49,7 +49,12 @@ class PurlLookupResolver
     return false if registry.version.blank?
 
     ecosystem = registry.ecosystem_instance
-    ecosystem.respond_to?(:distro_qualifier) && ecosystem.distro_qualifier == distro
+    return false unless ecosystem.respond_to?(:distro_qualifier)
+
+    qualifier = ecosystem.distro_qualifier
+    return false if qualifier.blank?
+
+    distro == qualifier || distro.start_with?("#{qualifier}.")
   rescue NotImplementedError
     false
   end
