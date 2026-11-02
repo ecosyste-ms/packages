@@ -198,7 +198,7 @@ module Ecosystem
         previous ||= @registry.packages.where('lower(name) = ?', name.downcase).pick(:metadata)
         metadata['malware'] = complete_malware_flags(metadata.fetch('malware'), constraint, previous.to_h.fetch('malware', []))
       end
-      package.merge(metadata)
+      package.merge(metadata, 'packagist_malware_constraint' => constraint)
     end
 
     def fetch_package_enrichment(name)
@@ -299,6 +299,7 @@ module Ecosystem
         licenses: Array.wrap(latest_version["license"]).join(","),
         repository_url: repo_fallback(latest_version["source"]&.fetch("url"), latest_version["homepage"]),
         versions: pkg_metadata['versions'],
+        packagist_malware_constraint: pkg_metadata['packagist_malware_constraint'],
         downloads: pkg_metadata["downloads"]&.fetch("total"),
         downloads_period: 'total',
         namespace: pkg_metadata["name"].split("/").first,

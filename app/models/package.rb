@@ -535,46 +535,48 @@ class Package < ApplicationRecord
     ecosystem = registry.ecosystem_instance
     package_metadata = ecosystem.package_metadata(name)
     return false unless package_metadata
-    if ecosystem.is_a?(Ecosystem::Packagist)
-      update!(metadata: metadata.to_h.merge('malware' => package_metadata.fetch(:metadata).fetch('malware')))
-    end
-    versions_metadata = ecosystem.versions_metadata(package_metadata)
-    ecosystem.update_existing_versions(self, versions_metadata)
+    ecosystem.with_package_sync_lock(package_metadata) do
+      if ecosystem.is_a?(Ecosystem::Packagist)
+        update!(metadata: metadata.to_h.merge('malware' => package_metadata.fetch(:metadata).fetch('malware')))
+      end
+      versions_metadata = ecosystem.versions_metadata(package_metadata)
+      ecosystem.update_existing_versions(self, versions_metadata)
 
-    created_versions = []
-    versions_metadata.each do |version|
-      if version[:integrity].present?
-        v = versions.find{|ver| ver.integrity == version[:integrity] }
-      else
-        v = versions.find{|ver| ver.number == version[:number] }
-      end
-      begin
-        if v
-          version = version.except(:published_at) if self.ecosystem == 'opam' && version[:published_at].nil?
-          version = version.except(:status) if ecosystem.is_a?(Ecosystem::Packagist)
-          v.registry_id = registry_id
-          metadata_key = version.key?(:metadata) ? :metadata : 'metadata'
-          if version.key?(metadata_key)
-            version = version.merge(metadata_key => ecosystem.merge_version_metadata(v.metadata, version[metadata_key]))
-          end
-          v.assign_attributes(version)
-          v.save(validate: false)
+      created_versions = []
+      versions_metadata.each do |version|
+        if version[:integrity].present?
+          v = versions.find{|ver| ver.integrity == version[:integrity] }
         else
-          created = versions.create(version)
-          created_versions << created if created.persisted?
+          v = versions.find{|ver| ver.number == version[:number] }
         end
-      rescue ActiveRecord::RecordNotUnique
-        Rails.logger.warn("Version not unique: #{version[:number]}")
+        begin
+          if v
+            version = version.except(:published_at) if self.ecosystem == 'opam' && version[:published_at].nil?
+            version = version.except(:status) if ecosystem.is_a?(Ecosystem::Packagist)
+            v.registry_id = registry_id
+            metadata_key = version.key?(:metadata) ? :metadata : 'metadata'
+            if version.key?(metadata_key)
+              version = version.merge(metadata_key => ecosystem.merge_version_metadata(v.metadata, version[metadata_key]))
+            end
+            v.assign_attributes(version)
+            v.save(validate: false)
+          else
+            created = versions.create(version)
+            created_versions << created if created.persisted?
+          end
+        rescue ActiveRecord::RecordNotUnique
+          Rails.logger.warn("Version not unique: #{version[:number]}")
+        end
       end
+      update_columns(versions_count: versions.count, versions_updated_at: Time.now)
+      if self.ecosystem == 'opam'
+        update_columns(metadata: (metadata || {}).merge('archived' => package_metadata.dig(:metadata, :archived)))
+      elsif self.ecosystem == 'npm'
+        update_columns(metadata: (metadata || {}).merge('dist-tags' => package_metadata.dig(:metadata, 'dist-tags')))
+      end
+      update_details
+      emit_new_version_events(created_versions)
     end
-    update_columns(versions_count: versions.count, versions_updated_at: Time.now)
-    if self.ecosystem == 'opam'
-      update_columns(metadata: (metadata || {}).merge('archived' => package_metadata.dig(:metadata, :archived)))
-    elsif self.ecosystem == 'npm'
-      update_columns(metadata: (metadata || {}).merge('dist-tags' => package_metadata.dig(:metadata, 'dist-tags')))
-    end
-    update_details
-    emit_new_version_events(created_versions)
   end
 
   def update_versions_async
