@@ -39,21 +39,14 @@ class ApplicationController < ActionController::Base
       repository_url = "https://github.com/#{purl.namespace}/#{purl.name}"
       scope = Package.repository_url(repository_url)
     else
-      name = [namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
-      ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type)
+      resolver = PurlLookupResolver.new(purl)
+      ecosystem = resolver.ecosystem
+      name = resolver.package_name(namespace: namespace)
+      return Package.none if ecosystem.blank? || name.nil?
+
       name = name.downcase if ecosystem == 'nuget'
 
-      # Filter by repository_url qualifier if provided
-      if purl.qualifiers && purl.qualifiers['repository_url'].present?
-        # Do URL matching in Ruby to ensure proper normalization
-        target_url = normalize_url(purl.qualifiers['repository_url'])
-        registries = Registry.where(ecosystem: ecosystem).select { |r| normalize_url(r.url) == target_url }
-        registry_ids = registries.map(&:id)
-      else
-        registry_ids = Registry.where(ecosystem: ecosystem).pluck(:id)
-      end
-
-      scope = Package.where(registry_id: registry_ids)
+      scope = Package.where(registry_id: resolver.registry_ids)
       scope.with_ecosystem_name(name, ecosystem)
     end
   rescue
@@ -87,11 +80,6 @@ class ApplicationController < ActionController::Base
     else
       registry.packages.find_by_name!(name.downcase)
     end
-  end
-
-  def normalize_url(url)
-    return nil if url.nil?
-    url.to_s.downcase.sub(/\/+$/, '')
   end
 
   def sanitize_sort(model, default: 'updated_at')

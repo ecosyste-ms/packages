@@ -231,8 +231,8 @@ module Ecosystem
 
       # Add repository_url to qualifiers if non-default registry
       # default: true means it's the default registry for that ecosystem
-      # nil or false means it's not the default and should include repository_url
-      if @registry.default != true
+      # nil or false means it's not the default; ecosystems can opt out
+      if @registry.default != true && include_repository_url_in_purl?
         params[:qualifiers] ||= {}
         params[:qualifiers]['repository_url'] = @registry_url
       end
@@ -241,6 +241,10 @@ module Ecosystem
     rescue => e
       # invalid encoding or other errors
       nil
+    end
+
+    def include_repository_url_in_purl?
+      true
     end
 
     def purl_params(package, version = nil)

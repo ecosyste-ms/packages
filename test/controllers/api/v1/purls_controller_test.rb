@@ -252,6 +252,222 @@ class ApiV1PurlsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "com.example:library", response.dig("version", "name")
   end
 
+  test "uses the distro qualifier to select an Alpine version from the right registry" do
+    create_alpine_packages
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:apk/alpine/curl@8.5.0-r0?arch=x86_64&distro=alpine-3.19" }
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert_equal "matched", response["match_status"]
+    assert_equal "curl", response.dig("version", "name")
+    assert_equal "8.5.0-r0", response.dig("version", "version")
+    assert_equal "pkg:apk/alpine/curl@8.5.0-r0?arch=x86_64&distro=alpine-3.19", response.dig("version", "purl")
+    assert_equal "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/curl-8.5.0-r0.apk", response.dig("version", "artifacts", 0, "download_url")
+  end
+
+  test "resolves a Syft-style Alpine point-release distro to its release registry" do
+    create_alpine_packages
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:apk/alpine/curl@8.5.0-r0?arch=x86_64&distro=alpine-3.19.1" }
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert_equal "matched", response["match_status"]
+    assert_equal "pkg:apk/alpine/curl@8.5.0-r0?arch=x86_64&distro=alpine-3.19", response.dig("version", "purl")
+    assert_equal "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/curl-8.5.0-r0.apk", response.dig("version", "artifacts", 0, "download_url")
+  end
+
+  test "keeps a Syft-style distro scoped when the requested version is missing" do
+    packages = create_alpine_packages
+    packages.last.versions.create!(number: "8.6.0-r0")
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:apk/alpine/curl@8.6.0-r0?arch=x86_64&distro=alpine-3.19.1" }
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert_equal "missing", response["match_status"]
+    assert_nil response["version"]
+  end
+
+  test "returns ambiguous for the same Alpine version in multiple registries without qualifiers" do
+    create_alpine_packages
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:apk/alpine/curl@8.5.0-r0?arch=x86_64" }
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert_equal "ambiguous", response["match_status"]
+    assert_nil response["version"]
+  end
+
+  test "returns missing for an unknown or differently cased distro qualifier" do
+    create_alpine_packages
+
+    ["alpine-3.18", "Alpine-3.19", "Alpine-3.19.1", "alpine-3.190.1"].each do |distro|
+      get lookup_api_v1_purls_path, params: { purl: "pkg:apk/alpine/curl@8.5.0-r0?arch=x86_64&distro=#{distro}" }
+
+      assert_response :success
+      response = Oj.load(@response.body)
+      assert_equal "missing", response["match_status"], distro
+      assert_nil response["version"]
+    end
+  end
+
+  test "does not fall back to another distro when the requested version is missing" do
+    packages = create_alpine_packages
+    packages.last.versions.create!(number: "8.6.0-r0")
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:apk/alpine/curl@8.6.0-r0?arch=x86_64&distro=alpine-3.19" }
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert_equal "missing", response["match_status"]
+    assert_nil response["version"]
+  end
+
+  test "requires repository_url and distro to match the same registry" do
+    packages = create_alpine_packages
+
+    packages.each_with_index do |package, index|
+      repository_url = "#{package.registry.url.upcase}/"
+      purl = "pkg:apk/alpine/curl@8.5.0-r0?arch=x86_64&distro=alpine-3.19&repository_url=#{repository_url}"
+      get lookup_api_v1_purls_path, params: { purl: purl }
+
+      assert_response :success
+      response = Oj.load(@response.body)
+      if index.zero?
+        assert_equal "matched", response["match_status"]
+        assert_equal "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/curl-8.5.0-r0.apk", response.dig("version", "artifacts", 0, "download_url")
+      else
+        assert_equal "missing", response["match_status"]
+        assert_nil response["version"]
+      end
+    end
+  end
+
+  test "ignores registries with missing or blank versions when matching distro" do
+    create_alpine_packages
+    [nil, ""].each_with_index do |version, index|
+      Registry.create!(name: "Alpine unknown #{index}", url: "https://alpine.example/unknown-#{index}", ecosystem: "alpine", version: version)
+    end
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:apk/alpine/curl@8.5.0-r0?arch=x86_64&distro=alpine-3.19" }
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert_equal "matched", response["match_status"]
+    assert_equal "pkg:apk/alpine/curl@8.5.0-r0?arch=x86_64&distro=alpine-3.19", response.dig("version", "purl")
+  end
+
+  test "returns missing when a distro qualifier is unsupported by the ecosystem" do
+    @registry.update!(version: "1")
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:cargo/rand@0.8.0?distro=x" }
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert_equal "missing", response["match_status"]
+    assert_nil response["version"]
+  end
+
+  test "returns missing when computing the distro qualifier is not implemented" do
+    create_alpine_packages
+    Ecosystem::Alpine.any_instance.stubs(:distro_qualifier).raises(NotImplementedError)
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:apk/alpine/curl@8.5.0-r0?distro=alpine-3.19" }
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert_equal "missing", response["match_status"]
+    assert_nil response["version"]
+  end
+
+  test "returns distro-qualified bulk results in input order" do
+    create_alpine_packages
+    purls = ["3.19", "3.21", "3.18"].map do |branch|
+      "pkg:apk/alpine/curl@8.5.0-r0?arch=x86_64&distro=alpine-#{branch}"
+    end
+
+    post bulk_lookup_api_v1_purls_path, params: { purls: purls }
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert_equal purls, response.pluck("purl")
+    assert_equal ["matched", "matched", "missing"], response.pluck("match_status")
+    assert_equal purls.first(2), response.first(2).map { |result| result.dig("version", "purl") }
+    assert_nil response.last["version"]
+  end
+
+  test "routes deb PURL namespaces to Debian and Ubuntu registries" do
+    registries = [
+      Registry.create!(name: "Debian 12", url: "https://packages.debian.org/bookworm", ecosystem: "debian", version: "12", default: true),
+      Registry.create!(name: "Ubuntu 24.04", url: "https://packages.ubuntu.com/noble", ecosystem: "ubuntu", version: "24.04", default: true)
+    ]
+    registries.each do |registry|
+      registry.packages.create!(ecosystem: registry.ecosystem, name: "curl").versions.create!(number: "8.5.0-1")
+    end
+
+    registries.each do |registry|
+      distro = "#{registry.ecosystem}-#{registry.version}"
+      purl = "pkg:deb/#{registry.ecosystem}/curl@8.5.0-1?arch=source&distro=#{distro}"
+      get lookup_api_v1_purls_path, params: { purl: purl }
+
+      assert_response :success
+      response = Oj.load(@response.body)
+      assert_equal "matched", response["match_status"], distro
+      assert_equal purl, response.dig("version", "purl")
+    end
+  end
+
+  test "resolves a generated postmarketOS PURL to its registry" do
+    create_alpine_packages
+    registry = Registry.create!(name: "postmarketOS v24.06", url: "https://pkgs.postmarketos.org/packages?branch=v24.06", ecosystem: "postmarketos", version: "v24.06")
+    package = registry.packages.create!(ecosystem: "postmarketos", name: "curl", metadata: { "architecture" => "x86_64", "repository" => "main" })
+    version = package.versions.create!(number: "8.5.0-r0")
+    purl = version.purl
+    assert_equal "pkg:apk/postmarketos/curl@8.5.0-r0?arch=x86_64&distro=postmarketos-24.06", purl
+
+    get lookup_api_v1_purls_path, params: { purl: purl }
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert_equal "matched", response["match_status"]
+    assert_equal purl, response.dig("version", "purl")
+    assert_equal "https://mirror.postmarketos.org/postmarketos/v24.06/x86_64/curl-8.5.0-r0.apk", response.dig("version", "artifacts", 0, "download_url")
+  end
+
+  test "resolves an Adelie apk PURL without a distro qualifier" do
+    registry = Registry.create!(name: "Adelie", url: "https://pkg.adelielinux.org/current", ecosystem: "adelie", default: true)
+    package = registry.packages.create!(ecosystem: "adelie", name: "abuild", metadata: { "architecture" => "x86_64", "repository" => "system" })
+    version = package.versions.create!(number: "3.5-r0")
+    purl = version.purl
+    assert_equal "pkg:apk/adelie/abuild@3.5-r0?arch=x86_64", purl
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:apk/adelie/abuild@3.5-r0?arch=x86_64" }
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert_equal "matched", response["match_status"]
+    assert_equal "abuild", response.dig("version", "name")
+    assert_equal "https://distfiles.adelielinux.org/adelie/current/system/x86_64/abuild-3.5-r0.apk", response.dig("version", "artifacts", 0, "download_url")
+  end
+
+  test "does not route unknown apk or deb namespaces to another ecosystem" do
+    create_alpine_packages
+    registry = Registry.create!(name: "Debian 12", url: "https://packages.debian.org/bookworm", ecosystem: "debian", version: "12", default: true)
+    registry.packages.create!(ecosystem: "debian", name: "curl").versions.create!(number: "8.5.0-r0")
+
+    ["pkg:apk/debian/curl@8.5.0-r0?distro=debian-12", "pkg:deb/alpine/curl@8.5.0-r0?distro=alpine-3.19"].each do |purl|
+      get lookup_api_v1_purls_path, params: { purl: purl }
+
+      assert_response :success
+      response = Oj.load(@response.body)
+      assert_equal "missing", response["match_status"], purl
+      assert_nil response["version"]
+    end
+  end
+
   test "returns bulk results in the order of the input PURLs" do
     alternate_registry = Registry.create!(name: "alternate crates", url: "https://alternate.example", ecosystem: "cargo")
     alternate_package = alternate_registry.packages.create!(ecosystem: "cargo", name: "rand")
@@ -288,5 +504,16 @@ class ApiV1PurlsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :bad_request
     assert_equal "Maximum 100 PURLs allowed per request", Oj.load(@response.body)["error"]
+  end
+
+  private
+
+  def create_alpine_packages
+    ["3.19", "3.21"].map do |branch|
+      registry = Registry.create!(name: "Alpine v#{branch}", url: "https://pkgs.alpinelinux.org/packages?branch=v#{branch}", ecosystem: "alpine", version: "v#{branch}")
+      package = registry.packages.create!(ecosystem: "alpine", name: "curl", metadata: { "architecture" => "x86_64", "repository" => "main" })
+      package.versions.create!(number: "8.5.0-r0")
+      package
+    end
   end
 end

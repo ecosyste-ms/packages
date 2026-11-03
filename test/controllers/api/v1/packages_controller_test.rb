@@ -165,6 +165,55 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.first['name'], @package.name
   end
 
+  test 'API and HTML lookup use distro to select the Alpine package registry' do
+    packages = create_alpine_packages
+    purl = 'pkg:apk/alpine/curl@8.5.0-r0?arch=x86_64&distro=alpine-3.19'
+
+    get lookup_api_v1_packages_path, params: { purl: purl }
+
+    assert_response :success
+    actual_response = Oj.load(@response.body)
+    assert_equal [packages.first.id], actual_response.pluck('id')
+    assert_equal packages.first.registry.name, actual_response.first.dig('registry', 'name')
+
+    get packages_lookup_path, params: { purl: 'pkg:apk/alpine/curl@8.5.0-r0?arch=x86_64&distro=alpine-3.21' }
+
+    assert_redirected_to registry_package_path(packages.last.registry, packages.last)
+  end
+
+  test 'lookup does not enqueue a sync when PURL qualifiers or namespace match no registry' do
+    packages = create_alpine_packages
+    purls = [
+      'pkg:apk/alpine/curl@8.5.0-r0?arch=x86_64&distro=alpine-3.18',
+      "pkg:apk/alpine/curl@8.5.0-r0?distro=alpine-3.19&repository_url=#{packages.last.registry.url}",
+      'pkg:apk/unknown/curl@8.5.0-r0?distro=alpine-3.19',
+      'pkg:cargo/rand@0.8.0?distro=x'
+    ]
+
+    assert_no_difference -> { SyncPackageWorker.jobs.size } do
+      purls.each do |purl|
+        get lookup_api_v1_packages_path, params: { purl: purl }
+
+        assert_response :success
+        assert_empty Oj.load(@response.body), purl
+      end
+    end
+  end
+
+  test 'lookup syncs a missing distro-qualified package only into the selected registry' do
+    packages = create_alpine_packages
+    registry = packages.last.registry
+    SyncPackageWorker.expects(:perform_async).with(registry.id, 'not-yet-indexed').twice
+    purl = 'pkg:apk/alpine/not-yet-indexed?arch=x86_64&distro=alpine-3.21'
+
+    [purl, "#{purl}&repository_url=#{registry.url}"].each do |qualified_purl|
+      get lookup_api_v1_packages_path, params: { purl: qualified_purl }
+
+      assert_response :success
+      assert_empty Oj.load(@response.body)
+    end
+  end
+
   test 'lookup by name and ecosystem only matches packages in that ecosystem' do
     other = Registry.create(name: 'npmjs.org', url: 'https://npmjs.org', ecosystem: 'npm')
     other.packages.create(ecosystem: 'npm', name: 'rand')
@@ -1424,5 +1473,16 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
 
     # Note: Some fields like sameAs and softwareHelp may be present for ecosystems
     # that have standard URL patterns (like cargo), so we don't assert they're nil
+  end
+
+  private
+
+  def create_alpine_packages
+    ['3.19', '3.21'].map do |branch|
+      registry = Registry.create!(name: "Alpine v#{branch}", url: "https://pkgs.alpinelinux.org/packages?branch=v#{branch}", ecosystem: 'alpine', version: "v#{branch}")
+      package = registry.packages.create!(ecosystem: 'alpine', name: 'curl', metadata: { 'architecture' => 'x86_64', 'repository' => 'main' })
+      package.versions.create!(number: '8.5.0-r0')
+      package
+    end
   end
 end

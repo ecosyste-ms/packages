@@ -29,25 +29,13 @@ class PurlVersionLookup
       return Package.repository_url("https://github.com/#{@purl.namespace}/#{@purl.name}")
     end
 
-    ecosystem = Ecosystem::Base.purl_type_to_ecosystem(@purl.type)
-    separator = Ecosystem::Base.purl_type_to_namespace_separator(@purl.type)
-    return Package.none if ecosystem.blank? || separator.nil?
+    resolver = PurlLookupResolver.new(@purl)
+    ecosystem = resolver.ecosystem
+    name = resolver.package_name(namespace: namespace)
+    return Package.none if ecosystem.blank? || name.nil?
 
-    name = [namespace, @purl.name].compact.join(separator)
-    scope = Package.where(registry_id: matching_registry_ids(ecosystem))
+    scope = Package.where(registry_id: resolver.registry_ids)
     scope.with_ecosystem_name(name, ecosystem)
-  end
-
-  def matching_registry_ids(ecosystem)
-    repository_url = @purl.qualifiers&.fetch("repository_url", nil)
-    registries = Registry.where(ecosystem: ecosystem)
-
-    if repository_url.present?
-      target_url = normalize_url(repository_url)
-      registries.select { |registry| normalize_url(registry.url) == target_url }.map(&:id)
-    else
-      registries.pluck(:id)
-    end
   end
 
   def matching_versions(packages)
@@ -70,10 +58,6 @@ class PurlVersionLookup
     end
 
     Version.where(id: marked_versions.select(:id)).or(Version.where(id: fallback_version_ids))
-  end
-
-  def normalize_url(url)
-    url.to_s.downcase.sub(%r{/+$}, "")
   end
 
   def result(match_status, version = nil)

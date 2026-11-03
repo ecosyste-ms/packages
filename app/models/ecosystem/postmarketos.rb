@@ -19,13 +19,23 @@ module Ecosystem
     end
 
     def purl_params(package, version = nil)
+      qualifiers = { 'arch' => package.metadata['architecture'] }
+      qualifiers['distro'] = distro_qualifier if @registry.version.present?
       {
         type: version_scheme,
         namespace: 'postmarketos',
         name: package.name.encode('iso-8859-1'),
         version: version.try(:number).try(:encode,'iso-8859-1'),
-        qualifiers: { 'arch' => package.metadata['architecture'] }
+        qualifiers: qualifiers
       }
+    end
+
+    def distro_qualifier
+      "postmarketos-#{@registry.version.delete_prefix('v')}"
+    end
+
+    def include_repository_url_in_purl?
+      false
     end
 
     def registry_url(package, version = nil)
