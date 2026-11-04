@@ -252,22 +252,25 @@ module Ecosystem
     end
 
     LICENSE_IDENTIFIER_MAX_LENGTH = 100
+    UNKNOWN_LICENSE_VALUES = %w[unknown none].freeze
 
     def licenses(package)
       info = package["info"] || {}
       return info["license_expression"] if info["license_expression"].present?
 
-      license = info["license"]
+      license = info["license"]&.strip
       return license if license_identifier?(license)
 
       license_classifiers = (info["classifiers"] || []).select { |c| c.start_with?("License :: ") }
       return license_classifiers.map { |l| l.split(":: ").last }.join(",") if license_classifiers.any?
 
-      license.presence
+      return nil if license.blank? || UNKNOWN_LICENSE_VALUES.include?(license.downcase)
+      license
     end
 
     def license_identifier?(license)
       return false if license.blank?
+      return false if UNKNOWN_LICENSE_VALUES.include?(license.downcase)
       license.length <= LICENSE_IDENTIFIER_MAX_LENGTH && !license.include?("\n")
     end
 
