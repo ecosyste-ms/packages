@@ -232,6 +232,22 @@ class PackagistCleanupRakeTest < ActiveSupport::TestCase
     assert_equal %w[all sample], @registry.reload.metadata['packagist_cleanup'].keys.sort
   end
 
+  test 'resumes a Packagist checkpoint saved before the runner extraction' do
+    first = create_package('a/first')
+    second = create_package('b/second')
+    @registry.update!(metadata: @registry.metadata.merge('packagist_cleanup' => {'all' => {
+      'scope' => {'from_id' => 0, 'to_id' => nil, 'name' => nil}, 'max_id' => second.id,
+      'after_name' => first.name, 'processed' => 1, 'platform_dependencies_removed' => 3, 'failures' => {}}}))
+    upstream(second.name)
+
+    output = apply
+
+    assert_equal 2, output.last['processed']
+    assert_equal 3, output.last['platform_dependencies_removed']
+    assert output.last['complete']
+    assert_not_requested(:get, "https://packagist.org/packages/#{first.name}.json")
+  end
+
   test 'only Composer platform edges are removed and affected dependent counts are repaired' do
     package = create_package('vendor/library')
     target = create_package('vendor/target')
@@ -287,9 +303,9 @@ class PackagistCleanupRakeTest < ActiveSupport::TestCase
 
   test 'another process cannot run cleanup for the same registry' do
     connection = PG.connect(Registry.connection.raw_connection.conninfo_hash.compact)
-    connection.exec_params('SELECT pg_advisory_lock(hashtextextended($1, 0))', ["packagist_cleanup:#{@registry.id}"])
+    connection.exec_params('SELECT pg_advisory_lock(hashtextextended($1, 0))', ["registry_cleanup:#{@registry.id}"])
     error = assert_raises(RuntimeError) { invoke }
-    assert_match(/Another Packagist cleanup/, error.message)
+    assert_match(/Another cleanup/, error.message)
   ensure
     connection&.close
   end
