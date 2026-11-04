@@ -116,15 +116,14 @@ module Ecosystem
 
     def sync_metadata_change(action)
       name = action.fetch('package').delete_suffix('~dev')
+      @handling_metadata_change = true
+      @package_sync_state = package_sync_state(name)
       if %w[delete refresh].include?(action['type'])
         @tagged_response = request("https://repo.packagist.org/p2/#{name}.json")
         if @tagged_response.status == 404 && action['type'] == 'delete'
-          package = @registry.packages.find_by(name: name)
-          package ||= @registry.packages.where('lower(name) = ?', name.downcase).first
-          package&.update!(status: 'removed', last_synced_at: Time.current)
-          Rails.cache.delete(['packagist', 'enrichment', name])
-          Rails.cache.delete(['packagist', 'tagged_versions', name])
-          return
+          @package_not_found = true
+          @deletion_time = action.fetch('time')
+          return handle_missing_package(name)
         end
         @minimum_metadata_time = action.fetch('time') if action['type'] == 'delete'
       elsif action.fetch('package').end_with?('~dev')
@@ -134,9 +133,10 @@ module Ecosystem
       else
         @minimum_metadata_time = action.fetch('time')
       end
-      retry_metadata("Failed to sync Packagist package #{name}") unless @registry.sync_package(name, force: true)
+      result = @registry.sync_package(name, force: true)
+      retry_metadata("Failed to sync Packagist package #{name}") unless result || @package_not_found
     ensure
-      @minimum_metadata_time = @tagged_response = nil
+      @minimum_metadata_time = @tagged_response = @handling_metadata_change = @deletion_time = nil
     end
 
     def verify_metadata_time(last_modified, minimum, name:)
@@ -201,14 +201,32 @@ module Ecosystem
     end
 
     def fetch_package_metadata_uncached(name)
+      @package_sync_state = package_sync_state(name) unless @handling_metadata_change
+      @package_not_found = false
+      @enrichment_fetched = false
       package = begin
         fetch_package_enrichment(name)
       rescue PackageNotFound => e
         Rails.logger.warn("Failed to fetch Packagist metadata for #{name}: #{e.message}")
+        @package_not_found = true
         return false
       end
       name = package.fetch('name')
       metadata = fetch_tagged_metadata(name)
+      if metadata.fetch('versions').empty?
+        unless @enrichment_fetched
+          Rails.cache.delete(['packagist', 'enrichment', name])
+          begin
+            package = fetch_package_enrichment(name)
+          rescue PackageNotFound
+            @package_not_found = true
+            return false
+          end
+        end
+        metadata['abandoned'] = abandonment(package)
+      else
+        metadata['abandoned'] = abandonment(metadata.fetch('versions').values.first)
+      end
       constraint = @registry.metadata.to_h.dig(MALWARE_STATE_KEY, 'packages', name.downcase)
       if constraint
         previous = @registry.packages.where(name: name).pick(:metadata)
@@ -218,8 +236,56 @@ module Ecosystem
       package.merge(metadata, 'packagist_malware_constraint' => constraint)
     end
 
+    def abandonment(metadata)
+      value = metadata.fetch('abandoned', false)
+      return value if value == true || value == false || (value.is_a?(String) && value.present?)
+
+      raise 'Invalid Packagist abandonment metadata'
+    end
+
+    def package_sync_state(name)
+      columns = [:id, :updated_at, :last_synced_at, :versions_updated_at, :status, Arel.sql("metadata->>'packagist_snapshot'")]
+      @registry.packages.where(name: name).pick(*columns) ||
+        @registry.packages.where('lower(name) = ?', name.downcase).pick(*columns)
+    end
+
+    def verify_package_sync_state(name)
+      return if @package_sync_state == package_sync_state(name)
+
+      @last_fetched_key = @last_fetched_metadata = @tagged_cache_entry = nil
+      retry_metadata("Packagist package changed during sync: #{name}")
+    end
+
+    def handle_missing_package(name)
+      return false unless @package_not_found
+
+      @registry.with_lock do
+        verify_package_sync_state(name)
+        package = @registry.packages.find_by(name: name)
+        package ||= @registry.packages.where('lower(name) = ?', name.downcase).first
+        if package
+          if @deletion_time && package.metadata.to_h.dig('packagist_snapshot', 'last_modified').to_i > @deletion_time
+            retry_metadata("Packagist deletion predates the last applied snapshot: #{name}")
+          end
+          removed_at = @deletion_time || Time.current.to_i
+          removed_at = [removed_at, package.metadata.to_h.fetch('packagist_removed_at', 0)].max
+          package.update!(status: 'removed', last_synced_at: Time.current,
+            metadata: package.metadata.to_h.merge('packagist_removed_at' => removed_at))
+          package.update_details
+        end
+        [name, package&.name].compact.uniq.each do |cached_name|
+          Rails.cache.delete(['packagist', 'enrichment', cached_name])
+          Rails.cache.delete(['packagist', 'tagged_versions', cached_name])
+        end
+        @last_fetched_key = @last_fetched_metadata = @tagged_cache_entry = nil
+        @package_sync_state = package_sync_state(name)
+        package || false
+      end
+    end
+
     def fetch_package_enrichment(name)
       Rails.cache.fetch(['packagist', 'enrichment', name], expires_in: 12.hours) do
+        @enrichment_fetched = true
         response = request("https://packagist.org/packages/#{name}.json")
         raise PackageNotFound, "Package metadata for #{name} returned HTTP 404" if response.status == 404
         check_metadata_response(response, "Package metadata for #{name}")
@@ -256,8 +322,12 @@ module Ecosystem
     def verify_tagged_snapshot(package_metadata)
       name = package_metadata.fetch(:name)
       snapshot = package_metadata.fetch(:metadata).fetch('packagist_snapshot')
-      previous = @registry.packages.where(name: name).pick(:metadata).to_h['packagist_snapshot']
+      previous_metadata = @registry.packages.where(name: name).pick(:metadata) ||
+        @registry.packages.where('lower(name) = ?', name.downcase).pick(:metadata)
+      previous_metadata = previous_metadata.to_h
+      previous = previous_metadata['packagist_snapshot']
       invalid = snapshot['last_modified'].nil?
+      invalid ||= snapshot['last_modified'].to_i < previous_metadata.fetch('packagist_removed_at', 0)
       if previous && previous['last_modified']
         invalid ||= snapshot['last_modified'].to_i < previous['last_modified'] ||
           (snapshot['last_modified'] == previous['last_modified'] && snapshot['sha256'] != previous['sha256'])
@@ -305,27 +375,6 @@ module Ecosystem
       end
     end
 
-    def check_status(package)
-      json = begin
-        fetch_package_enrichment(package.name)
-      rescue StandardError
-        false
-      end
-
-      if json.blank? || json == false
-        url = check_status_url(package)
-        response = Faraday.head(url)
-        return "removed" if [302, 404].include?(response.status)
-      end
-
-      return "abandoned" if json.is_a?(Hash) && json["abandoned"].present?
-
-      p2_json = get_json("https://repo.packagist.org/p2/#{package.name}~dev.json")
-      return "abandoned" if p2_json == "404 not found, no packages here"
-      res = p2_json&.dig("packages", package.name)
-      return "abandoned" if res == []
-    end
-
     def deprecation_info(name)
       is_deprecated = fetch_package_metadata(name).dig("abandoned") || ""
 
@@ -341,6 +390,7 @@ module Ecosystem
 
       {
         name: pkg_metadata["name"],
+        status: pkg_metadata.fetch('abandoned') == false ? 'active' : 'abandoned',
         description: pkg_metadata["description"].try(:delete, "\u0000"),
         homepage: latest_version["homepage"],
         keywords_array: Array.wrap(latest_version["keywords"]).reject(&:blank?),
@@ -353,6 +403,7 @@ module Ecosystem
         namespace: pkg_metadata["name"].split("/").first,
         metadata: {
           "funding" => latest_version["funding"],
+          "abandoned" => pkg_metadata.fetch('abandoned'),
           "malware" => pkg_metadata.fetch('malware', []),
           "packagist_snapshot" => pkg_metadata.fetch('packagist_snapshot'),
         }
