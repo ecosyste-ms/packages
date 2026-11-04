@@ -482,6 +482,16 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response['https://forgefed.org/ns#forks'], 75
   end
 
+  test 'get codemeta for a version with a comma separated license list' do
+    @version.update(licenses: 'MIT,BSD-3-Clause')
+
+    get codemeta_api_v1_registry_package_version_path(registry_id: @registry.name, package_id: @package.name, id: '1.0.0')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal actual_response['license'], ['https://spdx.org/licenses/MIT', 'https://spdx.org/licenses/BSD-3-Clause']
+  end
+
   test 'get version numbers for pypi package with underscore in name' do
     get version_numbers_api_v1_registry_package_path(registry_id: @pypi_registry.name, id: 'tomli_w')
     assert_response :success

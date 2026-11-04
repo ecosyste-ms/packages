@@ -9,7 +9,7 @@ module Ecosystem
 
     CHANGES_STATE_KEY = 'packagist_changes'.freeze
     RECOVERY_BATCH_SIZE = 1_000
-    VERSION_METADATA_KEYS = %w[download_url php_version platform_requirements autoload extra suggest malware].freeze
+    VERSION_METADATA_KEYS = %w[download_url published-time source dist php_version platform_requirements autoload extra suggest malware].freeze
 
     def sync_recent_packages_incrementally?
       true
@@ -397,6 +397,9 @@ module Ecosystem
         matches = matching_malware_flags(ranges, version.fetch('version'))
         metadata[:malware] = matches if matches.any?
         
+        metadata['published-time'] = version['published-time'] if version['published-time'].present?
+        metadata[:source] = version['source'].slice('type', 'url', 'reference') if version['source'].present?
+        metadata[:dist] = version['dist'].slice('type', 'url', 'reference') if version['dist'].present?
         metadata[:download_url] = version['dist']['url'] if version['dist']
         
         php_version = extract_php_version(version)
@@ -413,6 +416,7 @@ module Ecosystem
           number: number,
           registry_id: @registry.id,
           published_at: version["time"],
+          licenses: Array.wrap(version["license"]).join(","),
           integrity: (version['dist'] && version['dist']['shasum'].present?) ? "sha1-#{version['dist']['shasum']}" : nil,
           metadata: metadata
         }.merge(status: matches.any? && aliases.empty? ? 'malware' : nil)

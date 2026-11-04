@@ -184,6 +184,106 @@ class PackagistReconciliationTest < ActiveSupport::TestCase
     end
   end
 
+  %w[sync versions].each do |path|
+    test "#{path} worker preserves release timestamps, identities and per-version licenses" do
+      @package.update!(licenses: 'MIT')
+      source = {'type' => 'git', 'url' => 'https://github.com/php-fig/log.git', 'reference' => 'a' * 40}
+      dist = {'type' => 'zip', 'url' => 'https://example.test/2.0.0.zip', 'reference' => 'b' * 40, 'shasum' => 'c' * 40}
+      older_source = source.merge('reference' => 'd' * 40)
+      older_dist = dist.merge('url' => 'https://example.test/1.0.0.zip', 'reference' => 'e' * 40, 'shasum' => '')
+      tagged([
+        release('2.0.0', 'published-time' => '2024-09-11T13:21:14+00:00', 'license' => ['Apache-2.0'], 'source' => source, 'dist' => dist),
+        release('1.0.0', 'time' => '2021-07-14T16:46:02+00:00', 'published-time' => '2021-07-14T16:46:29+00:00',
+          'license' => ['MIT', 'BSD-3-Clause'], 'source' => older_source, 'dist' => older_dist)
+      ])
+
+      refresh(path)
+
+      latest = @package.versions.find_by!(number: '2.0.0')
+      older = @package.versions.find_by!(number: '1.0.0')
+      assert_equal Time.iso8601('2024-09-11T13:17:53+00:00'), latest.published_at
+      assert_equal '2024-09-11T13:21:14+00:00', latest.metadata['published-time']
+      assert_equal Time.iso8601('2021-07-14T16:46:02+00:00'), older.published_at
+      assert_equal '2021-07-14T16:46:29+00:00', older.metadata['published-time']
+      assert_equal 'Apache-2.0', latest.licenses
+      assert_equal 'MIT,BSD-3-Clause', older.licenses
+      assert_equal 'MIT', @package.reload.licenses
+      assert_equal source, latest.metadata['source']
+      assert_equal dist.except('shasum'), latest.metadata['dist']
+      assert_equal dist['url'], latest.metadata['download_url']
+      assert_equal "sha1-#{'c' * 40}", latest.integrity
+      assert_equal older_source, older.metadata['source']
+      assert_equal older_dist.except('shasum'), older.metadata['dist']
+      assert_nil older.integrity
+    end
+
+    test "#{path} worker refreshes release metadata and clears removed optional fields without replacing records" do
+      version = @package.versions.create!(number: '1.0.0', published_at: 20.years.ago, licenses: 'GPL-3.0-only', metadata: {'custom' => {'keep' => true}})
+      ids = @package.versions.order(:id).pluck(:id)
+      source = {'type' => 'git', 'url' => 'https://github.com/php-fig/log.git', 'reference' => 'a' * 40}
+      dist = {'type' => 'zip', 'url' => 'https://example.test/1.0.0.zip', 'reference' => 'b' * 40, 'shasum' => 'c' * 40}
+      tagged([release('1.0.0', 'published-time' => '2024-09-11T13:21:14+00:00', 'license' => ['MIT', 'BSD-3-Clause'], 'source' => source, 'dist' => dist)])
+
+      refresh(path)
+
+      assert_equal Time.iso8601('2024-09-11T13:17:53+00:00'), version.reload.published_at
+      assert_equal '2024-09-11T13:21:14+00:00', version.metadata['published-time']
+      assert_equal 'MIT,BSD-3-Clause', version.licenses
+      assert_equal source, version.metadata['source']
+      assert_equal dist.except('shasum'), version.metadata['dist']
+      assert_equal({'keep' => true}, version.metadata['custom'])
+      assert_equal ids, @package.versions.order(:id).pluck(:id)
+
+      tagged([release('1.0.0', 'source' => source.slice('url'), 'dist' => dist.slice('url'))])
+      refresh(path)
+
+      assert_not version.reload.metadata.key?('published-time')
+      assert_equal '', version.licenses
+      assert_equal source.slice('url'), version.metadata['source']
+      assert_equal dist.slice('url'), version.metadata['dist']
+      assert_equal dist['url'], version.metadata['download_url']
+      assert_equal "sha1-#{'c' * 40}", version.integrity
+      assert_equal({'keep' => true}, version.metadata['custom'])
+      assert_equal ids, @package.versions.order(:id).pluck(:id)
+
+      tagged([release('1.0.0').except('dist')])
+      refresh(path)
+
+      version.reload
+      %w[published-time source dist download_url].each { |key| assert_not version.metadata.key?(key) }
+      assert_equal '', version.licenses
+      assert_nil version.integrity
+      assert_equal({'keep' => true}, version.metadata['custom'])
+      assert_equal ids, @package.versions.order(:id).pluck(:id)
+    end
+
+    test "#{path} worker expands inherited release metadata and unsets it in minified responses" do
+      source = {'type' => 'git', 'url' => 'https://github.com/php-fig/log.git', 'reference' => 'a' * 40}
+      dist = {'type' => 'zip', 'url' => 'https://example.test/shared.zip', 'reference' => 'b' * 40}
+      latest = release('3.0.0', 'published-time' => '2024-09-11T13:21:14+00:00', 'license' => ['MIT'], 'source' => source, 'dist' => dist)
+      inherited = {'version' => '2.0.0', 'license' => ['BSD-3-Clause', 'Apache-2.0']}
+      unset = {'version' => '1.0.0', 'published-time' => '__unset', 'source' => '__unset', 'dist' => '__unset', 'license' => '__unset'}
+      tagged_body({minified: 'composer/2.0', packages: {'psr/log' => [latest, inherited, unset]}}.to_json)
+
+      refresh(path)
+
+      assert_equal 'MIT', @package.versions.find_by!(number: '3.0.0').licenses
+      version = @package.versions.find_by!(number: '2.0.0')
+      assert_equal Time.iso8601('2024-09-11T13:17:53+00:00'), version.published_at
+      assert_equal '2024-09-11T13:21:14+00:00', version.metadata['published-time']
+      assert_equal 'BSD-3-Clause,Apache-2.0', version.licenses
+      assert_equal source, version.metadata['source']
+      assert_equal dist, version.metadata['dist']
+      assert_equal dist['url'], version.metadata['download_url']
+      assert_nil version.integrity
+      older = @package.versions.find_by!(number: '1.0.0')
+      assert_equal '', older.licenses
+      %w[published-time source dist download_url].each { |key| assert_not older.metadata.key?(key) }
+      assert_equal Time.iso8601('2024-09-11T13:17:53+00:00'), older.published_at
+      assert_nil older.integrity
+    end
+  end
+
   test 'dependency lookup uses the upstream release when the stored label has no v prefix' do
     version = @package.versions.create!(number: '1.0.0')
     tagged([release('v1.0.0', 'require' => {'php' => '>=8.0', 'psr/container' => '^2'}), release('2.0.0')])
@@ -195,7 +295,9 @@ class PackagistReconciliationTest < ActiveSupport::TestCase
   end
 
   def refresh(path)
-    if path == 'changes'
+    if path == 'sync'
+      SyncPackageWorker.new.perform(@registry.id, 'psr/log', true)
+    elsif path == 'changes'
       SyncPackagistChangeWorker.new.perform(@registry.id, {'type' => 'update', 'package' => 'psr/log', 'time' => @time.to_i})
     else
       UpdateVersionsWorker.new.perform(@package.id)
