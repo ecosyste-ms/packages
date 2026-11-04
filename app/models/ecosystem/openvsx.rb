@@ -32,6 +32,7 @@ module Ecosystem
 
     def download_url(package, version)
       return nil unless version.present?
+      return version.metadata['download_url'] if version.metadata&.dig('download_url').present?
       "#{@registry_url}/api/#{package.name}/#{version}/file/#{package.name.tr("/",".")}-#{version}.vsix"
     end
 
@@ -105,11 +106,29 @@ module Ecosystem
         {
           number: version,
           published_at: DateTime.parse(details['timestamp']),
-          status: (details['downloadable'] ? nil : 'yanked')
+          status: (details['downloadable'] ? nil : 'yanked'),
+          integrity: version_integrity(details.dig('files', 'sha256')),
+          metadata: {
+            download_url: details.dig('files', 'download'),
+            signature_url: details.dig('files', 'signature'),
+            public_key_url: details.dig('files', 'publicKey'),
+            sha256_url: details.dig('files', 'sha256'),
+            target_platform: details['targetPlatform'],
+            published_by: details['publishedBy'],
+            published_with_trusted_publishing: details['publishedWithTrustedPublishing']
+          }.compact
         }
       end.compact
     rescue
       []
+    end
+
+    def version_integrity(url)
+      return nil if url.blank?
+      checksum = get_raw_no_exception(url).to_s.strip
+      "sha256-#{checksum.downcase}" if checksum.match?(/\A[0-9a-fA-F]{64}\z/)
+    rescue Faraday::Error
+      nil
     end
 
     def maintainers_metadata(name)
