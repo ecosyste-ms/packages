@@ -270,7 +270,11 @@ class Registry < ApplicationRecord
     end
   end
 
-  def sync_package(name, force: false, version: nil)
+  def sync_package(name, force: false, version: nil, maintenance: false)
+    if maintenance
+      raise ArgumentError, 'Maintenance sync is only supported for Packagist' unless ecosystem_instance.is_a?(Ecosystem::Packagist)
+      existing_package = packages.find_by!(name: name)
+    end
     logger.info "Syncing #{name}"
     package_metadata = if version
                          ecosystem_instance.package_metadata(name, version: version)
@@ -286,10 +290,13 @@ class Registry < ApplicationRecord
       return false
     end
     package_metadata[:ecosystem] = ecosystem.downcase
+    if maintenance && !package_metadata[:name].casecmp?(name)
+      raise 'Packagist maintenance sync returned a different package name'
+    end
 
     package = ecosystem_instance.with_package_sync_lock(package_metadata) do
       # clean up incorrectly named package records
-      unless sync_in_batches?
+      unless sync_in_batches? || maintenance
         if package_metadata[:name] != name
           # example: request 'aracnid_utils' from pypi but get 'aracnid-utils' back
           packages.find_by_name(name).try(:destroy)
@@ -297,6 +304,7 @@ class Registry < ApplicationRecord
       end
 
       normalized_name = ecosystem_class.normalized_package_name(package_metadata[:name])
+      package = existing_package if maintenance
       package = packages.find_by_normalized_name(package_metadata[:name], normalized_name: normalized_name) if normalized_name
       if normalized_name && package.nil? && packages.where("metadata->>'normalized_name' = ?", normalized_name).exists?
         logger.error "Failed to sync #{name}: ambiguous normalized package name"
@@ -318,8 +326,8 @@ class Registry < ApplicationRecord
 
       package.save!
 
-      package.emit_new_package_event if new_package
-      package.update_repo_metadata_async if update_repo_metadata_after_save
+      package.emit_new_package_event if new_package && !maintenance
+      package.update_repo_metadata_async if update_repo_metadata_after_save && !maintenance
 
       new_versions = []
       existing_version_numbers = package.versions.pluck('number')
@@ -338,7 +346,7 @@ class Registry < ApplicationRecord
           Version.upsert_all(s, unique_by: [:package_id, :number])
         end
 
-        if LiveEvent.enabled?
+        if !maintenance && LiveEvent.enabled?
           new_numbers = new_versions.map { |v| v.with_indifferent_access[:number].to_s } - existing_version_numbers
           package.emit_new_version_events(package.versions.where(number: new_numbers).to_a) if new_numbers.any?
         end
@@ -379,6 +387,8 @@ class Registry < ApplicationRecord
       package.update_details
       package
     end
+    return package if maintenance
+
     ecosystem_instance.update_dependency_links(package)
     package.update_dependent_repos_count_async if ecosystem_instance.has_dependent_repos?
     if ecosystem_class.instance_methods(false).include? :maintainers_metadata
