@@ -152,6 +152,7 @@ class PackagistTest < ActiveSupport::TestCase
     assert_equal first_version[:number], "3.8.0"
     assert_equal first_version[:metadata][:php_version], "^8.1"
     assert_equal first_version[:metadata][:platform_requirements], {
+      "php" => "^8.1",
       "ext-mbstring" => "*"
     }
     assert_equal first_version[:metadata][:suggest], {
