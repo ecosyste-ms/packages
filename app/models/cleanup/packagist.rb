@@ -53,10 +53,6 @@ module Cleanup
           dependencies.where(id: rows.map(&:id), package_id: nil).update_all(package_id: target_id)
         end
       end
-      Package.where(id: dependencies.with_package.select(:package_id)).find_each do |target|
-        target.update_dependent_packages_count
-        target.update_top_dependent_packages
-      end
     end
 
     def platform_dependencies(package)
@@ -73,10 +69,6 @@ module Cleanup
       platform_dependencies(package).each do |batch|
         next if batch.empty?
         removed += Dependency.where(id: batch.map(&:id)).delete_all
-        Package.where(id: batch.map(&:package_id).compact.uniq).find_each do |target|
-          target.update_dependent_packages_count
-          target.update_top_dependent_packages
-        end
       end
       removed
     end

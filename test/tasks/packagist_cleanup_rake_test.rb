@@ -89,7 +89,7 @@ class PackagistCleanupRakeTest < ActiveSupport::TestCase
     assert_not_requested(:get, %r{~dev\.json})
   end
 
-  test 'cleanup links new dependencies even when the target was processed first' do
+  test 'cleanup links new dependencies without refreshing dependent counts or caches' do
     target = create_package('a/dependency')
     target.update!(dependent_packages_count: 0)
     target.top_dependent_packages.create!(sort: 'downloads', dependent_ids: [target.id])
@@ -97,16 +97,43 @@ class PackagistCleanupRakeTest < ActiveSupport::TestCase
     upstream(target.name, [release('1.0.0').merge('require' => {})])
     upstream(source.name, %w[1.0.0 2.0.0].map { |number| release(number).merge('require' => {target.name => '^1'}) })
     Package.any_instance.expects(:update_dependent_repos_count_async).never
+    Package.any_instance.expects(:update_dependent_packages_count).never
+    Package.any_instance.expects(:update_dependent_packages_count_async).never
+    Package.any_instance.expects(:update_top_dependent_packages).never
 
     output = apply
 
     dependencies = Dependency.where(version_id: source.versions.select(:id))
     assert_equal 2, dependencies.count
     assert_equal [target.id], dependencies.distinct.pluck(:package_id)
-    assert_equal 1, target.reload.dependent_packages_count
+    assert_equal 0, target.reload.dependent_packages_count
     assert_equal [source.id], target.dependent_packages.pluck(:id)
     assert_equal [source.id], target.latest_dependent_packages.pluck(:id)
-    assert_empty target.top_dependent_packages.reload
+    assert_equal [[target.id]], target.top_dependent_packages.reload.pluck(:dependent_ids)
+    assert output.last['complete']
+  end
+
+  test 'cleanup removes linked platform edges without refreshing dependent counts or caches' do
+    source = create_package('vendor/library')
+    target = create_package('php')
+    target.update!(dependent_packages_count: 1)
+    cached = target.top_dependent_packages.create!(sort: 'downloads', dependent_ids: [source.id])
+    version = source.versions.create!(number: '1.0.0', registry: @registry)
+    edge = version.dependencies.create!(package_name: 'PHP', package_id: target.id,
+      requirements: '^8', ecosystem: 'Packagist', kind: 'runtime')
+    target_before = target.reload.attributes
+    ENV['NAME'] = source.name
+    upstream(source.name)
+    Package.any_instance.expects(:update_dependent_packages_count).never
+    Package.any_instance.expects(:update_dependent_packages_count_async).never
+    Package.any_instance.expects(:update_top_dependent_packages).never
+
+    output = apply
+
+    assert_not Dependency.exists?(edge.id)
+    assert_equal target_before, target.reload.attributes
+    assert_equal [source.id], cached.reload.dependent_ids
+    assert_equal 1, output.last['platform_dependencies_removed']
     assert output.last['complete']
   end
 
@@ -114,6 +141,8 @@ class PackagistCleanupRakeTest < ActiveSupport::TestCase
     source = create_package('vendor/library')
     target = create_package('vendor/dependency')
     linked_target = create_package('vendor/linked')
+    target.update!(dependent_packages_count: 12)
+    linked_target.update!(dependent_packages_count: 34)
     other_registry = Registry.create!(name: 'other.example', url: 'https://other.example', ecosystem: 'packagist')
     other_registry.packages.create!(name: target.name, ecosystem: 'packagist')
     other_registry.packages.create!(name: 'foreign/dependency', ecosystem: 'packagist')
@@ -135,11 +164,11 @@ class PackagistCleanupRakeTest < ActiveSupport::TestCase
     assert_nil foreign.reload.package_id
     assert_nil other_ecosystem.reload.package_id
     assert_nil unrelated.reload.package_id
-    assert_equal 1, target.reload.dependent_packages_count
-    assert_equal 1, linked_target.reload.dependent_packages_count
+    assert_equal 12, target.reload.dependent_packages_count
+    assert_equal 34, linked_target.reload.dependent_packages_count
   end
 
-  test 'dependency links and counts roll back with a failed cleanup and repair on retry' do
+  test 'dependency links roll back with a failed cleanup and repair on retry' do
     source = create_package('vendor/library')
     target = create_package('vendor/dependency')
     target.update!(dependent_packages_count: 0)
@@ -148,21 +177,24 @@ class PackagistCleanupRakeTest < ActiveSupport::TestCase
     target_before = target.reload.attributes
     ENV['NAME'] = source.name
     upstream(source.name, [release('1.0.0'), release('2.0.0')])
-    Package.any_instance.stubs(:update_top_dependent_packages).raises('dependent cache failed')
+    subscriber = lambda do |*args|
+      raise 'dependency repair failed' if args.last[:sql].start_with?('UPDATE "dependencies"')
+    end
 
-    assert_raises(SystemExit) { apply(failure: true) }
+    ActiveSupport::Notifications.subscribed(subscriber, 'sql.active_record') do
+      assert_raises(SystemExit) { apply(failure: true) }
+    end
 
     assert_nil dependency.reload.package_id
     assert_equal target_before, target.reload.attributes
     assert_equal ['1.0.0'], source.versions.pluck(:number)
     assert_equal 0, checkpoint['processed']
-    assert_match(/dependent cache failed/, checkpoint['failures'][source.id.to_s]['error'])
-    Package.any_instance.unstub(:update_top_dependent_packages)
+    assert_match(/dependency repair failed/, checkpoint['failures'][source.id.to_s]['error'])
 
     output = apply
 
     assert_equal target.id, dependency.reload.package_id
-    assert_equal 1, target.reload.dependent_packages_count
+    assert_equal 0, target.reload.dependent_packages_count
     assert_equal 1, checkpoint['processed']
     assert output.last['complete']
   end
@@ -475,7 +507,7 @@ class PackagistCleanupRakeTest < ActiveSupport::TestCase
     assert_not_requested(:get, "https://packagist.org/packages/#{first.name}.json")
   end
 
-  test 'only Composer platform edges are removed and affected dependent counts are repaired' do
+  test 'only Composer platform edges are removed and dependent counts are left unchanged' do
     package = create_package('vendor/library')
     target = create_package('vendor/target')
     version = package.versions.create!(number: '1.0.0', registry: @registry)
@@ -489,7 +521,7 @@ class PackagistCleanupRakeTest < ActiveSupport::TestCase
     apply
 
     assert_equal [foreign.id, real.id].sort, version.dependencies.pluck(:id).sort
-    assert_equal 0, target.reload.dependent_packages_count
+    assert_equal 1, target.reload.dependent_packages_count
   end
 
   test 'stale snapshots fail without deleting historical dependencies' do
