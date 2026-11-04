@@ -13,7 +13,8 @@ class PackagistRelationshipsTest < ActiveSupport::TestCase
     stub_request(:get, 'https://repo.packagist.org/p2/psr/log~dev.json')
       .to_return(body: {packages: {'psr/log' => [{version: 'dev-master'}]}}.to_json)
     @platform = {'php' => '^8.1', 'php-64bit' => '*', 'php-ipv6' => '*', 'php-zts' => '*', 'php-debug' => '*',
-      'hhvm' => '^4', 'ext-json' => '*', 'lib-curl' => '>=7', 'composer' => '^2',
+      'hhvm' => '^4', 'ext-json' => '*', 'ext-pdo_mysql' => '*', 'ext-zend-opcache' => '*',
+      'lib-curl' => '>=7', 'lib-icu.72' => '*', 'composer' => '^2',
       'composer-plugin-api' => '^2', 'composer-runtime-api' => '^2'}
     @development_platform = {'PHP' => '^8.2', 'ext-mbstring' => '*', 'EXT-XDEBUG' => '^3', 'lib-libxml' => '*',
       'composer-runtime-api' => '^2.2'}
@@ -23,6 +24,30 @@ class PackagistRelationshipsTest < ActiveSupport::TestCase
   end
 
   %w[sync versions].each do |path|
+    test "#{path} accepts empty arrays for Composer link maps" do
+      empty_links = %w[require require-dev provide replace conflict].index_with { [] }
+      tagged([release('1.0.0').merge(empty_links)])
+
+      perform(path)
+
+      version = @package.versions.find_by!(number: '1.0.0')
+      assert_empty version.dependencies
+      assert_empty version.metadata.slice('platform_requirements', 'platform_requirements_dev', 'php_version', 'provide', 'replace', 'conflict')
+    end
+
+    test "#{path} clears collected relationships when link maps become empty arrays" do
+      tagged([release('1.0.0')])
+      perform('sync')
+      version = @package.versions.find_by!(number: '1.0.0')
+      original_id = version.id
+      tagged([release('1.0.0').merge(%w[require require-dev provide replace conflict].index_with { [] })])
+
+      perform(path)
+
+      assert_equal original_id, version.reload.id
+      assert_empty version.metadata.slice('platform_requirements', 'platform_requirements_dev', 'php_version', 'provide', 'replace', 'conflict')
+    end
+
     test "#{path} collects platform scopes and preserves distinct relationships" do
       tagged([release('1.0.0')])
 

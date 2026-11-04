@@ -411,7 +411,8 @@ module Ecosystem
         metadata[:platform_requirements_dev] = development_platform_requirements if development_platform_requirements.present?
 
         %w[provide replace conflict].each do |relationship|
-          metadata[relationship] = version[relationship] if version[relationship].present?
+          links = composer_links(version, relationship)
+          metadata[relationship] = links if links.present?
         end
         
         metadata[:autoload] = version["autoload"] if version["autoload"].present?
@@ -441,8 +442,8 @@ module Ecosystem
       vers ||= package[:versions].values.find { |entry| release_key(entry.fetch('version')) == release_key(version) }
       return [] if vers.nil?
 
-      map_dependencies(vers.fetch("require", {}).reject { |name, _| platform_package?(name) }, "runtime") +
-        map_dependencies(vers.fetch("require-dev", {}).reject { |name, _| platform_package?(name) }, "Development")
+      map_dependencies(composer_links(vers, 'require').reject { |name, _| platform_package?(name) }, "runtime") +
+        map_dependencies(composer_links(vers, 'require-dev').reject { |name, _| platform_package?(name) }, "Development")
     end
 
     def maintainers_metadata(name)
@@ -462,16 +463,20 @@ module Ecosystem
     end
 
     def extract_php_version(version)
-      require_section = version["require"] || {}
-      require_section["php"]
+      composer_links(version, 'require')['php']
     end
 
     def extract_platform_requirements(version, section = 'require')
-      (version[section] || {}).select { |name, _| platform_package?(name) }
+      composer_links(version, section).select { |name, _| platform_package?(name) }
+    end
+
+    def composer_links(version, section)
+      links = version[section]
+      links.nil? || links == [] ? {} : links
     end
 
     def platform_package?(name)
-      name.match?(/\A(?:php(?:-64bit|-ipv6|-zts|-debug)?|hhvm|(?:ext|lib)-[a-z0-9](?:[_.-]?[a-z0-9]+)*|composer(?:-(?:plugin|runtime)-api)?)\z/i)
+      name.match?(/\A(?:php(?:-64bit|-ipv6|-zts|-debug)?|hhvm|(?:ext|lib)-[a-z0-9]+(?:[_.-][a-z0-9]+)*|composer(?:-(?:plugin|runtime)-api)?)\z/i)
     end
   end
 end

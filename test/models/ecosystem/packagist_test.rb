@@ -138,6 +138,20 @@ class PackagistTest < ActiveSupport::TestCase
     ]
   end
 
+  test 'platform names accept separated components and reject malformed suffixes' do
+    %w[ext-0 ext-pdo_mysql EXT-ZEND-OPCACHE lib-curl lib-icu.72 lib-a_b.c-d].each do |name|
+      assert @ecosystem.platform_package?(name), name
+    end
+    %w[ext- ext-_json ext-json_ lib-icu..72 lib-a_-b ext-json/package composer/composer].each do |name|
+      refute @ecosystem.platform_package?(name), name
+    end
+    %w[ext lib].each do |prefix|
+      name = "#{prefix}-#{'0' * 10_000}"
+      assert @ecosystem.platform_package?(name)
+      refute @ecosystem.platform_package?("#{name}!")
+    end
+  end
+
   test 'maintainer_url' do 
     assert_equal @ecosystem.maintainer_url(@maintainer), 'https://packagist.org/users/foo'
   end
