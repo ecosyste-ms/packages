@@ -138,7 +138,23 @@ class PackagistTest < ActiveSupport::TestCase
     ]
   end
 
-  test 'maintainer_url' do 
+  test 'dependencies_metadata leaves out every Composer platform package' do
+    platform = %w[php PHP-64bit php-ipv6 php-zts php-debug hhvm ext-json ext-pdo_mysql lib-icu lib-curl-openssl composer composer-plugin-api composer-runtime-api]
+    packages = %w[phpunit/phpunit php-http/client composer/composer hhvm/hhvm-autoload ext-json/ext-json]
+    links = (platform + packages).index_with('*')
+    release = {'version' => '1.0.0', 'require' => links, 'require-dev' => [], 'provide' => {'psr/log-implementation' => '1.0'}}
+
+    dependencies = @ecosystem.dependencies_metadata('vendor/package', '1.0.0', {versions: {'1.0.0' => release}})
+    metadata = @ecosystem.versions_metadata({versions: {'1.0.0' => release}}).first[:metadata]
+
+    assert_equal packages, dependencies.pluck(:package_name)
+    assert_equal ['runtime'], dependencies.pluck(:kind).uniq
+    assert_equal platform, metadata[:platform_requirements].keys
+    assert_nil metadata[:platform_requirements_dev]
+    assert_equal({'psr/log-implementation' => '1.0'}, metadata[:provide])
+  end
+
+  test 'maintainer_url' do
     assert_equal @ecosystem.maintainer_url(@maintainer), 'https://packagist.org/users/foo'
   end
 
@@ -152,6 +168,7 @@ class PackagistTest < ActiveSupport::TestCase
     assert_equal first_version[:number], "3.8.0"
     assert_equal first_version[:metadata][:php_version], "^8.1"
     assert_equal first_version[:metadata][:platform_requirements], {
+      "php" => "^8.1",
       "ext-mbstring" => "*"
     }
     assert_equal first_version[:metadata][:suggest], {

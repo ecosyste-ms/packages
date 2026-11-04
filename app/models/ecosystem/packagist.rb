@@ -9,7 +9,11 @@ module Ecosystem
 
     CHANGES_STATE_KEY = 'packagist_changes'.freeze
     RECOVERY_BATCH_SIZE = 1_000
-    VERSION_METADATA_KEYS = %w[download_url published-time source dist php_version platform_requirements autoload extra suggest malware].freeze
+    VERSION_METADATA_KEYS = %w[download_url published-time source dist php_version platform_requirements platform_requirements_dev
+                               provide replace conflict autoload extra suggest malware].freeze
+    # Composer's PlatformRepository::PLATFORM_PACKAGE_REGEX
+    PLATFORM_PACKAGE = /\A(?:php(?:-64bit|-ipv6|-zts|-debug)?|hhvm|(?:ext|lib)-[a-z0-9](?:[_.-]?[a-z0-9]+)*|composer(?:-(?:plugin|runtime)-api)?)\z/i
+    RELATIONSHIP_KEYS = %w[provide replace conflict].freeze
 
     def sync_recent_packages_incrementally?
       true
@@ -405,9 +409,15 @@ module Ecosystem
         php_version = extract_php_version(version)
         metadata[:php_version] = php_version if php_version.present?
         
-        platform_requirements = extract_platform_requirements(version)
+        platform_requirements = platform_links(version, "require")
         metadata[:platform_requirements] = platform_requirements if platform_requirements.present?
-        
+        dev_platform_requirements = platform_links(version, "require-dev")
+        metadata[:platform_requirements_dev] = dev_platform_requirements if dev_platform_requirements.present?
+        RELATIONSHIP_KEYS.each do |key|
+          relationships = composer_links(version, key)
+          metadata[key.to_sym] = relationships if relationships.present?
+        end
+
         metadata[:autoload] = version["autoload"] if version["autoload"].present?
         metadata[:extra] = version["extra"] if version["extra"].present?
         metadata[:suggest] = version["suggest"] if version["suggest"].present?
@@ -435,8 +445,8 @@ module Ecosystem
       vers ||= package[:versions].values.find { |entry| release_key(entry.fetch('version')) == release_key(version) }
       return [] if vers.nil?
 
-      map_dependencies(vers.fetch("require", {}).reject { |k, _v| k == "php" }, "runtime") +
-        map_dependencies(vers.fetch("require-dev", {}).reject { |k, _v| k == "php" }, "Development")
+      map_dependencies(package_links(vers, "require"), "runtime") +
+        map_dependencies(package_links(vers, "require-dev"), "Development")
     end
 
     def maintainers_metadata(name)
@@ -458,17 +468,26 @@ module Ecosystem
     private
 
     def extract_php_version(version)
-      require_section = version["require"] || {}
-      require_section["php"]
+      composer_links(version, "require")["php"]
     end
 
-    def extract_platform_requirements(version)
-      require_section = version["require"] || {}
-      platform_reqs = require_section.select do |package, _constraint|
-        package.start_with?("ext-") || package.start_with?("lib-") || package == "php-64bit" || package == "php-zts"
-      end
-      
-      platform_reqs.empty? ? nil : platform_reqs
+    def platform_package?(name)
+      name.match?(PLATFORM_PACKAGE)
+    end
+
+    # Composer serializes an empty link map as [], so anything other than a hash of names to constraints is treated as empty
+    def composer_links(version, key)
+      links = version[key]
+      return {} unless links.is_a?(Hash)
+      links.select { |name, constraint| name.is_a?(String) && constraint.is_a?(String) }
+    end
+
+    def platform_links(version, key)
+      composer_links(version, key).select { |name, _constraint| platform_package?(name) }
+    end
+
+    def package_links(version, key)
+      composer_links(version, key).reject { |name, _constraint| platform_package?(name) }
     end
   end
 end

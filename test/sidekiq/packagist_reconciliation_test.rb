@@ -284,6 +284,53 @@ class PackagistReconciliationTest < ActiveSupport::TestCase
     end
   end
 
+  %w[changes sync versions].each do |path|
+    test "#{path} worker separates platform requirements and keeps package relationships" do
+      platform = {'php' => '>=8.1', 'ext-json' => '*', 'ext-mbstring' => '*', 'lib-icu' => '>=60', 'composer-runtime-api' => '^2.2'}
+      dev_platform = {'php-64bit' => '*', 'ext-xdebug' => '^3', 'composer-plugin-api' => '^2'}
+      relationships = {
+        'provide' => {'psr/log-implementation' => '3.0.0'},
+        'replace' => {'psr/log-legacy' => 'self.version'},
+        'conflict' => {'monolog/monolog' => '<2'}
+      }
+      tagged([release('1.0.0', {'require' => platform.merge('psr/container' => '^2.0'),
+        'require-dev' => dev_platform.merge('phpunit/phpunit' => '^10')}.merge(relationships))])
+
+      refresh(path)
+
+      version = @package.versions.find_by!(number: '1.0.0')
+      assert_equal platform, version.metadata['platform_requirements']
+      assert_equal dev_platform, version.metadata['platform_requirements_dev']
+      assert_equal '>=8.1', version.metadata['php_version']
+      relationships.each { |key, links| assert_equal links, version.metadata[key] }
+
+      # UpdateVersionsWorker refreshes version metadata only, so dependency rows come from the sync paths
+      unless path == 'versions'
+        assert_equal [['phpunit/phpunit', 'Development', '^10'], ['psr/container', 'runtime', '^2.0']],
+          version.dependencies.order(:package_name).pluck(:package_name, :kind, :requirements)
+        @registry.update_column(:ecosystem, 'packagist')
+        resolved = []
+        Package.stubs(:dependency_package_id).with { |*args| resolved << args.last }.returns(nil)
+        Dependency.update_missing_package_ids
+        assert_equal %w[phpunit/phpunit psr/container], resolved.sort
+        @registry.update_column(:ecosystem, 'Packagist')
+      end
+
+      version.update_column(:metadata, version.metadata.merge('custom' => 'keep'))
+      tagged([release('1.0.0', 'require' => {'psr/container' => '^2.0'}, 'require-dev' => [], 'provide' => [])])
+
+      refresh(path)
+
+      version.reload
+      %w[platform_requirements platform_requirements_dev php_version provide replace conflict].each do |key|
+        assert_not version.metadata.key?(key), key
+      end
+      assert_equal 'keep', version.metadata['custom']
+      assert_equal "https://example.test/1.0.0.zip", version.metadata['download_url']
+      assert_not version.dependencies.pluck(:package_name).any? { |name| name.match?(Ecosystem::Packagist::PLATFORM_PACKAGE) }
+    end
+  end
+
   test 'dependency lookup uses the upstream release when the stored label has no v prefix' do
     version = @package.versions.create!(number: '1.0.0')
     tagged([release('v1.0.0', 'require' => {'php' => '>=8.0', 'psr/container' => '^2'}), release('2.0.0')])
