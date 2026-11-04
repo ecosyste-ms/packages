@@ -578,7 +578,7 @@ class Package < ApplicationRecord
         update_columns(metadata: (metadata || {}).merge('dist-tags' => package_metadata.dig(:metadata, 'dist-tags')))
       end
       update_details
-      emit_new_version_events(created_versions)
+      ecosystem.after_package_sync { emit_new_version_events(created_versions) }
     end
   end
 

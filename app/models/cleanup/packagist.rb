@@ -24,6 +24,12 @@ module Cleanup
       registry.ecosystem_instance.fetch_malware_response(package.name.downcase) unless metadata
     end
 
+    def with_package_transaction(registry, package, &block)
+      return super unless package
+
+      registry.ecosystem_instance.with_package_write_lock(package.name, &block)
+    end
+
     def repair_package(registry, package, missing_response)
       id = package.id
       package = registry.sync_package(package.name, force: true, maintenance: true)

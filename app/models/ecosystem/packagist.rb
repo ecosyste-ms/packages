@@ -260,7 +260,7 @@ module Ecosystem
     def handle_missing_package(name, package_id: nil)
       return false unless @package_not_found
 
-      @registry.with_lock do
+      with_package_write_lock(name) do
         verify_package_sync_state(name, package_id: package_id)
         if package_id
           package = @registry.packages.find(package_id)

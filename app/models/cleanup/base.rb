@@ -120,7 +120,7 @@ module Cleanup
       before = package&.status
       prepared = prepare_package(registry, package) if package
       next_state = nil
-      result = registry.with_lock do
+      result = with_package_transaction(registry, package) do
         verify_lock!
         counters = initial_counters.symbolize_keys
         if package
@@ -156,6 +156,10 @@ module Cleanup
 
     def repair_package(_registry, _package, _prepared)
       raise NotImplementedError, 'Implement the ecosystem repair in a Cleanup::Base subclass'
+    end
+
+    def with_package_transaction(registry, _package)
+      registry.class.transaction(requires_new: true) { yield }
     end
 
     def checkpoint(registry, id, name, retrying:, counters: {}, error: nil)
