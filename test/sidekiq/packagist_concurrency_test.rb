@@ -39,6 +39,7 @@ class PackagistConcurrencyTest < ActiveSupport::TestCase
     @environment.each { |key, value| value.nil? ? ENV.delete(key) : ENV[key] = value }
     REDIS.del("registry_cleanup:#{@registry.id}")
     @registry.packages.each(&:destroy!)
+    @registry.maintainers.each(&:destroy!)
     @registry.destroy!
   end
 
@@ -179,6 +180,33 @@ class PackagistConcurrencyTest < ActiveSupport::TestCase
     end
   end
 
+  test 'a repository enqueue failure preserves the committed result and continues sync work' do
+    upstream(@first, repository: 'https://example.com/library', maintainers: [{'name' => 'callback-maintainer'}])
+    Package.any_instance.unstub(:update_repo_metadata_async)
+    Package.any_instance.unstub(:update_dependent_repos_count_async)
+    UpdateRepoMetadataWorker.expects(:perform_async).with(@first.id).raises(Redis::CannotConnectError, 'queue unavailable')
+    UpdateDependentReposCountWorker.expects(:perform_async).with(@first.id)
+    Rails.logger.expects(:warn).with("Packagist post-sync callback failed for packagist:#{@registry.id}:#{@first.name}: Redis::CannotConnectError: queue unavailable")
+    LiveEvent.stubs(:enabled?).returns(true)
+    events = []
+    LiveEvent.stubs(:emit).with do |payload|
+      events.concat(Array.wrap(payload))
+      refute Registry.connection.transaction_open?
+      true
+    end
+
+    result = SyncPackageWorker.new.perform(@registry.id, @first.name, true)
+
+    assert_equal @first.id, result.id
+    assert_equal '2.0.0', @first.reload.latest_release_number
+    assert_equal %w[1.0.0 2.0.0], @first.versions.order(:number).pluck(:number)
+    assert_equal ['version.created'], events.map { |event| event[:event] }
+    assert_equal '2.0.0', events.first.dig(:version, 'number')
+    assert_equal ['callback-maintainer'], @first.maintainers.pluck(:login)
+    assert_equal 1, @first.maintainers_count
+    assert_not_nil @cache.read(['packagist', 'tagged_versions', @first.name])
+  end
+
   def create_package(name)
     package = @registry.packages.create!(name: name, ecosystem: 'packagist', status: 'active')
     package.versions.create!(number: '1.0.0', registry: @registry, licenses: 'old')
@@ -186,13 +214,14 @@ class PackagistConcurrencyTest < ActiveSupport::TestCase
     package
   end
 
-  def upstream(package, flags: [])
+  def upstream(package, flags: [], repository: nil, maintainers: [])
     versions = %w[2.0.0 1.0.0].map do |number|
       {'name' => package.name, 'version' => number, 'time' => @time.iso8601, 'license' => ['MIT'],
         'require' => {'php' => '^8'}, 'dist' => {'type' => 'zip', 'url' => "https://example.com/#{number}.zip"}}
     end
+    versions.each { |version| version['source'] = {'type' => 'git', 'url' => repository} } if repository
     full = {'package' => {'name' => package.name, 'description' => 'Example', 'versions' => versions.index_by { |v| v['version'] },
-      'maintainers' => [], 'downloads' => {'total' => 1}}}
+      'maintainers' => maintainers, 'downloads' => {'total' => 1}}}
     stub_request(:get, "https://packagist.org/packages/#{package.name}.json").to_return(body: full.to_json)
     stub_request(:get, "https://repo.packagist.org/p2/#{package.name}.json")
       .to_return(body: {packages: {package.name => versions}, filter: {malware: flags}}.to_json,
