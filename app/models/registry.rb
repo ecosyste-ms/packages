@@ -332,8 +332,10 @@ class Registry < ApplicationRecord
 
       package.save!
 
-      package.emit_new_package_event if new_package && !maintenance
-      package.update_repo_metadata_async if update_repo_metadata_after_save && !maintenance
+      ecosystem_instance.after_package_sync do
+        package.emit_new_package_event if new_package && !maintenance
+        package.update_repo_metadata_async if update_repo_metadata_after_save && !maintenance
+      end
 
       new_versions = []
       existing_version_numbers = package.versions.pluck('number')
@@ -354,7 +356,9 @@ class Registry < ApplicationRecord
 
         if !maintenance && LiveEvent.enabled?
           new_numbers = new_versions.map { |v| v.with_indifferent_access[:number].to_s } - existing_version_numbers
-          package.emit_new_version_events(package.versions.where(number: new_numbers).to_a) if new_numbers.any?
+          ecosystem_instance.after_package_sync do
+            package.emit_new_version_events(package.versions.where(number: new_numbers).to_a) if new_numbers.any?
+          end
         end
 
         all_deps = []
