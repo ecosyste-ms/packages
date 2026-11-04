@@ -9,7 +9,7 @@ module Ecosystem
 
     CHANGES_STATE_KEY = 'packagist_changes'.freeze
     RECOVERY_BATCH_SIZE = 1_000
-    VERSION_METADATA_KEYS = %w[download_url published-time source dist php_version platform_requirements autoload extra suggest malware].freeze
+    VERSION_METADATA_KEYS = %w[download_url published-time source dist php_version platform_requirements platform_requirements_dev provide replace conflict autoload extra suggest malware].freeze
 
     def sync_recent_packages_incrementally?
       true
@@ -407,6 +407,13 @@ module Ecosystem
         
         platform_requirements = extract_platform_requirements(version)
         metadata[:platform_requirements] = platform_requirements if platform_requirements.present?
+        development_platform_requirements = extract_platform_requirements(version, 'require-dev')
+        metadata[:platform_requirements_dev] = development_platform_requirements if development_platform_requirements.present?
+
+        %w[provide replace conflict].each do |relationship|
+          links = composer_links(version, relationship)
+          metadata[relationship] = links if links.present?
+        end
         
         metadata[:autoload] = version["autoload"] if version["autoload"].present?
         metadata[:extra] = version["extra"] if version["extra"].present?
@@ -435,8 +442,8 @@ module Ecosystem
       vers ||= package[:versions].values.find { |entry| release_key(entry.fetch('version')) == release_key(version) }
       return [] if vers.nil?
 
-      map_dependencies(vers.fetch("require", {}).reject { |k, _v| k == "php" }, "runtime") +
-        map_dependencies(vers.fetch("require-dev", {}).reject { |k, _v| k == "php" }, "Development")
+      map_dependencies(composer_links(vers, 'require').reject { |name, _| platform_package?(name) }, "runtime") +
+        map_dependencies(composer_links(vers, 'require-dev').reject { |name, _| platform_package?(name) }, "Development")
     end
 
     def maintainers_metadata(name)
@@ -455,20 +462,21 @@ module Ecosystem
       "https://packagist.org/users/#{maintainer.login}"
     end
 
-    private
-
     def extract_php_version(version)
-      require_section = version["require"] || {}
-      require_section["php"]
+      composer_links(version, 'require')['php']
     end
 
-    def extract_platform_requirements(version)
-      require_section = version["require"] || {}
-      platform_reqs = require_section.select do |package, _constraint|
-        package.start_with?("ext-") || package.start_with?("lib-") || package == "php-64bit" || package == "php-zts"
-      end
-      
-      platform_reqs.empty? ? nil : platform_reqs
+    def extract_platform_requirements(version, section = 'require')
+      composer_links(version, section).select { |name, _| platform_package?(name) }
+    end
+
+    def composer_links(version, section)
+      links = version[section]
+      links.nil? || links == [] ? {} : links
+    end
+
+    def platform_package?(name)
+      name.match?(/\A(?:php(?:-64bit|-ipv6|-zts|-debug)?|hhvm|(?:ext|lib)-[a-z0-9]+(?:[_.-][a-z0-9]+)*|composer(?:-(?:plugin|runtime)-api)?)\z/i)
     end
   end
 end
