@@ -300,6 +300,22 @@ class PypiTest < ActiveSupport::TestCase
     assert_equal 'MIT', versions_metadata.first[:licenses]
   end
 
+  test 'versions_metadata falls back to classifiers when version license is UNKNOWN' do
+    stub_request(:get, "https://pypi.org/pypi/yiban/json")
+      .to_return({ status: 200, body: file_fixture('pypi/yiban.json') })
+    stub_request(:get, "https://pypistats.org/api/packages/yiban/recent")
+      .to_return({ status: 200, body: file_fixture('pypi/recent.json') })
+    version_json = JSON.parse(file_fixture('pypi/yiban-0.1.2.32.json').read)
+    version_json['info']['license'] = 'UNKNOWN'
+    version_json['info']['classifiers'] = ['License :: OSI Approved :: MIT License']
+    stub_request(:get, "https://pypi.org/pypi/yiban/0.1.2.32/json")
+      .to_return({ status: 200, body: version_json.to_json })
+    package_metadata = @ecosystem.package_metadata('yiban')
+    versions_metadata = @ecosystem.versions_metadata(package_metadata)
+
+    assert_equal 'MIT License', versions_metadata.first[:licenses]
+  end
+
   test 'versions_metadata includes python requirements and pypi specific fields' do
     stub_request(:get, "https://pypi.org/pypi/yiban/json")
       .to_return({ status: 200, body: file_fixture('pypi/yiban.json') })
@@ -545,6 +561,28 @@ class PypiTest < ActiveSupport::TestCase
       }
     }
     assert_equal "MIT License", @ecosystem.licenses(package)
+  end
+
+  test 'licenses returns nil when license is UNKNOWN and classifiers are empty' do
+    package = {
+      "info" => {
+        "license_expression" => nil,
+        "license" => "UNKNOWN",
+        "classifiers" => []
+      }
+    }
+    assert_nil @ecosystem.licenses(package)
+  end
+
+  test 'licenses returns nil when license is NONE and classifiers are empty' do
+    package = {
+      "info" => {
+        "license_expression" => nil,
+        "license" => "NONE",
+        "classifiers" => []
+      }
+    }
+    assert_nil @ecosystem.licenses(package)
   end
 
   test 'pypi package_metadata funding_url flask' do
