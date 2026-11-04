@@ -33,7 +33,24 @@ module Cleanup
       package = registry.packages.find(id)
       package.update!(versions_count: package.versions.count)
       package.update_details
+      repair_dependency_links(package)
       {platform_dependencies_removed: removed}
+    end
+
+    def repair_dependency_links(package)
+      dependencies = Dependency.where(version_id: package.versions.select(:id)).where('lower(ecosystem) = ?', 'packagist')
+      dependencies.without_package.select(:id, :package_name).find_in_batches(batch_size: 1_000) do |batch|
+        batch.group_by(&:package_name).each do |name, rows|
+          target_id = Package.dependency_package_id(package.registry_id, 'packagist', name)
+          next unless target_id
+
+          dependencies.where(id: rows.map(&:id), package_id: nil).update_all(package_id: target_id)
+        end
+      end
+      Package.where(id: dependencies.with_package.select(:package_id)).find_each do |target|
+        target.update_dependent_packages_count
+        target.update_top_dependent_packages
+      end
     end
 
     def platform_dependencies(package)

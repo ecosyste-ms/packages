@@ -89,6 +89,84 @@ class PackagistCleanupRakeTest < ActiveSupport::TestCase
     assert_not_requested(:get, %r{~dev\.json})
   end
 
+  test 'cleanup links new dependencies even when the target was processed first' do
+    target = create_package('a/dependency')
+    target.update!(dependent_packages_count: 0)
+    target.top_dependent_packages.create!(sort: 'downloads', dependent_ids: [target.id])
+    source = create_package('z/consumer')
+    upstream(target.name, [release('1.0.0').merge('require' => {})])
+    upstream(source.name, %w[1.0.0 2.0.0].map { |number| release(number).merge('require' => {target.name => '^1'}) })
+    Package.any_instance.expects(:update_dependent_repos_count_async).never
+
+    output = apply
+
+    dependencies = Dependency.where(version_id: source.versions.select(:id))
+    assert_equal 2, dependencies.count
+    assert_equal [target.id], dependencies.distinct.pluck(:package_id)
+    assert_equal 1, target.reload.dependent_packages_count
+    assert_equal [source.id], target.dependent_packages.pluck(:id)
+    assert_equal [source.id], target.latest_dependent_packages.pluck(:id)
+    assert_empty target.top_dependent_packages.reload
+    assert output.last['complete']
+  end
+
+  test 'cleanup repairs existing links within the selected package and registry only' do
+    source = create_package('vendor/library')
+    target = create_package('vendor/dependency')
+    linked_target = create_package('vendor/linked')
+    other_registry = Registry.create!(name: 'other.example', url: 'https://other.example', ecosystem: 'packagist')
+    other_registry.packages.create!(name: target.name, ecosystem: 'packagist')
+    other_registry.packages.create!(name: 'foreign/dependency', ecosystem: 'packagist')
+    version = source.versions.create!(number: '1.0.0', registry: @registry)
+    unlinked = version.dependencies.create!(package_name: target.name, requirements: '^1', ecosystem: 'Packagist', kind: 'runtime')
+    linked = version.dependencies.create!(package_name: linked_target.name, package_id: linked_target.id, requirements: '^1', ecosystem: 'packagist', kind: 'runtime')
+    foreign = version.dependencies.create!(package_name: 'foreign/dependency', requirements: '^1', ecosystem: 'packagist', kind: 'runtime')
+    other_ecosystem = version.dependencies.create!(package_name: target.name, requirements: '^1', ecosystem: 'npm', kind: 'runtime')
+    other_source = create_package('other/library')
+    other_version = other_source.versions.create!(number: '1.0.0', registry: @registry)
+    unrelated = other_version.dependencies.create!(package_name: target.name, requirements: '^1', ecosystem: 'packagist', kind: 'runtime')
+    ENV['NAME'] = source.name
+    upstream(source.name)
+
+    apply
+
+    assert_equal target.id, unlinked.reload.package_id
+    assert_equal linked_target.id, linked.reload.package_id
+    assert_nil foreign.reload.package_id
+    assert_nil other_ecosystem.reload.package_id
+    assert_nil unrelated.reload.package_id
+    assert_equal 1, target.reload.dependent_packages_count
+    assert_equal 1, linked_target.reload.dependent_packages_count
+  end
+
+  test 'dependency links and counts roll back with a failed cleanup and repair on retry' do
+    source = create_package('vendor/library')
+    target = create_package('vendor/dependency')
+    target.update!(dependent_packages_count: 0)
+    version = source.versions.create!(number: '1.0.0', registry: @registry)
+    dependency = version.dependencies.create!(package_name: target.name, requirements: '^1', ecosystem: 'packagist', kind: 'runtime')
+    target_before = target.reload.attributes
+    ENV['NAME'] = source.name
+    upstream(source.name, [release('1.0.0'), release('2.0.0')])
+    Package.any_instance.stubs(:update_top_dependent_packages).raises('dependent cache failed')
+
+    assert_raises(SystemExit) { apply(failure: true) }
+
+    assert_nil dependency.reload.package_id
+    assert_equal target_before, target.reload.attributes
+    assert_equal ['1.0.0'], source.versions.pluck(:number)
+    assert_equal 0, checkpoint['processed']
+    assert_match(/dependent cache failed/, checkpoint['failures'][source.id.to_s]['error'])
+    Package.any_instance.unstub(:update_top_dependent_packages)
+
+    output = apply
+
+    assert_equal target.id, dependency.reload.package_id
+    assert_equal 1, target.reload.dependent_packages_count
+    assert_equal 1, checkpoint['processed']
+    assert output.last['complete']
+  end
+
   test 'changed repository URLs invalidate old metadata and become eligible for scheduled refresh' do
     package = create_package('vendor/library')
     package.update!(repository_url: 'https://github.com/old/library', repo_metadata_updated_at: @time,
