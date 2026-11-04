@@ -27,7 +27,7 @@ class PackagistCleanup < RegistryCleanup
     id = package.id
     package = registry.sync_package(package.name, force: true, maintenance: true)
     raise 'Packagist sync did not return the existing package' unless package.is_a?(Package) && package.id == id
-    registry.ecosystem_instance.sync_malware(package.name.downcase, response: missing_response) if missing_response
+    registry.ecosystem_instance.sync_malware(package.name.downcase, response: missing_response, package_id: id) if missing_response
     removed = remove_platform_dependencies(package)
     package = registry.packages.find(id)
     package.update!(versions_count: package.versions.count)

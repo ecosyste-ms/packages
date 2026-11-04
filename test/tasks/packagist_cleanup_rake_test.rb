@@ -89,6 +89,153 @@ class PackagistCleanupRakeTest < ActiveSupport::TestCase
     assert_not_requested(:get, %r{~dev\.json})
   end
 
+  test 'changed repository URLs invalidate old metadata and become eligible for scheduled refresh' do
+    package = create_package('vendor/library')
+    package.update!(repository_url: 'https://github.com/old/library', repo_metadata_updated_at: @time,
+      repo_metadata: {'full_name' => 'old/library', 'host' => {'name' => 'GitHub'}, 'stargazers_count' => 99,
+        'topics' => ['old-topic'], 'commit_stats' => {'total_committers' => 8}}, issue_metadata: {'past_year_issues_count' => 10})
+    upstream(package.name)
+    Package.any_instance.expects(:update_repo_metadata_async).never
+
+    apply
+
+    assert_equal 'https://github.com/example/library', package.reload.repository_url
+    assert_empty package.repo_metadata
+    assert_nil package.repo_metadata_updated_at
+    assert_nil package.issue_metadata
+    assert_nil package.stargazers_count
+    assert_nil package.commit_stats
+    assert_not_includes package.keywords, 'old-topic'
+    candidates, = Package.repo_metadata_refresh_batch(after_id: package.id - 1, batch_size: 1, scan_size: 1)
+    assert_equal [package.id], candidates.map(&:id)
+  end
+
+  test 'an unchanged effective repository URL preserves cached metadata despite a changed homepage' do
+    package = create_package('vendor/library')
+    repo_metadata = {'full_name' => 'example/library', 'host' => {'name' => 'GitHub'}, 'stargazers_count' => 99}
+    issue_metadata = {'past_year_issues_count' => 10}
+    package.update!(repository_url: 'https://github.com/example/library', homepage: 'https://old.example.com',
+      repo_metadata: repo_metadata, repo_metadata_updated_at: @time, issue_metadata: issue_metadata)
+    upstream(package.name, [release('1.0.0').merge('homepage' => 'https://new.example.com')])
+
+    apply
+
+    assert_equal 'https://new.example.com', package.reload.homepage
+    assert_equal repo_metadata, package.repo_metadata
+    assert_equal @time, package.repo_metadata_updated_at
+    assert_equal issue_metadata, package.issue_metadata
+  end
+
+  test 'a changed fallback homepage invalidates repository metadata' do
+    package = create_package('vendor/library')
+    package.update!(homepage: 'https://old.example.com', repo_metadata: {'full_name' => 'old/library'}, repo_metadata_updated_at: @time)
+    upstream(package.name, [release('1.0.0').except('source').merge('homepage' => 'https://new.example.com')])
+
+    apply
+
+    assert_equal 'https://new.example.com', package.reload.repository_or_homepage_url
+    assert_empty package.repo_metadata
+    assert_nil package.repo_metadata_updated_at
+  end
+
+  test 'removing the repository and homepage clears old repository data' do
+    package = create_package('vendor/library')
+    package.update!(repository_url: 'https://github.com/old/library', repo_metadata: {'full_name' => 'old/library'}, repo_metadata_updated_at: @time)
+    upstream(package.name, [release('1.0.0').except('source')])
+
+    apply
+
+    assert_nil package.reload.repository_or_homepage_url
+    assert_empty package.repo_metadata
+    assert_nil package.repo_metadata_updated_at
+  end
+
+  test 'missing case-distinct packages receive malware changes only on the selected ID' do
+    selected = create_package('Vendor/Library')
+    other = create_package('vendor/library')
+    flag = {'constraint' => '*', 'source' => 'selected', 'classification' => 'malware'}
+    selected.update!(metadata: {'malware' => [flag]})
+    selected_version = selected.versions.create!(number: '1.0.0', registry: @registry, metadata: {'malware' => [flag]})
+    other_version = other.versions.create!(number: '1.0.0', registry: @registry)
+    other_before = other.reload.attributes
+    other_version_before = other_version.attributes
+    ENV['FROM_ID'] = ENV['TO_ID'] = selected.id.to_s
+    stub_request(:get, 'https://packagist.org/packages/Vendor/Library.json').to_return(status: 404)
+    stub_request(:get, 'https://repo.packagist.org/p2/vendor/library.json').to_return(status: 404)
+
+    output = apply
+
+    assert output.last['complete']
+    assert_equal 'removed', selected.reload.status
+    assert_empty selected.metadata['malware']
+    assert_equal 'removed', selected_version.reload.status
+    assert_nil selected_version.metadata['malware']
+    assert_equal other_before, other.reload.attributes
+    assert_equal other_version_before, other_version.reload.attributes
+  end
+
+  test 'case-distinct cleanup uses the selected snapshot and retains that records malware details' do
+    selected = create_package('Vendor/Library')
+    other = create_package('vendor/library', status: 'removed')
+    selected_flag = {'constraint' => '*', 'source' => 'selected', 'classification' => 'malware'}
+    selected.update!(metadata: {'malware' => [selected_flag]})
+    selected_version = selected.versions.create!(number: '1.0.0', registry: @registry)
+    other.update!(metadata: {'packagist_snapshot' => {'last_modified' => (@time + 1.day).to_i, 'sha256' => 'other'},
+      'packagist_removed_at' => (@time + 1.day).to_i, 'malware' => [selected_flag.merge('source' => 'other')]})
+    other_version = other.versions.create!(number: '1.0.0', registry: @registry, status: 'removed')
+    other_before = other.reload.attributes
+    other_version_before = other_version.attributes
+    @registry.update!(metadata: @registry.metadata.deep_merge('packagist_malware' => {'packages' => {'vendor/library' => '*'}}))
+    ENV['FROM_ID'] = ENV['TO_ID'] = selected.id.to_s
+    upstream(selected.name, canonical_name: other.name)
+
+    output = apply
+
+    assert output.last['complete']
+    assert_equal 'Vendor/Library', selected.reload.name
+    assert_equal [selected_flag], selected.metadata['malware']
+    assert_equal [selected_flag], selected_version.reload.metadata['malware']
+    assert_equal 'malware', selected_version.status
+    assert_equal @time.to_i, selected.metadata.dig('packagist_snapshot', 'last_modified')
+    assert_equal other_before, other.reload.attributes
+    assert_equal other_version_before, other_version.reload.attributes
+  end
+
+  test 'case-distinct cleanup rejects a snapshot older than the selected record' do
+    selected = create_package('Vendor/Library')
+    other = create_package('vendor/library')
+    selected.update!(metadata: {'packagist_snapshot' => {'last_modified' => (@time + 1.day).to_i, 'sha256' => 'selected'}})
+    selected_before = selected.attributes
+    other_before = other.attributes
+    ENV['FROM_ID'] = ENV['TO_ID'] = selected.id.to_s
+    upstream(selected.name, canonical_name: other.name)
+
+    assert_raises(SystemExit) { apply(failure: true) }
+
+    assert_match(/snapshot/, checkpoint['failures'][selected.id.to_s]['error'])
+    assert_equal selected_before, selected.reload.attributes
+    assert_equal other_before, other.reload.attributes
+  end
+
+  test 'case-distinct cleanup still rejects concurrent updates to the selected record' do
+    selected = create_package('Vendor/Library')
+    other = create_package('vendor/library')
+    other_before = other.attributes
+    ENV['FROM_ID'] = ENV['TO_ID'] = selected.id.to_s
+    upstream(selected.name, canonical_name: other.name)
+    stub_request(:get, 'https://repo.packagist.org/p2/vendor/library.json').to_return do
+      selected.update!(description: 'concurrent update', updated_at: @time + 1.second)
+      {body: {packages: {'vendor/library' => [release('1.0.0')]}}.to_json, headers: {'Last-Modified' => @time.httpdate}}
+    end
+
+    assert_raises(SystemExit) { apply(failure: true) }
+
+    assert_equal 'concurrent update', selected.reload.description
+    assert_empty selected.versions
+    assert_match(/changed during sync/, checkpoint['failures'][selected.id.to_s]['error'])
+    assert_equal other_before, other.reload.attributes
+  end
+
   test 'bounded runs resume by name and exclude packages created after the initial upper bound' do
     first = create_package('a/first', status: 'removed')
     second = create_package('b/second', status: 'abandoned')
@@ -138,6 +285,8 @@ class PackagistCleanupRakeTest < ActiveSupport::TestCase
 
   test 'a failure after sync rolls back package changes but records the retry' do
     package = create_package('vendor/library')
+    package.update!(repository_url: 'https://github.com/old/library', repo_metadata: {'full_name' => 'old/library'},
+      repo_metadata_updated_at: @time, issue_metadata: {'past_year_issues_count' => 10})
     version = package.versions.create!(number: '1.0.0', registry: @registry, metadata: {'custom' => 'keep'})
     before = package.reload.attributes
     before_version = version.attributes

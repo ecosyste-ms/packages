@@ -229,8 +229,7 @@ module Ecosystem
       end
       constraint = @registry.metadata.to_h.dig(MALWARE_STATE_KEY, 'packages', name.downcase)
       if constraint
-        previous = @registry.packages.where(name: name).pick(:metadata)
-        previous ||= @registry.packages.where('lower(name) = ?', name.downcase).pick(:metadata)
+        previous = @registry.packages.where(id: @package_sync_state&.first).pick(:metadata)
         metadata['malware'] = complete_malware_flags(metadata.fetch('malware'), constraint, previous.to_h.fetch('malware', []))
       end
       package.merge(metadata, 'packagist_malware_constraint' => constraint)
@@ -243,26 +242,32 @@ module Ecosystem
       raise 'Invalid Packagist abandonment metadata'
     end
 
-    def package_sync_state(name)
+    def package_sync_state(name, package_id: nil)
       columns = [:id, :updated_at, :last_synced_at, :versions_updated_at, :status, Arel.sql("metadata->>'packagist_snapshot'")]
+      return @registry.packages.where(id: package_id).pick(*columns) if package_id
+
       @registry.packages.where(name: name).pick(*columns) ||
         @registry.packages.where('lower(name) = ?', name.downcase).pick(*columns)
     end
 
-    def verify_package_sync_state(name)
-      return if @package_sync_state == package_sync_state(name)
+    def verify_package_sync_state(name, package_id: nil)
+      return if @package_sync_state == package_sync_state(name, package_id: package_id)
 
       @last_fetched_key = @last_fetched_metadata = @tagged_cache_entry = nil
       retry_metadata("Packagist package changed during sync: #{name}")
     end
 
-    def handle_missing_package(name)
+    def handle_missing_package(name, package_id: nil)
       return false unless @package_not_found
 
       @registry.with_lock do
-        verify_package_sync_state(name)
-        package = @registry.packages.find_by(name: name)
-        package ||= @registry.packages.where('lower(name) = ?', name.downcase).first
+        verify_package_sync_state(name, package_id: package_id)
+        if package_id
+          package = @registry.packages.find(package_id)
+        else
+          package = @registry.packages.find_by(name: name)
+          package ||= @registry.packages.where('lower(name) = ?', name.downcase).first
+        end
         if package
           if @deletion_time && package.metadata.to_h.dig('packagist_snapshot', 'last_modified').to_i > @deletion_time
             retry_metadata("Packagist deletion predates the last applied snapshot: #{name}")
@@ -278,7 +283,7 @@ module Ecosystem
           Rails.cache.delete(['packagist', 'tagged_versions', cached_name])
         end
         @last_fetched_key = @last_fetched_metadata = @tagged_cache_entry = nil
-        @package_sync_state = package_sync_state(name)
+        @package_sync_state = package_sync_state(name, package_id: package_id)
         package || false
       end
     end
@@ -322,8 +327,12 @@ module Ecosystem
     def verify_tagged_snapshot(package_metadata)
       name = package_metadata.fetch(:name)
       snapshot = package_metadata.fetch(:metadata).fetch('packagist_snapshot')
-      previous_metadata = @registry.packages.where(name: name).pick(:metadata) ||
-        @registry.packages.where('lower(name) = ?', name.downcase).pick(:metadata)
+      previous_metadata = if package_metadata[:packagist_package_id]
+                            @registry.packages.where(id: package_metadata[:packagist_package_id]).pick(:metadata)
+                          else
+                            @registry.packages.where(name: name).pick(:metadata) ||
+                              @registry.packages.where('lower(name) = ?', name.downcase).pick(:metadata)
+                          end
       previous_metadata = previous_metadata.to_h
       previous = previous_metadata['packagist_snapshot']
       invalid = snapshot['last_modified'].nil?

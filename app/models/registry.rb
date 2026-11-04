@@ -283,6 +283,7 @@ class Registry < ApplicationRecord
                        end
     unless package_metadata
       logger.error "Failed to sync #{name}: package_metadata returned nil or false"
+      return ecosystem_instance.handle_missing_package(name, package_id: existing_package.id) if maintenance
       return ecosystem_instance.handle_missing_package(name)
     end
     if package_metadata[:name].blank?
@@ -293,6 +294,7 @@ class Registry < ApplicationRecord
     if maintenance && !package_metadata[:name].casecmp?(name)
       raise 'Packagist maintenance sync returned a different package name'
     end
+    package_metadata[:packagist_package_id] = existing_package.id if maintenance
 
     package = ecosystem_instance.with_package_sync_lock(package_metadata) do
       # clean up incorrectly named package records
@@ -319,7 +321,11 @@ class Registry < ApplicationRecord
         return
       end
 
-      package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page, :time, :download_stats, :tags_url, :releases_url, :packagist_malware_constraint))
+      previous_repository_url = package.repository_or_homepage_url if maintenance
+      package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page, :time, :download_stats, :tags_url, :releases_url, :packagist_malware_constraint, :packagist_package_id))
+      if maintenance && previous_repository_url != package.repository_or_homepage_url
+        package.assign_attributes(repo_metadata: {}, repo_metadata_updated_at: nil, issue_metadata: nil)
+      end
 
       update_repo_metadata_after_save = package.changed?
       new_package = package.new_record?
