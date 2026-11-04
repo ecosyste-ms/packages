@@ -3,6 +3,8 @@ module Cleanup
     STATE_KEY = 'registry_cleanup'.freeze
     BATCH_SIZE = 100
     MAX_FAILURES = 100
+    LOCK_GRACE_SECONDS = 300
+    LockLost = Class.new(StandardError)
 
     def initialize(registry, run: 'all', dry_run: true, limit: 100, max_seconds: 600, pause: 1,
       from_id: 0, to_id: nil, name: nil, output: $stdout)
@@ -23,26 +25,39 @@ module Cleanup
     end
 
     def run
-      Registry.connection_pool.with_connection do |connection|
-        key = connection.quote("registry_cleanup:#{@registry.id}")
-        acquired = connection.select_value("SELECT pg_try_advisory_lock(hashtextextended(#{key}, 0))")
-        raise 'Another cleanup is running for this registry' unless acquired
-        begin
-          run_batches
-        ensure
-          connection.execute("SELECT pg_advisory_unlock(hashtextextended(#{key}, 0))")
-        end
+      @lock_key = "registry_cleanup:#{@registry.id}"
+      @lock_token = SecureRandom.uuid
+      acquired = REDIS.set(@lock_key, @lock_token, nx: true, ex: @max_seconds.ceil + LOCK_GRACE_SECONDS)
+      raise 'Another cleanup is running for this registry' unless acquired
+      begin
+        run_batches
+      ensure
+        REDIS.eval("if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) end return 0",
+          keys: [@lock_key], argv: [@lock_token])
       end
     end
 
-    def run_batches
-      @registry.reload
+    def verify_lock!
+      raise LockLost, 'Cleanup lease expired or changed; rerun to resume' unless REDIS.get(@lock_key) == @lock_token
+    end
+
+    def load_state
+      verify_lock!
       validate_run
       @state = @registry.metadata.to_h.dig(self.class::STATE_KEY, @run)&.deep_dup
       raise ArgumentError, 'Run scope differs from its checkpoint; choose another RUN' if @state && @state.fetch('scope') != @scope
       @state ||= {'scope' => @scope, 'started_at' => Time.current.iso8601,
         'max_id' => [@registry.packages.maximum(:id).to_i, @scope['to_id']].compact.min,
         'after_name' => nil, 'processed' => 0, 'failures' => {}}.merge(initial_counters)
+    end
+
+    def run_batches
+      if @dry_run
+        @registry.reload
+        load_state
+      else
+        @registry.with_lock { load_state }
+      end
       @attempted = 0
       @started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       emit(event: 'start', scope: @scope, checkpoint: @state)
@@ -82,6 +97,7 @@ module Cleanup
     end
 
     def process(id, name, retrying: false)
+      verify_lock!
       @attempted += 1
       result = @dry_run ? preview(id, name, retrying: retrying) : apply_package(id, name, retrying: retrying)
       emit(**result)
@@ -104,7 +120,8 @@ module Cleanup
       before = package&.status
       prepared = prepare_package(registry, package) if package
       next_state = nil
-      result = Registry.transaction do
+      result = registry.with_lock do
+        verify_lock!
         counters = initial_counters.symbolize_keys
         if package
           counters = repair_package(registry, package, prepared)
@@ -116,6 +133,8 @@ module Cleanup
       end
       @state = next_state
       result
+    rescue LockLost, Redis::BaseError
+      raise
     rescue StandardError => error
       @state = checkpoint(Registry.find(@registry.id), id, name, retrying: retrying, error: error)
       {event: 'failed', id: id, name: name, error: "#{error.class}: #{error.message}".truncate(500)}
@@ -153,6 +172,7 @@ module Cleanup
         initial_counters.each_key { |key| state[key] += counters.fetch(key.to_sym, 0) }
       end
       registry.with_lock do
+        verify_lock!
         runs = registry.metadata.to_h.fetch(self.class::STATE_KEY, {}).merge(@run => state)
         registry.update!(metadata: registry.metadata.to_h.merge(self.class::STATE_KEY => runs))
       end

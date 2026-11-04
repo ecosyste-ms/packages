@@ -529,12 +529,90 @@ class PackagistCleanupRakeTest < ActiveSupport::TestCase
   end
 
   test 'another process cannot run cleanup for the same registry' do
-    connection = PG.connect(Registry.connection.raw_connection.conninfo_hash.compact)
-    connection.exec_params('SELECT pg_advisory_lock(hashtextextended($1, 0))', ["registry_cleanup:#{@registry.id}"])
+    key = "registry_cleanup:#{@registry.id}"
+    REDIS.set(key, 'another-owner', ex: 60)
     error = assert_raises(RuntimeError) { invoke }
     assert_match(/Another cleanup/, error.message)
+    assert_equal 'another-owner', REDIS.get(key)
   ensure
-    connection&.close
+    REDIS.del(key)
+  end
+
+  test 'an expired lease after fetching metadata stops before repairs or checkpoint writes' do
+    package = create_package('vendor/library')
+    before = package.reload.attributes
+    key = "registry_cleanup:#{@registry.id}"
+    upstream(package.name)
+    stub_request(:get, "https://repo.packagist.org/p2/#{package.name}.json").to_return do
+      REDIS.del(key)
+      {body: {packages: {package.name => [release('1.0.0').merge('name' => package.name)]}}.to_json,
+        headers: {'Last-Modified' => @time.httpdate}}
+    end
+
+    assert_raises(Cleanup::Base::LockLost) { apply }
+
+    assert_equal before, package.reload.attributes
+    assert_empty package.versions
+    assert_nil @registry.reload.metadata['packagist_cleanup']
+    assert_nil REDIS.get(key)
+  end
+
+  test 'lease takeover during repair rolls back and preserves the new owners lease' do
+    package = create_package('vendor/library')
+    before = package.reload.attributes
+    key = "registry_cleanup:#{@registry.id}"
+    upstream(package.name)
+    replaced = false
+    subscriber = lambda do |*args|
+      if !replaced && args.last[:sql].start_with?('UPDATE "packages"')
+        REDIS.set(key, 'new-owner', ex: 60)
+        replaced = true
+      end
+    end
+
+    ActiveSupport::Notifications.subscribed(subscriber, 'sql.active_record') do
+      assert_raises(Cleanup::Base::LockLost) { apply }
+    end
+
+    assert replaced
+    assert_equal before, package.reload.attributes
+    assert_empty package.versions
+    assert_nil @registry.reload.metadata['packagist_cleanup']
+    assert_equal 'new-owner', REDIS.get(key)
+  ensure
+    REDIS.del(key)
+  end
+
+  test 'Redis failure during repair rolls back without recording a package failure' do
+    package = create_package('vendor/library')
+    before = package.reload.attributes
+    key = "registry_cleanup:#{@registry.id}"
+    upstream(package.name)
+    subscriber = lambda do |*args|
+      REDIS.stubs(:get).raises(Redis::CannotConnectError) if args.last[:sql].start_with?('UPDATE "packages"')
+    end
+
+    ActiveSupport::Notifications.subscribed(subscriber, 'sql.active_record') do
+      assert_raises(Redis::CannotConnectError) { apply }
+    end
+    REDIS.unstub(:get)
+
+    assert_equal before, package.reload.attributes
+    assert_empty package.versions
+    assert_nil @registry.reload.metadata['packagist_cleanup']
+    assert_nil REDIS.get(key)
+  end
+
+  test 'leases are released after dry run and validation failure' do
+    key = "registry_cleanup:#{@registry.id}"
+    create_package('vendor/library')
+    invoke
+    assert_nil REDIS.get(key)
+    @registry.update!(metadata: {})
+
+    assert_raises(RuntimeError) { apply }
+
+    assert_nil REDIS.get(key)
   end
 
   test 'failure storage is bounded and unattempted packages stay beyond the checkpoint' do

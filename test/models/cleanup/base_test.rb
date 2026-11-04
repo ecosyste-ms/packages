@@ -108,13 +108,29 @@ class CleanupBaseTest < ActiveSupport::TestCase
   end
 
   test 'all cleanup operations share the registry lock' do
-    connection = PG.connect(Registry.connection.raw_connection.conninfo_hash.compact)
-    connection.exec_params('SELECT pg_advisory_lock(hashtextextended($1, 0))', ["registry_cleanup:#{@registry.id}"])
+    key = "registry_cleanup:#{@registry.id}"
+    REDIS.set(key, 'another-owner', ex: 60)
 
     assert_raises(RuntimeError) { LicenseCleanup.new(@registry, output: @output).run }
     assert_raises(RuntimeError) { MetadataCleanup.new(@registry, output: @output).run }
+    assert_equal 'another-owner', REDIS.get(key)
   ensure
-    connection&.close
+    REDIS.del(key)
+  end
+
+  test 'the lease expires after the run budget and is released on completion' do
+    key = "registry_cleanup:#{@registry.id}"
+    ttl = nil
+    @output.define_singleton_method(:puts) do |line|
+      ttl = REDIS.ttl(key)
+      super(line)
+    end
+
+    LicenseCleanup.new(@registry, max_seconds: 120, output: @output).run
+
+    assert_operator ttl, :>, 120
+    assert_operator ttl, :<=, 120 + Cleanup::Base::LOCK_GRACE_SECONDS
+    assert_nil REDIS.get(key)
   end
 
   test 'single component names support case insensitive scope and preserve other records' do
