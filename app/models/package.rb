@@ -534,10 +534,10 @@ class Package < ApplicationRecord
   def update_versions
     ecosystem = registry.ecosystem_instance
     package_metadata = ecosystem.package_metadata(name)
-    return false unless package_metadata
+    return ecosystem.handle_missing_package(name) unless package_metadata
     ecosystem.with_package_sync_lock(package_metadata) do
       if ecosystem.is_a?(Ecosystem::Packagist)
-        update!(metadata: metadata.to_h.merge(package_metadata.fetch(:metadata).slice('malware', 'packagist_snapshot')))
+        update!(status: package_metadata.fetch(:status), metadata: metadata.to_h.except('packagist_removed_at').merge(package_metadata.fetch(:metadata).slice('malware', 'packagist_snapshot', 'abandoned')))
       end
       existing_packagist_numbers = versions.pluck(:number).to_set if ecosystem.is_a?(Ecosystem::Packagist)
       versions_metadata = ecosystem.versions_metadata(package_metadata, existing_packagist_numbers || [])
@@ -613,6 +613,8 @@ class Package < ApplicationRecord
   end
 
   def check_status
+    return registry.sync_package(name, force: true) if registry.ecosystem_instance.is_a?(Ecosystem::Packagist)
+
     result = registry.ecosystem_instance.check_status(self)
     if result == false
       update_columns(last_synced_at: Time.now)

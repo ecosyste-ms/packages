@@ -166,6 +166,10 @@ module Ecosystem
       map_package_metadata(fetch_package_metadata(name, version: version))
     end
 
+    def handle_missing_package(_name)
+      false
+    end
+
     def map_dependencies(deps, kind, optional = false, ecosystem = self.class.name.demodulize.downcase)
       deps.map do |k, v|
         {

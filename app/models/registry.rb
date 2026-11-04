@@ -279,7 +279,7 @@ class Registry < ApplicationRecord
                        end
     unless package_metadata
       logger.error "Failed to sync #{name}: package_metadata returned nil or false"
-      return false
+      return ecosystem_instance.handle_missing_package(name)
     end
     if package_metadata[:name].blank?
       logger.error "Failed to sync #{name}: package_metadata returned blank name"
@@ -389,7 +389,7 @@ class Registry < ApplicationRecord
       end
     end
 
-    package.check_status unless sync_in_batches?
+    package.check_status unless sync_in_batches? || ecosystem_instance.is_a?(Ecosystem::Packagist)
 
     # package.update_integrities_async
     return package
