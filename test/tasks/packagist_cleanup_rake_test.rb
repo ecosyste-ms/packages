@@ -291,7 +291,7 @@ class PackagistCleanupRakeTest < ActiveSupport::TestCase
     before = package.reload.attributes
     before_version = version.attributes
     upstream(package.name, [release('2.0.0')])
-    PackagistCleanup.any_instance.stubs(:remove_platform_dependencies).raises('cleanup failed')
+    Cleanup::Packagist.any_instance.stubs(:remove_platform_dependencies).raises('cleanup failed')
 
     assert_raises(SystemExit) { apply(failure: true) }
 
@@ -491,7 +491,7 @@ class PackagistCleanupRakeTest < ActiveSupport::TestCase
     package = create_package('vendor/library')
     @registry.update!(rate_limit: 2)
     upstream(package.name)
-    PackagistCleanup.any_instance.expects(:sleep).with(0.5)
+    Cleanup::Packagist.any_instance.expects(:sleep).with(0.5)
 
     apply
   end
@@ -503,7 +503,7 @@ class PackagistCleanupRakeTest < ActiveSupport::TestCase
     output.expects(:puts).with { |line| JSON.parse(line)['event'] == 'start' }
     output.expects(:puts).with { |line| JSON.parse(line)['event'] == 'applied' }.raises(IOError, 'output closed')
 
-    assert_raises(IOError) { PackagistCleanup.new(@registry, dry_run: false, pause: 0, output: output).run }
+    assert_raises(IOError) { Cleanup::Packagist.new(@registry, dry_run: false, pause: 0, output: output).run }
 
     assert_equal 1, checkpoint['processed']
     assert_empty checkpoint['failures']
@@ -536,7 +536,7 @@ class PackagistCleanupRakeTest < ActiveSupport::TestCase
     ENV['MAX_SECONDS'] = '1'
     ENV['PAUSE'] = '60'
     Process.stubs(:clock_gettime).returns(0.0)
-    PackagistCleanup.any_instance.expects(:sleep).with do |duration|
+    Cleanup::Packagist.any_instance.expects(:sleep).with do |duration|
       Process.stubs(:clock_gettime).returns(1.0)
       duration == 1.0
     end

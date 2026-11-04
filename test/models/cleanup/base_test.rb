@@ -1,7 +1,7 @@
 require 'test_helper'
 
-class RegistryCleanupTest < ActiveSupport::TestCase
-  class LicenseCleanup < RegistryCleanup
+class CleanupBaseTest < ActiveSupport::TestCase
+  class LicenseCleanup < Cleanup::Base
     STATE_KEY = 'license_cleanup'.freeze
 
     def initial_counters
@@ -24,7 +24,7 @@ class RegistryCleanupTest < ActiveSupport::TestCase
     end
   end
 
-  class MetadataCleanup < RegistryCleanup
+  class MetadataCleanup < Cleanup::Base
     STATE_KEY = 'metadata_cleanup'.freeze
 
     def repair_package(_registry, package, _prepared)
