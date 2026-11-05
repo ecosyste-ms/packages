@@ -538,6 +538,34 @@ class PackagistCleanupRakeTest < ActiveSupport::TestCase
     assert_equal [package.id.to_s], checkpoint['failures'].keys
   end
 
+  test 'a failed cleanup retries identical older metadata without lowering its snapshot timestamp' do
+    package = create_package('vendor/library')
+    upstream(package.name)
+    ENV['RUN'] = 'initial'
+    apply
+    previous_snapshot = package.reload.metadata.fetch('packagist_snapshot')
+    cached = @cache.read(['packagist', 'tagged_versions', package.name])
+    version = package.versions.find_by!(number: '1.0.0')
+    platform = version.dependencies.create!(package_name: 'php', requirements: '^8', ecosystem: 'packagist', kind: 'runtime')
+    ENV['RUN'] = 'all'
+    upstream(package.name, [release('2.0.0')])
+    assert_raises(SystemExit) { apply(failure: true) }
+    assert_equal [package.id.to_s], checkpoint['failures'].keys
+    assert Dependency.exists?(platform.id)
+    stub_request(:get, "https://repo.packagist.org/p2/#{package.name}.json")
+      .to_return(body: cached.fetch('body'), headers: {'Last-Modified' => (@time - 1.second).httpdate})
+
+    output = apply
+
+    assert_empty checkpoint['failures']
+    assert_equal 1, checkpoint['processed']
+    assert_equal 1, checkpoint['platform_dependencies_removed']
+    assert_equal previous_snapshot, package.reload.metadata['packagist_snapshot']
+    assert_equal [version.id], package.versions.pluck(:id)
+    assert_not Dependency.exists?(platform.id)
+    assert output.last['complete']
+  end
+
   test 'invalid options fail before any upstream request' do
     %w[0 -1 bad].each do |limit|
       ENV['LIMIT'] = limit

@@ -338,8 +338,8 @@ module Ecosystem
       invalid = snapshot['last_modified'].nil?
       invalid ||= snapshot['last_modified'].to_i < previous_metadata.fetch('packagist_removed_at', 0)
       if previous && previous['last_modified']
-        invalid ||= snapshot['last_modified'].to_i < previous['last_modified'] ||
-          (snapshot['last_modified'] == previous['last_modified'] && snapshot['sha256'] != previous['sha256'])
+        invalid ||= snapshot['last_modified'].to_i <= previous['last_modified'] && snapshot['sha256'] != previous['sha256']
+        snapshot['last_modified'] = [snapshot['last_modified'], previous['last_modified']].max unless invalid
       end
       return unless invalid
 

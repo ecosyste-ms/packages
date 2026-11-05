@@ -119,6 +119,20 @@ class PackagistChangesTest < ActiveSupport::TestCase
     assert_equal ['3.0.0'], @package.versions.pluck(:number)
   end
 
+  test 'identical content still needs a timestamp at least as recent as its change event' do
+    SyncPackageWorker.new.perform(@registry.id, @package.name, true)
+    before = @package.reload.attributes
+    cached = Rails.cache.read(['packagist', 'tagged_versions', @package.name])
+    tagged_metadata(last_modified: (@time - 1).httpdate)
+
+    assert_raises(Ecosystem::Packagist::RetryableError) do
+      SyncPackagistChangeWorker.new.perform(@registry.id, action)
+    end
+
+    assert_equal before, @package.reload.attributes
+    assert_equal cached, Rails.cache.read(['packagist', 'tagged_versions', @package.name])
+  end
+
   test 'fresh HTTP 304 reuses the cached body' do
     Rails.cache.write(['packagist', 'tagged_versions', 'psr/log'],
       {'body' => file_fixture('packagist/log.p2.json').read, 'last_modified' => @time.httpdate})

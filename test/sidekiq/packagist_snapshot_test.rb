@@ -41,6 +41,60 @@ class PackagistSnapshotTest < ActiveSupport::TestCase
   end
 
   %w[sync versions].each do |path|
+    test "#{path} accepts identical older content without lowering the stored timestamp" do
+      stub_request(:get, @url).to_return(snapshot(%w[2.0.0 1.0.0], @time))
+      perform(path)
+      previous = @package.reload.metadata.fetch('packagist_snapshot')
+      ids = @package.versions.order(:id).pluck(:id)
+      version = @package.versions.find_by!(number: '2.0.0')
+      version.update!(metadata: {'platform_requirements' => {'php' => 'wrong'}})
+      older = snapshot(%w[2.0.0 1.0.0], @time - 1.second)
+      stub_request(:get, @url).to_return(older)
+
+      perform(path)
+
+      assert_equal previous, @package.reload.metadata['packagist_snapshot']
+      assert_equal ids, @package.versions.order(:id).pluck(:id)
+      assert_equal '2.0.0', @package.latest_release_number
+      assert_equal({'php' => '>=8.0'}, version.reload.metadata['platform_requirements'])
+      assert_equal older[:headers]['Last-Modified'], Rails.cache.read(@key)['last_modified']
+      stub_request(:get, @url).with(headers: {'If-Modified-Since' => older[:headers]['Last-Modified']}).to_return(status: 304)
+
+      perform(path)
+
+      assert_equal previous, @package.reload.metadata['packagist_snapshot']
+      before_conflict = persisted_state
+      stub_request(:get, @url).to_return(snapshot(['1.0.0'], @time))
+      assert_raises(Ecosystem::Packagist::RetryableError) { perform(path) }
+      assert_equal before_conflict, persisted_state
+    end
+
+    test "#{path} still rejects identical content without a timestamp" do
+      response = snapshot(['1.0.0'], @time)
+      stub_request(:get, @url).to_return(response)
+      perform(path)
+      previous = persisted_state
+      stub_request(:get, @url).to_return(response.except(:headers))
+
+      assert_raises(Ecosystem::Packagist::RetryableError) { perform(path) }
+
+      assert_equal previous, persisted_state
+    end
+
+    test "#{path} cannot restore a deleted package using identical pre-deletion content" do
+      stub_request(:get, @url).to_return(snapshot(['1.0.0'], @time))
+      perform(path)
+      stub_request(:get, @url).to_return(status: 404)
+      SyncPackagistChangeWorker.new.perform(@registry.id, {'package' => 'psr/log', 'type' => 'delete', 'time' => @time.to_i})
+      previous = persisted_state
+      stub_request(:get, @url).to_return(snapshot(['1.0.0'], @time - 1.second))
+
+      assert_raises(Ecosystem::Packagist::RetryableError) { perform(path) }
+
+      assert_equal previous, persisted_state
+      assert_equal 'removed', @package.reload.status
+    end
+
     test "#{path} rejects a stale cached 304 after another worker advances the snapshot" do
       stub_request(:get, @url).to_return(snapshot(['1.0.0'], @time - 1.hour))
       perform(path)
