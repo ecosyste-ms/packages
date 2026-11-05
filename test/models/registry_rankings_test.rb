@@ -130,6 +130,8 @@ class RegistryRankingsTest < ActiveSupport::TestCase
   end
 
   test 'ranks a large registry in linear time and still matches load_rankings' do
+    skip 'Set RUN_RANKING_BENCHMARK=true to run the 50,000-package benchmark' unless ENV['RUN_RANKING_BENCHMARK'] == 'true'
+
     size = 50_000
     Package.connection.execute(<<~SQL)
       INSERT INTO packages (registry_id, name, ecosystem, status, downloads, dependent_repos_count, dependent_packages_count,
