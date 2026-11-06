@@ -191,6 +191,14 @@ class HackageTest < ActiveSupport::TestCase
     assert_equal "https://gitlab.com/foo/baz", package_metadata[:repository_url]
   end
 
+  test 'repository_url from Source repo text with a subdir and no link' do
+    stub_request(:get, "https://hackage.haskell.org/package/source-repo-subdir-no-link")
+      .to_return({ status: 200, body: file_fixture('hackage/source-repo-subdir-no-link') })
+    package_metadata = @ecosystem.package_metadata('source-repo-subdir-no-link')
+
+    assert_equal "https://github.com/vincenthz/hs-certificate", package_metadata[:repository_url]
+  end
+
   test 'repository_url from first Source repo when multiple entries exist' do
     stub_request(:get, "https://hackage.haskell.org/package/source-repo-multiple")
       .to_return({ status: 200, body: file_fixture('hackage/source-repo-multiple') })
