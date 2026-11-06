@@ -80,6 +80,17 @@ class GithubUrlParserTest < ActiveSupport::TestCase
     end
   end
 
+  test 'preserves subdomain-like text inside repository names' do
+    [
+      ['https://github.com/haskell-opengl/OpenGLRaw.git', 'haskell-opengl/OpenGLRaw'],
+      ['https://github.com/haskell-opengl/GLURaw.git', 'haskell-opengl/GLURaw'],
+      ['https://github.com/foo/www.example.git', 'foo/www.example'],
+      ['https://github.com/foo/my-wiki.git', 'foo/my-wiki']
+    ].each do |url, expected|
+      assert_equal expected, GithubUrlParser.parse(url), url
+    end
+  end
+
   test "handles querystrings" do
     full_name = 'michaelkrog/filter4j'
     url       = 'scm:git:https://michaelkrog@github.com/michaelkrog/filter4j.git?foo=bar&wut=wah'
