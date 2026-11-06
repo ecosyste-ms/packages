@@ -152,7 +152,7 @@ class UrlParser
   end
 
   def remove_subdomain
-    self.url = url.dup.gsub(/(?:www|ssh|raw|git|wiki)\./i, '')
+    self.url = url.dup.gsub(/(?:www|ssh|raw|git|wiki)\.(?=#{domain_regex})/i, '')
   end
 
   def remove_whitespace
