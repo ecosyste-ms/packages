@@ -242,6 +242,58 @@ class PackageTest < ActiveSupport::TestCase
     assert_equal '0.9.0', package.latest_published_release_number
   end
 
+  test 'set_latest_release_published_at uses the newest version when all versions are deprecated' do
+    package = @registry.packages.create!(name: 'all-deprecated', ecosystem: 'rubygems')
+    package.versions.create!(number: '1.0.0', published_at: 2.years.ago, status: 'deprecated')
+    newest = package.versions.create!(number: '2.0.0', published_at: 1.year.ago, status: 'deprecated')
+
+    package.set_latest_release_published_at
+    package.set_latest_release_number
+
+    assert_equal newest.published_at, package.latest_release_published_at
+    assert_nil package.latest_release_number
+  end
+
+  test 'set_latest_release_published_at keeps the active latest version for mixed packages' do
+    package = @registry.packages.create!(name: 'mixed', ecosystem: 'rubygems')
+    active = package.versions.create!(number: '1.0.0', published_at: 1.month.ago)
+    package.versions.create!(number: '2.0.0', published_at: 1.week.ago, status: 'deprecated')
+
+    package.set_latest_release_published_at
+
+    assert_equal active.published_at, package.latest_release_published_at
+  end
+
+  test 'set_latest_release_published_at does not borrow a deprecated version date when the active latest is undated' do
+    package = @registry.packages.create!(name: 'undated', ecosystem: 'rubygems')
+    active = package.versions.create!(number: '1.0.0', published_at: nil)
+    deprecated = package.versions.create!(number: '2.0.0', published_at: 1.week.ago, status: 'deprecated')
+
+    package.set_latest_release_published_at
+
+    assert_equal active.reload.published_at, package.latest_release_published_at
+    assert_not_equal deprecated.published_at, package.latest_release_published_at
+  end
+
+  test 'set_latest_release_published_at falls back to updated_at for packages with no versions' do
+    package = @registry.packages.create!(name: 'empty', ecosystem: 'rubygems')
+
+    package.set_latest_release_published_at
+
+    assert_equal package.updated_at, package.latest_release_published_at
+  end
+
+  test 'set_latest_release_published_at stays put across repeated syncs of an all-deprecated package' do
+    package = @registry.packages.create!(name: 'deprecated-everywhere', ecosystem: 'rubygems')
+    newest = package.versions.create!(number: '0.11.30', published_at: Time.utc(2025, 1, 28), status: 'deprecated')
+
+    2.times do
+      travel 1.day
+      package.reload.update_details
+      assert_equal newest.published_at, package.reload.latest_release_published_at
+    end
+  end
+
   test 'install_command' do
     assert_equal @package.install_command, 'gem install foo -s https://rubygems.org'
   end

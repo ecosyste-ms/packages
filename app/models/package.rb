@@ -425,8 +425,10 @@ class Package < ApplicationRecord
     tagged || unarchived.select(&:stable?).sort.first || unarchived.sort.first
   end
 
+  # Packages whose versions all have a status (e.g. every release deprecated) have no latest_version,
+  # so use the newest published version rather than updated_at, which moves on every sync
   def set_latest_release_published_at
-    self.latest_release_published_at = (latest_version.try(:published_at).presence || updated_at)
+    self.latest_release_published_at = ((latest_version || latest_published_version).try(:published_at).presence || updated_at)
   end
 
   def set_latest_release_number
