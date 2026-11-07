@@ -285,13 +285,42 @@ class PackageTest < ActiveSupport::TestCase
 
   test 'set_latest_release_published_at stays put across repeated syncs of an all-deprecated package' do
     package = @registry.packages.create!(name: 'deprecated-everywhere', ecosystem: 'rubygems')
-    newest = package.versions.create!(number: '0.11.30', published_at: Time.utc(2025, 1, 28), status: 'deprecated')
+    older = package.versions.create!(number: '0.11.29', published_at: Time.utc(2024, 6, 1), status: 'deprecated')
 
     2.times do
       travel 1.day
-      package.reload.update_details
-      assert_equal newest.published_at, package.reload.latest_release_published_at
+      Package.find(package.id).update_details
+      assert_equal older.published_at, package.reload.latest_release_published_at
     end
+
+    newest = package.versions.create!(number: '0.11.30', published_at: Time.utc(2025, 1, 28), status: 'deprecated')
+    travel 1.day
+    Package.find(package.id).update_details
+    assert_equal newest.published_at, package.reload.latest_release_published_at
+  end
+
+  test 'set_latest_release_published_at uses the newest archived release when every opam release is archived' do
+    registry = Registry.create!(name: 'opam.ocaml.org', url: 'https://opam.ocaml.org', ecosystem: 'opam')
+    package = registry.packages.create!(name: 'all-archived', ecosystem: 'opam')
+    package.versions.create!(number: '1.0.0', published_at: 3.years.ago, metadata: { 'archived' => true })
+    newest = package.versions.create!(number: '2.0.0', published_at: 2.years.ago, metadata: { 'archived' => true })
+
+    package.set_latest_release_published_at
+
+    assert_equal newest.published_at, package.latest_release_published_at
+  end
+
+  test 'set_latest_release_published_at keeps matching latest_published_release_number when the newest opam release is archived' do
+    registry = Registry.create!(name: 'opam.ocaml.org', url: 'https://opam.ocaml.org', ecosystem: 'opam')
+    package = registry.packages.create!(name: 'partly-archived', ecosystem: 'opam')
+    kept = package.versions.create!(number: '1.0.0', published_at: 3.years.ago, status: 'deprecated')
+    package.versions.create!(number: '2.0.0', published_at: 2.years.ago, status: 'deprecated', metadata: { 'archived' => true })
+
+    package.set_latest_release_published_at
+    package.set_latest_published_release_number
+
+    assert_equal kept.published_at, package.latest_release_published_at
+    assert_equal '1.0.0', package.latest_published_release_number
   end
 
   test 'install_command' do
