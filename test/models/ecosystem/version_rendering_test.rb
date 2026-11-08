@@ -140,6 +140,7 @@ class EcosystemVersionRenderingTest < ActiveSupport::TestCase
       install: ['gem install rails -s https://rubygems.org', 'gem install rails -s https://rubygems.org -v 1.2.3'],
       documentation: ['http://www.rubydoc.info/gems/rails/', 'http://www.rubydoc.info/gems/rails/1.2.3']
     },
+    'snap' => { name: 'gimp', install: 'snap install gimp', documentation: nil },
     'spack' => { name: 'zlib', install: ['spack install zlib', 'spack install zlib@1.2.3'], documentation: nil },
     'swiftpm' => {
       name: 'github.com/swift-cloud/Compute', install: nil,
