@@ -85,7 +85,10 @@ class GithubUrlParserTest < ActiveSupport::TestCase
       ['https://github.com/haskell-opengl/OpenGLRaw.git', 'haskell-opengl/OpenGLRaw'],
       ['https://github.com/haskell-opengl/GLURaw.git', 'haskell-opengl/GLURaw'],
       ['https://github.com/foo/www.example.git', 'foo/www.example'],
-      ['https://github.com/foo/my-wiki.git', 'foo/my-wiki']
+      ['https://github.com/foo/my-wiki.git', 'foo/my-wiki'],
+      ['https://github.com/git/git.github.io', 'git/git.github.io'],
+      ['https://github.com/isomorphic-git/isomorphic-git.github.io', 'isomorphic-git/isomorphic-git.github.io'],
+      ['https://www.github.com/foo/wiki.github.com', 'foo/wiki.github.com']
     ].each do |url, expected|
       assert_equal expected, GithubUrlParser.parse(url), url
     end
