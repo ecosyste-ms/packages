@@ -108,7 +108,8 @@ module Ecosystem
     # `head: git clone <a href="https://github.com/mauke/data-default">https://github.com/mauke/data-default</a> -b flare`
     # so the plain text ends with a branch or tag name. Prefer the actual link target
     # and, when there is no link, strip trailing branch/tag selectors instead of
-    # treating them as part of the repository location.
+    # treating them as part of the repository location. A tag and subdir are appended
+    # in parentheses, e.g. `git clone git://github.com/upwawet/xmms2hs.git(tag v0.0.7.0)(client-glib)`.
     def find_source_repo(page)
       td = find_attribute_row(page, "Source repo")&.css("td")
       return nil unless td
@@ -117,7 +118,7 @@ module Ecosystem
       return href if href
 
       text = td.text.strip.sub(/\s+(?:-b|--branch|-t|--tag)\s+\S+\s*$/, "")
-      text.split.last
+      text.gsub(/\([^()]*\)/, "").split.last
     end
 
     def find_attribute_row(page, name)
