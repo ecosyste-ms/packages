@@ -171,6 +171,40 @@ class VcpkgTest < ActiveSupport::TestCase
     assert_equal 'removed', @ecosystem.check_status(@package)
   end
 
+  test 'worker requests for domain-like package names do not send the service API key to GitHub' do
+    previous_key = ENV['ECOSYSTEMS_API_KEY']
+    ENV['ECOSYSTEMS_API_KEY'] = 'test-service-key'
+    @registry.save!
+    manifest = stub_request(:get, 'https://raw.githubusercontent.com/microsoft/vcpkg/master/ports/probe.ecosyste.ms/vcpkg.json')
+      .with { |request| request.headers['X-Api-Key'].nil? }
+      .to_return(status: 404)
+
+    SyncPackageWorker.new.perform(@registry.id, 'probe.ecosyste.ms', true)
+
+    assert_requested manifest, times: 1
+    assert_empty @registry.packages
+  ensure
+    ENV['ECOSYSTEMS_API_KEY'] = previous_key
+  end
+
+  test 'worker imports manifests with separator-heavy homepage lists' do
+    previous_timeout = Regexp.timeout
+    Regexp.timeout = 0.1
+    @registry.save!
+    manifest = JSON.parse(file_fixture('vcpkg/7zip.json').read)
+    manifest['homepage'] = "https://example.com/#{"\t" * 20_000}x; https://github.com/owner/project"
+    stub_request(:get, 'https://raw.githubusercontent.com/microsoft/vcpkg/master/ports/7zip/vcpkg.json')
+      .to_return(status: 200, body: manifest.to_json)
+
+    SyncPackageWorker.new.perform(@registry.id, '7zip', true)
+
+    package = @registry.packages.find_by!(name: '7zip')
+    assert_equal 'https://github.com/owner/project', package.repository_url
+    assert_equal ['26.6'], package.versions.pluck(:number)
+  ensure
+    Regexp.timeout = previous_timeout
+  end
+
   test 'manifest failures do not report removed packages' do
     stub_request(:get, 'https://raw.githubusercontent.com/microsoft/vcpkg/master/ports/zziplib/vcpkg.json')
       .to_return(status: 503, body: 'Service unavailable')

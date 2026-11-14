@@ -34,7 +34,7 @@ class UrlParser
   end
 
   def self.url_candidates(url)
-    url.to_s.split(%r{[,;\s]+(?=(?:[a-z][a-z0-9+.-]*://|git@))}i)
+    url.to_s.split(%r{(?<![,;\s])[,;\s]+(?=(?:[a-z][a-z0-9+.-]*://|git@))}i)
   end
 
   def parse_to_full_url
