@@ -70,11 +70,38 @@ class SpackTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
-    stub_request(:get, "https://github.com/spack/spack/commits/develop.atom")
+    stub_request(:get, "https://github.com/spack/spack-packages/commits/develop.atom")
       .to_return({ status: 200, body: file_fixture('spack/develop.atom') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 18
-    assert_equal recently_updated_package_names.last, 'cray-mpich'
+    assert_equal 20, recently_updated_package_names.length
+    assert_equal 'lz4', recently_updated_package_names.first
+    assert_equal 'py-kornia-rs', recently_updated_package_names.last
+    assert_includes recently_updated_package_names, 'py-meegkit'
+    assert_not_requested(:get, "https://github.com/spack/spack/commits/develop.atom")
+  end
+
+  test 'recent package sync queues packages from the package repository feed' do
+    @registry.save!
+    stub_request(:get, "https://github.com/spack/spack-packages/commits/develop.atom")
+      .to_return({ status: 200, body: file_fixture('spack/develop.atom') })
+    SyncPackageWorker.clear
+
+    @registry.sync_recently_updated_packages_async
+
+    jobs = SyncPackageWorker.jobs.map { |job| job['args'] }
+    assert_equal 20, jobs.length
+    assert_includes jobs, [@registry.id, 'lz4', true]
+    assert_includes jobs, [@registry.id, 'py-meegkit', true]
+    assert_includes jobs, [@registry.id, 'node-js', true]
+    assert_equal jobs.uniq, jobs
+  ensure
+    SyncPackageWorker.clear
+  end
+
+  test 'recently_updated_package_names handles an unavailable package feed' do
+    stub_request(:get, "https://github.com/spack/spack-packages/commits/develop.atom").to_timeout
+
+    assert_empty @ecosystem.recently_updated_package_names
   end
 
   test 'package_metadata' do

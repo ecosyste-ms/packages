@@ -31,7 +31,7 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      u = "https://github.com/spack/spack/commits/develop.atom"
+      u = "https://github.com/spack/spack-packages/commits/develop.atom"
       titles = feed_titles(u)
       titles.map { |t| t.split(/[\s,:]/)[0] }.uniq
     rescue
