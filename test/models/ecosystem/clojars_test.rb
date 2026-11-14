@@ -7,7 +7,7 @@ class ClojarsTest < ActiveSupport::TestCase
     @ecosystem = Ecosystem::Clojars.new(@registry)
     @package = Package.new(ecosystem: 'clojars', name: 'missionary')
     @version = @package.versions.build(number: 'b.26')
-    @maintainer = @registry.maintainers.build(login: 'foo')
+    @maintainer = @registry.maintainers.build(login: 'foo', uuid: 'foo')
   end
 
   test 'registry_url' do
@@ -72,11 +72,123 @@ class ClojarsTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
-    stub_request(:get, "https://clojars.org/")
-      .to_return({ status: 200, body: file_fixture('clojars/index.html') })
-    recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 6
-    assert_equal recently_updated_package_names.first, 'de.active-group/reacl-c'
+    travel_to Time.utc(2026, 11, 14, 12) do
+      stub_request(:get, 'https://clojars.org/api/release-feed')
+        .with(query: {from: '2026-11-13T12:00:00.000Z'}, headers: {'Accept' => 'application/json'})
+        .to_return(status: 200, body: file_fixture('clojars/release-feed.json'))
+
+      assert_equal ['org.example/tool', 'missionary'], @ecosystem.recently_updated_package_names
+      assert_not_requested(:get, 'https://clojars.org/')
+    end
+  end
+
+  test 'recent sync continues from its saved cursor through short and empty pages' do
+    travel_to Time.utc(2026, 11, 14, 12) do
+      @registry.metadata = {unrelated: 'keep'}
+      @registry.save!
+      first = stub_request(:get, 'https://clojars.org/api/release-feed')
+        .with(query: {from: '2026-11-13T12:00:00.000Z'})
+        .to_return(status: 200, body: file_fixture('clojars/release-feed.json'))
+      second = stub_request(:get, 'https://clojars.org/api/release-feed')
+        .with(query: {from: '2026-11-14T11:59:00.000Z'})
+        .to_return(status: 200, body: {
+          next_from: '2026-11-14T12:00:01.000Z',
+          releases: [{group_id: 'another', artifact_id: 'another', version: '1.0', released_at: '2026-11-14T12:00:01.000Z'}]
+        }.to_json)
+      third = stub_request(:get, 'https://clojars.org/api/release-feed')
+        .with(query: {from: '2026-11-14T12:00:01.000Z'})
+        .to_return(status: 200, body: {next_from: '2026-11-14T12:00:01.000Z', releases: []}.to_json)
+      SyncPackageWorker.clear
+
+      @registry.sync_recently_updated_packages_async
+      assert_equal '2026-11-14T11:59:00.000Z', @registry.reload.metadata.dig('clojars_release_feed', 'from')
+      @registry.sync_recently_updated_packages_async
+      @registry.sync_recently_updated_packages_async
+
+      assert_equal ['missionary', 'org.example/tool', 'another'].map { |name| [@registry.id, name, true] }, SyncPackageWorker.jobs.map { |job| job['args'] }
+      assert_equal '2026-11-14T12:00:01.000Z', @registry.reload.metadata.dig('clojars_release_feed', 'from')
+      assert_equal 'keep', @registry.metadata['unrelated']
+      assert_requested first, times: 1
+      assert_requested second, times: 1
+      assert_requested third, times: 1
+    end
+  ensure
+    SyncPackageWorker.clear
+  end
+
+  test 'recent sync enqueues every release beyond the registry name limit and spreads the rate budget' do
+    travel_to Time.utc(2026, 11, 14, 12) do
+      @registry.rate_limit = 1
+      @registry.save!
+      releases = 105.times.map { |i| {group_id: 'org.example', artifact_id: "tool-#{i}", version: '1.0'} }
+      stub_request(:get, 'https://clojars.org/api/release-feed')
+        .with(query: {from: '2026-11-13T12:00:00.000Z'})
+        .to_return(status: 200, body: {next_from: '2026-11-14T12:00:00.000Z', releases: releases}.to_json)
+      SyncPackageWorker.clear
+
+      @registry.sync_recently_updated_packages_async(period: 10.seconds)
+
+      jobs = SyncPackageWorker.jobs
+      assert_equal 105, jobs.length
+      assert_equal [@registry.id, 'org.example/tool-104', true], jobs.last['args']
+      assert_equal Time.current.to_f + 100, jobs.last['at']
+      assert_equal '2026-11-14T12:00:00.000Z', @registry.reload.metadata.dig('clojars_release_feed', 'from')
+    end
+  ensure
+    SyncPackageWorker.clear
+  end
+
+  test 'recent sync advances through snapshot-only pages without queuing packages' do
+    @registry.metadata = {'clojars_release_feed' => {'from' => '2026-11-14T11:00:00.000Z'}}
+    @registry.save!
+    stub_request(:get, 'https://clojars.org/api/release-feed')
+      .with(query: {from: '2026-11-14T11:00:00.000Z'})
+      .to_return(status: 200, body: {
+        next_from: '2026-11-14T12:00:00.000Z',
+        releases: [{group_id: 'org.example', artifact_id: 'tool', version: '1.0-SNAPSHOT'}]
+      }.to_json)
+    SyncPackageWorker.clear
+
+    @registry.sync_recently_updated_packages_async
+
+    assert_empty SyncPackageWorker.jobs
+    assert_equal '2026-11-14T12:00:00.000Z', @registry.reload.metadata.dig('clojars_release_feed', 'from')
+  ensure
+    SyncPackageWorker.clear
+  end
+
+  test 'recent sync retains its cursor if jobs are not fully queued' do
+    @registry.metadata = {'clojars_release_feed' => {'from' => '2026-11-13T12:00:00.000Z'}}
+    @registry.save!
+    stub_request(:get, 'https://clojars.org/api/release-feed')
+      .with(query: {from: '2026-11-13T12:00:00.000Z'})
+      .to_return(status: 200, body: file_fixture('clojars/release-feed.json'))
+    SyncPackageWorker.expects(:set).returns(stub(perform_bulk: [nil, nil]))
+
+    assert_raises(RuntimeError) { @registry.sync_recently_updated_packages_async }
+
+    assert_equal '2026-11-13T12:00:00.000Z', @registry.reload.metadata.dig('clojars_release_feed', 'from')
+  end
+
+  test 'recent sync retains its cursor on unavailable or invalid feeds' do
+    @registry.metadata = {'clojars_release_feed' => {'from' => '2026-11-13T12:00:00.000Z'}}
+    @registry.save!
+    responses = [
+      {status: 503, body: 'Service unavailable'},
+      {status: 200, body: '{'},
+      {status: 200, body: {next_from: '2026-11-14T12:00:00.000Z', releases: {}}.to_json},
+      {status: 200, body: {next_from: '2026-11-12T12:00:00.000Z', releases: []}.to_json},
+      {status: 200, body: {next_from: '2026-11-13T12:00:00.000Z', releases: [{group_id: 'x', artifact_id: 'x', version: '1'}]}.to_json},
+      {status: 200, body: {next_from: '2026-11-14T12:00:00.000Z', releases: [{}]}.to_json}
+    ]
+    responses.each do |response|
+      stub_request(:get, 'https://clojars.org/api/release-feed')
+        .with(query: {from: '2026-11-13T12:00:00.000Z'})
+        .to_return(response)
+
+      assert_raises(StandardError) { @registry.sync_recently_updated_packages_async }
+      assert_equal '2026-11-13T12:00:00.000Z', @registry.reload.metadata.dig('clojars_release_feed', 'from')
+    end
   end
 
   test 'package_metadata' do
