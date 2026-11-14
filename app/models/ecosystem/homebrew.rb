@@ -32,11 +32,16 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      u = "https://github.com/Homebrew/homebrew-core/commits/main.atom"
-      titles = feed_titles(u)
-      titles.map { |t| t[/\A([\w@+.-]+)(?::| \d)/, 1] }.compact.uniq
-    rescue
-      []
+      %w[new updated].flat_map do |type|
+        url = "https://formulae.brew.sh/feeds/formula-#{type}.xml"
+        feed = SimpleRSS.parse(get_raw(url).to_s.dup.force_encoding(Encoding::UTF_8))
+        feed.items.filter_map do |item|
+          item.link.to_s[/\Ahttps:\/\/formulae\.brew\.sh\/formula\/([\w@+.-]+)\z/, 1]
+        end
+      rescue => e
+        Rails.logger.warn("Failed to read feed #{url}: #{e.class} #{e.message}")
+        []
+      end.uniq
     end
 
     def fetch_package_metadata_uncached(name)
