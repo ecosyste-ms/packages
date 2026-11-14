@@ -579,6 +579,21 @@ class RegistryTest < ActiveSupport::TestCase
     Registry.sync_all_recently_updated_packages_async
   end
 
+  test 'recent polling continues after a registry feed fails without advancing its cursor' do
+    clojars = Registry.create!(name: 'Clojars failure', url: 'https://clojars-failure.example', ecosystem: 'clojars',
+      metadata: {'clojars_release_feed' => {'from' => '2026-11-13T12:00:00.000Z'}})
+    stub_request(:get, 'https://clojars.org/api/release-feed')
+      .with(query: {from: '2026-11-13T12:00:00.000Z'})
+      .to_return(status: 503)
+    @registry.expects(:sync_recently_updated_packages_async)
+    Registry.stubs(:frequently_synced).returns([clojars, @registry])
+    Rails.logger.expects(:error).with(regexp_matches(/Clojars failure.*HTTP 503/))
+
+    Registry.sync_all_recently_updated_packages_async
+
+    assert_equal '2026-11-13T12:00:00.000Z', clojars.reload.metadata.dig('clojars_release_feed', 'from')
+  end
+
   test 'Registry.sync_all_packages_async' do
     @registry.expects(:sync_all_packages_async).returns(true)
     Registry.stubs(:frequently_synced).returns([@registry])

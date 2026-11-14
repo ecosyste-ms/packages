@@ -1,6 +1,76 @@
 module Ecosystem
   class Clojars < Base
 
+    RELEASE_FEED_STATE_KEY = 'clojars_release_feed'.freeze
+
+    def sync_recent_packages_incrementally?
+      true
+    end
+
+    def sync_recently_updated_packages_async(period: 15.minutes)
+      failure = nil
+      @registry.with_lock do
+        state = @registry.metadata.to_h.fetch(RELEASE_FEED_STATE_KEY, {}).dup
+        pending = state['pending'] || begin
+          from = state['from'] || 1.day.ago.utc.iso8601(3)
+          data = release_feed(from)
+          {'cursor' => data.fetch('next_from'), 'names' => release_package_names(data.fetch('releases'))}
+        end
+        remaining, next_at, failure = enqueue_release_names(pending.fetch('names'), state['enqueue_at'], period)
+        if remaining.empty?
+          state['from'] = pending.fetch('cursor')
+          state.delete('pending')
+        else
+          state['pending'] = pending.merge('names' => remaining)
+        end
+        state['enqueue_at'] = next_at
+        @registry.update!(metadata: @registry.metadata.to_h.merge(RELEASE_FEED_STATE_KEY => state))
+      end
+      raise failure if failure
+    end
+
+    def enqueue_release_names(names, enqueue_at, period)
+      remaining = names.dup
+      budget = @registry.sync_budget(period)
+      batch_size = budget ? [[budget, 1].max, 500].min : 500
+      next_at = [enqueue_at.to_f, Time.current.to_f].max
+      names.each_slice(batch_size) do |batch|
+        jobs = SyncClojarsReleaseWorker.set(wait_until: next_at).perform_bulk(batch.map { |name| [@registry.id, name] })
+        raise 'Invalid Clojars enqueue response' unless jobs.is_a?(Array)
+        batch.zip(jobs).each { |name, jid| remaining.delete(name) if jid }
+        next_at += batch.size / @registry.rate_limit.to_f if budget
+      rescue => error
+        return [remaining, next_at, error]
+      end
+      failure = RuntimeError.new('Clojars releases were not fully enqueued') if remaining.any?
+      [remaining, next_at, failure]
+    end
+
+    def release_feed(from)
+      response = request("https://clojars.org/api/release-feed?from=#{ERB::Util.url_encode(from)}", headers: {'Accept' => 'application/json'})
+      raise "Clojars release feed unavailable (HTTP #{response.status})" unless response.success?
+      data = JSON.parse(response.body)
+      releases = data.fetch('releases')
+      raise 'Invalid Clojars releases' unless releases.is_a?(Array)
+      cursor = Time.iso8601(data.fetch('next_from'))
+      previous = Time.iso8601(from)
+      raise 'Clojars release feed cursor did not advance' if cursor < previous || (releases.any? && cursor == previous)
+
+      data
+    end
+
+    def release_package_names(releases)
+      releases.filter_map do |release|
+        group = release.fetch('group_id')
+        artifact = release.fetch('artifact_id')
+        version = release.fetch('version')
+        raise 'Invalid Clojars release' unless [group, artifact, version].all? { |value| value.is_a?(String) && value.present? }
+        next if version.end_with?('-SNAPSHOT')
+
+        group == artifact ? artifact : "#{group}/#{artifact}"
+      end.uniq
+    end
+
     def download_url(package, version)
       return nil unless version.present?
       group_id, artifact_id = *package.name.split('/', 2)
@@ -45,9 +115,8 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      get_html("https://clojars.org/").css(".recent-jar-title a").map(&:text)
-    rescue
-      []
+      from = @registry.metadata.to_h.dig(RELEASE_FEED_STATE_KEY, 'from') || 1.day.ago.utc.iso8601(3)
+      release_package_names(release_feed(from).fetch('releases')).reverse
     end
 
     def fetch_package_metadata_uncached(name)
