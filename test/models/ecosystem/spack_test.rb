@@ -106,6 +106,26 @@ class SpackTest < ActiveSupport::TestCase
     assert_empty @ecosystem.recently_updated_package_names
   end
 
+  test 'recent package sync ignores action labels while retaining additional packages' do
+    @registry.save!
+    stub_request(:get, 'https://github.com/spack/spack-packages/commits/develop.atom')
+      .to_return(status: 200, body: <<~XML)
+        <feed xmlns="http://www.w3.org/2005/Atom">
+          <entry><title>3proxy: fix: repair checksum</title></entry>
+          <entry><title>py-mne-bids: add version and py-hedtools: new package</title></entry>
+          <entry><title>py-hedtools: update dependencies</title></entry>
+        </feed>
+      XML
+    SyncPackageWorker.clear
+
+    @registry.sync_recently_updated_packages_async
+
+    assert_equal ['3proxy', 'py-mne-bids', 'py-hedtools'].map { |name| [@registry.id, name, true] },
+      SyncPackageWorker.jobs.map { |job| job['args'] }
+  ensure
+    SyncPackageWorker.clear
+  end
+
   test 'package_metadata' do
     stub_request(:get, "https://packages.spack.io/data/repology.json")
       .to_return({ status: 200, body: file_fixture('spack/repology.json') })

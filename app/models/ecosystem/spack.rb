@@ -34,7 +34,7 @@ module Ecosystem
       u = "https://github.com/spack/spack-packages/commits/develop.atom"
       titles = feed_titles(u)
       titles.flat_map do |title|
-        [title.split(/[\s,:]/).first] + title.scan(/(?:\A|\s)([\w+.-]+):(?=\s|$)/).flatten
+        [title.split(/[\s,:]/).first] + title.scan(/(?:\band\b|[,;])\s*([\w+.-]+):(?=\s|$)/).flatten
       end.compact.uniq
     rescue
       []
