@@ -69,28 +69,56 @@ class HomebrewTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
-    stub_request(:get, "https://github.com/Homebrew/homebrew-core/commits/main.atom")
-      .to_return({ status: 200, body: file_fixture('homebrew/master.atom') })
-    recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 10
-    assert_equal recently_updated_package_names.last, 'jql'
+    stub_request(:get, 'https://formulae.brew.sh/feeds/formula-new.xml')
+      .to_return(status: 200, body: file_fixture('homebrew/formula-new.xml'))
+    stub_request(:get, 'https://formulae.brew.sh/feeds/formula-updated.xml')
+      .to_return(status: 200, body: file_fixture('homebrew/formula-updated.xml'))
+
+    assert_equal ['newtool', 'renamed@1.2+', 'python@3.13', 'c++utilities'], @ecosystem.recently_updated_package_names
+    assert_not_requested(:get, 'https://github.com/Homebrew/homebrew-core/commits/main.atom')
   end
 
-  test 'recently_updated_package_names skips merge and maintenance commits' do
-    feed = <<~XML
-      <?xml version="1.0" encoding="UTF-8"?>
-      <feed xmlns="http://www.w3.org/2005/Atom">
-        <entry><title>Merge pull request #322283 from Homebrew/bump-keploy-3.6.180</title></entry>
-        <entry><title>keploy: update 3.6.180 bottle.</title></entry>
-        <entry><title>build(deps): bump the github-actions group across 1 directory with 16 updates</title></entry>
-        <entry><title>keploy 3.6.180</title></entry>
-        <entry><title>python@3.13 3.13.9</title></entry>
-      </feed>
-    XML
-    stub_request(:get, "https://github.com/Homebrew/homebrew-core/commits/main.atom")
-      .to_return(status: 200, body: feed)
+  test 'recently_updated_package_names retains the other feed when one fails' do
+    %w[new updated].each do |failed_feed|
+      stub_request(:get, "https://formulae.brew.sh/feeds/formula-#{failed_feed}.xml")
+        .to_timeout
+      other_feed = failed_feed == 'new' ? 'updated' : 'new'
+      stub_request(:get, "https://formulae.brew.sh/feeds/formula-#{other_feed}.xml")
+        .to_return(status: 200, body: file_fixture("homebrew/formula-#{other_feed}.xml"))
 
-    assert_equal ['keploy', 'python@3.13'], @ecosystem.recently_updated_package_names
+      expected = failed_feed == 'new' ? ['python@3.13', 'newtool', 'c++utilities'] : ['newtool', 'renamed@1.2+']
+      assert_equal expected, @ecosystem.recently_updated_package_names
+      WebMock.reset!
+    end
+  end
+
+  test 'recently_updated_package_names handles empty and invalid feeds' do
+    stub_request(:get, 'https://formulae.brew.sh/feeds/formula-new.xml')
+      .to_return(status: 200, body: '<rss version="2.0"><channel><title>New Homebrew Formulae</title></channel></rss>')
+    stub_request(:get, 'https://formulae.brew.sh/feeds/formula-updated.xml')
+      .to_return(status: 503, body: 'Service unavailable')
+
+    assert_empty @ecosystem.recently_updated_package_names
+  end
+
+  test 'recent package sync queues canonical formula names from both feeds once' do
+    @registry.save!
+    stub_request(:get, 'https://formulae.brew.sh/feeds/formula-new.xml')
+      .to_return(status: 200, body: file_fixture('homebrew/formula-new.xml'))
+    stub_request(:get, 'https://formulae.brew.sh/feeds/formula-updated.xml')
+      .to_return(status: 200, body: file_fixture('homebrew/formula-updated.xml'))
+    SyncPackageWorker.clear
+
+    @registry.sync_recently_updated_packages_async
+
+    assert_equal [
+      [@registry.id, 'newtool', true],
+      [@registry.id, 'renamed@1.2+', true],
+      [@registry.id, 'python@3.13', true],
+      [@registry.id, 'c++utilities', true]
+    ], SyncPackageWorker.jobs.map { |job| job['args'] }
+  ensure
+    SyncPackageWorker.clear
   end
 
   test 'package_metadata' do
