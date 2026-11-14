@@ -73,10 +73,11 @@ class SpackTest < ActiveSupport::TestCase
     stub_request(:get, "https://github.com/spack/spack-packages/commits/develop.atom")
       .to_return({ status: 200, body: file_fixture('spack/develop.atom') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal 20, recently_updated_package_names.length
+    assert_equal 21, recently_updated_package_names.length
     assert_equal 'lz4', recently_updated_package_names.first
     assert_equal 'py-kornia-rs', recently_updated_package_names.last
     assert_includes recently_updated_package_names, 'py-meegkit'
+    assert_includes recently_updated_package_names, 'py-hedtools'
     assert_not_requested(:get, "https://github.com/spack/spack/commits/develop.atom")
   end
 
@@ -89,10 +90,11 @@ class SpackTest < ActiveSupport::TestCase
     @registry.sync_recently_updated_packages_async
 
     jobs = SyncPackageWorker.jobs.map { |job| job['args'] }
-    assert_equal 20, jobs.length
+    assert_equal 21, jobs.length
     assert_includes jobs, [@registry.id, 'lz4', true]
     assert_includes jobs, [@registry.id, 'py-meegkit', true]
     assert_includes jobs, [@registry.id, 'node-js', true]
+    assert_includes jobs, [@registry.id, 'py-hedtools', true]
     assert_equal jobs.uniq, jobs
   ensure
     SyncPackageWorker.clear
