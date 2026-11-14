@@ -56,24 +56,32 @@ class VcpkgTest < ActiveSupport::TestCase
   end
 
   test 'all_package_names' do
-    stub_request(:get, "https://vcpkg.io/output.json")
-      .to_return({ status: 200, body: file_fixture('vcpkg/output.json') })
+    stub_request(:get, 'https://raw.githubusercontent.com/microsoft/vcpkg/master/versions/baseline.json')
+      .to_return(status: 200, body: file_fixture('vcpkg/baseline.json'))
     all_package_names = @ecosystem.all_package_names
-    assert_equal all_package_names.length, 2022
-    assert_equal all_package_names.last, 'zziplib'
+    assert_equal ['7zip', 'gz-common', 'gz-math', 'zlib', 'zziplib'], all_package_names
   end
 
   test 'recently_updated_package_names' do
     stub_request(:get, "https://github.com/microsoft/vcpkg/commits/master.atom")
-      .to_return({ status: 200, body: file_fixture('vcpkg/master.atom') })
+      .to_return(status: 200, body: <<~XML)
+        <feed xmlns="http://www.w3.org/2005/Atom">
+          <entry><title>[zlib, zziplib, gz-*] Update ports</title></entry>
+          <entry><title>[7zip] Update port</title></entry>
+          <entry><title>[ZLIB] Update port again</title></entry>
+          <entry><title>[ci] Update workflow</title></entry>
+          <entry><title>Maintenance [zziplib]</title></entry>
+        </feed>
+      XML
+    stub_request(:get, 'https://raw.githubusercontent.com/microsoft/vcpkg/master/versions/baseline.json')
+      .to_return(status: 200, body: file_fixture('vcpkg/baseline.json'))
     recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 16
-    assert_equal recently_updated_package_names.last, 'folly'
+    assert_equal ['zlib', 'zziplib', 'gz-common', 'gz-math', '7zip'], recently_updated_package_names
   end
 
   test 'package_metadata' do
-    stub_request(:get, "https://vcpkg.io/output.json")
-      .to_return({ status: 200, body: file_fixture('vcpkg/output.json') })
+    stub_request(:get, 'https://raw.githubusercontent.com/microsoft/vcpkg/master/ports/zziplib/vcpkg.json')
+      .to_return(status: 200, body: file_fixture('vcpkg/zziplib.json'))
     package_metadata = @ecosystem.package_metadata('zziplib')
 
     assert_equal package_metadata[:name], "zziplib"
@@ -85,23 +93,88 @@ class VcpkgTest < ActiveSupport::TestCase
   end
 
   test 'versions_metadata' do
-    stub_request(:get, "https://vcpkg.io/output.json")
-      .to_return({ status: 200, body: file_fixture('vcpkg/output.json') })
+    stub_request(:get, 'https://raw.githubusercontent.com/microsoft/vcpkg/master/ports/zziplib/vcpkg.json')
+      .to_return(status: 200, body: file_fixture('vcpkg/zziplib.json'))
     package_metadata = @ecosystem.package_metadata('zziplib')
     versions_metadata = @ecosystem.versions_metadata(package_metadata)
 
-    assert_equal versions_metadata, [{:number=>"0.13.72"}]
+    assert_equal versions_metadata, [{:number=>"0.13.80"}]
   end
 
   test 'dependencies_metadata' do
-    stub_request(:get, "https://vcpkg.io/output.json")
-      .to_return({ status: 200, body: file_fixture('vcpkg/output.json') })
+    stub_request(:get, 'https://raw.githubusercontent.com/microsoft/vcpkg/master/ports/7zip/vcpkg.json')
+      .to_return(status: 200, body: file_fixture('vcpkg/7zip.json'))
     package_metadata = @ecosystem.package_metadata('7zip')
-    dependencies_metadata = @ecosystem.dependencies_metadata('7zip', '22.0', package_metadata)
+    dependencies_metadata = @ecosystem.dependencies_metadata('7zip', '26.6', package_metadata)
 
     assert_equal dependencies_metadata, [
       {:package_name=>"vcpkg-cmake", :requirements=>"*", :kind=>"runtime", :ecosystem=>"vcpkg"},
       {:package_name=>"vcpkg-cmake-config", :requirements=>"*", :kind=>"runtime", :ecosystem=>"vcpkg"}
     ]
+  end
+
+  test 'scheduled recent updates enqueue individual ports and workers persist current manifests' do
+    @registry.save!
+    stub_request(:get, 'https://github.com/microsoft/vcpkg/commits/master.atom')
+      .to_return(status: 200, body: '<feed xmlns="http://www.w3.org/2005/Atom"><entry><title>[7zip,zziplib,gz-*] Update ports</title></entry><entry><title>[7zip] Update again</title></entry></feed>')
+    stub_request(:get, 'https://raw.githubusercontent.com/microsoft/vcpkg/master/versions/baseline.json')
+      .to_return(status: 200, body: file_fixture('vcpkg/baseline.json'))
+    stub_request(:get, 'https://raw.githubusercontent.com/microsoft/vcpkg/master/ports/7zip/vcpkg.json')
+      .to_return(status: 200, body: file_fixture('vcpkg/7zip.json'))
+    SyncPackageWorker.clear
+
+    @registry.sync_recently_updated_packages_async
+
+    jobs = SyncPackageWorker.jobs.map { |job| job['args'] }
+    assert_equal ['7zip', 'zziplib', 'gz-common', 'gz-math'].map { |name| [@registry.id, name, true] }, jobs
+    SyncPackageWorker.new.perform(*jobs.first)
+
+    package = @registry.packages.find_by!(name: '7zip')
+    assert_equal ['26.6'], package.versions.pluck(:number)
+    assert_equal ['vcpkg-cmake', 'vcpkg-cmake-config'], package.versions.first.dependencies.pluck(:package_name).sort
+    assert_not_nil package.last_synced_at
+    assert_not_requested(:get, 'https://vcpkg.io/output.json')
+  ensure
+    SyncPackageWorker.clear
+  end
+
+  test 'manifest version fields and array descriptions' do
+    %w[version version-semver version-date version-string].each do |field|
+      manifest = JSON.parse(file_fixture('vcpkg/zziplib.json').read)
+      manifest[field] = manifest.delete('version')
+      manifest['description'] = ['ZIP', 'utilities']
+      stub_request(:get, 'https://raw.githubusercontent.com/microsoft/vcpkg/master/ports/zziplib/vcpkg.json')
+        .to_return(status: 200, body: manifest.to_json)
+      ecosystem = Ecosystem::Vcpkg.new(@registry)
+
+      metadata = ecosystem.package_metadata('zziplib')
+
+      assert_equal 'ZIP utilities', metadata[:description]
+      assert_equal [{number: '0.13.80'}], ecosystem.versions_metadata(metadata)
+    end
+  end
+
+  test 'check_status reuses a fetched manifest' do
+    stub_request(:get, 'https://raw.githubusercontent.com/microsoft/vcpkg/master/ports/zziplib/vcpkg.json')
+      .to_return(status: 200, body: file_fixture('vcpkg/zziplib.json'))
+
+    @ecosystem.package_metadata('zziplib')
+
+    assert_nil @ecosystem.check_status(@package)
+    assert_requested(:get, 'https://raw.githubusercontent.com/microsoft/vcpkg/master/ports/zziplib/vcpkg.json', times: 1)
+  end
+
+  test 'missing manifests report removed packages' do
+    stub_request(:get, 'https://raw.githubusercontent.com/microsoft/vcpkg/master/ports/zziplib/vcpkg.json')
+      .to_return(status: 404)
+
+    assert_equal 'removed', @ecosystem.check_status(@package)
+  end
+
+  test 'manifest failures do not report removed packages' do
+    stub_request(:get, 'https://raw.githubusercontent.com/microsoft/vcpkg/master/ports/zziplib/vcpkg.json')
+      .to_return(status: 503, body: 'Service unavailable')
+
+    assert_raises(RuntimeError) { @ecosystem.check_status(@package) }
   end
 end

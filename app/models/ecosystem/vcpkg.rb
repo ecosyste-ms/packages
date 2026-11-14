@@ -2,49 +2,49 @@
 
 module Ecosystem
   class Vcpkg < Base
-    def sync_in_batches?
-      true
-    end
-
     def install_command(package, _version = nil)
       ".\\vcpkg install #{package.name}"
     end
 
     def check_status(package)
-      name = package.is_a?(Package) ? package.name : package['Name']
-      return 'removed' unless packages.find { |package| package["Name"] == name }
-    end
-
-    def packages
-      @packages ||= get_json("https://vcpkg.io/output.json")['Source']
+      'removed' if fetch_package_metadata(package.name).nil?
     end
 
     def all_package_names
-      packages.map { |package| package["Name"] }.uniq
+      @all_package_names ||= get_json('https://raw.githubusercontent.com/microsoft/vcpkg/master/versions/baseline.json').fetch('default').keys
     end
 
     def recently_updated_package_names
       u = "https://github.com/microsoft/vcpkg/commits/master.atom"
       titles = feed_titles(u)
-      titles.map { |t| t.match(/\[(.*?)\]/) && t.match(/\[(.*?)\]/)[1] }.uniq.compact
+      patterns = titles.filter_map { |title| title[/\A\[([^\]]+)\]/, 1] }
+        .flat_map { |names| names.downcase.split(/[,\s]+/) }
+      return [] if patterns.empty?
+
+      names = all_package_names
+      patterns.flat_map { |pattern| names.select { |name| File.fnmatch?(pattern, name) } }.uniq
     rescue
       []
     end
 
     def fetch_package_metadata_uncached(name)
-      packages.find { |package| package["Name"] == name }
+      response = request("https://raw.githubusercontent.com/microsoft/vcpkg/master/ports/#{ERB::Util.url_encode(name)}/vcpkg.json")
+      return nil if [404, 410].include?(response.status)
+      raise "vcpkg manifest unavailable for #{name} (HTTP #{response.status})" unless response.success?
+
+      JSON.parse(response.body)
     end
 
     def map_package_metadata(package)
-      return false unless package.present?
+      return false unless package.present? && package['name'].present?
       {
-        name: package["Name"],
-        description: Array(package["Description"]).join(' '),
-        homepage: package["Homepage"],
-        repository_url: repo_fallback("", package["Homepage"]),
-        licenses: package['License'],
-        version: package["Version"],
-        dependencies: package["Dependencies"],
+        name: package['name'],
+        description: Array(package['description']).join(' '),
+        homepage: package['homepage'],
+        repository_url: repo_fallback('', package['homepage']),
+        licenses: package['license'],
+        version: package.values_at('version', 'version-semver', 'version-date', 'version-string').compact.first,
+        dependencies: package['dependencies'],
       }
     end
 
