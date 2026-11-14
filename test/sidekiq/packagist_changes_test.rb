@@ -62,7 +62,8 @@ class PackagistChangesTest < ActiveSupport::TestCase
     failed = mock
     failed.expects(:perform_bulk).returns(['accepted', nil])
     SyncPackagistChangeWorker.expects(:set).returns(failed)
-    assert_raises(RuntimeError) { poll }
+    Rails.logger.expects(:error).with(regexp_matches(/Recent package sync failed for packagist\.org:/))
+    poll
     assert_equal @cursor, state['cursor']
     SyncPackagistChangeWorker.unstub(:set)
     poll
@@ -72,14 +73,15 @@ class PackagistChangesTest < ActiveSupport::TestCase
 
   test 'network failures and invalid feeds do not advance discovery' do
     request = stub_request(:get, "https://packagist.org/metadata/changes.json?since=#{@cursor}")
+    Rails.logger.expects(:error).with(regexp_matches(/Recent package sync failed for packagist\.org:/)).times(4)
     request.to_return(status: 503)
-    assert_raises(RuntimeError) { poll }
+    poll
     request.to_return(body: 'invalid')
-    assert_raises(JSON::ParserError) { poll }
+    poll
     request.to_return(body: {timestamp: @next_cursor, actions: [action.merge('type' => 'unknown')]}.to_json)
-    assert_raises(RuntimeError) { poll }
+    poll
     request.to_return(body: {timestamp: @cursor - 1, actions: []}.to_json)
-    assert_raises(RuntimeError) { poll }
+    poll
     assert_equal @cursor, state['cursor']
     assert_empty SyncPackagistChangeWorker.jobs
   end
@@ -305,7 +307,8 @@ class PackagistChangesTest < ActiveSupport::TestCase
       {'cursor' => @cursor, 'recovery' => {'phase' => 'catalogue', 'after' => 'psr/log'}}))
     changes([])
     stub_request(:get, 'https://packagist.org/packages/list.json').to_return(status: 503)
-    assert_raises(RuntimeError) { poll }
+    Rails.logger.expects(:error).with(regexp_matches(/Recent package sync failed for packagist\.org:/))
+    poll
     assert_equal @next_cursor, state['cursor']
     assert_equal 'psr/log', state.dig('recovery', 'after')
   end
@@ -315,7 +318,8 @@ class PackagistChangesTest < ActiveSupport::TestCase
     failed = mock
     failed.expects(:perform_bulk).returns([nil])
     SyncPackagistChangeWorker.expects(:set).returns(failed)
-    assert_raises(RuntimeError) { poll }
+    Rails.logger.expects(:error).with(regexp_matches(/Recent package sync failed for packagist\.org:/))
+    poll
     assert_equal @next_cursor, state['cursor']
     assert_equal({'phase' => 'known', 'after' => ''}, state['recovery'])
   end

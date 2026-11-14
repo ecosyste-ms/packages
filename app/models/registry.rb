@@ -97,7 +97,11 @@ class Registry < ApplicationRecord
   end
 
   def self.sync_all_recently_updated_packages_async
-    frequently_synced.each(&:sync_recently_updated_packages_async)
+    frequently_synced.each do |registry|
+      registry.sync_recently_updated_packages_async
+    rescue => error
+      Rails.logger.error("Recent package sync failed for #{registry.name}: #{error.class}: #{error.message}")
+    end
   end
 
   def self.sync_all_packages

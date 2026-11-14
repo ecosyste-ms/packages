@@ -8,23 +8,42 @@ module Ecosystem
     end
 
     def sync_recently_updated_packages_async(period: 15.minutes)
+      failure = nil
       @registry.with_lock do
         state = @registry.metadata.to_h.fetch(RELEASE_FEED_STATE_KEY, {}).dup
-        from = state['from'] || 1.day.ago.utc.iso8601(3)
-        data = release_feed(from)
-        names = release_package_names(data.fetch('releases'))
-        budget = @registry.sync_budget(period)
-        batch_size = budget ? [[budget, 1].max, 500].min : 500
-        next_at = [state['enqueue_at'].to_f, Time.current.to_f].max
-        names.each_slice(batch_size) do |batch|
-          jobs = SyncPackageWorker.set(wait_until: next_at).perform_bulk(batch.map { |name| [@registry.id, name, true] })
-          raise 'Clojars releases were not fully enqueued' unless jobs.size == batch.size && jobs.all?
-          next_at += batch.size / @registry.rate_limit.to_f if budget
+        pending = state['pending'] || begin
+          from = state['from'] || 1.day.ago.utc.iso8601(3)
+          data = release_feed(from)
+          {'cursor' => data.fetch('next_from'), 'names' => release_package_names(data.fetch('releases'))}
         end
-        state['from'] = data.fetch('next_from')
+        remaining, next_at, failure = enqueue_release_names(pending.fetch('names'), state['enqueue_at'], period)
+        if remaining.empty?
+          state['from'] = pending.fetch('cursor')
+          state.delete('pending')
+        else
+          state['pending'] = pending.merge('names' => remaining)
+        end
         state['enqueue_at'] = next_at
         @registry.update!(metadata: @registry.metadata.to_h.merge(RELEASE_FEED_STATE_KEY => state))
       end
+      raise failure if failure
+    end
+
+    def enqueue_release_names(names, enqueue_at, period)
+      remaining = names.dup
+      budget = @registry.sync_budget(period)
+      batch_size = budget ? [[budget, 1].max, 500].min : 500
+      next_at = [enqueue_at.to_f, Time.current.to_f].max
+      names.each_slice(batch_size) do |batch|
+        jobs = SyncClojarsReleaseWorker.set(wait_until: next_at).perform_bulk(batch.map { |name| [@registry.id, name] })
+        raise 'Invalid Clojars enqueue response' unless jobs.is_a?(Array)
+        batch.zip(jobs).each { |name, jid| remaining.delete(name) if jid }
+        next_at += batch.size / @registry.rate_limit.to_f if budget
+      rescue => error
+        return [remaining, next_at, error]
+      end
+      failure = RuntimeError.new('Clojars releases were not fully enqueued') if remaining.any?
+      [remaining, next_at, failure]
     end
 
     def release_feed(from)

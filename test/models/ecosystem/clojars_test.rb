@@ -98,14 +98,14 @@ class ClojarsTest < ActiveSupport::TestCase
       third = stub_request(:get, 'https://clojars.org/api/release-feed')
         .with(query: {from: '2026-11-14T12:00:01.000Z'})
         .to_return(status: 200, body: {next_from: '2026-11-14T12:00:01.000Z', releases: []}.to_json)
-      SyncPackageWorker.clear
+      SyncClojarsReleaseWorker.clear
 
       @registry.sync_recently_updated_packages_async
       assert_equal '2026-11-14T11:59:00.000Z', @registry.reload.metadata.dig('clojars_release_feed', 'from')
       @registry.sync_recently_updated_packages_async
       @registry.sync_recently_updated_packages_async
 
-      assert_equal ['missionary', 'org.example/tool', 'another'].map { |name| [@registry.id, name, true] }, SyncPackageWorker.jobs.map { |job| job['args'] }
+      assert_equal ['missionary', 'org.example/tool', 'another'].map { |name| [@registry.id, name] }, SyncClojarsReleaseWorker.jobs.map { |job| job['args'] }
       assert_equal '2026-11-14T12:00:01.000Z', @registry.reload.metadata.dig('clojars_release_feed', 'from')
       assert_equal 'keep', @registry.metadata['unrelated']
       assert_requested first, times: 1
@@ -113,7 +113,7 @@ class ClojarsTest < ActiveSupport::TestCase
       assert_requested third, times: 1
     end
   ensure
-    SyncPackageWorker.clear
+    SyncClojarsReleaseWorker.clear
   end
 
   test 'recent sync enqueues every release beyond the registry name limit and spreads the rate budget' do
@@ -124,18 +124,18 @@ class ClojarsTest < ActiveSupport::TestCase
       stub_request(:get, 'https://clojars.org/api/release-feed')
         .with(query: {from: '2026-11-13T12:00:00.000Z'})
         .to_return(status: 200, body: {next_from: '2026-11-14T12:00:00.000Z', releases: releases}.to_json)
-      SyncPackageWorker.clear
+      SyncClojarsReleaseWorker.clear
 
       @registry.sync_recently_updated_packages_async(period: 10.seconds)
 
-      jobs = SyncPackageWorker.jobs
+      jobs = SyncClojarsReleaseWorker.jobs
       assert_equal 105, jobs.length
-      assert_equal [@registry.id, 'org.example/tool-104', true], jobs.last['args']
+      assert_equal [@registry.id, 'org.example/tool-104'], jobs.last['args']
       assert_equal Time.current.to_f + 100, jobs.last['at']
       assert_equal '2026-11-14T12:00:00.000Z', @registry.reload.metadata.dig('clojars_release_feed', 'from')
     end
   ensure
-    SyncPackageWorker.clear
+    SyncClojarsReleaseWorker.clear
   end
 
   test 'recent sync advances through snapshot-only pages without queuing packages' do
@@ -147,14 +147,14 @@ class ClojarsTest < ActiveSupport::TestCase
         next_from: '2026-11-14T12:00:00.000Z',
         releases: [{group_id: 'org.example', artifact_id: 'tool', version: '1.0-SNAPSHOT'}]
       }.to_json)
-    SyncPackageWorker.clear
+    SyncClojarsReleaseWorker.clear
 
     @registry.sync_recently_updated_packages_async
 
-    assert_empty SyncPackageWorker.jobs
+    assert_empty SyncClojarsReleaseWorker.jobs
     assert_equal '2026-11-14T12:00:00.000Z', @registry.reload.metadata.dig('clojars_release_feed', 'from')
   ensure
-    SyncPackageWorker.clear
+    SyncClojarsReleaseWorker.clear
   end
 
   test 'recent sync retains its cursor if jobs are not fully queued' do
@@ -163,11 +163,71 @@ class ClojarsTest < ActiveSupport::TestCase
     stub_request(:get, 'https://clojars.org/api/release-feed')
       .with(query: {from: '2026-11-13T12:00:00.000Z'})
       .to_return(status: 200, body: file_fixture('clojars/release-feed.json'))
-    SyncPackageWorker.expects(:set).returns(stub(perform_bulk: [nil, nil]))
+    SyncClojarsReleaseWorker.expects(:set).returns(stub(perform_bulk: [nil, nil]))
 
     assert_raises(RuntimeError) { @registry.sync_recently_updated_packages_async }
 
     assert_equal '2026-11-13T12:00:00.000Z', @registry.reload.metadata.dig('clojars_release_feed', 'from')
+    assert_equal ['missionary', 'org.example/tool'], @registry.metadata.dig('clojars_release_feed', 'pending', 'names')
+  end
+
+  test 'partial enqueue progress survives and retries only unaccepted release jobs' do
+    @registry.metadata = {'clojars_release_feed' => {'from' => '2026-11-13T12:00:00.000Z'}}
+    @registry.save!
+    feed = stub_request(:get, 'https://clojars.org/api/release-feed')
+      .with(query: {from: '2026-11-13T12:00:00.000Z'})
+      .to_return(status: 200, body: file_fixture('clojars/release-feed.json'))
+    blocked = true
+    middleware = Class.new do
+      define_method(:call) do |worker, job, _queue, _redis_pool = nil, &continuation|
+        if worker.to_s == 'SyncClojarsReleaseWorker' && job['args'][1] == 'org.example/tool' && blocked
+          blocked = false
+          nil
+        else
+          continuation.call
+        end
+      end
+    end
+    chain = Sidekiq.default_configuration.client_middleware
+    chain.add(middleware)
+    SyncClojarsReleaseWorker.clear
+
+    assert_raises(RuntimeError) { @registry.sync_recently_updated_packages_async }
+
+    state = @registry.reload.metadata.fetch('clojars_release_feed')
+    assert_equal '2026-11-13T12:00:00.000Z', state['from']
+    assert_equal ['org.example/tool'], state.dig('pending', 'names')
+    assert_equal ['missionary'], SyncClojarsReleaseWorker.jobs.map { |job| job['args'][1] }
+
+    Registry.find(@registry.id).sync_recently_updated_packages_async
+
+    assert_equal ['missionary', 'org.example/tool'], SyncClojarsReleaseWorker.jobs.map { |job| job['args'][1] }
+    assert_equal '2026-11-14T11:59:00.000Z', @registry.reload.metadata.dig('clojars_release_feed', 'from')
+    assert_nil @registry.metadata.dig('clojars_release_feed', 'pending')
+    assert_requested feed, times: 1
+  ensure
+    chain&.remove(middleware)
+    SyncClojarsReleaseWorker.clear
+  end
+
+  test 'pending ordinary package jobs do not suppress new release jobs' do
+    @registry.metadata = {'clojars_release_feed' => {'from' => '2026-11-13T12:00:00.000Z'}}
+    @registry.save!
+    stub_request(:get, 'https://clojars.org/api/release-feed')
+      .with(query: {from: '2026-11-13T12:00:00.000Z'})
+      .to_return(status: 200, body: file_fixture('clojars/release-feed.json'))
+    SyncPackageWorker.clear
+    SyncClojarsReleaseWorker.clear
+    SyncPackageWorker.perform_async(@registry.id, 'missionary', true)
+
+    @registry.sync_recently_updated_packages_async
+
+    assert_equal 1, SyncPackageWorker.jobs.length
+    assert_equal ['missionary', 'org.example/tool'], SyncClojarsReleaseWorker.jobs.map { |job| job['args'][1] }
+    assert_equal '2026-11-14T11:59:00.000Z', @registry.reload.metadata.dig('clojars_release_feed', 'from')
+  ensure
+    SyncPackageWorker.clear
+    SyncClojarsReleaseWorker.clear
   end
 
   test 'recent sync retains its cursor on unavailable or invalid feeds' do
