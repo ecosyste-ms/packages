@@ -62,6 +62,54 @@ class BaseTest < ActiveSupport::TestCase
     @ecosystem.send(:get_raw, "https://registry.example.org/pkg.json")
   end
 
+  test 'automatic API keys are scoped to HTTPS ecosyste.ms subdomains without changing caller headers' do
+    previous_key = ENV['ECOSYSTEMS_API_KEY']
+    ENV['ECOSYSTEMS_API_KEY'] = 'test-service-key'
+    options = {headers: {'X-Trace-Id' => 'trace'}}
+    urls = {
+      'https://repos.ecosyste.ms/api/v1/registries' => true,
+      'https://REPOS.ECOSYSTE.MS/api/v1/registries' => true,
+      'https://example.com/probe.ecosyste.ms' => false,
+      'https://example.com/?next=https://repos.ecosyste.ms' => false,
+      'https://repos.ecosyste.ms.example.com/data' => false,
+      'https://repos.ecosyste.ms@example.com/data' => false,
+      'http://repos.ecosyste.ms/api/v1/registries' => false
+    }
+    urls.each do |url, send_key|
+      stub_request(:get, url).with do |request|
+        request.headers['X-Api-Key'] == (send_key ? 'test-service-key' : nil) &&
+          request.headers['X-Trace-Id'] == 'trace'
+      end.to_return(status: 200, body: '{}')
+
+      assert_equal '{}', @ecosystem.send(:get_raw, url, options)
+    end
+    assert_equal({headers: {'X-Trace-Id' => 'trace'}}, options)
+  ensure
+    ENV['ECOSYSTEMS_API_KEY'] = previous_key
+  end
+
+  test 'redirects retain automatic API keys only on permitted HTTPS hosts' do
+    previous_key = ENV['ECOSYSTEMS_API_KEY']
+    ENV['ECOSYSTEMS_API_KEY'] = 'test-service-key'
+    source = 'https://repos.ecosyste.ms/api/v1/registries'
+    destinations = {
+      'https://example.com/data' => false,
+      'http://repos.ecosyste.ms/data' => false,
+      'https://packages.ecosyste.ms/api/v1/registries' => true
+    }
+    destinations.each do |destination, send_key|
+      stub_request(:get, source).with(headers: {'X-API-Key' => 'test-service-key'})
+        .to_return(status: 302, headers: {'Location' => destination})
+      stub_request(:get, destination).with do |request|
+        request.headers['X-Api-Key'] == (send_key ? 'test-service-key' : nil)
+      end.to_return(status: 200, body: '{}')
+
+      assert_equal '{}', @ecosystem.send(:get_raw, source)
+    end
+  ensure
+    ENV['ECOSYSTEMS_API_KEY'] = previous_key
+  end
+
   test 'check_status emits registry_http_requests metric' do
     stub_request(:head, "https://example.com/package")
       .to_return(status: 404)

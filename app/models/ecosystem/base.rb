@@ -419,6 +419,10 @@ module Ecosystem
       []
     end
 
+    def ecosystems_api_url?(url)
+      url.scheme == 'https' && url.host.to_s.downcase.end_with?('.ecosyste.ms')
+    end
+
     private
 
     def get_raw_no_exception(url, options = {})
@@ -432,14 +436,17 @@ module Ecosystem
     end
 
     def request(url, options = {})
-      options[:headers] ||= {}
-      options[:headers]["User-Agent"] = "packages.ecosyste.ms"
-      # Add API key for ecosyste.ms domains
-      if ENV['ECOSYSTEMS_API_KEY'] && url.include?('.ecosyste.ms')
-        options[:headers]["X-API-Key"] = ENV['ECOSYSTEMS_API_KEY']
-      end
+      options = options.merge(headers: (options[:headers] || {}).merge('User-Agent' => 'packages.ecosyste.ms'))
+      api_key = ENV['ECOSYSTEMS_API_KEY']
       connection = Faraday.new url.strip, options do |builder|
-        builder.use Faraday::FollowRedirects::Middleware
+        redirect_options = {}
+        if api_key && ecosystems_api_url?(builder.url_prefix)
+          builder.headers['X-API-Key'] = api_key
+          redirect_options[:callback] = lambda do |_previous, following|
+            following.request_headers.delete('X-API-Key') unless ecosystems_api_url?(following.url)
+          end
+        end
+        builder.use Faraday::FollowRedirects::Middleware, redirect_options
         builder.request :retry, { max: 2, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
 
         builder.request :instrumentation

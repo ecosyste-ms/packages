@@ -34,7 +34,19 @@ class UrlParser
   end
 
   def self.url_candidates(url)
-    url.to_s.split(%r{[,;\s]+(?=(?:[a-z][a-z0-9+.-]*://|git@))}i)
+    source = url.to_s
+    return [] if source.empty?
+
+    candidates = []
+    start = 0
+    source.scan(/[,;\s]+/) do
+      separator = Regexp.last_match
+      next unless source.match?(%r{\G(?:[a-z][a-z0-9+.-]*://|git@)}i, separator.end(0))
+
+      candidates << source[start...separator.begin(0)]
+      start = separator.end(0)
+    end
+    candidates << source[start..]
   end
 
   def parse_to_full_url
