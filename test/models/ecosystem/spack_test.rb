@@ -70,11 +70,60 @@ class SpackTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
-    stub_request(:get, "https://github.com/spack/spack/commits/develop.atom")
+    stub_request(:get, "https://github.com/spack/spack-packages/commits/develop.atom")
       .to_return({ status: 200, body: file_fixture('spack/develop.atom') })
     recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 18
-    assert_equal recently_updated_package_names.last, 'cray-mpich'
+    assert_equal 21, recently_updated_package_names.length
+    assert_equal 'lz4', recently_updated_package_names.first
+    assert_equal 'py-kornia-rs', recently_updated_package_names.last
+    assert_includes recently_updated_package_names, 'py-meegkit'
+    assert_includes recently_updated_package_names, 'py-hedtools'
+    assert_not_requested(:get, "https://github.com/spack/spack/commits/develop.atom")
+  end
+
+  test 'recent package sync queues packages from the package repository feed' do
+    @registry.save!
+    stub_request(:get, "https://github.com/spack/spack-packages/commits/develop.atom")
+      .to_return({ status: 200, body: file_fixture('spack/develop.atom') })
+    SyncPackageWorker.clear
+
+    @registry.sync_recently_updated_packages_async
+
+    jobs = SyncPackageWorker.jobs.map { |job| job['args'] }
+    assert_equal 21, jobs.length
+    assert_includes jobs, [@registry.id, 'lz4', true]
+    assert_includes jobs, [@registry.id, 'py-meegkit', true]
+    assert_includes jobs, [@registry.id, 'node-js', true]
+    assert_includes jobs, [@registry.id, 'py-hedtools', true]
+    assert_equal jobs.uniq, jobs
+  ensure
+    SyncPackageWorker.clear
+  end
+
+  test 'recently_updated_package_names handles an unavailable package feed' do
+    stub_request(:get, "https://github.com/spack/spack-packages/commits/develop.atom").to_timeout
+
+    assert_empty @ecosystem.recently_updated_package_names
+  end
+
+  test 'recent package sync ignores action labels while retaining additional packages' do
+    @registry.save!
+    stub_request(:get, 'https://github.com/spack/spack-packages/commits/develop.atom')
+      .to_return(status: 200, body: <<~XML)
+        <feed xmlns="http://www.w3.org/2005/Atom">
+          <entry><title>3proxy: fix: repair checksum</title></entry>
+          <entry><title>py-mne-bids: add version and py-hedtools: new package</title></entry>
+          <entry><title>py-hedtools: update dependencies</title></entry>
+        </feed>
+      XML
+    SyncPackageWorker.clear
+
+    @registry.sync_recently_updated_packages_async
+
+    assert_equal ['3proxy', 'py-mne-bids', 'py-hedtools'].map { |name| [@registry.id, name, true] },
+      SyncPackageWorker.jobs.map { |job| job['args'] }
+  ensure
+    SyncPackageWorker.clear
   end
 
   test 'package_metadata' do
