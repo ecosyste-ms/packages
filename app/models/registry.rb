@@ -148,7 +148,9 @@ class Registry < ApplicationRecord
   end
 
   def recently_updated_package_names
-    ecosystem_instance.recently_updated_package_names.first(100).to_a
+    names = ecosystem_instance.recently_updated_package_names
+    limit = ecosystem_instance.recently_updated_package_names_limit
+    (limit ? names.first(limit) : names).to_a
   end
 
   def recently_updated_package_names_excluding_recently_synced

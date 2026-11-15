@@ -22,6 +22,10 @@ module Ecosystem
       false
     end
 
+    def recently_updated_package_names_limit
+      100
+    end
+
     def sync_maintainers_inline?
       false
     end

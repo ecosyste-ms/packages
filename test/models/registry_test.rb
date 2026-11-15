@@ -50,6 +50,18 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal recently_updated_package_names, ['oj', 'rake', 'json']
   end
 
+  test 'recent package sync keeps the default 100 name limit for other ecosystems' do
+    names = 101.times.map { |i| "package-#{i}" }
+    @registry.ecosystem_instance.expects(:recently_updated_package_names).returns(names)
+    SyncPackageWorker.clear
+
+    @registry.sync_recently_updated_packages_async
+
+    assert_equal names.first(100).map { |name| [@registry.id, name, true] }, SyncPackageWorker.jobs.map { |job| job['args'] }
+  ensure
+    SyncPackageWorker.clear
+  end
+
   test 'missing_package_names' do
     @registry.packages.create(name: 'foo', ecosystem: @registry.ecosystem)
     @registry.expects(:all_package_names).returns(['foo', 'bar', 'baz'])
