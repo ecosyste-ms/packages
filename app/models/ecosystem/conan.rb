@@ -88,8 +88,12 @@ module Ecosystem
       parsed = conanfile ? parse_conanfile(conanfile) : {}
 
       description = api_info&.dig("description") || parsed[:description]
-      licenses = api_info&.dig("licenses")&.keys&.join(",") || parsed[:license]
-      keywords = api_info&.dig("labels")&.keys || parsed[:topics] || []
+      licenses = api_info&.dig("licenses")
+      licenses = licenses.keys if licenses.is_a?(Hash)
+      licenses = licenses&.join(",") || parsed[:license]
+      keywords = api_info&.dig("labels")
+      keywords = keywords.keys if keywords.is_a?(Hash)
+      keywords ||= parsed[:topics] || []
 
       {
         name: pkg_metadata["name"],

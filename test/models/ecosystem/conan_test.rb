@@ -79,11 +79,31 @@ class ConanTest < ActiveSupport::TestCase
     package_metadata = @ecosystem.package_metadata('zlib')
 
     assert_equal package_metadata[:name], 'zlib'
-    assert_equal package_metadata[:description], 'A Massively Spiffy Yet Delicately Unobtrusive Compression Library'
+    assert_equal package_metadata[:description], 'A Massively Spiffy Yet Delicately Unobtrusive Compression Library (Also Free, Not to Mention Unencumbered by Patents)'
     assert_equal package_metadata[:homepage], 'https://zlib.net'
     assert_equal package_metadata[:licenses], 'Zlib'
     assert_equal package_metadata[:versions], ['1.3.1']
     assert_includes package_metadata[:keywords_array], 'compression'
+  end
+
+  test 'worker sync persists array licenses and labels' do
+    @registry.save!
+    stub_request(:get, "https://conan.io/api/search/all?topics=&licenses=")
+      .to_return(status: 200, body: file_fixture('conan/search_all.json'))
+    stub_request(:get, "https://conan.io/api/package/zlib/use_it")
+      .to_return(status: 200, body: '{}')
+    %w[config.yml all/conanfile.py all/conandata.yml].each do |path|
+      stub_request(:get, "#{Ecosystem::Conan::GITHUB_RAW_BASE}/zlib/#{path}")
+        .to_return(status: 200, body: file_fixture("conan/zlib_#{File.basename(path)}"))
+    end
+
+    SyncPackageWorker.new.perform(@registry.id, 'zlib', true)
+
+    package = @registry.packages.find_by!(name: 'zlib').reload
+    assert_equal 'Zlib', package.licenses
+    assert_includes package.keywords_array, 'compression'
+    assert_equal ['1.3.1'], package.versions.pluck(:number)
+    assert package.last_synced_at
   end
 
   test 'versions_metadata' do
