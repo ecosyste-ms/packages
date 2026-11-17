@@ -357,7 +357,7 @@ class Registry < ApplicationRecord
         new_versions.uniq! { |v| v.with_indifferent_access[:number].to_s }
 
         new_versions.each_slice(100) do |s|
-          Version.upsert_all(s, unique_by: [:package_id, :number])
+          Version.upsert_all(s, unique_by: [:package_id, :number], update_only: s.first.keys.map(&:to_s) - %w[package_id number created_at])
         end
 
         if !maintenance && LiveEvent.enabled?

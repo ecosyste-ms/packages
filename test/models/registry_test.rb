@@ -19,6 +19,30 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal ['0.3.0'], package.versions.pluck(:number)
   end
 
+  test 'resyncing a package with a yanked version keeps its created_at' do
+    registry = Registry.create!(name: 'crates.io', url: 'https://crates.io', ecosystem: 'cargo')
+    ecosystem = registry.ecosystem_instance
+    ecosystem.stubs(:package_metadata).returns({ name: 'foo', description: 'foo' })
+    ecosystem.stubs(:versions_metadata).returns([
+      { number: '1.0.0', published_at: 2.years.ago, status: nil },
+      { number: '0.9.0', published_at: 3.years.ago, status: 'yanked' }
+    ])
+    ecosystem.stubs(:dependencies_metadata).returns([])
+    Package.any_instance.stubs(:update_repo_metadata_async)
+    Package.any_instance.stubs(:sync_maintainers_async)
+    Package.any_instance.stubs(:check_status)
+
+    registry.sync_package('foo', force: true)
+    package = registry.packages.find_by!(name: 'foo')
+    original = package.versions.pluck(:number, :created_at).to_h
+
+    travel 1.day do
+      registry.sync_package('foo', force: true)
+    end
+
+    assert_equal original, package.versions.reload.pluck(:number, :created_at).to_h
+  end
+
   context 'associations' do
     should have_many(:packages)
     should have_many(:versions)
