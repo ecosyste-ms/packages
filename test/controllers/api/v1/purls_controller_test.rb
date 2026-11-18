@@ -203,6 +203,34 @@ class ApiV1PurlsControllerTest < ActionDispatch::IntegrationTest
     assert_equal [[affected], [], []], response.map { |result| result.dig("version", "advisories") }
   end
 
+  test "resolves oci PURLs by manifest digest and tag" do
+    registry = Registry.create!(name: "ollama.com", url: "https://ollama.com", ecosystem: "ollama", default: true)
+    package = registry.packages.create!(ecosystem: "ollama", name: "all-minilm")
+    small = "sha256:#{'1' * 64}"
+    package.versions.create!(number: "latest", metadata: { digest: small }, latest: true)
+    package.versions.create!(number: "22m", metadata: { digest: small })
+    package.versions.create!(number: "33m", metadata: { digest: "sha256:#{'4' * 64}" })
+    repository = "repository_url=registry.ollama.ai/library/all-minilm"
+
+    {
+      "pkg:oci/all-minilm@sha256%3A#{'4' * 64}?#{repository}" => ["matched", "33m"],
+      "pkg:oci/all-minilm@sha256%3A#{'1' * 64}?#{repository}&tag=22m" => ["matched", "22m"],
+      "pkg:oci/all-minilm?#{repository}&tag=33m" => ["matched", "33m"],
+      "pkg:oci/all-minilm?#{repository}" => ["matched", "latest"],
+      "pkg:oci/all-minilm@sha256%3A#{'1' * 64}?#{repository}" => ["ambiguous", nil],
+      "pkg:oci/all-minilm@sha256%3A#{'4' * 64}?#{repository}&tag=22m" => ["missing", nil],
+      "pkg:oci/all-minilm@sha256%3A#{'4' * 64}" => ["missing", nil],
+      "pkg:oci/all-minilm@sha256%3A#{'4' * 64}?repository_url=ghcr.io/someone/all-minilm" => ["missing", nil]
+    }.each do |purl, (status, number)|
+      get lookup_api_v1_purls_path, params: { purl: purl }
+
+      assert_response :success
+      response = Oj.load(@response.body)
+      assert_equal status, response["match_status"], purl
+      assert_equal [number], [response.dig("version", "version")], purl
+    end
+  end
+
   test "returns missing when the PURL does not match a version" do
     get lookup_api_v1_purls_path, params: { purl: "pkg:cargo/rand@9.9.9" }
 

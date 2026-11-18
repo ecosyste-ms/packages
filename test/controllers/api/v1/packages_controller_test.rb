@@ -165,6 +165,25 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.first['name'], @package.name
   end
 
+  test 'lookup by oci purl matches the registry named in repository_url' do
+    registry = Registry.create(name: 'ollama.com', url: 'https://ollama.com', ecosystem: 'ollama', default: true)
+    package = registry.packages.create(ecosystem: 'ollama', name: 'all-minilm')
+
+    get lookup_api_v1_packages_path, params: { purl: 'pkg:oci/all-minilm?repository_url=registry.ollama.ai/library/all-minilm&tag=latest' }
+
+    assert_response :success
+    assert_equal [package.id], Oj.load(@response.body).pluck('id')
+
+    assert_no_difference -> { SyncPackageWorker.jobs.size } do
+      ['pkg:oci/all-minilm?repository_url=ghcr.io/someone/all-minilm', 'pkg:oci/all-minilm', 'pkg:oci/nginx'].each do |purl|
+        get lookup_api_v1_packages_path, params: { purl: purl }
+
+        assert_response :success
+        assert_empty Oj.load(@response.body), purl
+      end
+    end
+  end
+
   test 'API and HTML lookup use distro to select the Alpine package registry' do
     packages = create_alpine_packages
     purl = 'pkg:apk/alpine/curl@8.5.0-r0?arch=x86_64&distro=alpine-3.19'

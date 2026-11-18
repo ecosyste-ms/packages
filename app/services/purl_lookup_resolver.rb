@@ -32,11 +32,13 @@ class PurlLookupResolver
     qualifiers = @purl.qualifiers || {}
     repository_url = qualifiers["repository_url"]
     distro = qualifiers["distro"]
+    # Every OCI registry shares the oci type, so only repository_url identifies one
+    return [] if @purl.type == "oci" && repository_url.blank?
     return registries.pluck(:id) if repository_url.blank? && distro.blank?
 
     target_url = normalize_url(repository_url)
     registries.filter_map do |registry|
-      next if repository_url.present? && normalize_url(registry.url) != target_url
+      next if repository_url.present? && !matches_repository_url?(registry, target_url)
       next if distro.present? && !matches_distro?(registry, distro)
 
       registry.id
@@ -44,6 +46,13 @@ class PurlLookupResolver
   end
 
   private
+
+  def matches_repository_url?(registry, target_url)
+    ecosystem = registry.ecosystem_instance
+    return ecosystem.purl_repository_url?(target_url) if ecosystem.respond_to?(:purl_repository_url?)
+
+    normalize_url(registry.url) == target_url
+  end
 
   def matches_distro?(registry, distro)
     return false if registry.version.blank?
