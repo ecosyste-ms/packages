@@ -49,7 +49,7 @@ class PurlLookupResolver
 
   def matches_repository_url?(registry, target_url)
     ecosystem = registry.ecosystem_instance
-    return ecosystem.purl_repository_url?(target_url) if ecosystem.respond_to?(:purl_repository_url?)
+    return ecosystem.purl_repository_url?(target_url, package_name) if ecosystem.respond_to?(:purl_repository_url?)
 
     normalize_url(registry.url) == target_url
   end

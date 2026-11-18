@@ -95,6 +95,7 @@ class OllamaTest < ActiveSupport::TestCase
     assert_equal 3_900_000, metadata[:downloads]
     assert_equal "total", metadata[:downloads_period]
     assert_equal({
+      "dist-tags": { "latest" => "latest" },
       updated_at: "May 6, 2024 11:38 PM UTC",
       model_format: "gguf",
       model_family: "bert",
@@ -113,6 +114,21 @@ class OllamaTest < ActiveSupport::TestCase
     stub_request(:get, "https://ollama.com/library/all-minilm/tags").to_return(status: 404)
 
     assert_equal "removed", @ecosystem.check_status(@package)
+  end
+
+  test "check_status leaves the status alone when the tags page errors" do
+    stub_request(:get, "https://ollama.com/library/all-minilm/tags").to_return(status: 503)
+
+    assert_equal false, @ecosystem.check_status(@package)
+  end
+
+  test "sync_package makes the latest tag the latest version" do
+    stub_model
+    registry = Registry.create!(default: true, name: "ollama.com", url: "https://ollama.com", ecosystem: "ollama")
+
+    package = registry.sync_package("all-minilm")
+
+    assert_equal "latest", package.latest_version_from(package.versions.to_a).number
   end
 
   test "parse_pulls" do

@@ -56,98 +56,13 @@
 
     <link href="/public/tailwind.css?v=7b277e5c886ac4b1e9da99bf83bda4cf" rel="stylesheet" />
     <link href="/public/vendor/prism/prism.css?v=7b277e5c886ac4b1e9da99bf83bda4cf" rel="stylesheet" />
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@graph": [
-          {
-            "@type": "Organization",
-            "@id": "https://ollama.com/#organization",
-            "name": "Ollama",
-            "legalName": "Ollama Inc.",
-            "url": "https://ollama.com",
-            "logo": "https://ollama.com/public/ollama.png",
-            "sameAs": ["https://github.com/ollama/ollama", "https://twitter.com/ollama"]
-          },
-          {
-            "@type": "WebSite",
-            "@id": "https://ollama.com/#website",
-            "name": "Ollama",
-            "url": "https://ollama.com",
-            "publisher": { "@id": "https://ollama.com/#organization" }
-          }
-        ]
-      }
-    </script>
-
-    <script type="text/javascript">
-      function copyToClipboard(element) {
-        let commandElement = null;
-        const preElement = element.closest('pre');
-        const languageNoneElement = element.closest('.language-none');
-
-        if (preElement) {
-          commandElement = preElement.querySelector('code');
-        } else if (languageNoneElement) {
-          commandElement = languageNoneElement.querySelector('.command');
-        } else {
-          const parent = element.parentElement;
-          if (parent) {
-            commandElement = parent.querySelector('.command');
-          }
-        }
-
-        if (!commandElement) {
-          console.error('No code or command element found');
-          return;
-        }
-
-        const code = commandElement.textContent ? commandElement.textContent.trim() : commandElement.value;
-
-        navigator.clipboard
-          .writeText(code)
-          .then(() => {
-            const copyIcon = element.querySelector('.copy-icon')
-            const checkIcon = element.querySelector('.check-icon')
-
-            copyIcon.classList.add('hidden')
-            checkIcon.classList.remove('hidden')
-
-            setTimeout(() => {
-              copyIcon.classList.remove('hidden')
-              checkIcon.classList.add('hidden')
-            }, 2000)
-          })
-      }
-    </script>
     
-    <script>
-      
-      function getIcon(url) {
-        url = url.toLowerCase();
-        if (url.includes('x.com') || url.includes('twitter.com')) return 'x';
-        if (url.includes('github.com')) return 'github';
-        if (url.includes('linkedin.com')) return 'linkedin';
-        if (url.includes('youtube.com')) return 'youtube';
-        if (url.includes('hf.co') || url.includes('huggingface.co') || url.includes('huggingface.com')) return 'hugging-face';
-        return 'default';
-      }
 
-      function setInputIcon(input) {
-        const icon = getIcon(input.value);
-        const img = input.previousElementSibling.querySelector('img');
-        img.src = `/public/social/${icon}.svg`;
-        img.alt = `${icon} icon`;
-      }
-
-      function setDisplayIcon(imgElement, url) {
-        const icon = getIcon(url);
-        imgElement.src = `/public/social/${icon}.svg`;
-        imgElement.alt = `${icon} icon`;
-      }
-    </script>
     
-    <script src="/public/vendor/htmx/bundle.js"></script>
+    
+    
+    
+    
   </head>
 
   <body
@@ -287,13 +202,7 @@
     </div>
   </nav>
 </header>
-<script>
-  (function (header) {
-    function update() { header.toggleAttribute('data-scrolled', window.scrollY > 0); }
-    update();
-    window.addEventListener('scroll', update, { passive: true });
-  })(document.currentScript.previousElementSibling);
-</script>
+
 
     
 

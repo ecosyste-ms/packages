@@ -241,7 +241,7 @@ class HuggingfaceTest < ActiveSupport::TestCase
   test "check_status does not mark a model removed when the API errors" do
     stub_request(:get, "https://huggingface.co/api/models/openai-community/gpt2").to_return(status: 503)
 
-    assert_nil @ecosystem.check_status(@package)
+    assert_equal false, @ecosystem.check_status(@package)
   end
 
   private

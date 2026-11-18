@@ -175,7 +175,12 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal [package.id], Oj.load(@response.body).pluck('id')
 
     assert_no_difference -> { SyncPackageWorker.jobs.size } do
-      ['pkg:oci/all-minilm?repository_url=ghcr.io/someone/all-minilm', 'pkg:oci/all-minilm', 'pkg:oci/nginx'].each do |purl|
+      [
+        'pkg:oci/all-minilm?repository_url=ghcr.io/someone/all-minilm',
+        'pkg:oci/all-minilm?repository_url=registry.ollama.ai/library/llama3',
+        'pkg:oci/all-minilm',
+        'pkg:oci/nginx'
+      ].each do |purl|
         get lookup_api_v1_packages_path, params: { purl: purl }
 
         assert_response :success

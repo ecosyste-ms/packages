@@ -20,8 +20,8 @@ module Ecosystem
     end
 
     # The oci repository_url qualifier names the registry host and repository path, not the website.
-    def purl_repository_url?(url)
-      url.to_s.downcase.start_with?("#{OCI_REGISTRY}/#{NAMESPACE}/")
+    def purl_repository_url?(url, name)
+      url.to_s.casecmp?("#{OCI_REGISTRY}/#{NAMESPACE}/#{name}")
     end
 
     def purl_params(package, version = nil)
@@ -52,7 +52,9 @@ module Ecosystem
     end
 
     def check_status(package)
-      return "removed" if fetch_package_metadata(package.name) == false
+      metadata = fetch_package_metadata(package.name)
+      return "removed" if metadata == false
+      return false if metadata.nil?
 
       nil
     end
@@ -96,6 +98,7 @@ module Ecosystem
       return false unless model.is_a?(Hash) && model["name"].present?
 
       config = model["config"].to_h
+      tags = Array(model["tags"])
 
       {
         name: model["name"],
@@ -103,8 +106,9 @@ module Ecosystem
         keywords_array: Array(model["keywords"]),
         downloads: model["pulls"],
         downloads_period: "total",
-        versions: Array(model["tags"]),
+        versions: tags,
         metadata: {
+          "dist-tags": tags.any? { |tag| tag["name"] == "latest" } ? { "latest" => "latest" } : nil,
           updated_at: model["updated_at"],
           model_format: config["model_format"],
           model_family: config["model_family"],

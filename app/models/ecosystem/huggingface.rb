@@ -81,7 +81,9 @@ module Ecosystem
     end
 
     def check_status(package)
-      return "removed" if fetch_package_metadata(package.name) == false
+      metadata = fetch_package_metadata(package.name)
+      return "removed" if metadata == false
+      return false if metadata.nil?
 
       nil
     end
