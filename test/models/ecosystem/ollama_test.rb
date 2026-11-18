@@ -15,7 +15,6 @@ class OllamaTest < ActiveSupport::TestCase
   end
 
   def stub_model
-    stub_library
     stub_request(:get, "https://ollama.com/library/all-minilm/tags")
       .to_return(status: 200, body: file_fixture("ollama/all-minilm-tags.html"))
     stub_request(:get, %r{\Ahttps://registry\.ollama\.ai/v2/library/all-minilm/manifests/})
@@ -110,6 +109,19 @@ class OllamaTest < ActiveSupport::TestCase
     assert_equal false, @ecosystem.package_metadata("nope")
   end
 
+  test "package_metadata makes no request for a name that is not a single path segment" do
+    ["all-minilm?x", "all-minilm#x", "../search", "user/model", ""].each do |name|
+      assert_equal false, @ecosystem.package_metadata(name), name
+    end
+  end
+
+  test "a page listing no tags for the model is inconclusive, not a removal" do
+    stub_request(:get, "https://ollama.com/library/llama3/tags")
+      .to_return(status: 200, body: file_fixture("ollama/all-minilm-tags.html"))
+
+    assert_equal false, @ecosystem.check_status(Package.new(ecosystem: "ollama", name: "llama3"))
+  end
+
   test "check_status is removed for a missing model" do
     stub_request(:get, "https://ollama.com/library/all-minilm/tags").to_return(status: 404)
 
@@ -165,5 +177,27 @@ class OllamaTest < ActiveSupport::TestCase
     assert_equal LATEST_DIGEST, moved.reload.metadata["digest"]
     assert_equal 1, unmoved.reload.metadata["size"]
     assert_requested :get, "https://registry.ollama.ai/v2/library/all-minilm/manifests/l6", times: 0
+  end
+
+  test "sync_package marks unlisted tags removed and restores listed ones" do
+    stub_model
+    registry = Registry.create!(default: true, name: "ollama.com", url: "https://ollama.com", ecosystem: "ollama")
+    package = registry.packages.create!(ecosystem: "ollama", name: "all-minilm")
+    deleted = package.versions.create!(number: "gone", metadata: { "digest" => LATEST_DIGEST })
+    restored = package.versions.create!(number: "l6", status: "removed", metadata: { "digest" => LATEST_DIGEST })
+
+    registry.sync_package("all-minilm", force: true)
+
+    assert_equal "removed", deleted.reload.status
+    assert_nil restored.reload.status
+  end
+
+  test "sync_package raises when a manifest request fails so the tag is not skipped" do
+    stub_model
+    stub_request(:get, "https://registry.ollama.ai/v2/library/all-minilm/manifests/l12").to_return(status: 503)
+    registry = Registry.create!(default: true, name: "ollama.com", url: "https://ollama.com", ecosystem: "ollama")
+
+    error = assert_raises(RuntimeError) { registry.sync_package("all-minilm") }
+    assert_match "503 for all-minilm:l12", error.message
   end
 end

@@ -4,7 +4,7 @@ module Ecosystem
   class Ollama < Base
     OCI_REGISTRY = "registry.ollama.ai"
     NAMESPACE = "library"
-    LIBRARY_CACHE_KEY = "ollama/library/v1"
+    NAME_FORMAT = /\A[a-z0-9][a-z0-9._-]*\z/i
     PULL_MULTIPLIERS = { "K" => 1_000, "M" => 1_000_000, "B" => 1_000_000_000 }.freeze
 
     def self.purl_type
@@ -60,35 +60,44 @@ module Ecosystem
     end
 
     def all_package_names
-      library.keys
+      library_names("#{@registry_url}/#{NAMESPACE}")
     rescue => e
       Rails.logger.warn("Error listing Ollama models: #{e.message}")
       []
     end
 
     def recently_updated_package_names
-      parse_library(fetch_html("#{@registry_url}/#{NAMESPACE}?sort=newest")).keys
+      library_names("#{@registry_url}/#{NAMESPACE}?sort=newest")
     rescue => e
       Rails.logger.warn("Error listing recently updated Ollama models: #{e.message}")
       []
     end
 
     def fetch_package_metadata_uncached(name)
+      return false unless name.to_s.match?(NAME_FORMAT)
+
       response = request("#{@registry_url}/#{NAMESPACE}/#{name}/tags")
       return false if [400, 404, 410].include?(response.status)
       return nil unless response.success?
 
       doc = Nokogiri::HTML(response.body)
-      tags = parse_tags(doc)
+      tags = parse_tags(doc, name)
+      # A page with no tags for this model is a markup change or another model's page, not a removal
+      return nil if tags.empty?
+
       config_tag = tags.find { |tag| tag["name"] == "latest" } || tags.first
+      downloads_label = doc.css("span").find { |span| span.elements.empty? && span.text.end_with?("Downloads") }
 
       {
         "name" => name,
         "description" => doc.at_css("meta[name=description]")&.[]("content"),
         "updated_at" => doc.at_css("[title$='UTC']")&.[]("title"),
+        # Parameter sizes share the capability pills, so drop them
+        "keywords" => doc.css("span.inline-flex.rounded-md").map { |span| span.text.strip }.reject { |pill| pill.match?(/\Ae?[\d.]+[kmb]\z/i) }.uniq,
+        "pulls" => parse_pulls(downloads_label&.previous_element&.text),
         "tags" => tags,
-        "config" => config_tag ? fetch_config(name, config_tag["name"]) : nil
-      }.merge(library[name].to_h.slice("keywords", "pulls"))
+        "config" => fetch_config(name, config_tag["name"])
+      }
     rescue => e
       Rails.logger.warn("Error fetching Ollama model #{name}: #{e.message}")
       nil
@@ -128,14 +137,29 @@ module Ecosystem
     end
 
     def update_existing_versions(package, versions_metadata)
-      short_digests = versions_metadata.to_h { |version| [version[:number], version[:short_digest]] }.compact
-      return if short_digests.empty?
+      return if versions_metadata.empty?
 
-      package.versions.where(number: short_digests.keys).find_each do |version|
-        next if version.metadata.to_h["digest"].to_s.delete_prefix("sha256:").start_with?(short_digests[version.number])
+      listed = versions_metadata.index_by { |version| version[:number] }
+      now = Time.current
 
-        fresh = version_metadata(package.name, version.number)
-        version.update_columns(metadata: fresh[:metadata], updated_at: Time.current) if fresh
+      package.versions.find_each do |version|
+        incoming = listed[version.number]
+        if incoming.nil?
+          version.update_columns(status: "removed", updated_at: now) unless version.status == "removed"
+          next
+        end
+
+        updates = {}
+        updates[:status] = nil if version.status == "removed"
+
+        expected = incoming[:short_digest].presence || incoming.dig(:metadata, :digest).to_s.delete_prefix("sha256:")
+        current = version.metadata.to_h["digest"].to_s.delete_prefix("sha256:")
+        if expected.present? && !current.start_with?(expected)
+          fresh = incoming[:metadata] || version_metadata(package.name, version.number)&.fetch(:metadata)
+          updates[:metadata] = fresh if fresh
+        end
+
+        version.update_columns(updates.merge(updated_at: now)) if updates.any?
       end
     end
 
@@ -157,7 +181,8 @@ module Ecosystem
 
     def fetch_manifest(name, tag)
       response = request(blob_url(name, "manifests", tag), headers: { "Accept" => "application/vnd.docker.distribution.manifest.v2+json" })
-      return nil unless response.success?
+      return nil if response.status == 404
+      raise "Ollama registry returned #{response.status} for #{name}:#{tag}" unless response.success?
 
       digest = response.headers["ollama-content-digest"].presence || Digest::SHA256.hexdigest(response.body)
       { "digest" => "sha256:#{digest}", "manifest" => Oj.load(response.body) }
@@ -175,36 +200,19 @@ module Ecosystem
       "https://#{OCI_REGISTRY}/v2/#{NAMESPACE}/#{name}/#{kind}/#{reference}"
     end
 
-    def library
-      Rails.cache.fetch(LIBRARY_CACHE_KEY, expires_in: 1.hour) do
-        parse_library(fetch_html("#{@registry_url}/#{NAMESPACE}"))
-      end
-    end
-
-    def fetch_html(url)
+    def library_names(url)
       response = request(url)
       raise "Ollama returned #{response.status} for #{url}" unless response.success?
 
-      Nokogiri::HTML(response.body)
+      Nokogiri::HTML(response.body).css("a[href^='/#{NAMESPACE}/']")
+        .map { |link| link["href"].delete_prefix("/#{NAMESPACE}/") }
+        .select { |name| name.match?(NAME_FORMAT) }
+        .uniq
     end
 
-    def parse_library(doc)
-      doc.css("a[href^='/#{NAMESPACE}/']").each_with_object({}) do |link, models|
-        name = link["href"].delete_prefix("/#{NAMESPACE}/")
-        next if name.blank? || name.match?(%r{[/:]})
-
-        pulls_label = link.css("span").find { |span| span.elements.empty? && span.text.end_with?("Pulls") }
-        models[name] = {
-          # Parameter sizes share the capability pills, so drop them
-          "keywords" => link.css("span.inline-flex").map { |span| span.text.strip }.reject { |pill| pill.match?(/\Ae?[\d.]+[kmb]\z/i) },
-          "pulls" => parse_pulls(pulls_label&.previous_element&.text)
-        }
-      end
-    end
-
-    def parse_tags(doc)
+    def parse_tags(doc, name)
       doc.css("div.group").filter_map do |row|
-        tag = row.at_css("a[href*=':']")&.[]("href")&.split(":", 2)&.last
+        tag = row.at_css("a[href^='/#{NAMESPACE}/#{name}:']")&.[]("href")&.split(":", 2)&.last
         next if tag.blank?
 
         { "name" => tag, "digest" => row.at_css(".font-mono")&.text&.strip }

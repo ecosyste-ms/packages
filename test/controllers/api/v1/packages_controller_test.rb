@@ -174,6 +174,11 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_equal [package.id], Oj.load(@response.body).pluck('id')
 
+    post bulk_lookup_api_v1_packages_path, params: { purls: ['pkg:oci/all-minilm?repository_url=registry.ollama.ai/library/all-minilm&tag=latest'] }
+
+    assert_response :success
+    assert_equal [package.id], Oj.load(@response.body).pluck('id')
+
     assert_no_difference -> { SyncPackageWorker.jobs.size } do
       [
         'pkg:oci/all-minilm?repository_url=ghcr.io/someone/all-minilm',
@@ -182,6 +187,11 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
         'pkg:oci/nginx'
       ].each do |purl|
         get lookup_api_v1_packages_path, params: { purl: purl }
+
+        assert_response :success
+        assert_empty Oj.load(@response.body), purl
+
+        post bulk_lookup_api_v1_packages_path, params: { purls: [purl] }
 
         assert_response :success
         assert_empty Oj.load(@response.body), purl
