@@ -184,8 +184,7 @@ module Ecosystem
       return nil if response.status == 404
       raise "Ollama registry returned #{response.status} for #{name}:#{tag}" unless response.success?
 
-      digest = response.headers["ollama-content-digest"].presence || Digest::SHA256.hexdigest(response.body)
-      { "digest" => "sha256:#{digest}", "manifest" => Oj.load(response.body) }
+      { "digest" => "sha256:#{Digest::SHA256.hexdigest(response.body)}", "manifest" => Oj.load(response.body) }
     end
 
     def fetch_config(name, tag)
