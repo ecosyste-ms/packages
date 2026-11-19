@@ -1172,11 +1172,13 @@ class Package < ApplicationRecord
 
   def fetch_readme
     return if repo_metadata.blank?
-    return if repo_metadata['metadata']['files']['readme'].blank?
-    
-    ecosystems_api_get('https://archives.ecosyste.ms/api/v1/archives/readme?url='+download_url)
-  rescue
-    nil
+    return if repo_metadata.dig('metadata', 'files', 'readme').blank?
+
+    url = download_url
+    return if url.blank?
+
+    # ecosystems_api_get returns nil on HTTP, network and JSON errors
+    ecosystems_api_get('https://archives.ecosyste.ms/api/v1/archives/readme', params: { url: url })
   end
 
   # underproduction
