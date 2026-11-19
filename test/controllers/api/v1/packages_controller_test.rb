@@ -10,10 +10,28 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     get api_v1_registry_packages_path(registry_id: @registry.name)
     assert_response :success
     assert_template 'packages/index', file: 'packages/index.json.jbuilder'
-    
+
     actual_response = Oj.load(@response.body)
 
     assert_equal actual_response.length, 1
+  end
+
+  test 'reject pagination beyond the page cap' do
+    get api_v1_registry_packages_path(registry_id: @registry.name, page: Api::V1::ApplicationController::MAX_PAGE + 1)
+    assert_response :bad_request
+    assert_includes Oj.load(@response.body)['error'], 'open-data'
+  end
+
+  test 'allow pagination at the page cap' do
+    get api_v1_registry_packages_path(registry_id: @registry.name, page: Api::V1::ApplicationController::MAX_PAGE)
+    assert_response :success
+  end
+
+  test 'serialise timestamps with microsecond precision for cursor pagination' do
+    @package.update_columns(updated_at: Time.utc(2026, 11, 1, 0, 7, 11, 830456))
+    get api_v1_registry_packages_path(registry_id: @registry.name)
+    assert_response :success
+    assert_equal '2026-11-01T00:07:11.830456Z', Oj.load(@response.body).first['updated_at']
   end
 
   test 'list critical packages for a registry' do
