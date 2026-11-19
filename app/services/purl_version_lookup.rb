@@ -39,13 +39,26 @@ class PurlVersionLookup
   end
 
   def matching_versions(packages)
-    versions = if @purl.version.present?
+    versions = if @purl.type == "oci"
+      oci_versions(packages)
+    elsif @purl.version.present?
       Version.where(package: packages).where("LOWER(versions.number) = ?", @purl.version.downcase)
     else
       latest_versions_for(packages)
     end
 
     versions.includes(:dependencies, package: :registry).order(:id).to_a
+  end
+
+  # An oci purl carries the manifest digest as its version and the tag as a qualifier
+  def oci_versions(packages)
+    tag = @purl.qualifiers.to_h["tag"]
+    return latest_versions_for(packages) if @purl.version.blank? && tag.blank?
+
+    versions = Version.where(package: packages)
+    versions = versions.where("versions.metadata->>'digest' = ?", @purl.version.downcase) if @purl.version.present?
+    versions = versions.where(number: tag) if tag.present?
+    versions
   end
 
   def latest_versions_for(packages)

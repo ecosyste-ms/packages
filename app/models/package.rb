@@ -1239,6 +1239,7 @@ class Package < ApplicationRecord
         repo_urls << "https://github.com/#{purl.namespace}/#{purl.name}".downcase
         next
       end
+      next if purl.type == 'oci' && PurlLookupResolver.new(purl).registry_ids.empty?
       namespace = (purl.type == 'docker' && purl.namespace.nil?) ? 'library' : purl.namespace
       ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type)
       name = [namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
