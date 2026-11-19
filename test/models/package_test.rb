@@ -1125,4 +1125,54 @@ class PackageTest < ActiveSupport::TestCase
     assert unrelated.reload
     assert_equal [other_version], other.versions.reload.to_a
   end
+
+  context 'fetch_readme' do
+    setup do
+      registry = Registry.create!(name: 'carthage', url: 'https://github.com/Carthage/Carthage', ecosystem: 'carthage')
+      @package = registry.packages.create!(name: 'readme-pkg', ecosystem: 'carthage',
+                                           repo_metadata: { 'metadata' => { 'files' => { 'readme' => 'README.md' } } })
+      @download_url = 'https://codeload.github.com/example/readme-pkg/tar.gz/refs/heads/master?token=a&b=c'
+      @package.stubs(:download_url).returns(@download_url)
+      @readme_api = 'https://archives.ecosyste.ms/api/v1/archives/readme'
+    end
+
+    should 'fetch the readme with the download url encoded as a query param' do
+      readme = { 'plain' => 'Hello', 'name' => 'README.md' }
+      request = stub_request(:get, @readme_api).with(query: { url: @download_url })
+                                               .to_return(status: 200, body: readme.to_json, headers: { 'Content-Type' => 'application/json' })
+
+      assert_equal readme, @package.fetch_readme
+      assert_requested request
+    end
+
+    should 'return nil without a request when repo_metadata is blank' do
+      @package.repo_metadata = nil
+
+      assert_nil @package.fetch_readme
+      assert_not_requested :get, /archives\.ecosyste\.ms/
+    end
+
+    should 'return nil without a request when metadata or files are missing' do
+      [{ 'full_name' => 'example/readme-pkg' }, { 'metadata' => {} }, { 'metadata' => { 'files' => {} } },
+       { 'metadata' => { 'files' => { 'readme' => '' } } }].each do |repo_metadata|
+        @package.repo_metadata = repo_metadata
+
+        assert_nil @package.fetch_readme
+      end
+      assert_not_requested :get, /archives\.ecosyste\.ms/
+    end
+
+    should 'return nil without a request when there is no download url' do
+      @package.stubs(:download_url).returns(nil)
+
+      assert_nil @package.fetch_readme
+      assert_not_requested :get, /archives\.ecosyste\.ms/
+    end
+
+    should 'return nil when the archives request fails' do
+      stub_request(:get, @readme_api).with(query: hash_including({})).to_return(status: 500)
+
+      assert_nil @package.fetch_readme
+    end
+  end
 end
