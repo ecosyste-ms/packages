@@ -498,16 +498,33 @@ class Package < ApplicationRecord
       .flat_map { |l| l.split(/[,\/]/) }
       .map(&:strip)
       .reject { |l| l.blank? || l.match?(/\A(version\s+)?[\d.]+\z/) }
-      .map { |l| NON_SPDX_LICENSE_VALUES.include?(l) ? nil : Spdx.find(l) }
+      .map { |l| NON_SPDX_LICENSE_VALUES.include?(l) ? nil : find_spdx_license(l) }
       .compact
       .map(&:id)
   end
 
+  # Common registry license names that Spdx.find fuzzy matches to the wrong license (e.g. "ASF 2.0" to MulanPSL-2.0)
+  LICENSE_NAME_PATTERNS = {
+    /\A(asf|asl|al)[\s-]?v?2(\.0)?\z/ => "Apache-2.0",
+    /\A(eclipse distribution license|edl)\b.*\b1\.0\z/ => "BSD-3-Clause",
+    /\Agpl ?v?2 with cpe\z/ => "GPL-2.0-with-classpath-exception"
+  }.freeze
+
+  def find_spdx_license(name)
+    LICENSE_NAME_PATTERNS.each { |pattern, id| return Spdx.find(id) if name.match?(pattern) }
+
+    # "EPL 2.0" or "Apache 2.0" are exact SPDX ids once the space is a hyphen, so skip the fuzzy match
+    hyphenated = name.sub(/\s+v?(?=\d)/, "-")
+    (hyphenated != name && Spdx.lookup(hyphenated)) || Spdx.find(name)
+  end
+
   def manual_license_format(license)
     # fixes "Apache License, Version 2.0" etc being incorrectly split on the comma
+    # and "GPL2 w/ CPE" being split on the slash
     license
       .gsub(/\b(license|licence)( \([a-z]+\))?, version\b/, 'license\2 version')
       .gsub(/\b(license|licence)( \([a-z]+\))?, v(\d)/, 'license\2 v\3')
+      .gsub(%r{\bw/\s*}, 'with ')
   end
 
   def sync

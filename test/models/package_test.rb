@@ -168,6 +168,43 @@ class PackageTest < ActiveSupport::TestCase
     assert_equal ["Apache-2.0"], package.normalized_licenses
   end
 
+  test 'normalize_licenses maps ASF and ASL short names to Apache-2.0' do
+    ['ASF 2.0', 'ASF2.0', 'ASF-2.0', 'ASL 2', 'AL 2.0'].each do |licenses|
+      package = Package.new(licenses: licenses)
+      package.normalize_licenses
+      assert_equal ['Apache-2.0'], package.normalized_licenses, licenses
+    end
+  end
+
+  test 'normalize_licenses uses the exact SPDX id for short names followed by a version' do
+    { 'Apache 2.0' => 'Apache-2.0', 'EPL 2.0' => 'EPL-2.0', 'MPL 1.1' => 'MPL-1.1', 'CC0 1.0' => 'CC0-1.0',
+      'Artistic 2.0' => 'Artistic-2.0', 'EUPL 1.2' => 'EUPL-1.2' }.each do |licenses, expected|
+      package = Package.new(licenses: licenses)
+      package.normalize_licenses
+      assert_equal [expected], package.normalized_licenses, licenses
+    end
+  end
+
+  test 'normalize_licenses keeps the classpath exception in GPL2 w/ CPE' do
+    package = Package.new(licenses: 'CDDL 1.1,GPL2 w/ CPE')
+    package.normalize_licenses
+    assert_equal ['CDDL-1.1', 'GPL-2.0-with-classpath-exception'], package.normalized_licenses
+  end
+
+  test 'normalize_licenses maps the Eclipse Distribution License to BSD-3-Clause' do
+    ['Eclipse Distribution License - v 1.0', 'EDL 1.0'].each do |licenses|
+      package = Package.new(licenses: licenses)
+      package.normalize_licenses
+      assert_equal ['BSD-3-Clause'], package.normalized_licenses, licenses
+    end
+  end
+
+  test 'normalize_licenses still splits slash separated licenses' do
+    package = Package.new(licenses: 'MIT/Apache-2.0')
+    package.normalize_licenses
+    assert_equal ['MIT', 'Apache-2.0'], package.normalized_licenses
+  end
+
   test 'set_latest_release_published_at' do
     @package.set_latest_release_published_at
     assert_equal @package.latest_release_published_at, @version2.published_at
