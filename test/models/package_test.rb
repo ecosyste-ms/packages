@@ -192,7 +192,7 @@ class PackageTest < ActiveSupport::TestCase
   end
 
   test 'normalize_licenses maps the Eclipse Distribution License to BSD-3-Clause' do
-    ['Eclipse Distribution License - v 1.0', 'EDL 1.0'].each do |licenses|
+    ['Eclipse Distribution License - v 1.0', 'Eclipse Distribution License v1.0', 'EDL 1.0', 'EDL v1.0'].each do |licenses|
       package = Package.new(licenses: licenses)
       package.normalize_licenses
       assert_equal ['BSD-3-Clause'], package.normalized_licenses, licenses

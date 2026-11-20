@@ -506,7 +506,7 @@ class Package < ApplicationRecord
   # Common registry license names that Spdx.find fuzzy matches to the wrong license (e.g. "ASF 2.0" to MulanPSL-2.0)
   LICENSE_NAME_PATTERNS = {
     /\A(asf|asl|al)[\s-]?v?2(\.0)?\z/ => "Apache-2.0",
-    /\A(eclipse distribution license|edl)\b.*\b1\.0\z/ => "BSD-3-Clause",
+    /\A(eclipse distribution license|edl)\b.*1\.0\z/ => "BSD-3-Clause",
     /\Agpl ?v?2 with cpe\z/ => "GPL-2.0-with-classpath-exception"
   }.freeze
 
