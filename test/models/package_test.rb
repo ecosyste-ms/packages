@@ -199,6 +199,14 @@ class PackageTest < ActiveSupport::TestCase
     end
   end
 
+  test 'normalize_licenses does not map other Eclipse Distribution License versions to BSD-3-Clause' do
+    ['EDL v11.0', 'EDL 2.1.0'].each do |licenses|
+      package = Package.new(licenses: licenses)
+      package.normalize_licenses
+      assert_not_includes package.normalized_licenses, 'BSD-3-Clause', licenses
+    end
+  end
+
   test 'normalize_licenses still splits slash separated licenses' do
     package = Package.new(licenses: 'MIT/Apache-2.0')
     package.normalize_licenses
