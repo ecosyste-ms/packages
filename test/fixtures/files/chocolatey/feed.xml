@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Chocolatey - Packages tagged with chocolatey</title>
+  <link rel="alternate" href="https://community.chocolatey.org/packages?q=tag%3Achocolatey" />
+  <entry>
+    <title>wwphone (4.3.3)</title>
+    <link rel="alternate" href="https://community.chocolatey.org/packages/wwphone/4.3.3" />
+    <updated>2026-05-07T16:01:42Z</updated>
+  </entry>
+  <entry>
+    <title>foldersizes (10.0.45)</title>
+    <link rel="alternate" href="https://community.chocolatey.org/packages/foldersizes/10.0.45" />
+    <updated>2026-05-07T15:43:11Z</updated>
+  </entry>
+  <entry>
+    <title>jq (1.8.1)</title>
+    <link rel="alternate" href="https://community.chocolatey.org/packages/jq/1.8.1" />
+    <updated>2026-05-07T15:40:02Z</updated>
+  </entry>
+</feed>
