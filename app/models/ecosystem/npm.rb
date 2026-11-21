@@ -46,7 +46,7 @@ module Ecosystem
 
       if json
         return "unpublished" if json["versions"].blank?
-        non_prerelease_versions = json["versions"].values.reject{|v| Semantic::Version.new(v['version']).pre rescue true}
+        non_prerelease_versions = json["versions"].values.select { |version| Vers.stable?(version['version'], purl_type) }
 
         return "deprecated" if non_prerelease_versions.length > 0 && non_prerelease_versions.all? { |v| v["deprecated"] }
 
@@ -65,7 +65,7 @@ module Ecosystem
     def recently_updated_package_names
       begin
         u = "#{@registry_url}/-/rss?descending=true&limit=50"
-        rss_names = SimpleRSS.parse(get_raw(u)).items.map(&:title).uniq
+        rss_names = feed_titles(u).uniq
       rescue
         rss_names = []
       end
@@ -111,7 +111,8 @@ module Ecosystem
         metadata: {
           "funding" => latest_version["funding"],
           "dist-tags" => package["dist-tags"],
-          "contentPolicy" => latest_version["contentPolicy"]
+          "contentPolicy" => latest_version["contentPolicy"],
+          "repository" => repository(package, latest_version)
         }
       }
 
@@ -122,12 +123,18 @@ module Ecosystem
     end
 
     def repository_url(package, latest_version)
-      repo_url = extract_repository_url(latest_version.fetch("repository", {}))
-      repo_url = extract_repository_url(package.fetch("repository", {})) if repo_url.blank?
+      repo_url = extract_repository_url(repository(package, latest_version))
 
       url = repo_fallback(repo_url, package["homepage"])
       return nil if ['https://github.com/npm/deprecate-holder',"https://github.com/npm/security-holder"].include?(url)
       url
+    end
+
+    def repository(package, latest_version)
+      declared = latest_version["repository"]
+      return declared if extract_repository_url(declared).present?
+
+      package["repository"].presence || declared
     end
 
     # npm metadata supplies `repository` as an object (`{"type":"git","url":...}`),
@@ -204,6 +211,7 @@ module Ecosystem
             "_npmUser" => v["_npmUser"],
             "dist" => v["dist"],
             "gitHead" => v["gitHead"],
+            "repository" => v["repository"],
             "main" => v["main"],
             "scripts" => v["scripts"],
             "_npmVersion" => v["_npmVersion"],

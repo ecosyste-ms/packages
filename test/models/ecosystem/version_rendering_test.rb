@@ -108,6 +108,11 @@ class EcosystemVersionRenderingTest < ActiveSupport::TestCase
       name: 'statistics', version_metadata: { download_url: 'https://github.com/gnu-octave/statistics/releases/download/release-1.2.3/statistics-1.2.3.tar.gz' },
       install: [nil, 'pkg install "https://github.com/gnu-octave/statistics/releases/download/release-1.2.3/statistics-1.2.3.tar.gz"'], documentation: nil
     },
+    'ollama' => {
+      name: 'all-minilm', url: 'https://ollama.com',
+      install: ['ollama pull all-minilm', 'ollama pull all-minilm:1.2.3'],
+      documentation: ['https://ollama.com/library/all-minilm', 'https://ollama.com/library/all-minilm:1.2.3']
+    },
     'opam' => {
       name: 'lwt', install: ['opam install lwt', 'opam install lwt.1.2.3'],
       documentation: ['https://ocaml.org/p/lwt/latest/doc/index.html', 'https://ocaml.org/p/lwt/1.2.3/doc/index.html']

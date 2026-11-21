@@ -1,4 +1,6 @@
 class UrlParser
+  SUBDOMAINS = "(?:www|ssh|raw|git|wiki)".freeze
+
   def self.parse(url)
     url_candidates(url).lazy.map { |candidate| new(candidate).parse }.find(&:present?)
   end
@@ -32,7 +34,19 @@ class UrlParser
   end
 
   def self.url_candidates(url)
-    url.to_s.split(%r{[,;\s]+(?=(?:[a-z][a-z0-9+.-]*://|git@))}i)
+    source = url.to_s
+    return [] if source.empty?
+
+    candidates = []
+    start = 0
+    source.scan(/[,;\s]+/) do
+      separator = Regexp.last_match
+      next unless source.match?(%r{\G(?:[a-z][a-z0-9+.-]*://|git@)}i, separator.end(0))
+
+      candidates << source[start...separator.begin(0)]
+      start = separator.end(0)
+    end
+    candidates << source[start..]
   end
 
   def parse_to_full_url
@@ -91,7 +105,7 @@ class UrlParser
   end
 
   def website_url?
-    url.match(/www\.#{domain_regex}/i)
+    url.match(/(?:\A|[\/@])#{SUBDOMAINS}\.#{domain_regex}/i)
   end
 
   def includes_domain?
@@ -152,7 +166,7 @@ class UrlParser
   end
 
   def remove_subdomain
-    self.url = url.dup.gsub(/(?:www|ssh|raw|git|wiki)\./i, '')
+    self.url = url.dup.sub(%r{\A/*#{SUBDOMAINS}\.(?=#{domain_regex})}i, '')
   end
 
   def remove_whitespace

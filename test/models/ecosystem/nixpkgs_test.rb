@@ -496,15 +496,43 @@ class NixpkgsTest < ActiveSupport::TestCase
     assert_equal mapped[:metadata][:upstream_purl], 'pkg:pypi/requests'
   end
 
-  test 'map_package_metadata omits upstream info for top-level packages' do
-    raw_metadata = {
+  test 'sync_package preserves declared pname and labels inferred upstream coordinates' do
+    name = 'perl534Packages.DBIxClassCursorCached'
+    stub_packages({
+      name => {
+        'pname' => 'DBIx-Class-Cursor-Cached',
+        'name' => 'DBIx-Class-Cursor-Cached-1.001004',
+        'version' => '1.001004',
+        'system' => 'x86_64-linux',
+        'outputs' => { 'out' => nil },
+        'meta' => {}
+      }
+    })
+    @registry.save!
+
+    2.times do
+      package = Registry.find(@registry.id).sync_package(name, force: true).reload
+
+      assert_equal name, package.name
+      assert_equal 'DBIx-Class-Cursor-Cached', package.metadata['pname']
+      assert_equal 'attribute_path', package.metadata['upstream_inferred_from']
+      assert_equal 'cpan', package.metadata['upstream_ecosystem']
+      assert_equal 'DBIxClassCursorCached', package.metadata['upstream_name']
+      assert_equal 'pkg:cpan/DBIxClassCursorCached', package.metadata['upstream_purl']
+    end
+  end
+
+  test 'package_metadata preserves pname without labelling top-level packages as inferred' do
+    stub_packages('ffmpeg' => {
       'pname' => 'ffmpeg',
       'version' => '7.0',
       'meta' => {}
-    }
+    })
 
-    mapped = @ecosystem.map_package_metadata(raw_metadata, 'ffmpeg')
+    mapped = @ecosystem.package_metadata('ffmpeg')
 
+    assert_equal 'ffmpeg', mapped[:metadata][:pname]
+    refute mapped[:metadata].key?(:upstream_inferred_from)
     refute mapped[:metadata].key?(:upstream_ecosystem)
     refute mapped[:metadata].key?(:upstream_name)
     refute mapped[:metadata].key?(:upstream_purl)

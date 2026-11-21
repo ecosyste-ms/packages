@@ -90,7 +90,7 @@ module Ecosystem
       return [] unless github_name_with_owner
       deps = get_raw_no_exception("https://raw.githubusercontent.com/#{github_name_with_owner}/#{version}/Cartfile")
       return [] unless deps.present?
-      Bibliothecary::Parsers::Carthage.parse_cartfile(deps).map do |dep|
+      Bibliothecary::Parsers::Carthage.parse_cartfile(deps).dependencies.map do |dep|
         {
           package_name: dep[:name],
           requirements: dep[:requirement].chomp.presence || '*',
@@ -98,7 +98,8 @@ module Ecosystem
           ecosystem: 'carthage'
         }
       end
-    rescue StandardError
+    rescue StandardError => e
+      Rails.logger.error("Carthage dependencies_metadata #{name}@#{version}: #{e.class} #{e.message}")
       []
     end
   end

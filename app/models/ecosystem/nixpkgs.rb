@@ -138,10 +138,9 @@ module Ecosystem
       # fall back to watching the GitHub repo commits
       url = "https://github.com/NixOS/nixpkgs/commits/nixos-#{channel}.atom"
       begin
-        feed = SimpleRSS.parse(get_raw(url))
         # Extract package names from commit titles like "package-name: 1.0 -> 1.1"
-        feed.items.flat_map do |item|
-          title = item.title.to_s
+        feed_titles(url).flat_map do |title|
+          title = title.to_s
           if title.include?(':')
             [title.split(':').first.strip]
           else
@@ -182,6 +181,7 @@ module Ecosystem
         repository_url: repo_fallback('', meta['homepage']),
         keywords_array: extract_keywords(pkg),
         metadata: {
+          pname: pkg['pname'],
           nix_attribute: pkg['name'],
           position: meta['position'],
           platforms: meta['platforms'],
@@ -192,6 +192,7 @@ module Ecosystem
           upstream_ecosystem: upstream&.dig(:ecosystem),
           upstream_name: upstream&.dig(:name),
           upstream_purl: upstream&.dig(:purl),
+          upstream_inferred_from: upstream ? 'attribute_path' : nil,
         }.compact
       }
     end

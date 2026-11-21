@@ -1,0 +1,29 @@
+{
+  "next_from": "2026-11-14T11:59:00.000Z",
+  "releases": [
+    {
+      "group_id": "missionary",
+      "artifact_id": "missionary",
+      "version": "b.26",
+      "released_at": "2026-11-14T11:56:00.000Z"
+    },
+    {
+      "group_id": "org.example",
+      "artifact_id": "tool",
+      "version": "1.0",
+      "released_at": "2026-11-14T11:57:00.000Z"
+    },
+    {
+      "group_id": "org.example",
+      "artifact_id": "tool",
+      "version": "1.1",
+      "released_at": "2026-11-14T11:58:00.000Z"
+    },
+    {
+      "group_id": "org.example",
+      "artifact_id": "snapshot-only",
+      "version": "2.0-SNAPSHOT",
+      "released_at": "2026-11-14T11:59:00.000Z"
+    }
+  ]
+}

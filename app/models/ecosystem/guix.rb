@@ -78,9 +78,8 @@ module Ecosystem
     def recently_updated_package_names
       url = "https://git.savannah.gnu.org/cgit/guix.git/atom/?h=master"
       begin
-        feed = SimpleRSS.parse(get_raw(url))
-        feed.items.flat_map do |item|
-          title = item.title.to_s
+        feed_titles(url).flat_map do |title|
+          title = title.to_s
           if title.include?(':')
             [title.split(':').first.strip]
           else

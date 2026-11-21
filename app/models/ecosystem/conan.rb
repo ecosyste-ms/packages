@@ -42,9 +42,8 @@ module Ecosystem
 
     def recently_updated_package_names
       url = "https://github.com/conan-io/conan-center-index/commits/master.atom"
-      feed = SimpleRSS.parse(get_raw(url))
-      titles = feed.items.map(&:title)
-      titles.map { |t| t.match(/\[([^\]]+)\]/)&.[](1) }.compact.uniq.first(100)
+      titles = feed_titles(url)
+      titles.map { |t| t[/\[([^\]]+)\]/, 1] || t[/\A([\w.+-]+):/, 1] }.compact.uniq.first(100)
     rescue StandardError
       []
     end
@@ -89,8 +88,12 @@ module Ecosystem
       parsed = conanfile ? parse_conanfile(conanfile) : {}
 
       description = api_info&.dig("description") || parsed[:description]
-      licenses = api_info&.dig("licenses")&.keys&.join(",") || parsed[:license]
-      keywords = api_info&.dig("labels")&.keys || parsed[:topics] || []
+      licenses = api_info&.dig("licenses")
+      licenses = licenses.keys if licenses.is_a?(Hash)
+      licenses = licenses&.join(",") || parsed[:license]
+      keywords = api_info&.dig("labels")
+      keywords = keywords.keys if keywords.is_a?(Hash)
+      keywords ||= parsed[:topics] || []
 
       {
         name: pkg_metadata["name"],

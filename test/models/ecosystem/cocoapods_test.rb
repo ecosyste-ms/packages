@@ -18,6 +18,13 @@ class CocoapodsTest < ActiveSupport::TestCase
     assert_equal registry_url, 'https://cocoapods.org/pods/Foo'
   end
 
+  test 'normalized_package_name resolves subspecs to the root pod and keeps root names nil' do
+    assert_equal 'KSCrash', Ecosystem::Cocoapods.normalized_package_name('KSCrash/Reporting/Filters')
+    assert_equal 'kscrash', Ecosystem::Cocoapods.normalized_package_name('kscrash/Reporting')
+    assert_nil Ecosystem::Cocoapods.normalized_package_name('KSCrash')
+    assert_nil Ecosystem::Cocoapods.normalized_package_name('UIView+BooleanAnimations')
+  end
+
   test 'download_url' do
     download_url = @ecosystem.download_url(@package, @version)
     assert_equal download_url, "https://codeload.github.com/deepesh259nitk/mixedFramework/tar.gz/1.0.7"

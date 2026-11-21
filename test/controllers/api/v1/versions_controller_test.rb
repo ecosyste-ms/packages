@@ -25,6 +25,35 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.length, 1
   end
 
+  test 'list versions for a cocoapods package by encoded subspec name returns the root pod versions' do
+    @cocoapods_registry = Registry.create(name: 'cocoapods.org', url: 'https://cocoapods.org/', ecosystem: 'cocoapods', default: true)
+    @cocoapods_package = @cocoapods_registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
+    @cocoapods_version = @cocoapods_package.versions.create(number: '1.17.6', registry_id: @cocoapods_registry.id)
+
+    get '/api/v1/registries/cocoapods.org/packages/KSCrash%2FReporting%2FFilters/versions'
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal '1.17.6', actual_response.first['number']
+  end
+
+  test 'get a version of a cocoapods package by encoded subspec name returns the root pod version' do
+    @cocoapods_registry = Registry.create(name: 'cocoapods.org', url: 'https://cocoapods.org/', ecosystem: 'cocoapods', default: true)
+    @cocoapods_package = @cocoapods_registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
+    @cocoapods_version = @cocoapods_package.versions.create(number: '1.17.6', registry_id: @cocoapods_registry.id)
+
+    get '/api/v1/registries/cocoapods.org/packages/KSCrash%2FReporting%2FFilters/versions/1.17.6'
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal @cocoapods_version.id, actual_response['id']
+    assert_equal '1.17.6', actual_response['number']
+    assert_equal 'pkg:cocoapods/KSCrash@1.17.6', actual_response['purl']
+  end
+
   test 'list Conda versions with install commands' do
     registry = Registry.create!(name: 'anaconda.org', url: 'https://anaconda.org', ecosystem: 'conda', metadata: { kind: 'conda-forge' })
     package = registry.packages.create!(name: 'llama.cpp', ecosystem: 'conda')
@@ -143,6 +172,78 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response['number'], "1.0.0"
     assert_equal actual_response['immutable'], false
     assert_equal actual_response['metadata'], {"foo"=>"bar", "immutable"=>false}
+  end
+
+  test 'version responses include only advisories affecting that version' do
+    @package.update!(advisories: [
+      {
+        "uuid" => "GHSA-affected",
+        "identifiers" => ["GHSA-affected"],
+        "packages" => [
+          {
+            "ecosystem" => "cargo",
+            "package_name" => "rand",
+            "versions" => [
+              { "vulnerable_version_range" => ">= 1.0.0, < 2.0.0", "first_patched_version" => "2.0.0" }
+            ]
+          }
+        ]
+      },
+      {
+        "uuid" => "GHSA-fixed",
+        "identifiers" => ["GHSA-fixed"],
+        "packages" => [
+          {
+            "ecosystem" => "cargo",
+            "package_name" => "rand",
+            "versions" => [{ "vulnerable_version_range" => ">= 2.0.0" }]
+          }
+        ]
+      }
+    ])
+
+    get api_v1_registry_package_version_path(registry_id: @registry.name, package_id: @package.name, id: @version.number)
+    assert_response :success
+    assert_equal ["GHSA-affected"], Oj.load(@response.body)["advisories"].pluck("uuid")
+
+    get api_v1_registry_package_versions_path(registry_id: @registry.name, package_id: @package.name)
+    assert_response :success
+    assert_equal ["GHSA-affected"], Oj.load(@response.body).first["advisories"].pluck("uuid")
+
+    get latest_version_api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+    assert_equal ["GHSA-affected"], Oj.load(@response.body)["advisories"].pluck("uuid")
+
+    get versions_api_v1_registry_path(id: @registry.name)
+    assert_response :success
+    assert_equal ["GHSA-affected"], Oj.load(@response.body).first["advisories"].pluck("uuid")
+
+    @version.update_column(:integrity, "sha256-#{'a' * 64}")
+    get lookup_api_v1_versions_path(integrity: "sha256-#{'a' * 64}")
+    assert_response :success
+    assert_equal ["GHSA-affected"], Oj.load(@response.body).first["advisories"].pluck("uuid")
+  end
+
+  test 'version response cache validators include advisory updates' do
+    get api_v1_registry_package_version_path(registry_id: @registry.name, package_id: @package.name, id: @version.number)
+    assert_response :success
+    etag = @response.headers["ETag"]
+
+    get api_v1_registry_package_version_path(
+      registry_id: @registry.name,
+      package_id: @package.name,
+      id: @version.number
+    ), headers: { "If-None-Match" => etag }
+    assert_response :not_modified
+
+    @package.update!(advisories: [{ "uuid" => "GHSA-cache", "identifiers" => [], "packages" => [] }])
+
+    get api_v1_registry_package_version_path(
+      registry_id: @registry.name,
+      package_id: @package.name,
+      id: @version.number
+    ), headers: { "If-None-Match" => etag }
+    assert_response :success
   end
 
   test 'get recent versions' do
@@ -379,6 +480,16 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response['funder'].first['url'], 'https://github.com/sponsors/rust-random'
     assert_equal actual_response['https://www.w3.org/ns/activitystreams#likes'], 500
     assert_equal actual_response['https://forgefed.org/ns#forks'], 75
+  end
+
+  test 'get codemeta for a version with a comma separated license list' do
+    @version.update(licenses: 'MIT,BSD-3-Clause')
+
+    get codemeta_api_v1_registry_package_version_path(registry_id: @registry.name, package_id: @package.name, id: '1.0.0')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal actual_response['license'], ['https://spdx.org/licenses/MIT', 'https://spdx.org/licenses/BSD-3-Clause']
   end
 
   test 'get version numbers for pypi package with underscore in name' do

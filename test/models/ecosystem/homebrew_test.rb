@@ -69,11 +69,78 @@ class HomebrewTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
-    stub_request(:get, "https://github.com/Homebrew/homebrew-core/commits/master.atom")
-      .to_return({ status: 200, body: file_fixture('homebrew/master.atom') })
-    recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 10
-    assert_equal recently_updated_package_names.last, 'jql'
+    stub_request(:get, 'https://formulae.brew.sh/feeds/formula-new.xml')
+      .to_return(status: 200, body: file_fixture('homebrew/formula-new.xml'))
+    stub_request(:get, 'https://formulae.brew.sh/feeds/formula-updated.xml')
+      .to_return(status: 200, body: file_fixture('homebrew/formula-updated.xml'))
+
+    assert_equal ['newtool', 'python@3.13', 'renamed@1.2+', 'c++utilities'], @ecosystem.recently_updated_package_names
+    assert_not_requested(:get, 'https://github.com/Homebrew/homebrew-core/commits/main.atom')
+  end
+
+  test 'recently_updated_package_names retains the other feed when one fails' do
+    %w[new updated].each do |failed_feed|
+      stub_request(:get, "https://formulae.brew.sh/feeds/formula-#{failed_feed}.xml")
+        .to_timeout
+      other_feed = failed_feed == 'new' ? 'updated' : 'new'
+      stub_request(:get, "https://formulae.brew.sh/feeds/formula-#{other_feed}.xml")
+        .to_return(status: 200, body: file_fixture("homebrew/formula-#{other_feed}.xml"))
+
+      expected = failed_feed == 'new' ? ['newtool', 'python@3.13', 'c++utilities'] : ['newtool', 'renamed@1.2+']
+      assert_equal expected, @ecosystem.recently_updated_package_names
+      WebMock.reset!
+    end
+  end
+
+  test 'recently_updated_package_names handles empty and invalid feeds' do
+    stub_request(:get, 'https://formulae.brew.sh/feeds/formula-new.xml')
+      .to_return(status: 200, body: '<rss version="2.0"><channel><title>New Homebrew Formulae</title></channel></rss>')
+    stub_request(:get, 'https://formulae.brew.sh/feeds/formula-updated.xml')
+      .to_return(status: 503, body: 'Service unavailable')
+
+    assert_empty @ecosystem.recently_updated_package_names
+  end
+
+  test 'recent package sync queues canonical formula names from both feeds once' do
+    @registry.save!
+    stub_request(:get, 'https://formulae.brew.sh/feeds/formula-new.xml')
+      .to_return(status: 200, body: file_fixture('homebrew/formula-new.xml'))
+    stub_request(:get, 'https://formulae.brew.sh/feeds/formula-updated.xml')
+      .to_return(status: 200, body: file_fixture('homebrew/formula-updated.xml'))
+    SyncPackageWorker.clear
+
+    @registry.sync_recently_updated_packages_async
+
+    assert_equal [
+      [@registry.id, 'newtool', true],
+      [@registry.id, 'python@3.13', true],
+      [@registry.id, 'renamed@1.2+', true],
+      [@registry.id, 'c++utilities', true]
+    ], SyncPackageWorker.jobs.map { |job| job['args'] }
+  ensure
+    SyncPackageWorker.clear
+  end
+
+  test 'recent package sync queues all 550 feed entries newest first' do
+    @registry.save!
+    %w[new updated].each do |type|
+      count = type == 'new' ? 50 : 500
+      start = type == 'new' ? Time.utc(2026, 1, 1) : Time.utc(2026, 1, 2)
+      items = count.times.to_a.reverse.map do |i|
+        "<item><link>https://formulae.brew.sh/formula/#{type}-#{i}</link><pubDate>#{(start + i).rfc2822}</pubDate></item>"
+      end.join
+      stub_request(:get, "https://formulae.brew.sh/feeds/formula-#{type}.xml")
+        .to_return(status: 200, body: "<rss version=\"2.0\"><channel>#{items}</channel></rss>")
+    end
+    SyncPackageWorker.clear
+
+    @registry.sync_recently_updated_packages_async
+
+    expected = 500.times.to_a.reverse.map { |i| [@registry.id, "updated-#{i}", true] } +
+      50.times.to_a.reverse.map { |i| [@registry.id, "new-#{i}", true] }
+    assert_equal expected, SyncPackageWorker.jobs.map { |job| job['args'] }
+  ensure
+    SyncPackageWorker.clear
   end
 
   test 'package_metadata' do

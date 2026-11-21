@@ -17,6 +17,16 @@ class UrlParserTest < ActiveSupport::TestCase
     end
   end
 
+  test 'parses URL lists containing long separator runs without excessive backtracking' do
+    previous_timeout = Regexp.timeout
+    Regexp.timeout = 0.1
+    urls = "https://example.com/#{"\t" * 20_000}x; https://github.com/owner/project"
+
+    assert_equal 'https://github.com/owner/project', UrlParser.try_all(urls)
+  ensure
+    Regexp.timeout = previous_timeout
+  end
+
   test 'selects the first parseable repository in URL order' do
     urls = 'https://example.com/docs, https://gitlab.com/group/project, https://github.com/other/project'
     assert_equal 'https://gitlab.com/group/project', UrlParser.try_all(urls)

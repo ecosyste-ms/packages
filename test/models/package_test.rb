@@ -168,6 +168,51 @@ class PackageTest < ActiveSupport::TestCase
     assert_equal ["Apache-2.0"], package.normalized_licenses
   end
 
+  test 'normalize_licenses maps ASF and ASL short names to Apache-2.0' do
+    ['ASF 2.0', 'ASF2.0', 'ASF-2.0', 'ASL 2', 'AL 2.0'].each do |licenses|
+      package = Package.new(licenses: licenses)
+      package.normalize_licenses
+      assert_equal ['Apache-2.0'], package.normalized_licenses, licenses
+    end
+  end
+
+  test 'normalize_licenses uses the exact SPDX id for short names followed by a version' do
+    { 'Apache 2.0' => 'Apache-2.0', 'EPL 2.0' => 'EPL-2.0', 'MPL 1.1' => 'MPL-1.1', 'CC0 1.0' => 'CC0-1.0',
+      'Artistic 2.0' => 'Artistic-2.0', 'EUPL 1.2' => 'EUPL-1.2' }.each do |licenses, expected|
+      package = Package.new(licenses: licenses)
+      package.normalize_licenses
+      assert_equal [expected], package.normalized_licenses, licenses
+    end
+  end
+
+  test 'normalize_licenses keeps the classpath exception in GPL2 w/ CPE' do
+    package = Package.new(licenses: 'CDDL 1.1,GPL2 w/ CPE')
+    package.normalize_licenses
+    assert_equal ['CDDL-1.1', 'GPL-2.0-with-classpath-exception'], package.normalized_licenses
+  end
+
+  test 'normalize_licenses maps the Eclipse Distribution License to BSD-3-Clause' do
+    ['Eclipse Distribution License - v 1.0', 'Eclipse Distribution License v1.0', 'EDL 1.0', 'EDL v1.0'].each do |licenses|
+      package = Package.new(licenses: licenses)
+      package.normalize_licenses
+      assert_equal ['BSD-3-Clause'], package.normalized_licenses, licenses
+    end
+  end
+
+  test 'normalize_licenses does not map other Eclipse Distribution License versions to BSD-3-Clause' do
+    ['EDL v11.0', 'EDL 2.1.0'].each do |licenses|
+      package = Package.new(licenses: licenses)
+      package.normalize_licenses
+      assert_not_includes package.normalized_licenses, 'BSD-3-Clause', licenses
+    end
+  end
+
+  test 'normalize_licenses still splits slash separated licenses' do
+    package = Package.new(licenses: 'MIT/Apache-2.0')
+    package.normalize_licenses
+    assert_equal ['MIT', 'Apache-2.0'], package.normalized_licenses
+  end
+
   test 'set_latest_release_published_at' do
     @package.set_latest_release_published_at
     assert_equal @package.latest_release_published_at, @version2.published_at
@@ -198,6 +243,129 @@ class PackageTest < ActiveSupport::TestCase
     package.set_latest_release_number
 
     assert_equal '2026.4', package.latest_release_number
+  end
+
+  test 'set_latest_published_release_number exposes the newest version when all versions are deprecated' do
+    package = @registry.packages.create!(name: 'all-deprecated', ecosystem: 'rubygems')
+    package.versions.create!(number: '1.0.0', published_at: 2.years.ago, status: 'deprecated')
+    package.versions.create!(number: '2.0.0', published_at: 1.year.ago, status: 'deprecated')
+
+    package.set_latest_published_release_number
+
+    assert_nil package.latest_release_number
+    assert_equal '2.0.0', package.latest_published_release_number
+  end
+
+  test 'set_latest_published_release_number keeps pointing at the active latest version for mixed packages' do
+    package = @registry.packages.create!(name: 'mixed', ecosystem: 'rubygems')
+    package.versions.create!(number: '1.0.0', published_at: 3.years.ago, status: 'deprecated')
+    package.versions.create!(number: '2.0.0', published_at: 1.month.ago)
+
+    package.set_latest_published_release_number
+    package.set_latest_release_number
+
+    assert_equal '2.0.0', package.latest_release_number
+    assert_equal '2.0.0', package.latest_published_release_number
+  end
+
+  test 'set_latest_published_release_number stays nil for packages with no versions' do
+    package = @registry.packages.create!(name: 'empty', ecosystem: 'rubygems')
+
+    package.set_latest_published_release_number
+
+    assert_nil package.latest_published_release_number
+  end
+
+  test 'set_latest_published_release_number skips opam archived versions' do
+    registry = Registry.create!(name: 'opam.ocaml.org', url: 'https://opam.ocaml.org', ecosystem: 'opam')
+    package = registry.packages.create!(name: 'archived-pkg', ecosystem: 'opam')
+    package.versions.create!(number: '1.0.0', published_at: 2.years.ago, metadata: { 'archived' => true })
+    package.versions.create!(number: '0.9.0', published_at: 3.years.ago)
+
+    package.set_latest_published_release_number
+
+    assert_equal '0.9.0', package.latest_published_release_number
+  end
+
+  test 'set_latest_release_published_at uses the newest version when all versions are deprecated' do
+    package = @registry.packages.create!(name: 'all-deprecated', ecosystem: 'rubygems')
+    package.versions.create!(number: '1.0.0', published_at: 2.years.ago, status: 'deprecated')
+    newest = package.versions.create!(number: '2.0.0', published_at: 1.year.ago, status: 'deprecated')
+
+    package.set_latest_release_published_at
+    package.set_latest_release_number
+
+    assert_equal newest.published_at, package.latest_release_published_at
+    assert_nil package.latest_release_number
+  end
+
+  test 'set_latest_release_published_at keeps the active latest version for mixed packages' do
+    package = @registry.packages.create!(name: 'mixed', ecosystem: 'rubygems')
+    active = package.versions.create!(number: '1.0.0', published_at: 1.month.ago)
+    package.versions.create!(number: '2.0.0', published_at: 1.week.ago, status: 'deprecated')
+
+    package.set_latest_release_published_at
+
+    assert_equal active.published_at, package.latest_release_published_at
+  end
+
+  test 'set_latest_release_published_at does not borrow a deprecated version date when the active latest is undated' do
+    package = @registry.packages.create!(name: 'undated', ecosystem: 'rubygems')
+    active = package.versions.create!(number: '1.0.0', published_at: nil)
+    deprecated = package.versions.create!(number: '2.0.0', published_at: 1.week.ago, status: 'deprecated')
+
+    package.set_latest_release_published_at
+
+    assert_equal active.reload.published_at, package.latest_release_published_at
+    assert_not_equal deprecated.published_at, package.latest_release_published_at
+  end
+
+  test 'set_latest_release_published_at falls back to updated_at for packages with no versions' do
+    package = @registry.packages.create!(name: 'empty', ecosystem: 'rubygems')
+
+    package.set_latest_release_published_at
+
+    assert_equal package.updated_at, package.latest_release_published_at
+  end
+
+  test 'set_latest_release_published_at stays put across repeated syncs of an all-deprecated package' do
+    package = @registry.packages.create!(name: 'deprecated-everywhere', ecosystem: 'rubygems')
+    older = package.versions.create!(number: '0.11.29', published_at: Time.utc(2024, 6, 1), status: 'deprecated')
+
+    2.times do
+      travel 1.day
+      Package.find(package.id).update_details
+      assert_equal older.published_at, package.reload.latest_release_published_at
+    end
+
+    newest = package.versions.create!(number: '0.11.30', published_at: Time.utc(2025, 1, 28), status: 'deprecated')
+    travel 1.day
+    Package.find(package.id).update_details
+    assert_equal newest.published_at, package.reload.latest_release_published_at
+  end
+
+  test 'set_latest_release_published_at uses the newest archived release when every opam release is archived' do
+    registry = Registry.create!(name: 'opam.ocaml.org', url: 'https://opam.ocaml.org', ecosystem: 'opam')
+    package = registry.packages.create!(name: 'all-archived', ecosystem: 'opam')
+    package.versions.create!(number: '1.0.0', published_at: 3.years.ago, metadata: { 'archived' => true })
+    newest = package.versions.create!(number: '2.0.0', published_at: 2.years.ago, metadata: { 'archived' => true })
+
+    package.set_latest_release_published_at
+
+    assert_equal newest.published_at, package.latest_release_published_at
+  end
+
+  test 'set_latest_release_published_at keeps matching latest_published_release_number when the newest opam release is archived' do
+    registry = Registry.create!(name: 'opam.ocaml.org', url: 'https://opam.ocaml.org', ecosystem: 'opam')
+    package = registry.packages.create!(name: 'partly-archived', ecosystem: 'opam')
+    kept = package.versions.create!(number: '1.0.0', published_at: 3.years.ago, status: 'deprecated')
+    package.versions.create!(number: '2.0.0', published_at: 2.years.ago, status: 'deprecated', metadata: { 'archived' => true })
+
+    package.set_latest_release_published_at
+    package.set_latest_published_release_number
+
+    assert_equal kept.published_at, package.latest_release_published_at
+    assert_equal '1.0.0', package.latest_published_release_number
   end
 
   test 'install_command' do
@@ -515,6 +683,38 @@ class PackageTest < ActiveSupport::TestCase
   test 'Package.purl class method skips invalid purls' do
     result = Package.purl(['pkg:gem/foo', 'invalid-purl'])
     assert_includes result, @package
+  end
+
+  test 'Package.purl class method resolves cocoapods subspec purls to the root pod' do
+    cocoapods_registry = Registry.create(name: 'cocoapods.org', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+    root = cocoapods_registry.packages.create(name: 'KSCrash', ecosystem: 'cocoapods')
+
+    result = Package.purl(['pkg:cocoapods/KSCrash%2FReporting%2FFilters', 'pkg:cocoapods/KSCrash/Reporting'])
+
+    assert_equal [root.id], result.pluck(:id)
+  end
+
+  test 'dependency_package_id resolves cocoapods subspecs within the owning registry' do
+    registry = Registry.create(name: 'cocoapods.org', url: 'https://cocoapods.org', ecosystem: 'cocoapods')
+    root = registry.packages.create(name: 'Firebase', ecosystem: 'cocoapods')
+
+    other = Registry.create(name: 'other-cocoapods', url: 'https://pods.example', ecosystem: 'cocoapods')
+    other.packages.create(name: 'Firebase', ecosystem: 'cocoapods')
+    other.packages.create(name: 'OtherPod', ecosystem: 'cocoapods')
+
+    assert_equal root.id, Package.dependency_package_id(registry.id, 'cocoapods', 'Firebase/Analytics')
+    assert_equal root.id, Package.dependency_package_id(registry.id, 'cocoapods', 'Firebase/Core/Nested')
+    assert_nil Package.dependency_package_id(registry.id, 'cocoapods', 'firebase/Analytics')
+    assert_nil Package.dependency_package_id(registry.id, 'cocoapods', 'OtherPod/Analytics')
+  end
+
+  test 'Package.purl class method preserves exact SwiftPM names' do
+    swiftpm_registry = Registry.create(name: 'swiftpm', url: 'https://swiftpm.dev', ecosystem: 'swiftpm')
+    package = swiftpm_registry.packages.create(name: 'github.com/groue/GRDB.swift', ecosystem: 'swiftpm')
+
+    result = Package.purl('pkg:swift/github.com/groue/GRDB.swift')
+
+    assert_equal [package.id], result.pluck(:id)
   end
 
   test 'Package.purl class method handles docker purl without namespace' do
@@ -946,5 +1146,78 @@ class PackageTest < ActiveSupport::TestCase
     packages.each { |package| package.reload.update_rankings }
 
     packages.each { |package| assert_equal 100, package.reload.rankings["average"] }
+  end
+
+  test 'destroy deletes versions and their dependencies and detaches dependents' do
+    registry = Registry.create!(name: 'crates.io', url: 'https://crates.io', ecosystem: 'cargo')
+    package = registry.packages.create!(name: 'doomed', ecosystem: 'cargo')
+    other = registry.packages.create!(name: 'survivor', ecosystem: 'cargo')
+    doomed_versions = %w[1.0.0 2.0.0].map { |number| package.versions.create!(number: number) }
+    doomed_versions.each { |version| version.dependencies.create!(ecosystem: 'cargo', package_name: 'survivor', package: other, requirements: '*') }
+    other_version = other.versions.create!(number: '1.0.0')
+    dependent = other_version.dependencies.create!(ecosystem: 'cargo', package_name: 'doomed', package: package, requirements: '*')
+    unrelated = other_version.dependencies.create!(ecosystem: 'cargo', package_name: 'serde', requirements: '*')
+
+    assert_difference -> { Version.count } => -2, -> { Dependency.count } => -2 do
+      package.destroy!
+    end
+
+    assert_not Version.exists?(id: doomed_versions.map(&:id))
+    assert_not Dependency.exists?(version_id: doomed_versions.map(&:id))
+    assert_nil dependent.reload.package_id
+    assert_equal 'doomed', dependent.package_name
+    assert_equal other_version, dependent.version
+    assert unrelated.reload
+    assert_equal [other_version], other.versions.reload.to_a
+  end
+
+  context 'fetch_readme' do
+    setup do
+      registry = Registry.create!(name: 'carthage', url: 'https://github.com/Carthage/Carthage', ecosystem: 'carthage')
+      @package = registry.packages.create!(name: 'readme-pkg', ecosystem: 'carthage',
+                                           repo_metadata: { 'metadata' => { 'files' => { 'readme' => 'README.md' } } })
+      @download_url = 'https://codeload.github.com/example/readme-pkg/tar.gz/refs/heads/master?token=a&b=c'
+      @package.stubs(:download_url).returns(@download_url)
+      @readme_api = 'https://archives.ecosyste.ms/api/v1/archives/readme'
+    end
+
+    should 'fetch the readme with the download url encoded as a query param' do
+      readme = { 'plain' => 'Hello', 'name' => 'README.md' }
+      request = stub_request(:get, @readme_api).with(query: { url: @download_url })
+                                               .to_return(status: 200, body: readme.to_json, headers: { 'Content-Type' => 'application/json' })
+
+      assert_equal readme, @package.fetch_readme
+      assert_requested request
+    end
+
+    should 'return nil without a request when repo_metadata is blank' do
+      @package.repo_metadata = nil
+
+      assert_nil @package.fetch_readme
+      assert_not_requested :get, /archives\.ecosyste\.ms/
+    end
+
+    should 'return nil without a request when metadata or files are missing' do
+      [{ 'full_name' => 'example/readme-pkg' }, { 'metadata' => {} }, { 'metadata' => { 'files' => {} } },
+       { 'metadata' => { 'files' => { 'readme' => '' } } }].each do |repo_metadata|
+        @package.repo_metadata = repo_metadata
+
+        assert_nil @package.fetch_readme
+      end
+      assert_not_requested :get, /archives\.ecosyste\.ms/
+    end
+
+    should 'return nil without a request when there is no download url' do
+      @package.stubs(:download_url).returns(nil)
+
+      assert_nil @package.fetch_readme
+      assert_not_requested :get, /archives\.ecosyste\.ms/
+    end
+
+    should 'return nil when the archives request fails' do
+      stub_request(:get, @readme_api).with(query: hash_including({})).to_return(status: 500)
+
+      assert_nil @package.fetch_readme
+    end
   end
 end

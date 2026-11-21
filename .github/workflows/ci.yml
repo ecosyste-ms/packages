@@ -49,7 +49,7 @@ jobs:
       - name: Install dependent libraries
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libpq-dev
       - name: Set up Ruby
-        uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1.327.0
+        uses: ruby/setup-ruby@f9c4492e86def3e644ab32a0ef185eda5b0c20d0 # v1.342.0
         with:
           bundler-cache: true
 

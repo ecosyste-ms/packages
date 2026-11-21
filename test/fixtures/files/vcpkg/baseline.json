@@ -1,0 +1,24 @@
+{
+  "default": {
+    "7zip": {
+      "baseline": "26.6",
+      "port-version": 0
+    },
+    "gz-common": {
+      "baseline": "6.3.0",
+      "port-version": 1
+    },
+    "gz-math": {
+      "baseline": "8.3.0",
+      "port-version": 0
+    },
+    "zlib": {
+      "baseline": "1.4",
+      "port-version": 0
+    },
+    "zziplib": {
+      "baseline": "0.13.80",
+      "port-version": 0
+    }
+  }
+}

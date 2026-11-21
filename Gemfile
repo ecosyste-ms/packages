@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby '4.0.7'
+ruby '4.0.10'
 
 # Rails components
 gem "activemodel", "~> 8.1.1"
@@ -39,8 +39,8 @@ gem 'rack-cors'
 gem 'rswag-api'
 gem 'rswag-ui'
 gem 'spdx', '2.0.12'
-gem "semantic"
 gem "semantic_range"
+gem "vers", github: "andrew/vers", branch: "main"
 gem "sanitize-url"
 gem "toml-rb"
 gem "chartkick"

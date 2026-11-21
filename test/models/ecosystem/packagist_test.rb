@@ -2,6 +2,17 @@ require "test_helper"
 
 class PackagistTest < ActiveSupport::TestCase
   setup do
+    Rails.stubs(:cache).returns(ActiveSupport::Cache::MemoryStore.new)
+    {
+      'psr/log' => 'log.json.1',
+      'maztech/instagram-php-graph-sdk' => 'instagram-php-graph-sdk.json.1',
+      'intervention/image' => 'intervention-image.json'
+    }.each do |name, fixture|
+      versions = JSON.parse(file_fixture("packagist/#{fixture}").read).fetch('package').fetch('versions').values
+      versions.reject! { |v| v['version'].match?(/^dev-|\.x-dev$/i) }
+      stub_request(:get, "https://repo.packagist.org/p2/#{name}.json")
+        .to_return(status: 200, body: {packages: {name => versions}}.to_json, headers: {'Last-Modified' => Time.utc(2026, 11, 1).httpdate})
+    end
     @registry = Registry.new(default: true, name: 'Packagist.org', url: 'https://packagist.org', ecosystem: 'Packagist')
     @ecosystem = Ecosystem::Packagist.new(@registry)
     @package = Package.new(ecosystem: 'Packagist', name: 'psr/log')
@@ -70,13 +81,12 @@ class PackagistTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names' do
-    stub_request(:get, "https://packagist.org/feeds/releases.rss")
-      .to_return({ status: 200, body: file_fixture('packagist/releases.rss') })
-    stub_request(:get, "https://packagist.org/feeds/packages.rss")
-    .to_return({ status: 200, body: file_fixture('packagist/packages.rss') })
-    recently_updated_package_names = @ecosystem.recently_updated_package_names
-    assert_equal recently_updated_package_names.length, 75
-    assert_equal recently_updated_package_names.last, 'pringuin/pimcore-lucene-search'
+    stub_request(:get, %r{https://packagist.org/metadata/changes.json\?since=\d+})
+      .to_return(body: {timestamp: Time.current.to_i * 10_000, actions: [
+        {type: 'update', package: 'psr/log', time: Time.current.to_i},
+        {type: 'update', package: 'psr/log~dev', time: Time.current.to_i}
+      ]}.to_json)
+    assert_equal ['psr/log'], @ecosystem.recently_updated_package_names
   end
 
   test 'package_metadata' do
@@ -128,6 +138,20 @@ class PackagistTest < ActiveSupport::TestCase
     ]
   end
 
+  test 'platform names accept separated components and reject malformed suffixes' do
+    %w[ext-0 ext-pdo_mysql EXT-ZEND-OPCACHE lib-curl lib-icu.72 lib-a_b.c-d].each do |name|
+      assert @ecosystem.platform_package?(name), name
+    end
+    %w[ext- ext-_json ext-json_ lib-icu..72 lib-a_-b ext-json/package composer/composer].each do |name|
+      refute @ecosystem.platform_package?(name), name
+    end
+    %w[ext lib].each do |prefix|
+      name = "#{prefix}-#{'0' * 10_000}"
+      assert @ecosystem.platform_package?(name)
+      refute @ecosystem.platform_package?("#{name}!")
+    end
+  end
+
   test 'maintainer_url' do 
     assert_equal @ecosystem.maintainer_url(@maintainer), 'https://packagist.org/users/foo'
   end
@@ -142,6 +166,7 @@ class PackagistTest < ActiveSupport::TestCase
     assert_equal first_version[:number], "3.8.0"
     assert_equal first_version[:metadata][:php_version], "^8.1"
     assert_equal first_version[:metadata][:platform_requirements], {
+      "php" => "^8.1",
       "ext-mbstring" => "*"
     }
     assert_equal first_version[:metadata][:suggest], {
@@ -152,22 +177,161 @@ class PackagistTest < ActiveSupport::TestCase
     assert first_version[:metadata][:extra].key?("laravel")
   end
 
-  test 'check_status reuses memoized metadata without extra HTTP request' do
-    stub_request(:get, "https://packagist.org/packages/psr/log.json")
-      .to_return({ status: 200, body: file_fixture('packagist/log.json.1') })
-    stub_request(:get, "https://repo.packagist.org/p2/psr/log~dev.json")
-      .to_return({ status: 200, body: '{"packages":{"psr/log":[{"version":"dev-master"}]}}' })
+  test 'status worker syncs explicit status without a development or HEAD request' do
+    registry = packagist_sync_registry
+    package = registry.packages.create!(name: 'psr/log', ecosystem: 'packagist', status: 'abandoned')
 
-    # Fetch metadata first to populate the cache
-    @ecosystem.package_metadata('psr/log')
+    CheckPackageStatusWorker.new.perform(registry.id, package.id)
 
-    # check_status should reuse cached data, skipping the HEAD request
-    status = @ecosystem.check_status(@package)
-    assert_nil status
+    assert_equal 'active', package.reload[:status]
+    assert_requested(:get, 'https://packagist.org/packages/psr/log.json', times: 1)
+    assert_not_requested(:get, 'https://repo.packagist.org/p2/psr/log~dev.json')
+    assert_not_requested(:head, 'https://packagist.org/packages/psr/log')
+  end
 
-    # The packages API should only have been called once (for the initial fetch)
-    assert_requested(:get, "https://packagist.org/packages/psr/log.json", times: 1)
-    # The HEAD request to registry URL should NOT have been made
-    assert_not_requested(:head, "https://packagist.org/packages/psr/log")
+  test 'sync worker imports current p2 releases while retaining cached package enrichment' do
+    registry = packagist_sync_registry
+    modified = 'Wed, 11 Sep 2024 13:21:14 GMT'
+    stub_request(:get, 'https://repo.packagist.org/p2/psr/log.json')
+      .to_return(status: 200, body: file_fixture('packagist/log.p2.json'), headers: {'Last-Modified' => modified})
+    package = SyncPackageWorker.new.perform(registry.id, 'psr/log', true)
+
+    assert_equal '3.0.2', package.reload.latest_release_number
+    assert_equal 12, package.versions.count
+    assert_equal '>=8.0.0', package.versions.find_by!(number: '3.0.2').metadata['php_version']
+    assert_equal 'MIT', package.licenses
+    assert_equal 566842099, package.downloads
+    assert_equal %w[Seldaek fig michaelcullum], package.maintainers.pluck(:login).sort
+    oldest = package.versions.find_by!(number: '1.0.0')
+    assert_nil oldest.metadata['extra']
+    assert_nil oldest.metadata['php_version']
+    assert_equal({'psr-0' => {'Psr\\Log\\' => ''}}, oldest.metadata['autoload'])
+
+    stub_request(:get, 'https://repo.packagist.org/p2/psr/log.json')
+      .with(headers: {'If-Modified-Since' => modified})
+      .to_return(status: 304)
+    assert_instance_of Package, SyncPackageWorker.new.perform(registry.id, 'psr/log', true)
+    assert_equal 12, package.versions.count
+    assert_requested(:get, 'https://packagist.org/packages/psr/log.json', times: 1)
+    assert_requested(:get, 'https://repo.packagist.org/p2/psr/log.json', headers: {'If-Modified-Since' => modified}, times: 1)
+  end
+
+  test 'sync worker does not fall back to stale versions after a p2 failure' do
+    registry = packagist_sync_registry
+    stub_request(:get, 'https://repo.packagist.org/p2/psr/log.json')
+      .to_return(status: 200, body: file_fixture('packagist/log.p2.json'), headers: {'Last-Modified' => Time.utc(2026, 11, 1).httpdate})
+    package = SyncPackageWorker.new.perform(registry.id, 'psr/log', true)
+    synced_at = package.reload.last_synced_at
+
+    stub_request(:get, 'https://repo.packagist.org/p2/psr/log.json').to_return(status: 503)
+    travel 1.hour do
+      error = assert_raises(RuntimeError) { SyncPackageWorker.new.perform(registry.id, 'psr/log', true) }
+      assert_includes error.message, 'HTTP 503'
+    end
+    assert_equal synced_at, package.reload.last_synced_at
+    assert_equal 12, package.versions.count
+  end
+
+  test 'sync worker rejects invalid p2 snapshots without caching them' do
+    registry = packagist_sync_registry
+    invalid = [
+      ['not json', JSON::ParserError],
+      [{packages: {}}, KeyError],
+      [{packages: {'psr/log' => {}}}, RuntimeError],
+      [{packages: {'psr/log' => [{'version' => ''}]}}, RuntimeError],
+      [{minified: 'unknown', packages: {'psr/log' => []}}, RuntimeError]
+    ]
+    invalid.each do |body, error_class|
+      stub_request(:get, 'https://repo.packagist.org/p2/psr/log.json')
+        .to_return(status: 200, body: body.is_a?(String) ? body : body.to_json)
+      assert_raises(error_class) { SyncPackageWorker.new.perform(registry.id, 'psr/log', true) }
+      assert_nil Rails.cache.read(['packagist', 'tagged_versions', 'psr/log'])
+      assert_empty registry.packages
+    end
+  end
+
+  test 'by-id sync propagates p2 failures without checking status or advancing the cooldown' do
+    registry = packagist_sync_registry
+    package = registry.packages.create!(name: 'psr/log', ecosystem: 'packagist', last_synced_at: 2.days.ago)
+    synced_at = package.reload.last_synced_at
+    next_sync_at = package.next_sync_at
+    version = package.versions.create!(number: '3.0.0')
+    request = stub_request(:get, 'https://repo.packagist.org/p2/psr/log.json')
+
+    request.to_return(status: 503)
+    error = assert_raises(RuntimeError) { SyncPackageByIdWorker.new.perform(registry.id, package.id) }
+    assert_includes error.message, 'HTTP 503'
+    assert_equal synced_at, package.reload.last_synced_at
+
+    request.to_timeout
+    assert_raises(Faraday::TimeoutError) { SyncPackageByIdWorker.new.perform(registry.id, package.id) }
+    assert_equal synced_at, package.reload.last_synced_at
+
+    request.to_return(status: 200, body: 'not json')
+    assert_raises(JSON::ParserError) { SyncPackageByIdWorker.new.perform(registry.id, package.id) }
+    assert_equal synced_at, package.reload.last_synced_at
+    assert_equal next_sync_at, package.next_sync_at
+    assert_equal 'active', package[:status]
+    assert_equal [version.id], package.versions.pluck(:id)
+    assert_not_requested(:get, 'https://repo.packagist.org/p2/psr/log~dev.json')
+
+    request.to_return(status: 200, body: file_fixture('packagist/log.p2.json'), headers: {'Last-Modified' => Time.utc(2026, 11, 1).httpdate})
+    SyncPackageByIdWorker.new.perform(registry.id, package.id)
+    assert_operator package.reload.last_synced_at, :>, synced_at
+    assert_equal '3.0.2', package.latest_release_number
+    assert_equal 12, package.versions.count
+  end
+
+  test 'by-id sync still checks removal when package enrichment returns not found' do
+    registry = packagist_sync_registry
+    package = registry.packages.create!(name: 'psr/log', ecosystem: 'packagist', last_synced_at: 2.days.ago)
+    stub_request(:get, 'https://packagist.org/packages/psr/log.json')
+      .to_return(status: 404, body: {status: 'error', message: 'Package not found'}.to_json)
+    stub_request(:head, 'https://packagist.org/packages/psr/log').to_return(status: 404)
+
+    SyncPackageByIdWorker.new.perform(registry.id, package.id)
+    assert_equal 'removed', package.reload[:status]
+    assert_not_requested(:get, 'https://repo.packagist.org/p2/psr/log.json')
+  end
+
+  test 'sync worker preserves development-only packages with no tagged releases' do
+    registry = packagist_sync_registry
+    data = JSON.parse(file_fixture('packagist/log.json.1').read)
+    data['package']['versions'].select! { |number, _| number == 'dev-master' }
+    stub_request(:get, 'https://packagist.org/packages/psr/log.json').to_return(status: 200, body: data.to_json)
+    stub_request(:get, 'https://repo.packagist.org/p2/psr/log.json')
+      .to_return(status: 200, body: {minified: 'composer/2.0', packages: {'psr/log' => []}}.to_json, headers: {'Last-Modified' => Time.utc(2026, 11, 1).httpdate})
+
+    package = SyncPackageWorker.new.perform(registry.id, 'psr/log', true)
+    assert_equal 'psr/log', package.name
+    assert_equal 0, package.versions.count
+    assert_equal 'MIT', package.licenses
+    assert_equal 3, package.maintainers.count
+  end
+
+  test 'sync worker refreshes enrichment after its cache expires' do
+    registry = packagist_sync_registry
+    SyncPackageWorker.new.perform(registry.id, 'psr/log', true)
+    data = JSON.parse(file_fixture('packagist/log.json.1').read)
+    data['package']['downloads']['total'] = 600000000
+    stub_request(:get, 'https://packagist.org/packages/psr/log.json').to_return(status: 200, body: data.to_json)
+
+    travel 13.hours do
+      package = SyncPackageWorker.new.perform(registry.id, 'psr/log', true)
+      assert_equal 600000000, package.reload.downloads
+    end
+    assert_requested(:get, 'https://packagist.org/packages/psr/log.json', times: 2)
+  end
+
+  def packagist_sync_registry
+    registry = Registry.create!(name: 'packagist.org', url: 'https://packagist.org', ecosystem: 'packagist', default: true)
+    LiveEvent.stubs(:enabled?).returns(false)
+    Package.any_instance.stubs(:update_repo_metadata_async)
+    Package.any_instance.stubs(:update_dependent_repos_count_async)
+    stub_request(:get, 'https://packagist.org/packages/psr/log.json')
+      .to_return(status: 200, body: file_fixture('packagist/log.json.1'))
+    stub_request(:get, 'https://repo.packagist.org/p2/psr/log~dev.json')
+      .to_return(status: 200, body: {packages: {'psr/log' => [{'version' => 'dev-master'}]}}.to_json)
+    registry
   end
 end

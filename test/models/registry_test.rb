@@ -19,6 +19,30 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal ['0.3.0'], package.versions.pluck(:number)
   end
 
+  test 'resyncing a package with a yanked version keeps its created_at' do
+    registry = Registry.create!(name: 'crates.io', url: 'https://crates.io', ecosystem: 'cargo')
+    ecosystem = registry.ecosystem_instance
+    ecosystem.stubs(:package_metadata).returns({ name: 'foo', description: 'foo' })
+    ecosystem.stubs(:versions_metadata).returns([
+      { number: '1.0.0', published_at: 2.years.ago, status: nil },
+      { number: '0.9.0', published_at: 3.years.ago, status: 'yanked' }
+    ])
+    ecosystem.stubs(:dependencies_metadata).returns([])
+    Package.any_instance.stubs(:update_repo_metadata_async)
+    Package.any_instance.stubs(:sync_maintainers_async)
+    Package.any_instance.stubs(:check_status)
+
+    registry.sync_package('foo', force: true)
+    package = registry.packages.find_by!(name: 'foo')
+    original = package.versions.pluck(:number, :created_at).to_h
+
+    travel 1.day do
+      registry.sync_package('foo', force: true)
+    end
+
+    assert_equal original, package.versions.reload.pluck(:number, :created_at).to_h
+  end
+
   context 'associations' do
     should have_many(:packages)
     should have_many(:versions)
@@ -48,6 +72,18 @@ class RegistryTest < ActiveSupport::TestCase
     ecosystem.expects(:recently_updated_package_names).returns(['oj', 'rake', 'json'])
     recently_updated_package_names = @registry.recently_updated_package_names
     assert_equal recently_updated_package_names, ['oj', 'rake', 'json']
+  end
+
+  test 'recent package sync keeps the default 100 name limit for other ecosystems' do
+    names = 101.times.map { |i| "package-#{i}" }
+    @registry.ecosystem_instance.expects(:recently_updated_package_names).returns(names)
+    SyncPackageWorker.clear
+
+    @registry.sync_recently_updated_packages_async
+
+    assert_equal names.first(100).map { |name| [@registry.id, name, true] }, SyncPackageWorker.jobs.map { |job| job['args'] }
+  ensure
+    SyncPackageWorker.clear
   end
 
   test 'missing_package_names' do
@@ -140,13 +176,13 @@ class RegistryTest < ActiveSupport::TestCase
   end
   
   test 'sync_recently_updated_packages_async' do
-    @registry.expects(:recently_updated_package_names_excluding_recently_synced).returns(['foo', 'bar', 'baz'])
+    @registry.expects(:recently_updated_package_names).returns(['foo', 'bar', 'baz'])
     @registry.expects(:sync_packages_async).with(['foo', 'bar', 'baz'], period: 15.minutes, force: true)
     @registry.sync_recently_updated_packages_async
   end
 
   test 'sync_recently_updated_packages_async passes period through' do
-    @registry.expects(:recently_updated_package_names_excluding_recently_synced).returns(['foo'])
+    @registry.expects(:recently_updated_package_names).returns(['foo'])
     @registry.expects(:sync_packages_async).with(['foo'], period: 5.minutes, force: true)
     @registry.sync_recently_updated_packages_async(period: 5.minutes)
   end
@@ -177,8 +213,19 @@ class RegistryTest < ActiveSupport::TestCase
 
   test 'recent update syncs retain the registry budget when forcing workers' do
     @registry.rate_limit = 1
-    @registry.expects(:recently_updated_package_names_excluding_recently_synced).returns(%w[a b c d])
+    @registry.expects(:recently_updated_package_names).returns(%w[a b c d])
     SyncPackageWorker.expects(:perform_bulk).with([[@registry.id, 'a', true], [@registry.id, 'b', true]])
+
+    @registry.sync_recently_updated_packages_async(period: 2.seconds)
+  end
+
+  test 'deferred release refreshes count toward the registry budget' do
+    @registry.save!
+    @registry.rate_limit = 1
+    package = @registry.packages.create!(name: 'a', ecosystem: @registry.ecosystem, last_synced_at: 5.minutes.ago)
+    @registry.expects(:recently_updated_package_names).returns(%w[a b c d])
+    SyncPackageWorker.expects(:perform_at).with(package.last_synced_at + 10.minutes, @registry.id, 'a', true)
+    SyncPackageWorker.expects(:perform_bulk).with([[@registry.id, 'b', true]])
 
     @registry.sync_recently_updated_packages_async(period: 2.seconds)
   end
@@ -187,6 +234,22 @@ class RegistryTest < ActiveSupport::TestCase
     assert_nil @registry.rate_limit
     SyncPackageWorker.expects(:perform_bulk).with([[@registry.id, "a"], [@registry.id, "b"], [@registry.id, "c"]])
     @registry.sync_packages_async(%w[a b c], period: 1.second)
+  end
+
+  test 'sync_package removes the misnamed record with its versions and dependencies' do
+    registry = Registry.create!(name: 'swiftpackageindex.com', url: 'https://swiftpackageindex.com', ecosystem: 'swiftpm')
+    canonical = registry.packages.create!(name: 'github.com/ggerganov/llama.cpp', ecosystem: 'swiftpm', last_synced_at: 1.hour.ago)
+    misnamed = registry.packages.create!(name: 'github.com/ggerganov/llama.cpp/', ecosystem: 'swiftpm')
+    version = misnamed.versions.create!(number: 'b1000')
+    version.dependencies.create!(ecosystem: 'swiftpm', package_name: 'github.com/apple/swift-syntax', requirements: '*')
+    registry.ecosystem_instance.stubs(:package_metadata).with('github.com/ggerganov/llama.cpp/').returns({ name: 'github.com/ggerganov/llama.cpp' })
+
+    registry.sync_package('github.com/ggerganov/llama.cpp/')
+
+    assert_not Package.exists?(misnamed.id)
+    assert_not Version.exists?(version.id)
+    assert_not Dependency.exists?(version_id: version.id)
+    assert Package.exists?(canonical.id)
   end
 
   test 'sync_package' do
@@ -246,6 +309,61 @@ class RegistryTest < ActiveSupport::TestCase
     end
   end
 
+  test 'npm sync preserves repository declarations across releases and monorepo packages' do
+    registry = Registry.create!(name: 'registry.npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    old_repository = 'git+https://github.com/example/previous.git'
+
+    %w[core parser].each do |component|
+      name = "@example/#{component}"
+      repository = { 'type' => 'git', 'url' => 'git+https://github.com/example/monorepo.git', 'directory' => "packages/#{component}" }
+      source = { '_id' => name, 'versions' => {}, 'time' => {}, 'maintainers' => [] }
+      stub_request(:get, "https://api.npmjs.org/downloads/point/last-month/#{name}")
+        .to_return(status: 200, body: { downloads: 100 }.to_json)
+
+      { '1.0.0' => old_repository, '2.0.0' => repository }.each do |number, declaration|
+        source['versions'][number] = { 'name' => name, 'version' => number, 'license' => 'MIT', 'repository' => declaration }
+        source['dist-tags'] = { 'latest' => number }
+        stub_request(:get, "https://registry.npmjs.org/#{name.gsub('/', '%2F')}")
+          .to_return(status: 200, body: source.to_json)
+
+        SyncPackageWorker.new.perform(registry.id, name, true)
+
+        package = registry.packages.find_by!(name: name).reload
+        assert_equal declaration, package.metadata['repository']
+        assert_equal declaration, package.versions.find_by!(number: number).metadata['repository']
+        assert_equal old_repository, package.versions.find_by!(number: '1.0.0').metadata['repository']
+      end
+
+      assert_equal 'https://github.com/example/monorepo', registry.packages.find_by!(name: name).repository_url
+    end
+  end
+
+  test 'npm sync preserves a directory-only repository without a package fallback' do
+    registry = Registry.create!(name: 'registry.npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    repository = { 'directory' => 'packages/core' }
+    source = {
+      '_id' => '@example/core',
+      'homepage' => 'https://github.com/example/monorepo',
+      'dist-tags' => { 'latest' => '1.0.0' },
+      'time' => { '1.0.0' => '2026-01-01T00:00:00Z' },
+      'maintainers' => [],
+      'versions' => {
+        '1.0.0' => { 'name' => '@example/core', 'version' => '1.0.0', 'license' => 'MIT', 'repository' => repository }
+      }
+    }
+    stub_request(:get, 'https://registry.npmjs.org/@example%2Fcore')
+      .to_return(status: 200, body: source.to_json)
+    stub_request(:get, 'https://api.npmjs.org/downloads/point/last-month/@example/core')
+      .to_return(status: 200, body: { downloads: 100 }.to_json)
+
+    SyncPackageWorker.new.perform(registry.id, '@example/core', true)
+
+    package = registry.packages.find_by!(name: '@example/core').reload
+    assert_equal repository, package.metadata['repository']
+    assert_equal repository, package.versions.find_by!(number: '1.0.0').metadata['repository']
+    assert_equal 'https://github.com/example/monorepo', package.repository_url
+  end
+
   test 'sync_package persists two-component PyPI releases on initial sync and resync' do
     registry = Registry.create!(name: 'pypi.org', url: 'https://pypi.org', ecosystem: 'pypi')
     releases = {
@@ -278,6 +396,31 @@ class RegistryTest < ActiveSupport::TestCase
       assert_equal [number], package.versions.where(latest: true).pluck(:number)
       assert_equal metadata['releases'].length, package.versions.count
     end
+  end
+
+  test 'sync_package selects the latest active Bazel release' do
+    registry = Registry.create!(name: 'registry.bazel.build', url: 'https://registry.bazel.build', ecosystem: 'Bazel')
+    ecosystem = registry.ecosystem_instance
+    ecosystem.stubs(:package_metadata).with('protobuf').returns(
+      name: 'protobuf',
+      versions: ['3.19.6', '35.1', '36.0-rc2', '36.0', '36.0.bcr.1']
+    )
+    ecosystem.stubs(:versions_metadata).returns([
+      { number: '3.19.6', status: nil, published_at: 1.day.ago },
+      { number: '35.1', status: nil, published_at: 2.days.ago },
+      { number: '36.0-rc2', status: nil, published_at: 3.days.ago },
+      { number: '36.0', status: 'yanked', published_at: 4.days.ago },
+      { number: '36.0.bcr.1', status: nil, published_at: 1.month.ago }
+    ])
+    ecosystem.stubs(:dependencies_metadata).returns([])
+    registry.stubs(:sync_maintainers)
+    Package.any_instance.stubs(:check_status)
+    Package.any_instance.stubs(:update_repo_metadata_async)
+
+    package = registry.sync_package('protobuf')
+
+    assert_equal '36.0.bcr.1', package.reload.latest_release_number
+    assert_equal '36.0.bcr.1', package.versions.find_by!(latest: true).number
   end
 
   test 'sync_package returns false when package_metadata name is blank' do
@@ -470,6 +613,21 @@ class RegistryTest < ActiveSupport::TestCase
     @registry.expects(:sync_recently_updated_packages_async).returns(true)
     Registry.stubs(:frequently_synced).returns([@registry])
     Registry.sync_all_recently_updated_packages_async
+  end
+
+  test 'recent polling continues after a registry feed fails without advancing its cursor' do
+    clojars = Registry.create!(name: 'Clojars failure', url: 'https://clojars-failure.example', ecosystem: 'clojars',
+      metadata: {'clojars_release_feed' => {'from' => '2026-11-13T12:00:00.000Z'}})
+    stub_request(:get, 'https://clojars.org/api/release-feed')
+      .with(query: {from: '2026-11-13T12:00:00.000Z'})
+      .to_return(status: 503)
+    @registry.expects(:sync_recently_updated_packages_async)
+    Registry.stubs(:frequently_synced).returns([clojars, @registry])
+    Rails.logger.expects(:error).with(regexp_matches(/Clojars failure.*HTTP 503/))
+
+    Registry.sync_all_recently_updated_packages_async
+
+    assert_equal '2026-11-13T12:00:00.000Z', clojars.reload.metadata.dig('clojars_release_feed', 'from')
   end
 
   test 'Registry.sync_all_packages_async' do

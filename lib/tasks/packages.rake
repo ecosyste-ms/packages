@@ -13,6 +13,15 @@ def with_rake_lock(task_name, ttl: 3600)
 end
 
 namespace :packages do
+  desc 'sync Packagist malware flags'
+  task sync_packagist_malware: :environment do
+    with_rake_lock('packages:sync_packagist_malware') do
+      Registry.where('lower(ecosystem) = ?', 'packagist').find_each do |registry|
+        registry.ecosystem_instance.sync_malware_async
+      end
+    end
+  end
+
   desc 'queue dependencies that packages declare against each registry but are missing from the ecosystem'
   task sync_declared_dependencies: :environment do
     ecosystems = Ecosystem::Base.list.select(&:declared_repositories_key).map(&:lowercase_name)
@@ -58,6 +67,15 @@ namespace :packages do
 
       packages.in_batches(of: 1_000) do |batch|
         SyncPackageWorker.perform_bulk(batch.pluck(:name).map { |name| [registry.id, name, true] })
+      end
+    end
+  end
+
+  desc 'backfill latest_published_release_number'
+  task backfill_latest_published_release_number: :environment do
+    with_rake_lock('packages:backfill_latest_published_release_number', ttl: 24.hours.to_i) do
+      Package.where(latest_release_number: nil).where("versions_count > 0").in_batches(of: 1_000).each_with_index do |batch, i|
+        UpdateDetailsWorker.set(wait: i.minutes).perform_bulk(batch.pluck(:id).map { |id| [id] })
       end
     end
   end

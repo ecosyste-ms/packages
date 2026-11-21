@@ -25,6 +25,22 @@ class MavenTest < ActiveSupport::TestCase
     assert_equal download_url, "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/5.17.224.2/zio-aws-autoscaling_3-5.17.224.2.jar"
   end
 
+  test 'download_url uses the recorded packaging extension' do
+    aar_version = @package.versions.build(number: '6.7.1', metadata: { 'packaging' => 'aar' })
+    assert_equal "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/6.7.1/zio-aws-autoscaling_3-6.7.1.aar", @ecosystem.download_url(@package, aar_version)
+
+    pom_version = @package.versions.build(number: '7.0.9', metadata: { 'packaging' => 'pom' })
+    assert_equal "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/7.0.9/zio-aws-autoscaling_3-7.0.9.pom", @ecosystem.download_url(@package, pom_version)
+  end
+
+  test 'download_url falls back to jar for jar-like or unknown packaging' do
+    bundle_version = @package.versions.build(number: '1.0.0', metadata: { 'packaging' => 'bundle' })
+    assert_equal "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/1.0.0/zio-aws-autoscaling_3-1.0.0.jar", @ecosystem.download_url(@package, bundle_version)
+
+    unknown_version = @package.versions.build(number: '1.0.0', metadata: { 'packaging' => 'dotnet-clr' })
+    assert_equal "https://repo1.maven.org/maven2/dev/zio/zio-aws-autoscaling_3/1.0.0/zio-aws-autoscaling_3-1.0.0.jar", @ecosystem.download_url(@package, unknown_version)
+  end
+
   test 'documentation_url' do
     documentation_url = @ecosystem.documentation_url(@package)
     assert_equal documentation_url, "https://appdoc.app/artifact/dev.zio/zio-aws-autoscaling_3/"
@@ -700,6 +716,54 @@ class MavenTest < ActiveSupport::TestCase
     assert_nil integrity
   end
 
+  test 'version_integrity checks the sidecar of the artifact the packaging selects' do
+    stub_request(:get, "https://repo1.maven.org/maven2/com/airbnb/android/lottie/6.7.1/lottie-6.7.1.aar.sha1")
+      .to_return(status: 200, body: "16d2a89f307bc09e96af26d938ade5812550606a")
+    integrity = @ecosystem.send(:version_integrity, 'com.airbnb.android:lottie', '6.7.1', 'aar')
+    assert_equal "sha1-16d2a89f307bc09e96af26d938ade5812550606a", integrity
+
+    stub_request(:get, "https://repo1.maven.org/maven2/org/springframework/spring-framework-bom/7.0.9/spring-framework-bom-7.0.9.pom.sha1")
+      .to_return(status: 200, body: "16d2a89f307bc09e96af26d938ade5812550606a")
+    integrity = @ecosystem.send(:version_integrity, 'org.springframework:spring-framework-bom', '7.0.9', 'pom')
+    assert_equal "sha1-16d2a89f307bc09e96af26d938ade5812550606a", integrity
+  end
+
+  test 'versions_metadata records packaging and relocation from the published pom' do
+    pom = '<project xmlns="http://maven.apache.org/POM/4.0.0"><groupId>com.example</groupId><artifactId>old</artifactId><version>1.0.0</version><packaging>pom</packaging><distributionManagement><relocation><groupId>com.example</groupId><artifactId>new</artifactId></relocation></distributionManagement></project>'
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/old/1.0.0/old-1.0.0.pom")
+      .to_return(status: 200, body: pom)
+    relocated_pom = '<project xmlns="http://maven.apache.org/POM/4.0.0"><groupId>com.example</groupId><artifactId>new</artifactId><version>1.0.0</version><packaging>jar</packaging></project>'
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/new/1.0.0/new-1.0.0.pom")
+      .to_return(status: 200, body: relocated_pom)
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/old/1.0.0/old-1.0.0.pom.sha1")
+      .to_return(status: 404, body: "")
+    @ecosystem.stubs(:generate_effective_pom).with(pom).returns(pom)
+    @ecosystem.stubs(:generate_effective_pom).with(relocated_pom).returns(relocated_pom)
+
+    versions = @ecosystem.versions_metadata({ name: 'com.example:old', versions: ['1.0.0'] })
+    assert_equal 1, versions.length
+    assert_equal 'pom', versions.first[:metadata][:packaging]
+    assert_equal({ 'groupId' => 'com.example', 'artifactId' => 'new', 'version' => '1.0.0' }, versions.first[:metadata][:relocation])
+  end
+
+  test 'versions_metadata treats a relocation pom without packaging as pom-only' do
+    pom = '<project xmlns="http://maven.apache.org/POM/4.0.0"><groupId>com.example</groupId><artifactId>old</artifactId><version>1.0.0</version><distributionManagement><relocation><groupId>com.example</groupId><artifactId>new</artifactId></relocation></distributionManagement></project>'
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/old/1.0.0/old-1.0.0.pom")
+      .to_return(status: 200, body: pom)
+    relocated_pom = '<project xmlns="http://maven.apache.org/POM/4.0.0"><groupId>com.example</groupId><artifactId>new</artifactId><version>1.0.0</version><packaging>jar</packaging></project>'
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/new/1.0.0/new-1.0.0.pom")
+      .to_return(status: 200, body: relocated_pom)
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/old/1.0.0/old-1.0.0.pom.sha1")
+      .to_return(status: 200, body: "16d2a89f307bc09e96af26d938ade5812550606a")
+    @ecosystem.stubs(:generate_effective_pom).with(pom).returns(pom)
+    @ecosystem.stubs(:generate_effective_pom).with(relocated_pom).returns(relocated_pom)
+
+    versions = @ecosystem.versions_metadata({ name: 'com.example:old', versions: ['1.0.0'] })
+    assert_equal 1, versions.length
+    assert_equal 'pom', versions.first[:metadata][:packaging]
+    assert_equal 'sha1-16d2a89f307bc09e96af26d938ade5812550606a', versions.first[:integrity]
+  end
+
   test 'versions_metadata and dependencies_metadata share one .pom fetch per version' do
     pom = '<project xmlns="http://maven.apache.org/POM/4.0.0"><groupId>com.example</groupId><artifactId>foo</artifactId><version>1.0.0</version><dependencies><dependency><groupId>junit</groupId><artifactId>junit</artifactId><version>4.13</version></dependency></dependencies></project>'
     pom_stub = stub_request(:get, "https://repo1.maven.org/maven2/com/example/foo/1.0.0/foo-1.0.0.pom")
@@ -799,6 +863,66 @@ class MavenTest < ActiveSupport::TestCase
 
     assert r.packages.find_by(name: 'net.jcip:jcip-annotations')
     assert_requested listing, times: 1
+  end
+
+  def stub_google_mirror_sync(pom_headers)
+    mirror = 'https://maven-central.storage-download.googleapis.com/maven2'
+    stub_request(:get, "#{mirror}/net/jcip/jcip-annotations/maven-metadata.xml")
+      .to_return(status: 200, body: "<metadata><versioning><versions><version>1.0</version></versions></versioning></metadata>")
+    stub_request(:head, "#{mirror}/net/jcip/jcip-annotations/maven-metadata.xml").to_return(status: 200)
+    stub_request(:get, "#{mirror}/net/jcip/jcip-annotations/1.0/jcip-annotations-1.0.pom")
+      .to_return(status: 200, body: file_fixture('maven/jcip-annotations-1.0.pom'), headers: pom_headers)
+    stub_request(:get, "#{mirror}/net/jcip/index.html").to_return(status: 200, body: '<html></html>')
+    Registry.create!(url: mirror, name: 'repo1.maven.org', ecosystem: 'maven')
+  end
+
+  test 'syncing from the Google mirror dates a version by its upload time, not the bucket time' do
+    MavenCentralPublishedAtWorker.clear
+    registry = stub_google_mirror_sync('last-modified' => 'Sun, 14 Jul 2019 15:07:46 GMT',
+                                       'x-goog-meta-last-modified' => '"Thu, 14 Aug 2008 02:49:00 GMT"')
+
+    registry.sync_package('net.jcip:jcip-annotations')
+
+    version = registry.packages.find_by(name: 'net.jcip:jcip-annotations').versions.find_by(number: '1.0')
+    assert_equal Time.utc(2008, 8, 14, 2, 49, 0), version.published_at
+    assert_equal 0, MavenCentralPublishedAtWorker.jobs.size
+  end
+
+  test 'syncing from the Google mirror leaves bulk-imported versions undated and dates them from Central later' do
+    MavenCentralPublishedAtWorker.clear
+    registry = stub_google_mirror_sync('last-modified' => 'Sun, 14 Jul 2019 15:07:46 GMT')
+    central = stub_request(:head, "https://repo1.maven.org/maven2/net/jcip/jcip-annotations/1.0/jcip-annotations-1.0.pom")
+      .to_return(status: 200, headers: { 'Last-Modified' => 'Thu, 14 Aug 2008 02:49:00 GMT' })
+
+    registry.sync_package('net.jcip:jcip-annotations')
+
+    version = registry.packages.find_by(name: 'net.jcip:jcip-annotations').versions.find_by(number: '1.0')
+    assert_nil version.read_attribute(:published_at)
+    assert_not_requested central
+    assert_equal [[registry.id, 'net.jcip:jcip-annotations', '1.0']], MavenCentralPublishedAtWorker.jobs.map { |job| job['args'] }
+
+    MavenCentralPublishedAtWorker.drain
+
+    assert_equal Time.utc(2008, 8, 14, 2, 49, 0), version.reload.read_attribute(:published_at)
+    package = version.package.reload
+    assert_equal Time.utc(2008, 8, 14, 2, 49, 0), package.first_release_published_at
+    assert_equal Time.utc(2008, 8, 14, 2, 49, 0), package.latest_release_published_at
+    assert_requested central, times: 1
+  end
+
+  test 'syncing from Maven Central uses Last-Modified and queues no Central lookups' do
+    MavenCentralPublishedAtWorker.clear
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/foo/maven-metadata.xml")
+      .to_return(status: 200, body: "<metadata><versioning><versions><version>1.0.0</version></versions></versioning></metadata>")
+    stub_request(:get, "https://repo1.maven.org/maven2/com/example/foo/1.0.0/foo-1.0.0.pom")
+      .to_return(status: 200, body: file_fixture('maven/jcip-annotations-1.0.pom'), headers: { 'Last-Modified' => 'Wed, 01 Jan 2025 00:00:00 GMT' })
+    registry = Registry.create!(url: 'https://repo1.maven.org/maven2', name: 'repo1.maven.org', ecosystem: 'maven')
+    eco = Ecosystem::Maven.new(registry)
+
+    versions = eco.versions_metadata(eco.package_metadata('com.example:foo'))
+
+    assert_equal Time.utc(2025, 1, 1), versions.first[:published_at]
+    assert_equal 0, MavenCentralPublishedAtWorker.jobs.size
   end
 
   test 'sync_subpackages_async lists each namespace at most once a day' do

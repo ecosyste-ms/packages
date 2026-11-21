@@ -6,6 +6,11 @@ module Ecosystem
       "#{@registry_url}/pods/#{package.name}"
     end
 
+    # Resolve subspec names to the root pod; return nil for names without a slash.
+    def self.normalized_package_name(name)
+      name.partition('/').first if name.include?('/')
+    end
+
     def download_url(package, version = nil)
       if version.present?
         version.metadata["download_url"]
@@ -57,7 +62,7 @@ module Ecosystem
 
     def recently_updated_package_names
       u = "https://github.com/CocoaPods/Specs/commits/master.atom"
-      titles = SimpleRSS.parse(get_raw(u)).items.map(&:title)
+      titles = feed_titles(u)
       titles.map { |t| t.split(" ")[1] }.uniq
     rescue
       []

@@ -31,9 +31,11 @@ module Ecosystem
     end
 
     def recently_updated_package_names
-      u = "https://github.com/spack/spack/commits/develop.atom"
-      titles = SimpleRSS.parse(get_raw(u)).items.map(&:title)
-      titles.map { |t| t.split(/[\s,:]/)[0] }.uniq
+      u = "https://github.com/spack/spack-packages/commits/develop.atom"
+      titles = feed_titles(u)
+      titles.flat_map do |title|
+        [title.split(/[\s,:]/).first] + title.scan(/(?:\band\b|[,;])\s*([\w+.-]+):(?=\s|$)/).flatten
+      end.compact.uniq
     rescue
       []
     end

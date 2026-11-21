@@ -108,7 +108,7 @@ class NpmTest < ActiveSupport::TestCase
     assert_equal package_metadata[:downloads], 1076972
     assert_equal package_metadata[:downloads_period], "last-month"
     assert_nil package_metadata[:namespace]
-    assert_equal package_metadata[:metadata], {"funding"=>nil, "dist-tags"=>{"latest"=>"2.0.1"}, "contentPolicy"=>nil}
+    assert_equal package_metadata[:metadata], {"funding"=>nil, "dist-tags"=>{"latest"=>"2.0.1"}, "contentPolicy"=>nil, "repository"=>{"type"=>"git", "url"=>"git+https://github.com/base62/base62.js.git"}}
   end
 
   test 'versions_metadata' do
@@ -131,6 +131,7 @@ class NpmTest < ActiveSupport::TestCase
     assert_equal first_version[:metadata]["engines"], {"node"=>"*"}
     assert_nil first_version[:metadata]["exports"]
     assert_nil first_version[:metadata]["browserify"]
+    assert_equal({"type"=>"git", "url"=>"git://github.com/andrew/base62.js.git"}, first_version[:metadata]["repository"])
   
   end
 
@@ -227,18 +228,45 @@ class NpmTest < ActiveSupport::TestCase
       'array' => 'https://github.com/foo/arr',
       'placeholder' => nil
     }.each do |fixture, expected|
+      source = JSON.parse(file_fixture("npm/repository-#{fixture}.json").read)
+      source['time'] = {}
       stub_request(:get, 'https://registry.npmjs.org/fixture-repo')
-        .to_return(status: 200, body: file_fixture("npm/repository-#{fixture}.json"))
+        .to_return(status: 200, body: source.to_json)
       stub_request(:get, 'https://api.npmjs.org/downloads/point/last-month/fixture-repo')
         .to_return(status: 200, body: '{"downloads":1}')
       @ecosystem = Ecosystem::Npm.new(@registry)
-      actual = @ecosystem.package_metadata('fixture-repo')[:repository_url]
+      metadata = @ecosystem.package_metadata('fixture-repo')
+      actual = metadata[:repository_url]
       if expected.nil?
         assert_nil actual, fixture
       else
         assert_equal expected, actual, fixture
       end
+      declared = source['versions']['1.0.0']['repository']
+      assert_equal declared || source['repository'], metadata[:metadata]['repository'], fixture
+      version_repository = @ecosystem.versions_metadata(metadata).first[:metadata]['repository']
+      if declared.nil?
+        assert_nil version_repository, fixture
+      else
+        assert_equal declared, version_repository, fixture
+      end
     end
+  end
+
+  test 'package repository falls back when version declaration has no URL' do
+    source = JSON.parse(file_fixture('npm/repository-package-fallback.json').read)
+    source['time'] = {}
+    source['versions']['1.0.0']['repository'] = { 'directory' => 'packages/core' }
+    stub_request(:get, 'https://registry.npmjs.org/fixture-repo')
+      .to_return(status: 200, body: source.to_json)
+    stub_request(:get, 'https://api.npmjs.org/downloads/point/last-month/fixture-repo')
+      .to_return(status: 200, body: '{"downloads":1}')
+
+    metadata = @ecosystem.package_metadata('fixture-repo')
+
+    assert_equal 'https://github.com/foo/package', metadata[:repository_url]
+    assert_equal 'github:foo/package', metadata[:metadata]['repository']
+    assert_equal({ 'directory' => 'packages/core' }, @ecosystem.versions_metadata(metadata).first[:metadata]['repository'])
   end
 
 end

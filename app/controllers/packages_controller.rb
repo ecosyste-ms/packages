@@ -112,14 +112,18 @@ class PackagesController < ApplicationController
       scope = lookup_by_purl(params[:purl])
     else
       params[:name] = "library/#{params[:name]}" if params[:ecosystem] == 'docker' && !params[:name].include?('/')
-      scope = Package.where(name: params[:name])
+      ecosystem_class = params[:ecosystem].present? ? Ecosystem::Base.find(params[:ecosystem].to_s) : nil
+      lookup_name = ecosystem_class&.normalized_package_name(params[:name]) || params[:name]
+      scope = Package.all
       if params[:ecosystem].present?
         registry_ids = Registry.where(ecosystem: params[:ecosystem]).pluck(:id)
         scope = scope.where(registry_id: registry_ids)
       end
+      @package = scope.find_by_name(params[:name]) if lookup_name != params[:name]
+      scope = scope.where(name: lookup_name)
     end
 
-    @package = scope.limit(1).take
+    @package ||= scope.limit(1).take
     if @package.nil?
       raise ActiveRecord::RecordNotFound
     else

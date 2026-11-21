@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Updated Homebrew Formulae</title>
+    <link>https://formulae.brew.sh/formula/</link>
+    <description>The 500 most recent Homebrew formula version changes and revision increases, excluding bottle-only rebuilds.</description>
+    <language>en</language>
+    <atom:link href="https://formulae.brew.sh/feeds/formula-updated.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>python@3.13 3.13.9</title>
+      <link>https://formulae.brew.sh/formula/python@3.13</link>
+      <guid isPermaLink="false">updated:python@3.13</guid>
+      <pubDate>Thu, 01 Jan 2026 00:00:00 +0000</pubDate>
+      <description>Python interpreter</description>
+      <category>updated</category>
+    </item>
+    <item>
+      <title>newtool 1.1, 1.0_1</title>
+      <link>https://formulae.brew.sh/formula/newtool</link>
+      <guid isPermaLink="false">updated:newtool</guid>
+      <pubDate>Thu, 01 Jan 2026 00:00:00 +0000</pubDate>
+      <description>Tools &amp; café utilities</description>
+      <category>updated</category>
+    </item>
+    <item>
+      <title>python@3.13 3.13.8_1</title>
+      <link>https://formulae.brew.sh/formula/python@3.13</link>
+      <guid isPermaLink="false">revised:python@3.13</guid>
+      <pubDate>Wed, 31 Dec 2025 00:00:00 +0000</pubDate>
+      <description>Python interpreter</description>
+      <category>updated</category>
+    </item>
+    <item>
+      <title>c++utilities 5.0_1</title>
+      <link>https://formulae.brew.sh/formula/c++utilities</link>
+      <guid isPermaLink="false">revised:c++utilities</guid>
+      <pubDate>Tue, 30 Dec 2025 00:00:00 +0000</pubDate>
+      <description>C++ utilities</description>
+      <category>updated</category>
+    </item>
+  </channel>
+</rss>

@@ -63,7 +63,7 @@ module Ecosystem
     def map_package_metadata(package)
       return false unless package
       urls = package[:properties].fetch("URL", "").split(/[,\s]+/).reject(&:blank?)
-      bug_reports = package[:properties]["BugReports"]
+      bug_reports = package[:properties]["Bug Reports"] || package[:properties]["BugReports"]
       {
         name: package[:name],
         homepage: urls.first,

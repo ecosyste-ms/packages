@@ -38,8 +38,91 @@ class VersionTest < ActiveSupport::TestCase
     assert_equal @version.to_s, @version.number
   end
 
-  test 'semantic_version' do
-    assert_equal @version.semantic_version.class, Semantic::Version
+  test 'sorts versions using package ecosystem precedence' do
+    cases = [
+      { ecosystem: 'pypi', lower: '1.0', higher: '1.0.post1' },
+      { ecosystem: 'maven', lower: '1.0', higher: '1.0-sp1' },
+      { ecosystem: 'cargo', lower: '1.0.0-alpha.2', higher: '1.0.0-alpha.10' },
+      { ecosystem: 'ubuntu', lower: '1.0~rc1', higher: '1.0' },
+      { ecosystem: 'postmarketos', lower: '1.0-r2', higher: '1.0-r10' }
+    ]
+
+    cases.each do |version_case|
+      ecosystem = version_case.fetch(:ecosystem)
+      registry = Registry.create!(name: "#{ecosystem}.example", url: "https://#{ecosystem}.example", ecosystem: ecosystem)
+      package = registry.packages.create!(name: 'example', ecosystem: ecosystem)
+      versions = [
+        package.versions.create!(number: version_case.fetch(:lower), published_at: 1.day.ago),
+        package.versions.create!(number: version_case.fetch(:higher), published_at: 2.days.ago)
+      ]
+
+      assert_equal [version_case.fetch(:higher), version_case.fetch(:lower)], versions.sort.map(&:number), ecosystem
+    end
+  end
+
+  test 'classifies stable versions using package ecosystem rules' do
+    cases = [
+      { ecosystem: 'pypi', stable: '1.0.post1', prerelease: '1.0rc1' },
+      { ecosystem: 'maven', stable: '1.0-sp1', prerelease: '1.0-rc1' }
+    ]
+
+    cases.each do |version_case|
+      ecosystem = version_case.fetch(:ecosystem)
+      registry = Registry.create!(name: "#{ecosystem}.stable.example", url: "https://#{ecosystem}.stable.example", ecosystem: ecosystem)
+      package = registry.packages.create!(name: 'example', ecosystem: ecosystem)
+
+      assert package.versions.build(number: version_case.fetch(:stable)).stable?, ecosystem
+      refute package.versions.build(number: version_case.fetch(:prerelease)).stable?, ecosystem
+    end
+  end
+
+  test 'sorts Bazel module versions by Bazel precedence' do
+    registry = Registry.create!(name: 'registry.bazel.build', url: 'https://registry.bazel.build', ecosystem: 'Bazel')
+    package = registry.packages.create!(name: 'protobuf', ecosystem: 'bazel')
+    versions = ['36.0', '36.0.bcr.10', '36.0-rc2', '36.0.bcr.2'].map do |number|
+      package.versions.create!(number: number)
+    end
+
+    assert_equal ['36.0.bcr.10', '36.0.bcr.2', '36.0', '36.0-rc2'], versions.sort.map(&:number)
+  end
+
+  test 'sorts equivalent versions deterministically' do
+    registry = Registry.create!(name: 'registry.bazel.build', url: 'https://registry.bazel.build', ecosystem: 'Bazel')
+    package = registry.packages.create!(name: 'protobuf', ecosystem: 'bazel')
+    published_at = 1.day.ago
+    versions = [
+      package.versions.create!(number: '1.0+build9', published_at: 2.days.ago),
+      package.versions.create!(number: '1.0+build2', published_at: published_at),
+      package.versions.create!(number: '1.0+build3', published_at: published_at)
+    ]
+    expected = ['1.0+build3', '1.0+build2', '1.0+build9']
+
+    assert_equal expected, versions.sort.map(&:number)
+    assert_equal expected, versions.reverse.sort.map(&:number)
+  end
+
+  test 'classifies Bazel module releases and prereleases' do
+    registry = Registry.create!(name: 'registry.bazel.build', url: 'https://registry.bazel.build', ecosystem: 'Bazel')
+    package = registry.packages.create!(name: 'protobuf', ecosystem: 'bazel')
+
+    assert package.versions.build(number: '35.1').stable?
+    assert package.versions.build(number: '36.0.bcr.1').stable?
+    refute package.versions.build(number: '36.0-rc2').stable?
+  end
+
+  test 'finds the latest stable version for a package with a Unicode name' do
+    registry = Registry.create!(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
+    package = registry.packages.create!(name: '例', ecosystem: 'npm')
+    version = package.versions.create!(number: '1.0.0')
+
+    assert_equal version, package.latest_stable_version
+  end
+
+  test 'memoizes version validation' do
+    Vers.expects(:valid?).with('1.0.0', 'gem').once.returns(true)
+
+    assert @version.valid_number?
+    assert @version.valid_number?
   end
 
   test 'download_url' do
@@ -61,6 +144,126 @@ class VersionTest < ActiveSupport::TestCase
   test 'purl' do
     assert_equal @version.purl, "pkg:gem/foo@1.0.0"
     assert Purl.parse(@version.purl)
+  end
+
+  test 'version scoped advisories include only affected advisory entries' do
+    @package.update!(advisories: [
+      {
+        "uuid" => "GHSA-affected",
+        "identifiers" => ["GHSA-affected", "CVE-2026-0001"],
+        "url" => "https://github.com/advisories/GHSA-affected",
+        "title" => "Affected advisory",
+        "severity" => "high",
+        "packages" => [
+          {
+            "ecosystem" => "rubygems",
+            "package_name" => "foo",
+            "versions" => [
+              { "vulnerable_version_range" => ">= 1.0.0, < 2.0.0", "first_patched_version" => "2.0.0" }
+            ]
+          }
+        ]
+      },
+      {
+        "uuid" => "GHSA-fixed",
+        "identifiers" => ["GHSA-fixed"],
+        "packages" => [
+          {
+            "ecosystem" => "rubygems",
+            "package_name" => "foo",
+            "versions" => [
+              { "vulnerable_version_range" => "< 1.0.0", "first_patched_version" => nil }
+            ]
+          }
+        ]
+      },
+      {
+        "uuid" => "GHSA-other-package",
+        "identifiers" => ["GHSA-other-package"],
+        "packages" => [
+          {
+            "ecosystem" => "rubygems",
+            "package_name" => "bar",
+            "versions" => [
+              { "vulnerable_version_range" => ">= 1.0.0" }
+            ]
+          }
+        ]
+      }
+    ])
+
+    assert_equal [
+      {
+        "uuid" => "GHSA-affected",
+        "identifiers" => ["GHSA-affected", "CVE-2026-0001"],
+        "url" => "https://github.com/advisories/GHSA-affected",
+        "title" => "Affected advisory",
+        "severity" => "high",
+        "affected" => true,
+        "fixed" => false,
+        "fixed_versions" => ["2.0.0"]
+      }
+    ], @version.version_scoped_advisories
+
+    assert_empty @version2.version_scoped_advisories
+  end
+
+  test 'version scoped advisories skip invalid version ranges' do
+    @package.update!(advisories: [
+      {
+        "uuid" => "GHSA-invalid",
+        "identifiers" => ["GHSA-invalid"],
+        "packages" => [
+          {
+            "ecosystem" => "rubygems",
+            "package_name" => "foo",
+            "versions" => [{ "vulnerable_version_range" => "not a range" }]
+          }
+        ]
+      }
+    ])
+
+    assert_empty @version.version_scoped_advisories
+  end
+
+  test 'version scoped advisories support short version numbers' do
+    short_version = @package.versions.create!(number: "1.0")
+    @package.update!(advisories: [
+      {
+        "uuid" => "GHSA-short-version",
+        "identifiers" => ["GHSA-short-version"],
+        "packages" => [
+          {
+            "ecosystem" => "rubygems",
+            "package_name" => "foo",
+            "versions" => [{ "vulnerable_version_range" => ">= 1.0, < 2.0" }]
+          }
+        ]
+      }
+    ])
+
+    assert_equal ["GHSA-short-version"], short_version.version_scoped_advisories.pluck("uuid")
+  end
+
+  test 'version scoped advisories support Composer ranges' do
+    registry = Registry.create!(default: true, name: "packagist.org", url: "https://packagist.org", ecosystem: "packagist")
+    package = registry.packages.create!(name: "vendor/package", ecosystem: "packagist")
+    version = package.versions.create!(number: "1.2.3")
+    package.update!(advisories: [
+      {
+        "uuid" => "GHSA-composer-range",
+        "identifiers" => ["GHSA-composer-range"],
+        "packages" => [
+          {
+            "ecosystem" => "packagist",
+            "package_name" => "vendor/package",
+            "versions" => [{ "vulnerable_version_range" => "^1.0" }]
+          }
+        ]
+      }
+    ])
+
+    assert_equal ["GHSA-composer-range"], version.version_scoped_advisories.pluck("uuid")
   end
 
   test 'as_live_event_json includes API fields' do

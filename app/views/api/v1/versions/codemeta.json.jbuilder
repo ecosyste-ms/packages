@@ -9,7 +9,7 @@ json.version @version.number
 json.softwareVersion @version.number
 
 if @version.licenses.present?
-  normalized_licenses = @version.licenses.is_a?(String) ? [@version.licenses] : @version.licenses
+  normalized_licenses = @version.licenses.is_a?(String) ? @version.licenses.split(',').map(&:strip).reject(&:blank?) : @version.licenses
   if normalized_licenses.length == 1
     json.license "https://spdx.org/licenses/#{normalized_licenses.first}"
   else

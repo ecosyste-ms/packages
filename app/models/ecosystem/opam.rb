@@ -9,6 +9,7 @@ module Ecosystem
     ARCHIVE_INDEX_URL = 'https://github.com/ocaml/opam-repository-archive/archive/refs/heads/main.tar.gz'.freeze
     ARCHIVE_RAW_URL = 'https://raw.githubusercontent.com/ocaml/opam-repository-archive/main'.freeze
     class PackageNotFound < RuntimeError; end
+    class ManifestUnavailable < RuntimeError; end
     PAGE_SIZE = 500
     VERSION_FIELDS = <<~GRAPHQL.freeze
       name version license publication
@@ -102,15 +103,15 @@ module Ecosystem
               #{VERSION_FIELDS}
               synopsis description homepage tags authors maintainers
             }
-            packgeByVersions(name: $name) { packages { #{VERSION_FIELDS} } }
+            packageByVersions(name: $name) { packages { #{VERSION_FIELDS} } }
           }
         GRAPHQL
       rescue PackageNotFound
         raise if archived_numbers.empty?
-        data = { 'packgeByVersions' => { 'packages' => [] } }
+        data = { 'packageByVersions' => { 'packages' => [] } }
       end
 
-      versions = data.fetch('packgeByVersions').fetch('packages')
+      versions = data.fetch('packageByVersions').fetch('packages')
       versions.each do |version|
         begin
           version['manifest'] = fetch_manifest(name, version.fetch('version'))
@@ -157,7 +158,7 @@ module Ecosystem
       url = "#{root}/packages/#{name}/#{name}.#{version}/opam"
       response = request(url)
       raise PackageNotFound, "Opam manifest not found: #{name}.#{version}" if [404, 410].include?(response.status)
-      raise "Opam manifest unavailable: #{name}.#{version} (HTTP #{response.status})" unless response.success?
+      raise ManifestUnavailable, "Opam manifest unavailable: #{name}.#{version} (HTTP #{response.status})" unless response.success?
       manifest = OpamManifest.new(response.body)
       raise ArgumentError, 'Missing opam-version field' if manifest.strings('opam-version').empty?
       manifest.formula('depends')
@@ -175,7 +176,7 @@ module Ecosystem
         repository_url: repo_fallback(manifest.strings('dev-repo').first, Array(package['homepage']).first),
         licenses: package['license'],
         keywords_array: package['tags'],
-        versions: data.fetch('packgeByVersions').fetch('packages'),
+        versions: data.fetch('packageByVersions').fetch('packages'),
         metadata: {
           archived: data.fetch('archived'),
           description: package['description'],
@@ -221,7 +222,7 @@ module Ecosystem
           version.update_columns(metadata: metadata, updated_at: Time.current)
           if changed_dependencies
             data = fetch_package_metadata(package.name)
-            dependencies = dependencies_metadata(package.name, version.number, versions: data.fetch('packgeByVersions').fetch('packages'))
+            dependencies = dependencies_metadata(package.name, version.number, versions: data.fetch('packageByVersions').fetch('packages'))
             version.dependencies.delete_all
             version.dependencies.insert_all(dependencies) if dependencies.any?
           end

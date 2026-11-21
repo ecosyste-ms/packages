@@ -61,7 +61,7 @@ module Ecosystem
     end
 
     def map_package_metadata(package)
-      return nil if package["distribution"].nil?
+      return nil if package.nil? || package["distribution"].nil?
       resources = package.fetch("resources", {})
       repo_web = resources.dig("repository", "web")
       candidates = [repo_web, resources.dig("repository", "url"), resources.dig("bugtracker", "web"), resources["homepage"]].compact

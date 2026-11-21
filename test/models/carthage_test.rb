@@ -8,6 +8,19 @@ class CarthageTest < ActiveSupport::TestCase
     @version = @package.versions.create(number: '0.16.0', metadata: {download_url:"https://codeload.github.com/Carthage/ReactiveTask/tar.gz/refs/0.16.0"})
   end
 
+  test 'sync_package stores dependencies from a Cartfile' do
+    @ecosystem.stubs(:package_metadata).with('example/fixture').returns({ name: 'example/fixture', repository_url: 'https://github.com/example/fixture', licenses: 'MIT', metadata: {} })
+    @ecosystem.stubs(:versions_metadata).returns([{ number: 'v1', metadata: {} }])
+    @registry.stubs(:ecosystem_instance).returns(@ecosystem)
+    Package.any_instance.stubs(:check_status)
+    stub_request(:get, 'https://raw.githubusercontent.com/example/fixture/v1/Cartfile').to_return(status: 200, body: "github \"Alamofire/Alamofire\" ~> 5.0\n")
+
+    package = @registry.sync_package('example/fixture')
+
+    deps = package.versions.find_by!(number: 'v1').dependencies.map { |d| [d.ecosystem, d.package_name, d.requirements, d.kind] }
+    assert_equal [['carthage', 'Alamofire/Alamofire', '~> 5.0', 'runtime']], deps
+  end
+
   test 'registry_url' do
     registry_url = @ecosystem.registry_url(@package)
     assert_nil registry_url

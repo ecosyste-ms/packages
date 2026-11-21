@@ -97,7 +97,11 @@ class Registry < ApplicationRecord
   end
 
   def self.sync_all_recently_updated_packages_async
-    frequently_synced.each(&:sync_recently_updated_packages_async)
+    frequently_synced.each do |registry|
+      registry.sync_recently_updated_packages_async
+    rescue => error
+      Rails.logger.error("Recent package sync failed for #{registry.name}: #{error.class}: #{error.message}")
+    end
   end
 
   def self.sync_all_packages
@@ -144,7 +148,9 @@ class Registry < ApplicationRecord
   end
 
   def recently_updated_package_names
-    ecosystem_instance.recently_updated_package_names.first(100).to_a
+    names = ecosystem_instance.recently_updated_package_names
+    limit = ecosystem_instance.recently_updated_package_names_limit
+    (limit ? names.first(limit) : names).to_a
   end
 
   def recently_updated_package_names_excluding_recently_synced
@@ -220,7 +226,17 @@ class Registry < ApplicationRecord
 
   def sync_recently_updated_packages_async(period: 15.minutes)
     return if sync_in_batches?
-    sync_packages_async(recently_updated_package_names_excluding_recently_synced, period: period, force: true)
+    if ecosystem_instance.sync_recent_packages_incrementally?
+      return ecosystem_instance.sync_recently_updated_packages_async(period: period)
+    end
+    names = Array(recently_updated_package_names).compact.map(&:to_s).uniq
+    budget = sync_budget(period)
+    names = names.first(budget) if budget
+    recent_syncs = packages.where(name: names).where('last_synced_at > ?', 10.minutes.ago).pluck(:name, :last_synced_at)
+    recent_syncs.each do |name, last_synced_at|
+      SyncPackageWorker.perform_at(last_synced_at + 10.minutes, id, name, true)
+    end
+    sync_packages_async(names - recent_syncs.map(&:first), period: period, force: true)
   end
 
   def sync_packages(package_names, force: false)
@@ -260,7 +276,11 @@ class Registry < ApplicationRecord
     end
   end
 
-  def sync_package(name, force: false, version: nil)
+  def sync_package(name, force: false, version: nil, maintenance: false)
+    if maintenance
+      raise ArgumentError, 'Maintenance sync is only supported for Packagist' unless ecosystem_instance.is_a?(Ecosystem::Packagist)
+      existing_package = packages.find_by!(name: name)
+    end
     logger.info "Syncing #{name}"
     package_metadata = if version
                          ecosystem_instance.package_metadata(name, version: version)
@@ -269,99 +289,123 @@ class Registry < ApplicationRecord
                        end
     unless package_metadata
       logger.error "Failed to sync #{name}: package_metadata returned nil or false"
-      return false
+      return ecosystem_instance.handle_missing_package(name, package_id: existing_package.id) if maintenance
+      return ecosystem_instance.handle_missing_package(name)
     end
     if package_metadata[:name].blank?
       logger.error "Failed to sync #{name}: package_metadata returned blank name"
       return false
     end
     package_metadata[:ecosystem] = ecosystem.downcase
-
-    # clean up incorrectly named package records
-    unless sync_in_batches?
-      if package_metadata[:name] != name
-        # example: request 'aracnid_utils' from pypi but get 'aracnid-utils' back
-        packages.find_by_name(name).try(:destroy)
-      end
+    if maintenance && !package_metadata[:name].casecmp?(name)
+      raise 'Packagist maintenance sync returned a different package name'
     end
+    package_metadata[:packagist_package_id] = existing_package.id if maintenance
 
-    package = packages.find_or_initialize_by(name: package_metadata[:name])
-
-    if !force && package.last_synced_at && package.last_synced_at > 1.day.ago
-      unless sync_in_batches?
-        # if recently synced, schedule for syncing 1 day later
-        delay = (package.last_synced_at + 1.day) - Time.now
-        SyncPackageWorker.perform_in(delay, id, name)
-      end
-      return
-    end
-
-    package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page, :time, :download_stats, :tags_url, :releases_url))
-
-    update_repo_metadata_after_save = package.changed?
-    new_package = package.new_record?
-
-    package.save!
-
-    package.emit_new_package_event if new_package
-    package.update_repo_metadata_async if update_repo_metadata_after_save
-
-    new_versions = []
-    existing_version_numbers = package.versions.pluck('number')
-
-    versions_metadata = ecosystem_instance.versions_metadata(package_metadata, existing_version_numbers)
-    ecosystem_instance.update_existing_versions(package, versions_metadata)
-
-    versions_metadata.each do |version|
-      new_versions << version.merge(package_id: package.id, registry_id: id, created_at: Time.now, updated_at: Time.now) unless existing_version_numbers.find { |v| v == version.with_indifferent_access[:number].to_s && version.with_indifferent_access[:status].nil? }
-    end
-
-    if new_versions.any?
-      new_versions.uniq! { |v| v.with_indifferent_access[:number].to_s }
-
-      new_versions.each_slice(100) do |s|
-        Version.upsert_all(s, unique_by: [:package_id, :number])
-      end
-
-      if LiveEvent.enabled?
-        new_numbers = new_versions.map { |v| v.with_indifferent_access[:number].to_s } - existing_version_numbers
-        package.emit_new_version_events(package.versions.where(number: new_numbers).to_a) if new_numbers.any?
-      end
-
-      all_deps = []
-      all_versions = package.versions
-
-      # Find versions without dependencies using a single efficient LEFT JOIN query
-      # This avoids both N+1 queries and large IN clauses on the dependencies table
-      version_ids_without_dependencies = package.versions
-        .left_joins(:dependencies)
-        .where(dependencies: { id: nil })
-        .pluck(:id)
-        .to_set
-
-      all_versions.each do |version|
-        next unless version_ids_without_dependencies.include?(version.id)
-
-        deps = begin
-                ecosystem_instance.dependencies_metadata(name, version.number, package_metadata)
-              rescue StandardError
-                []
-              end
-        next unless deps&.any?
-
-        all_deps << deps.map do |dep|
-          dep.merge(version_id: version.id)
+    package = ecosystem_instance.with_package_sync_lock(package_metadata) do
+      # clean up incorrectly named package records
+      unless sync_in_batches? || maintenance
+        if package_metadata[:name] != name
+          # example: request 'aracnid_utils' from pypi but get 'aracnid-utils' back
+          packages.find_by_name(name).try(:destroy)
         end
       end
-      
-      all_deps.flatten.each_slice(100) do |s|
-        # TODO upsert dependencies instead
-        Dependency.insert_all(s) 
-      end
-    end
 
-    package.update(versions_count: package.versions.count, last_synced_at: Time.zone.now)
-    package.update_details
+      normalized_name = ecosystem_class.normalized_package_name(package_metadata[:name])
+      package = existing_package if maintenance
+      package = packages.find_by_normalized_name(package_metadata[:name], normalized_name: normalized_name) if normalized_name
+      if normalized_name && package.nil? && packages.where("metadata->>'normalized_name' = ?", normalized_name).exists?
+        logger.error "Failed to sync #{name}: ambiguous normalized package name"
+        return false
+      end
+      package ||= packages.find_or_initialize_by(name: package_metadata[:name])
+
+      if !force && package.next_sync_at && package.next_sync_at > Time.current
+        unless sync_in_batches?
+          SyncPackageWorker.perform_at(package.next_sync_at, id, name)
+        end
+        return
+      end
+
+      previous_repository_url = package.repository_or_homepage_url if maintenance
+      package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page, :time, :download_stats, :tags_url, :releases_url, :packagist_malware_constraint, :packagist_package_id))
+      if maintenance && previous_repository_url != package.repository_or_homepage_url
+        package.assign_attributes(repo_metadata: {}, repo_metadata_updated_at: nil, issue_metadata: nil)
+      end
+
+      update_repo_metadata_after_save = package.changed?
+      new_package = package.new_record?
+
+      package.save!
+
+      ecosystem_instance.after_package_sync do
+        package.emit_new_package_event if new_package && !maintenance
+        package.update_repo_metadata_async if update_repo_metadata_after_save && !maintenance
+      end
+
+      new_versions = []
+      existing_version_numbers = package.versions.pluck('number')
+
+      versions_metadata = ecosystem_instance.versions_metadata(package_metadata, existing_version_numbers)
+      ecosystem_instance.update_existing_versions(package, versions_metadata)
+
+      versions_metadata.each do |version|
+        new_versions << version.merge(package_id: package.id, registry_id: id, created_at: Time.now, updated_at: Time.now) unless existing_version_numbers.find { |v| v == version.with_indifferent_access[:number].to_s && version.with_indifferent_access[:status].nil? }
+      end
+
+      if new_versions.any?
+        new_versions.uniq! { |v| v.with_indifferent_access[:number].to_s }
+
+        new_versions.each_slice(100) do |s|
+          Version.upsert_all(s, unique_by: [:package_id, :number], update_only: s.first.keys.map(&:to_s) - %w[package_id number created_at])
+        end
+
+        if !maintenance && LiveEvent.enabled?
+          new_numbers = new_versions.map { |v| v.with_indifferent_access[:number].to_s } - existing_version_numbers
+          ecosystem_instance.after_package_sync do
+            package.emit_new_version_events(package.versions.where(number: new_numbers).to_a) if new_numbers.any?
+          end
+        end
+
+        all_deps = []
+        all_versions = package.versions
+
+        # Find versions without dependencies using a single efficient LEFT JOIN query
+        # This avoids both N+1 queries and large IN clauses on the dependencies table
+        version_ids_without_dependencies = package.versions
+          .left_joins(:dependencies)
+          .where(dependencies: { id: nil })
+          .pluck(:id)
+          .to_set
+
+        all_versions.each do |version|
+          next unless version_ids_without_dependencies.include?(version.id)
+
+          deps = begin
+                  ecosystem_instance.dependencies_metadata(name, version.number, package_metadata)
+                rescue StandardError
+                  []
+                end
+          next unless deps&.any?
+
+          all_deps << deps.map do |dep|
+            dep.merge(version_id: version.id)
+          end
+        end
+
+        all_deps.flatten.each_slice(100) do |s|
+          # TODO upsert dependencies instead
+          Dependency.insert_all(s)
+        end
+      end
+
+      package.update(versions_count: package.versions.count, last_synced_at: Time.zone.now)
+      package.update_details
+      package
+    end
+    return package if maintenance
+
+    ecosystem_instance.update_dependency_links(package)
     package.update_dependent_repos_count_async if ecosystem_instance.has_dependent_repos?
     if ecosystem_class.instance_methods(false).include? :maintainers_metadata
       if ecosystem_instance.sync_maintainers_inline?
@@ -371,7 +415,7 @@ class Registry < ApplicationRecord
       end
     end
 
-    package.check_status unless sync_in_batches?
+    package.check_status unless sync_in_batches? || ecosystem_instance.is_a?(Ecosystem::Packagist)
 
     # package.update_integrities_async
     return package

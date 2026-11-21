@@ -18,6 +18,14 @@ module Ecosystem
       false
     end
 
+    def sync_recent_packages_incrementally?
+      false
+    end
+
+    def recently_updated_package_names_limit
+      100
+    end
+
     def sync_maintainers_inline?
       false
     end
@@ -36,6 +44,10 @@ module Ecosystem
 
     def self.resolvable_dependency_name?(_name)
       true
+    end
+
+    def self.normalized_package_name(_name)
+      nil
     end
 
     def self.normalize_repository_url(url)
@@ -158,6 +170,10 @@ module Ecosystem
       map_package_metadata(fetch_package_metadata(name, version: version))
     end
 
+    def handle_missing_package(_name)
+      false
+    end
+
     def map_dependencies(deps, kind, optional = false, ecosystem = self.class.name.demodulize.downcase)
       deps.map do |k, v|
         {
@@ -223,8 +239,8 @@ module Ecosystem
 
       # Add repository_url to qualifiers if non-default registry
       # default: true means it's the default registry for that ecosystem
-      # nil or false means it's not the default and should include repository_url
-      if @registry.default != true
+      # nil or false means it's not the default; ecosystems can opt out
+      if @registry.default != true && include_repository_url_in_purl?
         params[:qualifiers] ||= {}
         params[:qualifiers]['repository_url'] = @registry_url
       end
@@ -233,6 +249,10 @@ module Ecosystem
     rescue => e
       # invalid encoding or other errors
       nil
+    end
+
+    def include_repository_url_in_purl?
+      true
     end
 
     def purl_params(package, version = nil)
@@ -248,8 +268,16 @@ module Ecosystem
       self.class.purl_type
     end
 
+    def version_scheme
+      purl_type
+    end
+
     def self.purl_type
       name.demodulize.downcase
+    end
+
+    def self.legacy_purl_types
+      []
     end
 
     def self.namespace_separator
@@ -257,11 +285,11 @@ module Ecosystem
     end
 
     def self.purl_type_to_ecosystem(purl_type)
-      list.find { |p| p.purl_type == purl_type }.try(:lowercase_name)
+      list.find { |p| p.purl_type == purl_type || p.legacy_purl_types.include?(purl_type) }.try(:lowercase_name)
     end
 
     def self.purl_type_to_namespace_separator(purl_type)
-      list.find { |p| p.purl_type == purl_type }.try(:namespace_separator)
+      list.find { |p| p.purl_type == purl_type || p.legacy_purl_types.include?(purl_type) }.try(:namespace_separator)
     end
 
     def namespace_package_names(namespace)
@@ -272,16 +300,28 @@ module Ecosystem
       nil
     end
 
+    def with_package_sync_lock(_package_metadata)
+      yield
+    end
+
+    def after_package_sync
+      yield
+    end
+
+    def update_dependency_links(_package)
+      nil
+    end
+
     REPOS_TAGS_PER_PAGE = 1000
 
-    def sync_tag_backed_versions(package, versions_metadata)
-      return if versions_metadata.blank?
+    def sync_tag_backed_versions(package, versions_metadata, complete: nil)
+      return if versions_metadata.blank? && complete != true
 
       remote = versions_metadata.each_with_object({}) do |version, result|
         version = version.with_indifferent_access
         result[version[:number].to_s.downcase] = version
       end
-      mark_removed = versions_metadata.size < REPOS_TAGS_PER_PAGE
+      mark_removed = complete.nil? ? versions_metadata.size < REPOS_TAGS_PER_PAGE : complete
       now = Time.current
 
       package.versions.select(:id, :number, :status, :published_at, :metadata).find_each do |version|
@@ -375,6 +415,18 @@ module Ecosystem
       packages
     end
 
+    def feed_titles(url)
+      # Faraday returns binary bodies, which SimpleRSS fails to encode on any non-ASCII byte
+      SimpleRSS.parse(get_raw(url).to_s.dup.force_encoding(Encoding::UTF_8)).items.map(&:title)
+    rescue => e
+      Rails.logger.warn("Failed to read feed #{url}: #{e.class} #{e.message}")
+      []
+    end
+
+    def ecosystems_api_url?(url)
+      url.scheme == 'https' && url.host.to_s.downcase.end_with?('.ecosyste.ms')
+    end
+
     private
 
     def get_raw_no_exception(url, options = {})
@@ -388,14 +440,17 @@ module Ecosystem
     end
 
     def request(url, options = {})
-      options[:headers] ||= {}
-      options[:headers]["User-Agent"] = "packages.ecosyste.ms"
-      # Add API key for ecosyste.ms domains
-      if ENV['ECOSYSTEMS_API_KEY'] && url.include?('.ecosyste.ms')
-        options[:headers]["X-API-Key"] = ENV['ECOSYSTEMS_API_KEY']
-      end
+      options = options.merge(headers: (options[:headers] || {}).merge('User-Agent' => 'packages.ecosyste.ms'))
+      api_key = ENV['ECOSYSTEMS_API_KEY']
       connection = Faraday.new url.strip, options do |builder|
-        builder.use Faraday::FollowRedirects::Middleware
+        redirect_options = {}
+        if api_key && ecosystems_api_url?(builder.url_prefix)
+          builder.headers['X-API-Key'] = api_key
+          redirect_options[:callback] = lambda do |_previous, following|
+            following.request_headers.delete('X-API-Key') unless ecosystems_api_url?(following.url)
+          end
+        end
+        builder.use Faraday::FollowRedirects::Middleware, redirect_options
         builder.request :retry, { max: 2, interval: 0.05, interval_randomness: 0.5, backoff_factor: 2 }
 
         builder.request :instrumentation

@@ -254,6 +254,63 @@ paths:
         '400':
           description: missing integrity parameter
 
+  /purls/lookup:
+    get:
+      summary: lookup a package version by PURL
+      operationId: lookupPurl
+      tags:
+        - packages
+      parameters:
+        - name: purl
+          in: query
+          description: package URL, with an optional version
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurlLookupResult'
+        '400':
+          description: missing PURL parameter
+
+  /purls/bulk_lookup:
+    post:
+      summary: lookup package versions by PURL
+      operationId: bulkLookupPurls
+      tags:
+        - packages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - purls
+              properties:
+                purls:
+                  type: array
+                  description: package URLs to lookup (maximum 100)
+                  maxItems: 100
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                description: results in the same order as the requested PURLs
+                items:
+                  $ref: '#/components/schemas/PurlLookupResult'
+        '400':
+          description: missing PURLs parameter or too many PURLs
+
   /packages/lookup:
     get:
       summary: lookup a single package by repository URL, purl or ecosystem+name. For multiple packages use POST /packages/bulk_lookup.
@@ -1850,6 +1907,7 @@ components:
         - first_release_published_at
         - latest_release_published_at
         - latest_release_number
+        - latest_published_release_number
         - last_synced_at
         - created_at
         - updated_at
@@ -1925,6 +1983,10 @@ components:
         latest_release_number:
           type: string
           nullable: true
+        latest_published_release_number:
+          type: string
+          nullable: true
+          description: Newest published release number, including deprecated or unlisted versions. Null when the package has no versions. Differs from latest_release_number when every version is deprecated or unlisted.
         last_synced_at:
           type: string
           format: date-time
@@ -2037,6 +2099,7 @@ components:
         - codemeta_url
         - related_tag
         - latest
+        - advisories
       type: object
       properties:
         id:
@@ -2084,6 +2147,10 @@ components:
           type: string
         related_tag:
           type: object
+        advisories:
+          type: array
+          items:
+            $ref: '#/components/schemas/VersionAdvisory'
     VersionWithDependencies:
       required:
         - number
@@ -2104,6 +2171,7 @@ components:
         - related_tag
         - latest
         - dependencies
+        - advisories
       type: object
       properties:
           id:
@@ -2157,6 +2225,10 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/Dependency'
+          advisories:
+            type: array
+            items:
+              $ref: '#/components/schemas/VersionAdvisory'
     VersionLookup:
       allOf:
         - $ref: '#/components/schemas/VersionWithDependencies'
@@ -2166,6 +2238,67 @@ components:
           properties:
             package:
               $ref: '#/components/schemas/PackageWithRegistry'
+    PurlLookupResult:
+      required:
+        - purl
+        - match_status
+      type: object
+      properties:
+        purl:
+          type: string
+        match_status:
+          type: string
+          enum:
+            - matched
+            - missing
+            - ambiguous
+        version:
+          $ref: '#/components/schemas/PurlVersion'
+          nullable: true
+    PurlVersion:
+      required:
+        - name
+        - version
+        - purl
+        - identifiers
+        - artifacts
+        - dependencies
+        - advisories
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        purl:
+          type: string
+        license_expression:
+          type: string
+          nullable: true
+        identifiers:
+          type: object
+          properties:
+            purl:
+              type: string
+            integrity:
+              type: string
+        artifacts:
+          type: array
+          items:
+            type: object
+            properties:
+              download_url:
+                type: string
+              integrity:
+                type: string
+        dependencies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dependency'
+        advisories:
+          type: array
+          items:
+            $ref: '#/components/schemas/VersionAdvisory'
     VersionWithPackage:
       required:
         - id
@@ -2187,6 +2320,7 @@ components:
         - related_tag
         - latest
         - package_url
+        - advisories
       type: object
       properties:
         id:
@@ -2236,6 +2370,42 @@ components:
           type: string
         package_url:
           type: string
+        advisories:
+          type: array
+          items:
+            $ref: '#/components/schemas/VersionAdvisory'
+    VersionAdvisory:
+      required:
+        - identifiers
+        - affected
+        - fixed
+        - fixed_versions
+      type: object
+      properties:
+        uuid:
+          type: string
+          nullable: true
+        identifiers:
+          type: array
+          items:
+            type: string
+        url:
+          type: string
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        severity:
+          type: string
+          nullable: true
+        affected:
+          type: boolean
+        fixed:
+          type: boolean
+        fixed_versions:
+          type: array
+          items:
+            type: string
     Dependency:
       required:
         - id

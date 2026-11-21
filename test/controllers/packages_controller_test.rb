@@ -19,6 +19,25 @@ class PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_template 'packages/show', file: 'packages/show.html.erb'
   end
 
+  test 'lookup by name resolves cocoapods subspec to the root pod' do
+    registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+    root = registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
+
+    get packages_lookup_path(ecosystem: 'cocoapods', name: 'KSCrash/Reporting/Filters')
+
+    assert_redirected_to registry_package_path(root.registry, root)
+  end
+
+  test 'lookup by name prefers an exact match over its normalized name' do
+    registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+    root = registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
+    exact = registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash/Reporting')
+
+    get packages_lookup_path(ecosystem: 'cocoapods', name: 'KSCrash/Reporting')
+
+    assert_redirected_to registry_package_path(exact.registry, exact)
+  end
+
   test 'lookup returns bad request without a package selector' do
     get packages_lookup_path(ecosystem: 'docker')
     assert_response :bad_request

@@ -10,10 +10,28 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     get api_v1_registry_packages_path(registry_id: @registry.name)
     assert_response :success
     assert_template 'packages/index', file: 'packages/index.json.jbuilder'
-    
+
     actual_response = Oj.load(@response.body)
 
     assert_equal actual_response.length, 1
+  end
+
+  test 'reject pagination beyond the page cap' do
+    get api_v1_registry_packages_path(registry_id: @registry.name, page: Api::V1::ApplicationController::MAX_PAGE + 1)
+    assert_response :bad_request
+    assert_includes Oj.load(@response.body)['error'], 'open-data'
+  end
+
+  test 'allow pagination at the page cap' do
+    get api_v1_registry_packages_path(registry_id: @registry.name, page: Api::V1::ApplicationController::MAX_PAGE)
+    assert_response :success
+  end
+
+  test 'serialise timestamps with microsecond precision for cursor pagination' do
+    @package.update_columns(updated_at: Time.utc(2026, 11, 1, 0, 7, 11, 830456))
+    get api_v1_registry_packages_path(registry_id: @registry.name)
+    assert_response :success
+    assert_equal '2026-11-01T00:07:11.830456Z', Oj.load(@response.body).first['updated_at']
   end
 
   test 'list critical packages for a registry' do
@@ -118,6 +136,42 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response['metadata'], {"foo"=>"bar"}
   end
 
+  test 'get a cocoapods package by encoded subspec name returns the root pod' do
+    @registry = Registry.create(name: 'cocoapods.org', url: 'https://cocoapods.org/', ecosystem: 'cocoapods', default: true)
+    @package = @registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
+
+    get '/api/v1/registries/cocoapods.org/packages/KSCrash%2FReporting%2FFilters'
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal @package.id, actual_response['id']
+    assert_equal 'KSCrash', actual_response['name']
+    assert_equal 'pkg:cocoapods/KSCrash', actual_response['purl']
+  end
+
+  test 'get a cocoapods package by subspec name with unknown root is not found' do
+    @registry = Registry.create(name: 'cocoapods.org', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+    @registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
+
+    get '/api/v1/registries/cocoapods.org/packages/MissingPod%2FSubspec'
+    assert_response :not_found
+  end
+
+  test 'get a package with only deprecated versions' do
+    @package.versions.create!(number: '1.0.0', published_at: 2.years.ago, status: 'deprecated')
+    @package.versions.create!(number: '2.0.0', published_at: 1.year.ago, status: 'deprecated')
+    @package.update_details
+
+    get api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_nil actual_response['latest_release_number']
+    assert_equal '2.0.0', actual_response['latest_published_release_number']
+  end
+
   test 'lookup by purl' do
     get lookup_api_v1_packages_path(purl: 'pkg:cargo/rand@0.8.0')
     assert_response :success
@@ -127,6 +181,89 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal actual_response.length, 1
     assert_equal actual_response.first['name'], @package.name
+  end
+
+  test 'lookup by oci purl matches the registry named in repository_url' do
+    registry = Registry.create(name: 'ollama.com', url: 'https://ollama.com', ecosystem: 'ollama', default: true)
+    package = registry.packages.create(ecosystem: 'ollama', name: 'all-minilm')
+
+    get lookup_api_v1_packages_path, params: { purl: 'pkg:oci/all-minilm?repository_url=registry.ollama.ai/library/all-minilm&tag=latest' }
+
+    assert_response :success
+    assert_equal [package.id], Oj.load(@response.body).pluck('id')
+
+    post bulk_lookup_api_v1_packages_path, params: { purls: ['pkg:oci/all-minilm?repository_url=registry.ollama.ai/library/all-minilm&tag=latest'] }
+
+    assert_response :success
+    assert_equal [package.id], Oj.load(@response.body).pluck('id')
+
+    assert_no_difference -> { SyncPackageWorker.jobs.size } do
+      [
+        'pkg:oci/all-minilm?repository_url=ghcr.io/someone/all-minilm',
+        'pkg:oci/all-minilm?repository_url=registry.ollama.ai/library/llama3',
+        'pkg:oci/all-minilm',
+        'pkg:oci/nginx'
+      ].each do |purl|
+        get lookup_api_v1_packages_path, params: { purl: purl }
+
+        assert_response :success
+        assert_empty Oj.load(@response.body), purl
+
+        post bulk_lookup_api_v1_packages_path, params: { purls: [purl] }
+
+        assert_response :success
+        assert_empty Oj.load(@response.body), purl
+      end
+    end
+  end
+
+  test 'API and HTML lookup use distro to select the Alpine package registry' do
+    packages = create_alpine_packages
+    purl = 'pkg:apk/alpine/curl@8.5.0-r0?arch=x86_64&distro=alpine-3.19'
+
+    get lookup_api_v1_packages_path, params: { purl: purl }
+
+    assert_response :success
+    actual_response = Oj.load(@response.body)
+    assert_equal [packages.first.id], actual_response.pluck('id')
+    assert_equal packages.first.registry.name, actual_response.first.dig('registry', 'name')
+
+    get packages_lookup_path, params: { purl: 'pkg:apk/alpine/curl@8.5.0-r0?arch=x86_64&distro=alpine-3.21' }
+
+    assert_redirected_to registry_package_path(packages.last.registry, packages.last)
+  end
+
+  test 'lookup does not enqueue a sync when PURL qualifiers or namespace match no registry' do
+    packages = create_alpine_packages
+    purls = [
+      'pkg:apk/alpine/curl@8.5.0-r0?arch=x86_64&distro=alpine-3.18',
+      "pkg:apk/alpine/curl@8.5.0-r0?distro=alpine-3.19&repository_url=#{packages.last.registry.url}",
+      'pkg:apk/unknown/curl@8.5.0-r0?distro=alpine-3.19',
+      'pkg:cargo/rand@0.8.0?distro=x'
+    ]
+
+    assert_no_difference -> { SyncPackageWorker.jobs.size } do
+      purls.each do |purl|
+        get lookup_api_v1_packages_path, params: { purl: purl }
+
+        assert_response :success
+        assert_empty Oj.load(@response.body), purl
+      end
+    end
+  end
+
+  test 'lookup syncs a missing distro-qualified package only into the selected registry' do
+    packages = create_alpine_packages
+    registry = packages.last.registry
+    SyncPackageWorker.expects(:perform_async).with(registry.id, 'not-yet-indexed').twice
+    purl = 'pkg:apk/alpine/not-yet-indexed?arch=x86_64&distro=alpine-3.21'
+
+    [purl, "#{purl}&repository_url=#{registry.url}"].each do |qualified_purl|
+      get lookup_api_v1_packages_path, params: { purl: qualified_purl }
+
+      assert_response :success
+      assert_empty Oj.load(@response.body)
+    end
   end
 
   test 'lookup by name and ecosystem only matches packages in that ecosystem' do
@@ -158,6 +295,15 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_match 'bulk_lookup', actual_response['error']
   end
 
+  test 'lookup by purl without the pkg scheme returns 422' do
+    get lookup_api_v1_packages_path(purl: 'garbage')
+
+    assert_response :unprocessable_content
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 'Invalid PURL format: garbage', actual_response['error']
+  end
+
   test 'lookup by purl with missing type' do
     invalid_purl = 'pkg:/software.amazon.awssdk%3Ametrics-spi'
   
@@ -167,6 +313,20 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     actual_response = Oj.load(@response.body)
   
     assert_equal 'Invalid PURL format: pkg:/software.amazon.awssdk%3Ametrics-spi', actual_response['error']
+  end
+
+  test 'lookup by purl accepts the legacy and current Open VSX purl types' do
+    @registry = Registry.create(name: 'open-vsx.org', url: 'https://open-vsx.org', ecosystem: 'openvsx', default: true)
+    @package = @registry.packages.create(ecosystem: 'openvsx', name: 'redhat/vscode-yaml')
+
+    ['pkg:openvsx/redhat/vscode-yaml', 'pkg:vscode-extension/redhat/vscode-yaml', 'pkg:vscode-extension/redhat/vscode-yaml?repository_url=https://open-vsx.org'].each do |purl|
+      get lookup_api_v1_packages_path(purl: purl)
+      assert_response :success
+      actual_response = Oj.load(@response.body)
+      assert_equal 1, actual_response.length, purl
+      assert_equal @package.name, actual_response.first['name'], purl
+      assert_equal 'pkg:vscode-extension/redhat/vscode-yaml?repository_url=https://open-vsx.org', actual_response.first['purl'], purl
+    end
   end
 
   test 'lookup by purl github actions' do
@@ -304,6 +464,91 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.first['name'], @package.name
   end
 
+  test 'lookup by purl resolves cocoapods subspec to the root pod' do
+    @registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods', default: true)
+    @package = @registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
+
+    ['pkg:cocoapods/KSCrash%2FReporting%2FFilters', 'pkg:cocoapods/KSCrash%2FReporting%2FFilters@1.17.6', 'pkg:cocoapods/KSCrash/Reporting/Filters'].each do |purl|
+      get lookup_api_v1_packages_path(purl: purl)
+      assert_response :success
+
+      actual_response = Oj.load(@response.body)
+
+      assert_equal 1, actual_response.length, purl
+      assert_equal @package.name, actual_response.first['name'], purl
+      assert_equal 'pkg:cocoapods/KSCrash', actual_response.first['purl'], purl
+    end
+  end
+
+  test 'lookup by purl resolves deeply nested cocoapods subspecs to the root pod' do
+    @registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods', default: true)
+    @package = @registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
+
+    get lookup_api_v1_packages_path(purl: 'pkg:cocoapods/KSCrash%2FReporting%2FFilters%2FBase')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal @package.name, actual_response.first['name']
+  end
+
+  test 'lookup by purl cocoapods subspec with unknown root stays empty and syncs the root' do
+    @registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+
+    Registry.any_instance.expects(:sync_package_async).with('MissingPod').once
+
+    get lookup_api_v1_packages_path(purl: 'pkg:cocoapods/MissingPod%2FSubspec')
+    assert_response :success
+
+    assert_empty Oj.load(@response.body)
+  end
+
+  test 'lookup by name resolves cocoapods subspec to the root pod' do
+    @registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+    @package = @registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
+
+    get lookup_api_v1_packages_path, params: { ecosystem: 'cocoapods', name: 'KSCrash/Reporting/Filters' }
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal @package.name, actual_response.first['name']
+  end
+
+  test 'lookup by name with an unknown ecosystem still syncs the original name' do
+    Registry.create(name: 'unknown.example', url: 'https://unknown.example/', ecosystem: 'unknown')
+
+    Registry.any_instance.expects(:sync_package_async).with('SomePackage').once
+
+    get lookup_api_v1_packages_path, params: { ecosystem: 'unknown', name: 'SomePackage' }
+    assert_response :success
+
+    assert_empty Oj.load(@response.body)
+  end
+
+  test 'lookup by name cocoapods subspec with unknown root syncs the root name' do
+    Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+
+    Registry.any_instance.expects(:sync_package_async).with('MissingPod').once
+
+    get lookup_api_v1_packages_path, params: { ecosystem: 'cocoapods', name: 'MissingPod/Subspec' }
+    assert_response :success
+
+    assert_empty Oj.load(@response.body)
+  end
+
+  test 'lookup by name with wrong case cocoapods root does not match' do
+    @registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+    @registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
+
+    get lookup_api_v1_packages_path, params: { ecosystem: 'cocoapods', name: 'kscrash/Reporting/Filters' }
+    assert_response :success
+
+    assert_empty Oj.load(@response.body)
+  end
+
   test 'lookup by purl npm namespace' do
     @registry = Registry.create(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
     @package = @registry.packages.create(ecosystem: 'npm', name: '@loaders.gl/core', namespace: 'loaders.gl')
@@ -406,6 +651,88 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal @package.name, actual_response.first['name']
   end
 
+  test 'bulk_lookup by purls resolves cocoapods subspecs to the root pod' do
+    @registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+    @package = @registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
+    @registry.packages.create(ecosystem: 'cocoapods', name: 'Other')
+
+    post bulk_lookup_api_v1_packages_path, params: { purls: ['pkg:cocoapods/KSCrash%2FReporting%2FFilters', 'pkg:cocoapods/KSCrash/Reporting'] }
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal @package.name, actual_response.first['name']
+  end
+
+  test 'bulk_lookup by purls keeps other ecosystems unaffected' do
+    @cocoapods_registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+    @cocoapods_registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
+
+    post bulk_lookup_api_v1_packages_path, params: { purls: ['pkg:cargo/rand', 'pkg:cocoapods/KSCrash%2FReporting%2FFilters'] }
+    assert_response :success
+
+    names = Oj.load(@response.body).pluck('name')
+
+    assert_equal 2, names.length
+    assert_includes names, 'rand'
+    assert_includes names, 'KSCrash'
+  end
+
+  test 'bulk_lookup by names resolves cocoapods subspecs to the root pod' do
+    @registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+    @package = @registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
+
+    post bulk_lookup_api_v1_packages_path, params: { names: ['KSCrash/Reporting/Filters'], ecosystem: 'cocoapods' }
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal 1, actual_response.length
+    assert_equal @package.name, actual_response.first['name']
+  end
+
+  test 'bulk_lookup by a single name string resolves cocoapods subspecs to the root pod' do
+    @registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+    @package = @registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
+
+    post bulk_lookup_api_v1_packages_path, params: { names: 'KSCrash/Reporting/Filters', ecosystem: 'cocoapods' }
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal [@package.id], actual_response.pluck('id')
+  end
+
+  test 'bulk_lookup accepts a single name string without an ecosystem' do
+    post bulk_lookup_api_v1_packages_path, params: { names: @package.name }
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+
+    assert_equal [@package.id], actual_response.pluck('id')
+  end
+
+  test 'bulk_lookup preserves exact ecosystem names alongside normalized ones' do
+    swiftpm_registry = Registry.create(name: 'swiftpm', url: 'https://swiftpm.dev', ecosystem: 'swiftpm')
+    swiftpm_package = swiftpm_registry.packages.create(name: 'github.com/groue/GRDB.swift', ecosystem: 'swiftpm')
+
+    post bulk_lookup_api_v1_packages_path, params: { names: ['github.com/groue/GRDB.swift'], ecosystem: 'swiftpm' }
+    assert_response :success
+
+    ids = Oj.load(@response.body).pluck('id')
+    assert_includes ids, swiftpm_package.id
+  end
+
+  test 'bulk_lookup with empty purls and ecosystem returns an empty result' do
+    Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+
+    post bulk_lookup_api_v1_packages_path, params: { purls: [], ecosystem: 'cocoapods' }
+    assert_response :success
+
+    assert_empty Oj.load(@response.body)
+  end
+
   test 'bulk_lookup by github purl with ecosystem filter narrows results' do
     npm_registry = Registry.create(name: 'npmjs.org', url: 'https://registry.npmjs.org', ecosystem: 'npm')
     npm_package = npm_registry.packages.create(name: 'rand-js', ecosystem: 'npm', repository_url: 'https://github.com/rust-random/rand')
@@ -496,6 +823,56 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     get ping_api_v1_registry_package_path(registry_id: @registry.name, id: 'nonexistent')
     assert_response :success
     
+    actual_response = Oj.load(@response.body)
+    assert_equal actual_response['message'], 'pong'
+  end
+
+  test 'ping cocoapods subspec syncs the indexed root pod' do
+    @registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+    @package = @registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
+
+    Registry.any_instance.expects(:sync_package_async).never
+    SyncPackageByIdWorker.expects(:perform_async).with(@registry.id, @package.id).once
+
+    get ping_api_v1_registry_package_path(registry_id: @registry.name, id: 'KSCrash/Reporting/Filters')
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal actual_response['message'], 'pong'
+  end
+
+  test 'ping with an unknown ecosystem still enqueues the original name' do
+    @registry = Registry.create(name: 'unknown.example', url: 'https://unknown.example/', ecosystem: 'unknown')
+
+    Registry.any_instance.expects(:sync_package_async).with('SomePackage').once
+
+    get ping_api_v1_registry_package_path(registry_id: @registry.name, id: 'SomePackage')
+    assert_response :success
+
+    assert_equal 'pong', Oj.load(@response.body)['message']
+  end
+
+  test 'ping a recently synced exact package does not enqueue anything' do
+    @registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+    @package = @registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash', last_synced_at: 1.minute.ago)
+
+    Registry.any_instance.expects(:sync_package_async).never
+    SyncPackageByIdWorker.expects(:perform_async).never
+
+    get ping_api_v1_registry_package_path(registry_id: @registry.name, id: 'KSCrash')
+    assert_response :success
+
+    assert_equal 'pong', Oj.load(@response.body)['message']
+  end
+
+  test 'ping nonexistent cocoapods subspec enqueues the root name' do
+    @registry = Registry.create(name: 'cocoapods', url: 'https://cocoapods.org/', ecosystem: 'cocoapods')
+
+    Registry.any_instance.expects(:sync_package_async).with('MissingPod').once
+
+    get ping_api_v1_registry_package_path(registry_id: @registry.name, id: 'MissingPod/Subspec')
+    assert_response :success
+
     actual_response = Oj.load(@response.body)
     assert_equal actual_response['message'], 'pong'
   end
@@ -1148,5 +1525,16 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
 
     # Note: Some fields like sameAs and softwareHelp may be present for ecosystems
     # that have standard URL patterns (like cargo), so we don't assert they're nil
+  end
+
+  private
+
+  def create_alpine_packages
+    ['3.19', '3.21'].map do |branch|
+      registry = Registry.create!(name: "Alpine v#{branch}", url: "https://pkgs.alpinelinux.org/packages?branch=v#{branch}", ecosystem: 'alpine', version: "v#{branch}")
+      package = registry.packages.create!(ecosystem: 'alpine', name: 'curl', metadata: { 'architecture' => 'x86_64', 'repository' => 'main' })
+      package.versions.create!(number: '8.5.0-r0')
+      package
+    end
   end
 end

@@ -14,6 +14,8 @@ class Package < ApplicationRecord
   REPO_METADATA_REFRESH_INTERVAL = 5.minutes.to_f / REPO_METADATA_REFRESH_BATCH_SIZE
   REPO_METADATA_REFRESH_SCAN_SIZE = 100_000
   REPO_METADATA_REFRESH_MAX_AGE = 1.month
+  SYNC_COOLDOWN = 1.day
+  POPULAR_SYNC_COOLDOWN = 12.hours
   RANKED_FIELDS = %i[downloads dependent_repos_count dependent_packages_count stargazers_count forks_count docker_downloads_count].freeze
   REPO_METADATA_RANKED_FIELDS = %i[stargazers_count forks_count].freeze
   
@@ -124,18 +126,33 @@ class Package < ApplicationRecord
 
   after_create :update_rankings_async
   after_update :mark_versions_removed, if: :saved_change_to_removed_status?
+  before_destroy :delete_versions_and_dependencies
 
   def self.with_pypi_name(name)
     normalized_name = name.downcase.gsub(/[-_.]+/, '-')
     where(name: [name, normalized_name]).or(where("metadata->>'normalized_name' = ?", normalized_name))
   end
 
-  def self.find_by_normalized_name(name)
-    normalized_name = name.downcase.gsub(/[-_.]+/, '-')
+  def self.with_ecosystem_name(name, ecosystem)
+    return with_pypi_name(name) if ecosystem == 'pypi'
+
+    normalized_name = Ecosystem::Base.find(ecosystem.to_s)&.normalized_package_name(name)
+    return where(name: name) unless normalized_name
+
+    where(name: [name, normalized_name]).or(where("metadata->>'normalized_name' = ?", normalized_name))
+  end
+
+  def self.find_by_normalized_name(name, normalized_name: nil)
+    explicit_normalization = normalized_name.present?
+    normalized_name ||= name.downcase.gsub(/[-_.]+/, '-')
     pkg = where(name: name).limit(1).take
-    pkg = where(name: normalized_name).limit(1).take if pkg.nil?
-    # for pypi
-    pkg = where("metadata->>'normalized_name' = ?", normalized_name).limit(1).take if pkg.nil?
+    pkg = where(name: normalized_name).limit(1).take if pkg.nil? && normalized_name != name
+    if pkg.nil?
+      matches = where("metadata->>'normalized_name' = ?", normalized_name).limit(explicit_normalization ? 2 : 1).to_a
+      pkg = matches.first if matches.one?
+    end
+    return pkg if explicit_normalization
+
     legacy_normalized_name = name.downcase.tr('_.', '--')
     if pkg.nil? && legacy_normalized_name != normalized_name
       pkg = where(name: legacy_normalized_name).limit(1).take
@@ -144,8 +161,8 @@ class Package < ApplicationRecord
     pkg
   end
 
-  def self.find_by_normalized_name!(name)
-    project = find_by_normalized_name(name)
+  def self.find_by_normalized_name!(name, **options)
+    project = find_by_normalized_name(name, **options)
     raise ActiveRecord::RecordNotFound if project.nil?
     project
   end
@@ -162,12 +179,12 @@ class Package < ApplicationRecord
 
   def self.sync_least_recent_async
     return if Sidekiq::Queue.new('critical').size > 10_000
-    Package.active.outdated.frequently_synced.where.not(registry_id: Registry.throttled_ids).order('RANDOM()').limit(4000).select('packages.id, packages.last_synced_at, packages.registry_id').each(&:sync_async)
+    Package.active.outdated.frequently_synced.where.not(registry_id: Registry.throttled_ids).order('RANDOM()').limit(4000).select('packages.id, packages.last_synced_at, packages.registry_id, packages.rankings').each(&:sync_async)
   end
 
   def self.sync_least_recent_top_async
     return if Sidekiq::Queue.new('critical').size > 10_000
-    Package.active.frequently_synced.order('RANDOM()').top(2).where('packages.last_synced_at < ?', 12.hours.ago).select('packages.id, packages.last_synced_at, packages.registry_id').limit(500).each(&:sync_async)
+    Package.active.frequently_synced.order('RANDOM()').top(1).where('packages.last_synced_at < ?', POPULAR_SYNC_COOLDOWN.ago).select('packages.id, packages.last_synced_at, packages.registry_id, packages.rankings').limit(500).each(&:sync_async)
   end
 
   def self.check_statuses_async
@@ -180,7 +197,7 @@ class Package < ApplicationRecord
     Package.active.frequently_synced
             .where(downloads: nil)
             .where(ecosystem: ['cargo','clojars','conda','hackage','hex','homebrew','julia','npm','nuget','packagist','puppet','rubygems','pypi'])
-            .limit(1000).select('packages.id, packages.last_synced_at, packages.registry_id').each(&:sync_async)
+            .limit(1000).select('packages.id, packages.last_synced_at, packages.registry_id, packages.rankings').each(&:sync_async)
   end
 
   def self.sync_maintainers_async
@@ -211,9 +228,22 @@ class Package < ApplicationRecord
 
   def update_dependent_package_ids
     version_ids = Version.joins(:package).where(packages: { registry_id: registry_id }).select(:id)
-    Dependency.where(package_id: nil, ecosystem: registry.ecosystem, package_name: name)
+    names = [name]
+    normalized_name = registry.ecosystem_class.normalized_package_name(name)
+    if normalized_name && self.class.dependency_package_id(registry_id, registry.ecosystem, normalized_name) == id
+      names << normalized_name
+    end
+    Dependency.where(package_id: nil, ecosystem: registry.ecosystem, package_name: names.uniq)
       .where(version_id: version_ids)
       .in_batches.update_all(package_id: id)
+  end
+
+  def self.dependency_package_id(registry_id, ecosystem, name)
+    packages = where(registry_id: registry_id)
+    normalized_name = Ecosystem::Base.find(ecosystem)&.normalized_package_name(name)
+    return packages.where(name: name).pick(:id) unless normalized_name
+
+    packages.select(:id).find_by_normalized_name(name, normalized_name: normalized_name)&.id
   end
 
   def update_dependent_packages_count
@@ -299,7 +329,7 @@ class Package < ApplicationRecord
 
   LIVE_EVENT_ATTRS = [:id, :name, :ecosystem, :description, :homepage, :licenses, :normalized_licenses,
                       :repository_url, :keywords_array, :namespace, :versions_count, :first_release_published_at,
-                      :latest_release_published_at, :latest_release_number, :last_synced_at, :created_at,
+                      :latest_release_published_at, :latest_release_number, :latest_published_release_number, :last_synced_at, :created_at,
                       :updated_at, :dependent_packages_count, :downloads, :downloads_period,
                       :dependent_repos_count, :rankings, :docker_dependents_count, :docker_downloads_count,
                       :status, :critical].freeze
@@ -353,6 +383,7 @@ class Package < ApplicationRecord
     normalize_licenses
     set_latest_release_published_at
     set_latest_release_number
+    set_latest_published_release_number
     set_first_release_published_at
     combine_keywords_and_topics
     saved = save if changed?
@@ -365,7 +396,11 @@ class Package < ApplicationRecord
   end
 
   def latest_version
-    @latest_version ||= (dist_tag_latest_version || latest_stable_version || versions.active.reject(&:opam_archived?).sort.first)
+    @latest_version ||= dist_tag_latest_version || latest_version_from(versions.active.to_a)
+  end
+
+  def latest_published_version
+    @latest_published_version ||= versions.reject(&:opam_archived?).sort.first
   end
 
   def dist_tag_latest_version
@@ -381,12 +416,28 @@ class Package < ApplicationRecord
     @latest_stable_version ||= versions.active.reject(&:opam_archived?).select(&:stable?).sort.first
   end
 
+  # latest_version's rules applied to versions already in memory, so callers can preload many packages at once
+  def latest_version_from(loaded_versions)
+    active = loaded_versions.select { |version| version.status.nil? }
+    tag = metadata.dig('dist-tags', 'latest') if metadata.is_a?(Hash)
+    tagged = active.find { |version| version.number == tag } if tag.present?
+    unarchived = active.reject(&:opam_archived?)
+    tagged || unarchived.select(&:stable?).sort.first || unarchived.sort.first
+  end
+
+  # Packages whose versions all have a status (e.g. every release deprecated) or are all archived have no
+  # latest_version, so use the newest version's date rather than updated_at, which moves on every sync
   def set_latest_release_published_at
-    self.latest_release_published_at = (latest_version.try(:published_at).presence || updated_at)
+    release = latest_version || latest_published_version || versions.sort.first
+    self.latest_release_published_at = (release.try(:published_at).presence || updated_at)
   end
 
   def set_latest_release_number
     self.latest_release_number = latest_version.try(:number)
+  end
+
+  def set_latest_published_release_number
+    self.latest_published_release_number = latest_published_version.try(:number)
   end
 
   def set_latest_on_latest_version
@@ -447,16 +498,33 @@ class Package < ApplicationRecord
       .flat_map { |l| l.split(/[,\/]/) }
       .map(&:strip)
       .reject { |l| l.blank? || l.match?(/\A(version\s+)?[\d.]+\z/) }
-      .map { |l| NON_SPDX_LICENSE_VALUES.include?(l) ? nil : Spdx.find(l) }
+      .map { |l| NON_SPDX_LICENSE_VALUES.include?(l) ? nil : find_spdx_license(l) }
       .compact
       .map(&:id)
   end
 
+  # Common registry license names that Spdx.find fuzzy matches to the wrong license (e.g. "ASF 2.0" to MulanPSL-2.0)
+  LICENSE_NAME_PATTERNS = {
+    /\A(asf|asl|al)[\s-]?v?2(\.0)?\z/ => "Apache-2.0",
+    /\A(eclipse distribution license|edl)\b.*(?<![\d.])1\.0\z/ => "BSD-3-Clause",
+    /\Agpl ?v?2 with cpe\z/ => "GPL-2.0-with-classpath-exception"
+  }.freeze
+
+  def find_spdx_license(name)
+    LICENSE_NAME_PATTERNS.each { |pattern, id| return Spdx.find(id) if name.match?(pattern) }
+
+    # "EPL 2.0" or "Apache 2.0" are exact SPDX ids once the space is a hyphen, so skip the fuzzy match
+    hyphenated = name.sub(/\s+v?(?=\d)/, "-")
+    (hyphenated != name && Spdx.lookup(hyphenated)) || Spdx.find(name)
+  end
+
   def manual_license_format(license)
     # fixes "Apache License, Version 2.0" etc being incorrectly split on the comma
+    # and "GPL2 w/ CPE" being split on the slash
     license
       .gsub(/\b(license|licence)( \([a-z]+\))?, version\b/, 'license\2 version')
       .gsub(/\b(license|licence)( \([a-z]+\))?, v(\d)/, 'license\2 v\3')
+      .gsub(%r{\bw/\s*}, 'with ')
   end
 
   def sync
@@ -468,8 +536,17 @@ class Package < ApplicationRecord
     end
   end
 
+  def sync_cooldown
+    rank = rankings&.fetch('average', nil)
+    rank && rank < 1 ? POPULAR_SYNC_COOLDOWN : SYNC_COOLDOWN
+  end
+
+  def next_sync_at
+    last_synced_at + sync_cooldown if last_synced_at
+  end
+
   def sync_async
-    return if last_synced_at && last_synced_at > 1.day.ago
+    return if next_sync_at && next_sync_at > Time.current
     return if registry&.sync_in_batches?
     SyncPackageByIdWorker.perform_async(registry_id, id)
   end
@@ -477,43 +554,52 @@ class Package < ApplicationRecord
   def update_versions
     ecosystem = registry.ecosystem_instance
     package_metadata = ecosystem.package_metadata(name)
-    return false unless package_metadata
-    versions_metadata = ecosystem.versions_metadata(package_metadata)
-    ecosystem.update_existing_versions(self, versions_metadata)
+    return ecosystem.handle_missing_package(name) unless package_metadata
+    ecosystem.with_package_sync_lock(package_metadata) do
+      if ecosystem.is_a?(Ecosystem::Packagist)
+        update!(status: package_metadata.fetch(:status), metadata: metadata.to_h.except('packagist_removed_at').merge(package_metadata.fetch(:metadata).slice('malware', 'packagist_snapshot', 'abandoned')))
+      end
+      existing_packagist_numbers = versions.pluck(:number).to_set if ecosystem.is_a?(Ecosystem::Packagist)
+      versions_metadata = ecosystem.versions_metadata(package_metadata, existing_packagist_numbers || [])
+      ecosystem.update_existing_versions(self, versions_metadata)
 
-    created_versions = []
-    versions_metadata.each do |version|
-      if version[:integrity].present?
-        v = versions.find{|ver| ver.integrity == version[:integrity] }
-      else
-        v = versions.find{|ver| ver.number == version[:number] }
-      end
-      begin
-        if v
-          version = version.except(:published_at) if self.ecosystem == 'opam' && version[:published_at].nil?
-          v.registry_id = registry_id
-          metadata_key = version.key?(:metadata) ? :metadata : 'metadata'
-          if version.key?(metadata_key)
-            version = version.merge(metadata_key => ecosystem.merge_version_metadata(v.metadata, version[metadata_key]))
-          end
-          v.assign_attributes(version)
-          v.save(validate: false)
+      created_versions = []
+      versions_metadata.each do |version|
+        if existing_packagist_numbers
+          next if existing_packagist_numbers.include?(version[:number])
+          v = nil
+        elsif version[:integrity].present?
+          v = versions.find{|ver| ver.integrity == version[:integrity] }
         else
-          created = versions.create(version)
-          created_versions << created if created.persisted?
+          v = versions.find{|ver| ver.number == version[:number] }
         end
-      rescue ActiveRecord::RecordNotUnique
-        Rails.logger.warn("Version not unique: #{version[:number]}")
+        begin
+          if v
+            version = version.except(:published_at) if self.ecosystem == 'opam' && version[:published_at].nil?
+            v.registry_id = registry_id
+            metadata_key = version.key?(:metadata) ? :metadata : 'metadata'
+            if version.key?(metadata_key)
+              version = version.merge(metadata_key => ecosystem.merge_version_metadata(v.metadata, version[metadata_key]))
+            end
+            v.assign_attributes(version)
+            v.save(validate: false)
+          else
+            created = versions.create(version)
+            created_versions << created if created.persisted?
+          end
+        rescue ActiveRecord::RecordNotUnique
+          Rails.logger.warn("Version not unique: #{version[:number]}")
+        end
       end
+      update_columns(versions_count: versions.count, versions_updated_at: Time.now)
+      if self.ecosystem == 'opam'
+        update_columns(metadata: (metadata || {}).merge('archived' => package_metadata.dig(:metadata, :archived)))
+      elsif self.ecosystem == 'npm'
+        update_columns(metadata: (metadata || {}).merge('dist-tags' => package_metadata.dig(:metadata, 'dist-tags')))
+      end
+      update_details
+      ecosystem.after_package_sync { emit_new_version_events(created_versions) }
     end
-    update_columns(versions_count: versions.count, versions_updated_at: Time.now)
-    if self.ecosystem == 'opam'
-      update_columns(metadata: (metadata || {}).merge('archived' => package_metadata.dig(:metadata, :archived)))
-    elsif self.ecosystem == 'npm'
-      update_columns(metadata: (metadata || {}).merge('dist-tags' => package_metadata.dig(:metadata, 'dist-tags')))
-    end
-    update_details
-    emit_new_version_events(created_versions)
   end
 
   def update_versions_async
@@ -538,7 +624,17 @@ class Package < ApplicationRecord
     versions.update_all(status: 'removed', updated_at: Time.current)
   end
 
+  # There are no foreign keys to cascade, so clear rows that would otherwise keep this package's id
+  def delete_versions_and_dependencies
+    version_ids = Version.where(package_id: id).select(:id)
+    Dependency.where(version_id: version_ids).delete_all
+    Version.where(package_id: id).delete_all
+    Dependency.where(package_id: id).update_all(package_id: nil)
+  end
+
   def check_status
+    return registry.sync_package(name, force: true) if registry.ecosystem_instance.is_a?(Ecosystem::Packagist)
+
     result = registry.ecosystem_instance.check_status(self)
     if result == false
       update_columns(last_synced_at: Time.now)
@@ -667,6 +763,9 @@ class Package < ApplicationRecord
     return unless [301, 302, 307, 308].include?(response.status)
     response.headers['location'].presence
   rescue Faraday::Error, URI::InvalidURIError
+    nil
+  rescue ArgumentError => error
+    raise unless error.message == 'invalid byte sequence in UTF-8'
     nil
   end
 
@@ -1090,11 +1189,13 @@ class Package < ApplicationRecord
 
   def fetch_readme
     return if repo_metadata.blank?
-    return if repo_metadata['metadata']['files']['readme'].blank?
-    
-    ecosystems_api_get('https://archives.ecosyste.ms/api/v1/archives/readme?url='+download_url)
-  rescue
-    nil
+    return if repo_metadata.dig('metadata', 'files', 'readme').blank?
+
+    url = download_url
+    return if url.blank?
+
+    # ecosystems_api_get returns nil on HTTP, network and JSON errors
+    ecosystems_api_get('https://archives.ecosyste.ms/api/v1/archives/readme', params: { url: url })
   end
 
   # underproduction
@@ -1155,11 +1256,13 @@ class Package < ApplicationRecord
         repo_urls << "https://github.com/#{purl.namespace}/#{purl.name}".downcase
         next
       end
+      next if purl.type == 'oci' && PurlLookupResolver.new(purl).registry_ids.empty?
       namespace = (purl.type == 'docker' && purl.namespace.nil?) ? 'library' : purl.namespace
       ecosystem = Ecosystem::Base.purl_type_to_ecosystem(purl.type)
       name = [namespace, purl.name].compact.join(Ecosystem::Base.purl_type_to_namespace_separator(purl.type))
       name = name.downcase if ecosystem == 'nuget'
       by_ecosystem[ecosystem] << name
+      by_ecosystem[ecosystem] << (Ecosystem::Base.find(ecosystem.to_s)&.normalized_package_name(name) || name)
     rescue => e
       Rails.logger.warn("Invalid PURL in bulk lookup: #{purl_string} - #{e.message}")
     end
