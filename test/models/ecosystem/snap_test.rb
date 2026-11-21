@@ -41,27 +41,30 @@ class SnapTest < ActiveSupport::TestCase
     assert_equal %w[gimp spotify zoom-client jq], @ecosystem.recently_updated_package_names
   end
 
-  test 'recently_updated_package_names stops after RECENT_PAGE_LIMIT pages' do
+  test 'recently_updated_package_names finds a release on the last page' do
     base = 'https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name,last_updated&size=250'
-    1.upto(Ecosystem::Snap::RECENT_PAGE_LIMIT) do |n|
+    1.upto(6) do |n|
       body = {
         '_embedded' => { 'clickindex:package' => [{ 'package_name' => "snap-#{n}", 'last_updated' => "2026-01-0#{n}T00:00:00+00:00" }] },
-        '_links' => { 'next' => { 'href' => "#{base}&page=#{n + 1}" } }
+        '_links' => n < 6 ? { 'next' => { 'href' => "#{base}&page=#{n + 1}" } } : {}
       }
       stub_request(:get, "#{base}&page=#{n}").to_return(status: 200, body: body.to_json)
     end
-    names = @ecosystem.recently_updated_package_names
-    assert_equal %w[snap-4 snap-3 snap-2 snap-1], names
-    assert_not_requested :get, "#{base}&page=#{Ecosystem::Snap::RECENT_PAGE_LIMIT + 1}"
+    assert_equal %w[snap-6 snap-5 snap-4 snap-3 snap-2 snap-1], @ecosystem.recently_updated_package_names
   end
 
-  test 'bounded search_index does not shadow a later full walk' do
-    stub_search_index
-    @ecosystem.search_index(max_pages: 1)
+  test 'search index retries a failed page' do
+    @ecosystem.stubs(:sleep)
+    stub_request(:get, "https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name,last_updated&size=250&page=1")
+      .to_return(status: 200, body: file_fixture('snap/search_page1.json'))
+    stub_request(:get, "https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name%2Clast_updated&size=250&page=2")
+      .to_return({ status: 504, body: '<html>504 Gateway Time-out</html>' },
+                 { status: 200, body: file_fixture('snap/search_page2.json').read })
     assert_equal %w[zoom-client spotify gimp jq], @ecosystem.all_package_names
   end
 
   test 'package lists are empty when the search index errors' do
+    @ecosystem.stubs(:sleep)
     stub_request(:get, "https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name,last_updated&size=250&page=1")
       .to_return({ status: 504, body: '<html>504 Gateway Time-out</html>' })
     Rails.logger.expects(:warn).with(regexp_matches(/\ASnap package list unavailable: /)).twice
@@ -91,6 +94,14 @@ class SnapTest < ActiveSupport::TestCase
     stub_request(:get, %r{\Ahttps://api\.snapcraft\.io/v2/snaps/info/nope\?fields=})
       .to_return({ status: 404, body: '{"error-list":[{"code":"resource-not-found","message":"No snap named"}]}' })
     assert_equal false, @ecosystem.package_metadata('nope')
+  end
+
+  test 'sync_package raises when the store rate limits so the job retries' do
+    @registry.save!
+    stub_request(:get, %r{\Ahttps://api\.snapcraft\.io/v2/snaps/info/gimp\?fields=})
+      .to_return({ status: 429, body: '{"error-list":[{"code":"too-many-requests","message":"Too many requests"}]}' })
+    assert_raises(Ecosystem::Snap::RateLimited) { @registry.sync_package('gimp', force: true) }
+    assert_nil @registry.packages.find_by(name: 'gimp')
   end
 
   test 'versions_metadata dedupes by version across architectures' do
@@ -269,6 +280,33 @@ class SnapTest < ActiveSupport::TestCase
     SyncPackageWorker.expects(:perform_bulk).with([[@registry.id, 'gimp', true], [@registry.id, 'spotify', true]])
 
     @registry.sync_recently_updated_packages_async(period: 2.seconds)
+  end
+
+  test 'recent sync spends spare budget on the longest unsynced packages' do
+    @registry.rate_limit = 1
+    @registry.save!
+    stub_search_index
+    @registry.packages.create!(name: 'older', ecosystem: 'snap', last_synced_at: 3.days.ago)
+    @registry.packages.create!(name: 'oldest', ecosystem: 'snap', last_synced_at: 5.days.ago)
+    @registry.packages.create!(name: 'old', ecosystem: 'snap', last_synced_at: 2.days.ago)
+    @registry.packages.create!(name: 'fresh', ecosystem: 'snap', last_synced_at: 1.hour.ago)
+    @registry.packages.create!(name: 'gone', ecosystem: 'snap', status: 'removed', last_synced_at: 9.days.ago)
+    expected = %w[gimp spotify zoom-client jq oldest older].map { |name| [@registry.id, name, true] }
+    SyncPackageWorker.expects(:perform_bulk).with(expected)
+
+    @registry.sync_recently_updated_packages_async(period: 6.seconds)
+  end
+
+  test 'recent sync still sweeps stale packages when the search index is down' do
+    @registry.rate_limit = 1
+    @registry.save!
+    stub_request(:get, "https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name,last_updated&size=250&page=1")
+      .to_return({ status: 504, body: '<html>504 Gateway Time-out</html>' })
+    @registry.packages.create!(name: 'old', ecosystem: 'snap', last_synced_at: 2.days.ago)
+    Ecosystem::Snap.any_instance.stubs(:sleep)
+    SyncPackageWorker.expects(:perform_bulk).with([[@registry.id, 'old', true]])
+
+    @registry.sync_recently_updated_packages_async
   end
 
   def stub_search_index

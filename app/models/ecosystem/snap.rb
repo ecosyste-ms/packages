@@ -45,25 +45,38 @@ module Ecosystem
       false
     end
 
-    RECENT_PAGE_LIMIT = 4
+    class RateLimited < StandardError; end
 
-    # The search endpoint has no server-side sort, so recent-update detection reads the
-    # first RECENT_PAGE_LIMIT pages (popularity order) rather than the full ~45-page index.
-    def search_index(max_pages: nil)
+    MAX_SEARCH_PAGES = 200
+    SEARCH_PAGE_ATTEMPTS = 3
+
+    def search_index
       return @search_index if @search_index
       url = "#{API_URL}/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name,last_updated&size=250&page=1"
       results = []
-      (max_pages || 200).times do
-        page = get_json(url)
-        raise "Snap search returned #{page.inspect.truncate(200)}" unless page.is_a?(Hash) && page.dig('_embedded', 'clickindex:package')
+      MAX_SEARCH_PAGES.times do
+        page = search_page(url)
         page.dig('_embedded', 'clickindex:package').each do |e|
           results << { name: e['package_name'], last_updated: e['last_updated'] }
         end
         url = page.dig('_links', 'next', 'href')
         break if url.blank?
       end
-      @search_index = results if max_pages.nil?
-      results
+      @search_index = results
+    end
+
+    def search_page(url)
+      attempts = 0
+      begin
+        page = get_json(url)
+        raise "Snap search returned #{page.inspect.truncate(200)}" unless page.is_a?(Hash) && page.dig('_embedded', 'clickindex:package')
+        page
+      rescue
+        attempts += 1
+        raise if attempts >= SEARCH_PAGE_ATTEMPTS
+        sleep attempts
+        retry
+      end
     end
 
     def all_package_names
@@ -73,17 +86,42 @@ module Ecosystem
       []
     end
 
+    # The search endpoint has no server-side sort and the newest releases are spread
+    # across every page, so this walks the whole index and sorts it here.
     def recently_updated_package_names
-      search_index(max_pages: RECENT_PAGE_LIMIT).sort_by { |e| e[:last_updated].to_s }.reverse.first(100).map { |e| e[:name] }
+      search_index.sort_by { |e| e[:last_updated].to_s }.reverse.first(100).map { |e| e[:name] }
     rescue => e
       Rails.logger.warn("Snap package list unavailable: #{e.message}")
       []
     end
 
+    def sync_recent_packages_incrementally?
+      true
+    end
+
+    STALE_AFTER = 1.day
+    UNTHROTTLED_SYNC_LIMIT = 500
+
+    # last_updated only moves on stable and candidate releases, so whatever budget the
+    # recent names leave goes on the packages that have gone longest without a sync.
+    def sync_recently_updated_packages_async(period: 15.minutes)
+      names = recently_updated_package_names
+      spare = (@registry.sync_budget(period) || UNTHROTTLED_SYNC_LIMIT) - names.size
+      if spare.positive?
+        names += @registry.packages.active.where('last_synced_at < ?', STALE_AFTER.ago)
+                          .order(:last_synced_at).limit(spare).pluck(:name)
+      end
+      @registry.sync_packages_async(names.uniq, period: period, force: true)
+    end
+
     def fetch_package_metadata_uncached(name)
-      data = get_json("#{API_URL}/v2/snaps/info/#{CGI.escape(name)}?fields=#{FIELDS}", headers: snap_headers)
+      resp = request("#{API_URL}/v2/snaps/info/#{CGI.escape(name)}?fields=#{FIELDS}", headers: snap_headers.merge('Accept' => 'application/json'))
+      raise RateLimited, "Snap Store rate limited the request for #{name}" if resp.status == 429
+      data = Oj.load(resp.body)
       return nil if data.nil? || data['error-list'].present? || data['name'].blank?
       data
+    rescue RateLimited
+      raise
     rescue
       nil
     end
