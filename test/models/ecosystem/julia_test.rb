@@ -54,6 +54,22 @@ class JuliaTest < ActiveSupport::TestCase
     assert Purl.parse(purl)
   end
 
+  test 'purl includes the package uuid' do
+    registry = Registry.create!(default: true, name: 'juliahub.com', url: 'https://juliahub.com', ecosystem: 'julia')
+    package = registry.packages.create!(ecosystem: 'julia', name: 'Dates', metadata: { 'uuid' => 'ade2ca70-3891-5945-98fb-dc099432e06a' })
+    version = package.versions.create!(number: '1.9.0')
+
+    assert_equal 'pkg:julia/Dates?uuid=ade2ca70-3891-5945-98fb-dc099432e06a', package.purl
+    assert_equal 'pkg:julia/Dates@1.9.0?uuid=ade2ca70-3891-5945-98fb-dc099432e06a', registry.purl(package, version)
+  end
+
+  test 'purl includes the uuid alongside repository_url for non-default registries' do
+    registry = Registry.create!(default: false, name: 'other.julia', url: 'https://other.julia', ecosystem: 'julia')
+    package = registry.packages.create!(ecosystem: 'julia', name: 'Dates', metadata: { 'uuid' => 'ade2ca70-3891-5945-98fb-dc099432e06a' })
+
+    assert_equal 'pkg:julia/Dates?repository_url=https://other.julia&uuid=ade2ca70-3891-5945-98fb-dc099432e06a', package.purl
+  end
+
   test 'purl with version' do
     purl = @ecosystem.purl(@package, @version)
     assert_equal purl, 'pkg:julia/Inequality@0.0.4'
