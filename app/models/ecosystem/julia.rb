@@ -7,6 +7,13 @@ module Ecosystem
       true
     end
 
+    def purl_params(package, version = nil)
+      uuid = package.metadata&.dig('uuid')
+      return super if uuid.blank?
+
+      super.merge(qualifiers: { 'uuid' => uuid })
+    end
+
     def registry_url(package, version = nil)
       "#{@registry_url}/ui/Packages/General/#{package.name}/#{version}"
     end
