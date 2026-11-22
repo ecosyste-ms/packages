@@ -24,8 +24,10 @@ module Ecosystem
       "#{@registry_url}/#{package.name}"
     end
 
+    INSTALL_FLAGS = { 'classic' => ' --classic', 'devmode' => ' --devmode' }.freeze
+
     def install_command(package, version = nil)
-      "snap install #{package.name}"
+      "snap install #{package.name}#{INSTALL_FLAGS[package.metadata&.dig('confinement')]}"
     end
 
     def download_url(package, version)
@@ -52,7 +54,8 @@ module Ecosystem
 
     def search_index
       return @search_index if @search_index
-      url = "#{API_URL}/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name,last_updated&size=250&page=1"
+      # Search returns only strict snaps unless every confinement is asked for.
+      url = "#{API_URL}/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name,last_updated&confinement=strict,classic,devmode&size=250&page=1"
       results = []
       MAX_SEARCH_PAGES.times do
         page = search_page(url)
@@ -146,6 +149,7 @@ module Ecosystem
           title: snap['title'],
           snap_id: data['snap-id'],
           store_url: snap['store-url'],
+          confinement: default_entry(data['channel-map'])&.dig('confinement'),
           publisher: publisher,
           contact: snap['contact'].presence || Array(links['contact']).first,
           links: links,
@@ -188,7 +192,18 @@ module Ecosystem
         end
         metadata = (version.metadata || {}).merge(incoming[:metadata].stringify_keys)
         next if metadata == version.metadata && incoming[:integrity] == version.integrity
+        revision_changed = version.metadata&.dig('revision') != metadata['revision']
         version.update_columns(metadata: metadata, integrity: incoming[:integrity], updated_at: Time.current)
+        replace_dependencies(package, version) if revision_changed
+      end
+    end
+
+    # A version number can be rebuilt as a new revision on a different base.
+    def replace_dependencies(package, version)
+      deps = dependencies_metadata(package.name, version.number, package_metadata(package.name))
+      Dependency.transaction do
+        version.dependencies.delete_all
+        Dependency.insert_all(deps.map { |dep| dep.merge(version_id: version.id) }) if deps.any?
       end
     end
 
@@ -196,7 +211,8 @@ module Ecosystem
       entries = Array(pkg_metadata[:releases]).select { |c| c['version'] == version }
       return [] if entries.empty?
       primary = preferred_entry(entries)
-      names = [primary['base'], *content_default_providers(primary['snap-yaml'])].compact.uniq
+      base = primary['base'] unless primary['base'] == 'none'
+      names = [base, *content_default_providers(primary['snap-yaml'])].compact.uniq
       names.map do |dep|
         { package_name: dep, requirements: '*', kind: 'runtime', ecosystem: 'snap' }
       end
@@ -226,13 +242,19 @@ module Ecosystem
       entries.find { |e| e.dig('channel', 'architecture') == 'amd64' } || entries.first
     end
 
+    def default_entry(channel_map)
+      entries = Array(channel_map)
+      preferred_entry(entries.select { |e| e.dig('channel', 'name') == 'stable' }.presence || entries)
+    end
+
     def content_default_providers(snap_yaml)
       return [] if snap_yaml.blank?
       yaml = YAML.safe_load(snap_yaml) rescue nil
       return [] unless yaml.is_a?(Hash)
       Array(yaml['plugs']).filter_map do |_, plug|
         next unless plug.is_a?(Hash) && plug['interface'] == 'content'
-        plug['default-provider'].presence
+        # Older snaps write the provider as "snap:slot".
+        plug['default-provider'].to_s.split(':').first.presence
       end
     end
 

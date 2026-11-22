@@ -16,6 +16,12 @@ class SnapTest < ActiveSupport::TestCase
     assert_equal 'snap install gimp', @ecosystem.install_command(@package)
   end
 
+  test 'install_command adds the flag classic and devmode snaps need' do
+    assert_equal 'snap install code --classic', @ecosystem.install_command(Package.new(name: 'code', metadata: { 'confinement' => 'classic' }))
+    assert_equal 'snap install wip --devmode', @ecosystem.install_command(Package.new(name: 'wip', metadata: { 'confinement' => 'devmode' }))
+    assert_equal 'snap install gimp', @ecosystem.install_command(Package.new(name: 'gimp', metadata: { 'confinement' => 'strict' }))
+  end
+
   test 'download_url' do
     assert_equal 'https://api.snapcraft.io/api/v1/snaps/download/KDHYbyuzZukmLhiogKiUksByRhXD2gYV_560.snap', @ecosystem.download_url(@package, @version)
     assert_nil @ecosystem.download_url(@package, nil)
@@ -42,7 +48,7 @@ class SnapTest < ActiveSupport::TestCase
   end
 
   test 'recently_updated_package_names finds a release on the last page' do
-    base = 'https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name,last_updated&size=250'
+    base = 'https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name,last_updated&confinement=strict,classic,devmode&size=250'
     1.upto(6) do |n|
       body = {
         '_embedded' => { 'clickindex:package' => [{ 'package_name' => "snap-#{n}", 'last_updated' => "2026-01-0#{n}T00:00:00+00:00" }] },
@@ -55,9 +61,9 @@ class SnapTest < ActiveSupport::TestCase
 
   test 'search index retries a failed page' do
     @ecosystem.stubs(:sleep)
-    stub_request(:get, "https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name,last_updated&size=250&page=1")
+    stub_request(:get, "https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name,last_updated&confinement=strict,classic,devmode&size=250&page=1")
       .to_return(status: 200, body: file_fixture('snap/search_page1.json'))
-    stub_request(:get, "https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name%2Clast_updated&size=250&page=2")
+    stub_request(:get, "https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name%2Clast_updated&confinement=strict%2Cclassic%2Cdevmode&size=250&page=2")
       .to_return({ status: 504, body: '<html>504 Gateway Time-out</html>' },
                  { status: 200, body: file_fixture('snap/search_page2.json').read })
     assert_equal %w[zoom-client spotify gimp jq], @ecosystem.all_package_names
@@ -65,7 +71,7 @@ class SnapTest < ActiveSupport::TestCase
 
   test 'package lists are empty when the search index errors' do
     @ecosystem.stubs(:sleep)
-    stub_request(:get, "https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name,last_updated&size=250&page=1")
+    stub_request(:get, "https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name,last_updated&confinement=strict,classic,devmode&size=250&page=1")
       .to_return({ status: 504, body: '<html>504 Gateway Time-out</html>' })
     Rails.logger.expects(:warn).with(regexp_matches(/\ASnap package list unavailable: /)).twice
     assert_equal [], @ecosystem.all_package_names
@@ -87,6 +93,7 @@ class SnapTest < ActiveSupport::TestCase
     assert_equal 'gimp', pkg[:namespace]
     assert_equal 'GNU Image Manipulation Program', pkg[:metadata][:title]
     assert_equal 'KDHYbyuzZukmLhiogKiUksByRhXD2gYV', pkg[:metadata][:snap_id]
+    assert_equal 'strict', pkg[:metadata][:confinement]
     assert_equal 'verified', pkg[:metadata][:publisher]['validation']
   end
 
@@ -142,6 +149,23 @@ class SnapTest < ActiveSupport::TestCase
     deps = @ecosystem.dependencies_metadata('gimp', '3.2.0-RC3', pkg)
 
     assert_equal %w[core24], deps.map { |d| d[:package_name] }
+  end
+
+  test 'dependencies_metadata skips the none base and strips slot suffixes' do
+    yaml = <<~YAML
+      name: demo
+      plugs:
+        icons:
+          interface: content
+          default-provider: gtk-common-themes:icon-themes
+        themes:
+          interface: content
+          default-provider: gtk-common-themes
+    YAML
+    releases = [{ 'version' => '1.0', 'base' => 'none', 'snap-yaml' => yaml, 'channel' => { 'architecture' => 'amd64' } }]
+    deps = @ecosystem.dependencies_metadata('demo', '1.0', { releases: releases })
+
+    assert_equal %w[gtk-common-themes], deps.map { |d| d[:package_name] }
   end
 
   test 'content_default_providers tolerates missing or malformed yaml' do
@@ -238,6 +262,40 @@ class SnapTest < ActiveSupport::TestCase
     assert_equal 654, version.metadata['revision']
   end
 
+  test 'sync_package replaces dependencies when a version is rebuilt as a new revision' do
+    @registry.save!
+    info = JSON.parse(file_fixture('snap/info_gimp.json').read)
+    rebuilt = info.deep_dup
+    rebuilt['channel-map'].reject! { |e| e['version'] == '3.2.0-RC3' }
+    rebuilt['channel-map'].each do |e|
+      e['revision'] += 100
+      e['base'] = 'core26'
+    end
+    stub_request(:get, %r{\Ahttps://api\.snapcraft\.io/v2/snaps/info/gimp})
+      .to_return({ status: 200, body: info.to_json }, { status: 200, body: info.to_json },
+                 { status: 200, body: rebuilt.to_json })
+
+    @registry.sync_package('gimp', force: true)
+    package = @registry.packages.find_by!(name: 'gimp')
+    version = package.versions.find_by!(number: '3.2.4')
+    assert_includes version.dependencies.pluck(:package_name), 'core24'
+
+    Registry.find(@registry.id).sync_package('gimp', force: true)
+    assert_equal %w[core26 gnome-46-2404 gtk-common-themes mesa-2404], version.dependencies.order(:package_name).pluck(:package_name)
+    assert_equal %w[core24], package.versions.find_by!(number: '3.2.0-RC3').dependencies.pluck(:package_name)
+  end
+
+  test 'sync_package records classic confinement for the install command' do
+    @registry.save!
+    info = JSON.parse(file_fixture('snap/info_gimp.json').read)
+    info['channel-map'].each { |e| e['confinement'] = 'classic' }
+    stub_request(:get, %r{\Ahttps://api\.snapcraft\.io/v2/snaps/info/gimp}).to_return(status: 200, body: info.to_json)
+
+    @registry.sync_package('gimp', force: true)
+    package = @registry.packages.find_by!(name: 'gimp')
+    assert_equal 'snap install gimp --classic', @registry.ecosystem_instance.install_command(package)
+  end
+
   test 'sync_package clears channels for versions no longer released' do
     @registry.save!
     info = JSON.parse(file_fixture('snap/info_gimp.json').read)
@@ -300,7 +358,7 @@ class SnapTest < ActiveSupport::TestCase
   test 'recent sync still sweeps stale packages when the search index is down' do
     @registry.rate_limit = 1
     @registry.save!
-    stub_request(:get, "https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name,last_updated&size=250&page=1")
+    stub_request(:get, "https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name,last_updated&confinement=strict,classic,devmode&size=250&page=1")
       .to_return({ status: 504, body: '<html>504 Gateway Time-out</html>' })
     @registry.packages.create!(name: 'old', ecosystem: 'snap', last_synced_at: 2.days.ago)
     Ecosystem::Snap.any_instance.stubs(:sleep)
@@ -310,9 +368,9 @@ class SnapTest < ActiveSupport::TestCase
   end
 
   def stub_search_index
-    stub_request(:get, "https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name,last_updated&size=250&page=1")
+    stub_request(:get, "https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name,last_updated&confinement=strict,classic,devmode&size=250&page=1")
       .to_return(status: 200, body: file_fixture('snap/search_page1.json'))
-    stub_request(:get, "https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name%2Clast_updated&size=250&page=2")
+    stub_request(:get, "https://api.snapcraft.io/api/v1/snaps/search?scope=wide&arch=wide&fields=package_name%2Clast_updated&confinement=strict%2Cclassic%2Cdevmode&size=250&page=2")
       .to_return(status: 200, body: file_fixture('snap/search_page2.json'))
   end
 end
