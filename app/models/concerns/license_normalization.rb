@@ -20,6 +20,8 @@ module LicenseNormalization
 
   EMPTY_SPDX_EXPRESSIONS = ["NONE", "NOASSERTION"].freeze
 
+  MISSING = Object.new.freeze
+
   @cache = Concurrent::Map.new
 
   class << self
@@ -52,8 +54,10 @@ module LicenseNormalization
 
     private
 
+    # One fetch, so a cached nil expression is told apart from a missing entry even if another thread clears the cache
     def cached(key)
-      return @cache[key] if @cache.key?(key)
+      value = @cache.fetch(key, MISSING)
+      return value unless value.equal?(MISSING)
 
       @cache.clear if @cache.size >= CACHE_LIMIT
       @cache[key] = yield.freeze
@@ -62,6 +66,11 @@ module LicenseNormalization
     def compute_spdx_ids(licenses)
       return Spdx.parse_spdx(licenses).licenses if Spdx.valid_spdx?(licenses)
 
+      license_names(licenses).filter_map { |name| resolve_license_name(name) }.map(&:id)
+    end
+
+    # The individual license names in a string that is not a valid SPDX expression
+    def license_names(licenses)
       licenses
         .downcase
         .sub(/^\(/, "")
@@ -72,9 +81,10 @@ module LicenseNormalization
         .flat_map { |l| l.split(/[,\/]/) }
         .map(&:strip)
         .reject { |l| l.blank? || l.match?(/\A(version\s+)?[\d.]+\z/) }
-        .map { |l| NON_SPDX_LICENSE_VALUES.include?(l) ? nil : find_spdx_license(l) }
-        .compact
-        .map(&:id)
+    end
+
+    def resolve_license_name(name)
+      NON_SPDX_LICENSE_VALUES.include?(name) ? nil : find_spdx_license(name)
     end
 
     def compute_expression(licenses, multiple)
@@ -83,7 +93,11 @@ module LicenseNormalization
       spdx = valid_expression(licenses)
       return replace_deprecated_ids(spdx) if spdx
 
-      ids = spdx_ids(licenses).uniq
+      # every listed license has to resolve, so "MIT,unknown" is not reported as just "MIT"
+      resolved = license_names(licenses).map { |name| resolve_license_name(name) }
+      return if resolved.empty? || resolved.include?(nil)
+
+      ids = resolved.map(&:id).uniq
       return replace_deprecated_ids(ids.first) if ids.one?
       # only join a list of licenses, never a string that itself says how they combine ("CDDL and GPL")
       return ids.map { |id| replace_deprecated_ids(id) }.join(" #{multiple} ") if multiple && ids.many? && !licenses.match?(/\s(and|or)\s/i)

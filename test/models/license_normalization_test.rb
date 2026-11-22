@@ -57,6 +57,19 @@ class LicenseNormalizationTest < ActiveSupport::TestCase
     assert_equal 'Apache-2.0', LicenseNormalization.expression('Apache-2.0,Apache-2.0', multiple: 'OR')
   end
 
+  test 'expression is nil when any listed license does not resolve' do
+    assert_nil LicenseNormalization.expression('MIT,unknown')
+    assert_nil LicenseNormalization.expression('MIT,unknown', multiple: 'OR')
+    assert_nil LicenseNormalization.expression('Apache License, Version 2.0,other', multiple: 'OR')
+  end
+
+  test 'caches a nil expression without recomputing it' do
+    assert_nil LicenseNormalization.expression('GPLv2,MIT')
+    Spdx.expects(:valid_spdx?).never
+
+    assert_nil LicenseNormalization.expression('GPLv2,MIT')
+  end
+
   test 'expression does not join licenses whose string already says how they combine' do
     assert_nil LicenseNormalization.expression('GPLv2 and MIT', multiple: 'OR')
   end
