@@ -213,6 +213,21 @@ class PackageTest < ActiveSupport::TestCase
     assert_equal ['MIT', 'Apache-2.0'], package.normalized_licenses
   end
 
+  test 'license_expression keeps the SPDX expression' do
+    package = Package.new(ecosystem: 'pypi', licenses: '(Apache-2.0 OR BSD-3-Clause) AND PSF-2.0')
+    assert_equal '(Apache-2.0 OR BSD-3-Clause) AND PSF-2.0', package.license_expression
+  end
+
+  test 'license_expression joins maven licenses with OR' do
+    package = Package.new(ecosystem: 'maven', licenses: 'Eclipse Public License 2.0,GNU General Public License, version 2 with the GNU Classpath Exception')
+    assert_equal 'EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0', package.license_expression
+  end
+
+  test 'license_expression falls back to the repository license' do
+    package = Package.new(ecosystem: 'npm', repo_metadata: { 'license' => 'mit' })
+    assert_equal 'MIT', package.license_expression
+  end
+
   test 'set_latest_release_published_at' do
     @package.set_latest_release_published_at
     assert_equal @package.latest_release_published_at, @version2.published_at

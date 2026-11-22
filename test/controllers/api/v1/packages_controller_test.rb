@@ -136,6 +136,16 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response['metadata'], {"foo"=>"bar"}
   end
 
+  test 'get a package includes license_expression' do
+    @package.update!(licenses: '(Apache-2.0 OR BSD-3-Clause) AND PSF-2.0')
+
+    get api_v1_registry_package_path(registry_id: @registry.name, id: @package.name)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal '(Apache-2.0 OR BSD-3-Clause) AND PSF-2.0', actual_response['license_expression']
+  end
+
   test 'get a cocoapods package by encoded subspec name returns the root pod' do
     @registry = Registry.create(name: 'cocoapods.org', url: 'https://cocoapods.org/', ecosystem: 'cocoapods', default: true)
     @package = @registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')

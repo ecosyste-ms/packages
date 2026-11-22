@@ -19,6 +19,34 @@ class VersionTest < ActiveSupport::TestCase
     @version2 = @package.versions.create(number: '2.0.0', created_at: 1.week.ago)
   end
 
+  test 'normalized_licenses and license_expression are nil without a license' do
+    assert_nil @version.normalized_licenses
+    assert_nil @version.license_expression
+  end
+
+  test 'normalized_licenses and license_expression come from the version licenses' do
+    @version.licenses = '(Apache-2.0 OR BSD-3-Clause) AND PSF-2.0'
+
+    assert_equal ['Apache-2.0', 'BSD-3-Clause', 'PSF-2.0'], @version.normalized_licenses
+    assert_equal '(Apache-2.0 OR BSD-3-Clause) AND PSF-2.0', @version.license_expression
+  end
+
+  test 'license_expression joins maven licenses with OR' do
+    registry = Registry.create!(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven')
+    package = registry.packages.create!(name: 'org.glassfish.tyrus.bundles:tyrus-standalone-client', ecosystem: 'maven')
+    version = package.versions.create!(number: '2.1.3', licenses: 'Eclipse Public License 2.0,GNU General Public License, version 2 with the GNU Classpath Exception')
+
+    assert_equal ['EPL-2.0', 'GPL-2.0-with-classpath-exception'], version.normalized_licenses
+    assert_equal 'EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0', version.license_expression
+  end
+
+  test 'license_expression does not guess the operator outside maven' do
+    @version.licenses = 'GPLv2,MIT'
+
+    assert_equal ['GPL-2.0', 'MIT'], @version.normalized_licenses
+    assert_nil @version.license_expression
+  end
+
   test 'published_at' do
     assert_equal @version.published_at, @version.created_at
   end

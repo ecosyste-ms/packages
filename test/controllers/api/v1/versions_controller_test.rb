@@ -25,6 +25,31 @@ class ApiV1VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.length, 1
   end
 
+  test 'list versions includes normalized_licenses and license_expression' do
+    @package.versions.create!(number: '2.0.0', licenses: 'MIT OR Apache-2.0', registry_id: @registry.id)
+
+    get api_v1_registry_package_versions_path(registry_id: @registry.name, package_id: @package.name)
+    assert_response :success
+
+    versions = Oj.load(@response.body).index_by { |version| version['number'] }
+    assert_equal ['MIT', 'Apache-2.0'], versions['2.0.0']['normalized_licenses']
+    assert_equal 'MIT OR Apache-2.0', versions['2.0.0']['license_expression']
+    assert versions['1.0.0'].key?('normalized_licenses')
+    assert_nil versions['1.0.0']['normalized_licenses']
+    assert_nil versions['1.0.0']['license_expression']
+  end
+
+  test 'get a version includes normalized_licenses and license_expression' do
+    @version.update!(licenses: 'GPL-2.0-with-classpath-exception')
+
+    get api_v1_registry_package_version_path(registry_id: @registry.name, package_id: @package.name, id: @version.number)
+    assert_response :success
+
+    actual_response = Oj.load(@response.body)
+    assert_equal ['GPL-2.0-with-classpath-exception'], actual_response['normalized_licenses']
+    assert_equal 'GPL-2.0-only WITH Classpath-exception-2.0', actual_response['license_expression']
+  end
+
   test 'list versions for a cocoapods package by encoded subspec name returns the root pod versions' do
     @cocoapods_registry = Registry.create(name: 'cocoapods.org', url: 'https://cocoapods.org/', ecosystem: 'cocoapods', default: true)
     @cocoapods_package = @cocoapods_registry.packages.create(ecosystem: 'cocoapods', name: 'KSCrash')
