@@ -172,6 +172,39 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal '2.0.0', actual_response['latest_published_release_number']
   end
 
+  test 'lookup by name does not sync or run shell metacharacters in an R package name' do
+    marker = Rails.root.join('tmp', "lookup-injection-#{SecureRandom.hex(4)}")
+    name = "ggplot2/index.html?x=;touch #{marker};#"
+    SyncPackageWorker.stubs(:perform_async).with { |id, sync_name| SyncPackageWorker.new.perform(id, sync_name) || true }
+
+    %w[cran bioconductor].each do |ecosystem|
+      registry = Registry.create(name: "#{ecosystem}.example", url: "https://#{ecosystem}.example", ecosystem: ecosystem)
+
+      get lookup_api_v1_packages_path, params: { ecosystem: ecosystem, name: name }
+
+      assert_response :success
+      assert_empty registry.packages
+    end
+
+    assert_not_requested :any, /.*/
+    refute File.exist?(marker)
+  ensure
+    FileUtils.rm_f(marker)
+  end
+
+  test 'lookup by name does not sync a name that is unsafe in a URL' do
+    SyncPackageWorker.stubs(:perform_async).with { |id, sync_name| SyncPackageWorker.new.perform(id, sync_name) || true }
+    registry = Registry.create(name: 'hackage.haskell.org', url: 'https://hackage.haskell.org', ecosystem: 'hackage')
+
+    ['aeson?x=1', 'aeson#x', 'aes%6Fn'].each do |name|
+      get lookup_api_v1_packages_path, params: { ecosystem: 'hackage', name: name }
+      assert_response :success
+    end
+
+    assert_empty registry.packages
+    assert_not_requested :any, /.*/
+  end
+
   test 'lookup by purl' do
     get lookup_api_v1_packages_path(purl: 'pkg:cargo/rand@0.8.0')
     assert_response :success

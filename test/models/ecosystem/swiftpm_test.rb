@@ -63,7 +63,8 @@ class SwiftpmTest < ActiveSupport::TestCase
   end
 
   test 'check_status marks packages named after feed commit titles as removed' do
-    package = @registry.packages.create!(ecosystem: 'swiftpm', name: 'HeatMap (#12740)', repository_url: 'https://HeatMap (#12740)')
+    package = @registry.packages.build(ecosystem: 'swiftpm', name: 'HeatMap (#12740)', repository_url: 'https://HeatMap (#12740)')
+    package.save!(validate: false)
 
     package.check_status
 
@@ -79,7 +80,8 @@ class SwiftpmTest < ActiveSupport::TestCase
   end
 
   test 'purl is nil for package names that are not repository paths' do
-    package = @registry.packages.create!(ecosystem: 'swiftpm', name: 'HeatMap (#12740)', repository_url: 'https://HeatMap (#12740)')
+    package = @registry.packages.build(ecosystem: 'swiftpm', name: 'HeatMap (#12740)', repository_url: 'https://HeatMap (#12740)')
+    package.save!(validate: false)
 
     assert_nil package.purl
   end

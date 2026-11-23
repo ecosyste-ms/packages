@@ -239,7 +239,8 @@ class RegistryTest < ActiveSupport::TestCase
   test 'sync_package removes the misnamed record with its versions and dependencies' do
     registry = Registry.create!(name: 'swiftpackageindex.com', url: 'https://swiftpackageindex.com', ecosystem: 'swiftpm')
     canonical = registry.packages.create!(name: 'github.com/ggerganov/llama.cpp', ecosystem: 'swiftpm', last_synced_at: 1.hour.ago)
-    misnamed = registry.packages.create!(name: 'github.com/ggerganov/llama.cpp/', ecosystem: 'swiftpm')
+    misnamed = registry.packages.build(name: 'github.com/ggerganov/llama.cpp/', ecosystem: 'swiftpm')
+    misnamed.save!(validate: false)
     version = misnamed.versions.create!(number: 'b1000')
     version.dependencies.create!(ecosystem: 'swiftpm', package_name: 'github.com/apple/swift-syntax', requirements: '*')
     registry.ecosystem_instance.stubs(:package_metadata).with('github.com/ggerganov/llama.cpp/').returns({ name: 'github.com/ggerganov/llama.cpp' })
@@ -250,6 +251,27 @@ class RegistryTest < ActiveSupport::TestCase
     assert_not Version.exists?(version.id)
     assert_not Dependency.exists?(version_id: version.id)
     assert Package.exists?(canonical.id)
+  end
+
+  test 'sync_package does not fetch or save a new name that is unsafe in a URL' do
+    registry = Registry.create!(name: 'hackage.haskell.org', url: 'https://hackage.haskell.org', ecosystem: 'hackage')
+
+    ['aeson?x=1', 'aeson#x', 'aes%6Fn', "aeson\n"].each do |name|
+      assert_equal false, registry.sync_package(name), name.inspect
+    end
+
+    assert_empty registry.packages
+    assert_not_requested :any, /.*/
+  end
+
+  test 'sync_package does not save a URL unsafe name returned by the registry' do
+    registry = Registry.create!(name: 'hackage.haskell.org', url: 'https://hackage.haskell.org', ecosystem: 'hackage')
+    registry.ecosystem_instance.stubs(:package_metadata).with('aeson').returns({ name: 'aeson?x=1' })
+    registry.ecosystem_instance.stubs(:package_metadata).with('aeson/').returns({ name: 'aeson/' })
+
+    assert_equal false, registry.sync_package('aeson')
+    assert_equal false, registry.sync_package('aeson/')
+    assert_empty registry.packages
   end
 
   test 'sync_package' do

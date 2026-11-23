@@ -63,4 +63,24 @@ class BioconductorTest < ActiveSupport::TestCase
     assert_equal "https://example.org/foo", mapped[:homepage]
     assert_equal "https://github.com/Bioconductor/limma", mapped[:repository_url]
   end
+
+  test 'dependencies_metadata reads DESCRIPTION from the tarball' do
+    stub_request(:get, "https://bioconductor.org/packages/release/bioc/src/contrib/AssetAllocation_0.1.0.tar.gz")
+      .to_return({ status: 200, body: file_fixture('cran/AssetAllocation_0.1.0.tar.gz') })
+
+    dependencies = @ecosystem.dependencies_metadata('AssetAllocation', '0.1.0', nil)
+
+    assert_includes dependencies, { package_name: "R", requirements: ">= 2.10", kind: "depends", ecosystem: "bioconductor" }
+    assert_equal 8, dependencies.length
+    assert_empty Dir.glob('/tmp/AssetAllocation_0.1.0*')
+  end
+
+  test 'package_metadata rejects names that are not valid R package names' do
+    ['limma.html?x=;id;#', 'limma?x=1', '../limma', '1limma', 'limma name', "limma\nname", ''].each do |name|
+      assert_equal false, @ecosystem.package_metadata(name), name.inspect
+      assert_equal [], @ecosystem.dependencies_metadata(name, '3.60.0', nil), name.inspect
+    end
+
+    assert_not_requested :any, /.*/
+  end
 end

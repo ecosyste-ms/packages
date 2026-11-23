@@ -23,6 +23,30 @@ class PackageTest < ActiveSupport::TestCase
     end
   end
 
+  test 'rejects new names with characters that are unsafe in a URL' do
+    registry = Registry.create(name: 'hackage.haskell.org', url: 'https://hackage.haskell.org', ecosystem: 'hackage')
+    ['aeson?x=1', 'aeson#x', 'aes%6Fn', 'aeson/', "aeson\n", "aeson\tx"].each do |name|
+      package = registry.packages.build(name: name, ecosystem: 'hackage')
+      assert_not package.valid?, "expected #{name.inspect} to be invalid"
+      assert_includes package.errors[:name], 'contains characters that are unsafe in a URL'
+    end
+  end
+
+  test 'allows names with spaces, slashes and punctuation' do
+    registry = Registry.create(name: 'reservoir.lean-lang.org', url: 'https://reservoir.lean-lang.org', ecosystem: 'lean')
+    ['lean-ja/Lean by Example', '@scope/name', 'group:artifact', 'c++', 'github.com/pkg/errors'].each do |name|
+      assert registry.packages.build(name: name, ecosystem: 'lean').valid?, "expected #{name.inspect} to be valid"
+    end
+  end
+
+  test 'existing packages with URL unsafe names can still be saved' do
+    registry = Registry.create(name: 'hackage.haskell.org', url: 'https://hackage.haskell.org', ecosystem: 'hackage')
+    package = registry.packages.build(name: 'aeson?x=1', ecosystem: 'hackage')
+    package.save!(validate: false)
+
+    assert package.update(description: 'changed')
+  end
+
   test 'allows names with dots that are not traversal segments' do
     registry = Registry.create(name: 'proxy.golang.org', url: 'https://proxy.golang.org', ecosystem: 'go')
     ['github.com/foo/bar', 'lodash.debounce', 'foo.bar/baz', '...ellipsis', 'a..b'].each do |name|

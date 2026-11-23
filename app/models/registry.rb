@@ -281,6 +281,11 @@ class Registry < ApplicationRecord
       raise ArgumentError, 'Maintenance sync is only supported for Packagist' unless ecosystem_instance.is_a?(Ecosystem::Packagist)
       existing_package = packages.find_by!(name: name)
     end
+    # A trailing slash is allowed here because some ecosystems resolve it to the canonical name.
+    if new_url_unsafe_name?(name, Package::URL_UNSAFE_CHARACTERS)
+      logger.error "Failed to sync #{name.inspect}: name contains characters that are unsafe in a URL"
+      return false
+    end
     logger.info "Syncing #{name}"
     package_metadata = if version
                          ecosystem_instance.package_metadata(name, version: version)
@@ -294,6 +299,10 @@ class Registry < ApplicationRecord
     end
     if package_metadata[:name].blank?
       logger.error "Failed to sync #{name}: package_metadata returned blank name"
+      return false
+    end
+    if new_url_unsafe_name?(package_metadata[:name])
+      logger.error "Failed to sync #{name}: package_metadata returned a name that is unsafe in a URL"
       return false
     end
     package_metadata[:ecosystem] = ecosystem.downcase
@@ -419,6 +428,11 @@ class Registry < ApplicationRecord
 
     # package.update_integrities_async
     return package
+  end
+
+  # Existing packages keep syncing whatever their name.
+  def new_url_unsafe_name?(name, pattern = Package::URL_UNSAFE_NAME)
+    name.to_s.match?(pattern) && !packages.exists?(name: name.to_s)
   end
 
   def sync_package_async(name)
