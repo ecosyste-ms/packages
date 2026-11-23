@@ -365,6 +365,25 @@ class SnapTest < ActiveSupport::TestCase
     assert_operator package.last_synced_at, :>, 1.minute.ago
   end
 
+  test 'sync_package restores versions when a removed snap is served again' do
+    @registry.save!
+    found = { status: 200, body: file_fixture('snap/info_gimp.json').read }
+    stub_request(:get, %r{\Ahttps://api\.snapcraft\.io/v2/snaps/info/gimp}).to_return(found)
+    @registry.sync_package('gimp', force: true)
+    package = @registry.packages.find_by!(name: 'gimp')
+
+    stub_request(:get, %r{\Ahttps://api\.snapcraft\.io/v2/snaps/info/gimp})
+      .to_return(status: 404, body: '{"error-list":[{"code":"resource-not-found","message":"No snap named"}]}')
+    Registry.find(@registry.id).sync_package('gimp', force: true)
+    assert_equal %w[removed], package.versions.distinct.pluck(:status)
+
+    stub_request(:get, %r{\Ahttps://api\.snapcraft\.io/v2/snaps/info/gimp}).to_return(found)
+    Registry.find(@registry.id).sync_package('gimp', force: true)
+    assert_nil package.reload.status
+    assert_equal [nil], package.versions.distinct.pluck(:status)
+    assert_equal '3.2.4', package.latest_version&.number
+  end
+
   test 'sync_package clears channels for versions no longer released' do
     @registry.save!
     info = JSON.parse(file_fixture('snap/info_gimp.json').read)

@@ -193,13 +193,15 @@ module Ecosystem
     # Channels move as revisions are promoted, so refresh what was recorded on first sync.
     def update_existing_versions(package, versions_metadata)
       remote = versions_metadata.index_by { |v| v[:number] }
-      package.versions.select(:id, :number, :metadata, :integrity).find_each do |version|
+      package.versions.select(:id, :number, :metadata, :integrity, :status).find_each do |version|
         incoming = remote[version.number]
         if incoming.nil?
           next if version.metadata.blank? || version.metadata['channels'].blank?
           version.update_columns(metadata: version.metadata.merge('channels' => []), updated_at: Time.current)
           next
         end
+        # Marking a package removed marks its versions too, and nothing else undoes that.
+        version.update_columns(status: nil, updated_at: Time.current) if version.status == 'removed'
         metadata = (version.metadata || {}).merge(incoming[:metadata].stringify_keys)
         next if metadata == version.metadata && incoming[:integrity] == version.integrity
         revision_changed = version.metadata&.dig('revision') != metadata['revision']
