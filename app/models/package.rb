@@ -28,6 +28,13 @@ class Package < ApplicationRecord
   validates_uniqueness_of :name, scope: :registry_id
   validates :name, format: { without: PATH_TRAVERSAL_SEGMENT, message: 'contains path traversal segments' }
 
+  # A name is interpolated into registry URLs, where these characters change
+  # which resource is fetched while the name itself stays distinct.
+  URL_UNSAFE_CHARACTERS = /[?#%[:cntrl:]]/
+  URL_UNSAFE_NAME = Regexp.union(URL_UNSAFE_CHARACTERS, %r{/\z})
+
+  validates :name, format: { without: URL_UNSAFE_NAME, message: 'contains characters that are unsafe in a URL' }, on: :create
+
   belongs_to :registry
   counter_culture :registry
   has_many :versions

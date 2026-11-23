@@ -2,6 +2,8 @@
 
 module Ecosystem
   class Bioconductor < Base
+    VALID_NAME = Cran::VALID_NAME
+
     def sync_maintainers_inline?
       true
     end
@@ -45,6 +47,8 @@ module Ecosystem
     end
 
     def fetch_package_metadata_uncached(name)
+      return nil unless name.to_s.match?(VALID_NAME)
+
       html = get_html("https://www.bioconductor.org/packages/release/bioc/html/#{name}.html")
       properties = {}
       table = html.css("h3#details + table")[0]
@@ -101,36 +105,21 @@ module Ecosystem
     end
 
     def find_dependencies(name, version)
-      url = "https://bioconductor.org/packages/release/bioc/src/contrib/#{name}_#{version}.tar.gz"
+      return [] unless name.to_s.match?(VALID_NAME)
 
-      folder_name = "#{name}_#{version}"
-      tarball_name = "#{folder_name}.tar.gz"
-      downloaded_file = File.open "/tmp/#{tarball_name}", "wb"
+      url = "https://bioconductor.org/packages/release/bioc/src/contrib/#{name}_#{version}.tar.gz"
 
       connection = Faraday.new do |builder|
         builder.request :instrumentation
         builder.adapter Faraday.default_adapter
       end
       response = connection.get(url)
-
-      File.open(downloaded_file, 'wb') do |file|
-        file.write(response.body)
-      end
-
       return [] if response.status != 200
 
-      cmd = `mkdir /tmp/#{folder_name} && tar xzf /tmp/#{tarball_name} -C /tmp/#{folder_name}  --strip-components 1`
-
-      contents = `cat /tmp/#{folder_name}/DESCRIPTION`
-
-      `rm -rf /tmp/#{folder_name}` if folder_name.present?
-      `rm -rf /tmp/#{tarball_name}` if tarball_name.present?
+      contents = tarball_entry(response.body, "DESCRIPTION")
+      return [] if contents.blank?
 
       Bibliothecary.analyse_file("DESCRIPTION", contents).first.fetch(:dependencies)
-    ensure
-      `rm -rf /tmp/#{folder_name}` if folder_name.present?
-      `rm -rf /tmp/#{tarball_name}` if tarball_name.present?
-      []
     end
 
     def maintainers_metadata(name)

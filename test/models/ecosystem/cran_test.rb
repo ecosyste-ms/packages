@@ -164,6 +164,26 @@ class CranTest < ActiveSupport::TestCase
     ]
   end
 
+  test 'dependencies_metadata leaves no files in /tmp' do
+    stub_request(:head, "https://cran.rstudio.com/src/contrib/AssetAllocation_0.1.0.tar.gz")
+      .to_return({ status: 200 })
+    stub_request(:get, "https://cran.rstudio.com/src/contrib/AssetAllocation_0.1.0.tar.gz")
+      .to_return({ status: 200, body: file_fixture('cran/AssetAllocation_0.1.0.tar.gz') })
+
+    @ecosystem.dependencies_metadata('AssetAllocation', '0.1.0', nil)
+
+    assert_empty Dir.glob('/tmp/AssetAllocation_0.1.0*')
+  end
+
+  test 'package_metadata rejects names that are not valid R package names' do
+    ['ggplot2/index.html?x=;id;#', 'pack?x=1', '../pack', '1pack', 'pack name', "pack\nname", ''].each do |name|
+      assert_equal false, @ecosystem.package_metadata(name), name.inspect
+      assert_equal [], @ecosystem.dependencies_metadata(name, '0.1.0', nil), name.inspect
+    end
+
+    assert_not_requested :any, /.*/
+  end
+
   test 'check_status reuses memoized metadata without extra HTTP request' do
     stub_request(:get, "https://cran.r-project.org/web/packages/pack/index.html")
       .to_return({ status: 200, body: file_fixture('cran/index.html') })

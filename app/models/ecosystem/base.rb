@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'rubygems/package'
+
 module Ecosystem
   class Base
     attr_accessor :registry
@@ -363,7 +365,7 @@ module Ecosystem
       end
 
       Dir.mktmpdir do |dir|
-        `wget -q -P #{dir} #{url}`
+        system('wget', '-q', '-P', dir, url)
         downloaded = Dir.glob("#{dir}/*").first
 
         if downloaded.nil? || !File.exist?(downloaded)
@@ -373,7 +375,7 @@ module Ecosystem
         end
 
         if downloaded.end_with?('.tar.gz')
-          `tar -xzf #{downloaded} -C #{dir}`
+          system('tar', '-xzf', downloaded, '-C', dir)
           extracted = Dir.glob("#{dir}/*").reject { |f| f.end_with?('.tar.gz') }.first
 
           if extracted.nil?
@@ -394,6 +396,18 @@ module Ecosystem
       end
 
       cached_file
+    end
+
+    MAX_TARBALL_ENTRY_SIZE = 1.megabyte
+
+    # Reads one file out of a gzipped tarball held in memory, ignoring the top level directory.
+    def tarball_entry(body, filename)
+      Gem::Package::TarReader.new(Zlib::GzipReader.new(StringIO.new(body))).each do |entry|
+        next unless entry.file? && entry.full_name.split('/', 2).last == filename
+        return nil if entry.header.size > MAX_TARBALL_ENTRY_SIZE
+        return entry.read
+      end
+      nil
     end
 
     def parse_apkindex(file, repository = nil)

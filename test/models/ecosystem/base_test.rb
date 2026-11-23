@@ -14,6 +14,33 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal [], @ecosystem.feed_titles('https://test.example.com/feed.xml')
   end
 
+  test 'download_and_cache does not pass the url through a shell' do
+    marker = Rails.root.join('tmp', "download-injection-#{SecureRandom.hex(4)}")
+    cache_key = "base-test-#{SecureRandom.hex(4)}"
+
+    assert_nil @ecosystem.download_and_cache("https://test.invalid/index;touch #{marker};#", cache_key)
+    refute File.exist?(marker)
+  ensure
+    FileUtils.rm_f(marker)
+  end
+
+  test 'tarball_entry reads a file below the top level directory' do
+    body = file_fixture('cran/AssetAllocation_0.1.0.tar.gz').read
+
+    assert_match(/\APackage: AssetAllocation/, @ecosystem.tarball_entry(body, 'DESCRIPTION'))
+    assert_nil @ecosystem.tarball_entry(body, 'MISSING')
+  end
+
+  test 'tarball_entry returns nil for an entry over the size limit' do
+    contents = "Imports: Rcpp\n" * (Ecosystem::Base::MAX_TARBALL_ENTRY_SIZE / 14 + 1)
+    io = StringIO.new
+    Zlib::GzipWriter.wrap(io) do |gz|
+      Gem::Package::TarWriter.new(gz) { |tar| tar.add_file_simple('pkg/DESCRIPTION', 0o644, contents.bytesize) { |file| file.write(contents) } }
+    end
+
+    assert_nil @ecosystem.tarball_entry(io.string, 'DESCRIPTION')
+  end
+
   test 'check_status returns nil when URL is blank' do
     @package.update(repository_url: nil, homepage: nil)
     status = @ecosystem.check_status(@package)
