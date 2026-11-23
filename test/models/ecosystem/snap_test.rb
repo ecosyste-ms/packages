@@ -18,7 +18,7 @@ class SnapTest < ActiveSupport::TestCase
 
   test 'install_command adds the flag classic and devmode snaps need' do
     assert_equal 'snap install code --classic', @ecosystem.install_command(Package.new(name: 'code', metadata: { 'confinement' => 'classic' }))
-    assert_equal 'snap install wip --devmode', @ecosystem.install_command(Package.new(name: 'wip', metadata: { 'confinement' => 'devmode' }))
+    assert_equal 'snap install wip --channel=latest/edge --devmode', @ecosystem.install_command(Package.new(name: 'wip', metadata: { 'confinement' => 'devmode', 'channel' => 'latest/edge' }))
     assert_equal 'snap install gimp', @ecosystem.install_command(Package.new(name: 'gimp', metadata: { 'confinement' => 'strict' }))
   end
 
@@ -294,6 +294,75 @@ class SnapTest < ActiveSupport::TestCase
     @registry.sync_package('gimp', force: true)
     package = @registry.packages.find_by!(name: 'gimp')
     assert_equal 'snap install gimp --classic', @registry.ecosystem_instance.install_command(package)
+  end
+
+  test 'sync_package records the channel when a snap has no stable release' do
+    @registry.save!
+    info = JSON.parse(file_fixture('snap/info_gimp.json').read)
+    info['channel-map'].reject! { |e| e['version'] == '3.2.0-RC3' }
+    info['channel-map'].each do |e|
+      e['confinement'] = 'devmode'
+      e['channel'].merge!('name' => 'edge', 'risk' => 'edge')
+    end
+    stub_request(:get, %r{\Ahttps://api\.snapcraft\.io/v2/snaps/info/gimp}).to_return(status: 200, body: info.to_json)
+
+    @registry.sync_package('gimp', force: true)
+    package = @registry.packages.find_by!(name: 'gimp')
+    assert_equal 'snap install gimp --channel=latest/edge --devmode', @registry.ecosystem_instance.install_command(package)
+  end
+
+  test 'sync_package installs from the default track without a channel flag' do
+    @registry.save!
+    info = JSON.parse(file_fixture('snap/info_gimp.json').read)
+    info['default-track'] = 'preview'
+    stub_request(:get, %r{\Ahttps://api\.snapcraft\.io/v2/snaps/info/gimp}).to_return(status: 200, body: info.to_json)
+
+    @registry.sync_package('gimp', force: true)
+    package = @registry.packages.find_by!(name: 'gimp')
+    assert_nil package.metadata['channel']
+    assert_equal 'snap install gimp', @registry.ecosystem_instance.install_command(package)
+  end
+
+  test 'sync_package keeps the old revision when replacing dependencies fails' do
+    @registry.save!
+    info = JSON.parse(file_fixture('snap/info_gimp.json').read)
+    rebuilt = info.deep_dup
+    rebuilt['channel-map'].each do |e|
+      e['revision'] += 100
+      e['base'] = 'core26'
+    end
+    stub_request(:get, %r{\Ahttps://api\.snapcraft\.io/v2/snaps/info/gimp})
+      .to_return({ status: 200, body: info.to_json }, { status: 200, body: info.to_json },
+                 { status: 200, body: rebuilt.to_json })
+
+    @registry.sync_package('gimp', force: true)
+    version = @registry.packages.find_by!(name: 'gimp').versions.find_by!(number: '3.2.4')
+
+    Dependency.stubs(:insert_all).raises(ActiveRecord::StatementInvalid)
+    assert_raises(ActiveRecord::StatementInvalid) { Registry.find(@registry.id).sync_package('gimp', force: true) }
+    Dependency.unstub(:insert_all)
+    assert_equal 560, version.reload.metadata['revision']
+    assert_includes version.dependencies.pluck(:package_name), 'core24'
+
+    Registry.find(@registry.id).sync_package('gimp', force: true)
+    assert_equal 660, version.reload.metadata['revision']
+    assert_includes version.dependencies.pluck(:package_name), 'core26'
+  end
+
+  test 'sync_package marks a snap removed once the store stops serving it' do
+    @registry.save!
+    stub_request(:get, %r{\Ahttps://api\.snapcraft\.io/v2/snaps/info/gimp})
+      .to_return(status: 200, body: file_fixture('snap/info_gimp.json'))
+    @registry.sync_package('gimp', force: true)
+    package = @registry.packages.find_by!(name: 'gimp')
+    package.update_columns(last_synced_at: 2.days.ago)
+
+    stub_request(:get, %r{\Ahttps://api\.snapcraft\.io/v2/snaps/info/gimp})
+      .to_return(status: 404, body: '{"error-list":[{"code":"resource-not-found","message":"No snap named"}]}')
+    Registry.find(@registry.id).sync_package('gimp', force: true)
+
+    assert_equal 'removed', package.reload.status
+    assert_operator package.last_synced_at, :>, 1.minute.ago
   end
 
   test 'sync_package clears channels for versions no longer released' do

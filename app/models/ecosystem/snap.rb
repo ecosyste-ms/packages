@@ -27,7 +27,9 @@ module Ecosystem
     INSTALL_FLAGS = { 'classic' => ' --classic', 'devmode' => ' --devmode' }.freeze
 
     def install_command(package, version = nil)
-      "snap install #{package.name}#{INSTALL_FLAGS[package.metadata&.dig('confinement')]}"
+      channel = package.metadata&.dig('channel')
+      channel_flag = " --channel=#{channel}" if channel.present?
+      "snap install #{package.name}#{channel_flag}#{INSTALL_FLAGS[package.metadata&.dig('confinement')]}"
     end
 
     def download_url(package, version)
@@ -129,12 +131,19 @@ module Ecosystem
       nil
     end
 
+    # A removed snap never gets as far as the status check in a normal sync.
+    def handle_missing_package(name)
+      @registry.packages.find_by(name: name)&.check_status
+      false
+    end
+
     def map_package_metadata(data)
       return false if data.blank? || data['name'].blank?
 
       snap = data['snap'] || {}
       links = snap['links'] || {}
       publisher = snap['publisher'] || {}
+      default = default_entry(data['channel-map'], data['default-track'])
 
       {
         name: data['name'],
@@ -149,7 +158,8 @@ module Ecosystem
           title: snap['title'],
           snap_id: data['snap-id'],
           store_url: snap['store-url'],
-          confinement: default_entry(data['channel-map'])&.dig('confinement'),
+          confinement: default&.dig('confinement'),
+          channel: install_channel(default, data['default-track']),
           publisher: publisher,
           contact: snap['contact'].presence || Array(links['contact']).first,
           links: links,
@@ -193,8 +203,10 @@ module Ecosystem
         metadata = (version.metadata || {}).merge(incoming[:metadata].stringify_keys)
         next if metadata == version.metadata && incoming[:integrity] == version.integrity
         revision_changed = version.metadata&.dig('revision') != metadata['revision']
-        version.update_columns(metadata: metadata, integrity: incoming[:integrity], updated_at: Time.current)
-        replace_dependencies(package, version) if revision_changed
+        Version.transaction do
+          version.update_columns(metadata: metadata, integrity: incoming[:integrity], updated_at: Time.current)
+          replace_dependencies(package, version) if revision_changed
+        end
       end
     end
 
@@ -242,9 +254,23 @@ module Ecosystem
       entries.find { |e| e.dig('channel', 'architecture') == 'amd64' } || entries.first
     end
 
-    def default_entry(channel_map)
+    RISKS = %w[stable candidate beta edge].freeze
+
+    # The entry a bare `snap install` aims for, or the nearest thing to it.
+    def default_entry(channel_map, default_track = nil)
+      track = default_track.presence || 'latest'
       entries = Array(channel_map)
-      preferred_entry(entries.select { |e| e.dig('channel', 'name') == 'stable' }.presence || entries)
+      entries = entries.select { |e| e.dig('channel', 'track') == track }.presence || entries
+      risk = entries.map { |e| e.dig('channel', 'risk') }.min_by { |r| RISKS.index(r) || RISKS.size }
+      preferred_entry(entries.select { |e| e.dig('channel', 'risk') == risk })
+    end
+
+    def install_channel(entry, default_track = nil)
+      channel = entry&.dig('channel')
+      return nil if channel.blank? || channel['risk'].blank?
+      track = channel['track'].presence || 'latest'
+      return nil if channel['risk'] == 'stable' && track == (default_track.presence || 'latest')
+      "#{track}/#{channel['risk']}"
     end
 
     def content_default_providers(snap_yaml)
