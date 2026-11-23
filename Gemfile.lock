@@ -7,7 +7,7 @@ GIT
 
 GIT
   remote: https://github.com/ecosyste-ms/bibliothecary.git
-  revision: 45fa276168eb1ac4361622ab8371e1acf389193f
+  revision: 56c51a4827a740722ac545bd03227d5bc9fa5c2a
   branch: main
   specs:
     ecosystems-bibliothecary (15.4.0)
