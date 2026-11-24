@@ -71,7 +71,7 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
     end
 
     if params[:repository_url].present?
-      scope = scope.repository_url(params[:repository_url])
+      scope = scope.repository_url(params[:repository_url]).or(scope.upstream_repository_url(params[:repository_url]))
       scope = scope.where(ecosystem: params[:ecosystem]) if params[:ecosystem].present?
     elsif params[:purl].present?
       unless params[:purl].is_a?(String)

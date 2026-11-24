@@ -160,8 +160,122 @@ module Ecosystem
         repository_url: repo_fallback(pkg_metadata[:repository_url], pkg_metadata[:homepage]),
         keywords_array: pkg_metadata[:section].present? ? [pkg_metadata[:section]] : [],
         namespace: pkg_metadata.dig(:metadata, :component),
-        metadata: pkg_metadata[:metadata]
+        metadata: (pkg_metadata[:metadata] || {}).merge(homepage_upstream_repository(pkg_metadata[:homepage]))
       }
+    end
+
+    # repository_url is the packaging repository (Vcs-Browser), so the upstream project is kept separately in
+    # metadata, from debian/upstream/metadata or debian/copyright when they have it and Homepage otherwise
+    UPSTREAM_REPOSITORY_KEYS = %w[upstream_repository_url upstream_repository_source upstream_repository_checked].freeze
+    PACKAGING_UPSTREAM_SOURCES = %w[debian/upstream/metadata debian/copyright].freeze
+
+    def homepage_upstream_repository(homepage)
+      url = UrlParser.try_all(homepage) rescue nil
+      url.present? ? { upstream_repository_url: url, upstream_repository_source: 'homepage' } : {}
+    end
+
+    # The Sources index doesn't carry the packaging files, so their upstream repository is fetched in the
+    # background and kept across syncs until the package has a new version to check
+    def merge_existing_metadata(existing, metadata)
+      existing = existing.to_h.stringify_keys
+      metadata = metadata.to_h.stringify_keys
+      metadata['upstream_repository_checked'] = existing['upstream_repository_checked'] if existing['upstream_repository_checked'].present?
+      if PACKAGING_UPSTREAM_SOURCES.include?(existing['upstream_repository_source'])
+        metadata.merge!(existing.slice('upstream_repository_url', 'upstream_repository_source'))
+      end
+      metadata
+    end
+
+    def after_package_synced(package)
+      return if package.latest_release_number.blank?
+      return if package.metadata.to_h['upstream_repository_checked'] == package.latest_release_number
+
+      UpdateUpstreamRepositoryWorker.perform_async(package.id)
+    end
+
+    def update_upstream_repository(package)
+      version = package.latest_release_number
+      return if version.blank?
+
+      url, source = packaging_upstream_repository(package, version)
+      metadata = package.metadata.to_h.stringify_keys
+      if url
+        metadata.merge!('upstream_repository_url' => url, 'upstream_repository_source' => source)
+      elsif PACKAGING_UPSTREAM_SOURCES.include?(metadata['upstream_repository_source'])
+        metadata.merge!(homepage_upstream_repository(package.homepage).stringify_keys.presence || { 'upstream_repository_url' => nil, 'upstream_repository_source' => nil })
+      end
+      metadata['upstream_repository_checked'] = version
+      package.update_columns(metadata: metadata, updated_at: Time.current)
+    end
+
+    def packaging_upstream_repository(package, version)
+      upstream_metadata = fetch_packaging_file(package, version, 'debian/upstream/metadata')
+      url = upstream_metadata_repository(upstream_metadata)
+      return [url, 'debian/upstream/metadata'] if url
+
+      url = copyright_source_repository(fetch_packaging_file(package, version, 'debian/copyright'))
+      return [url, 'debian/copyright'] if url
+
+      nil
+    end
+
+    # A missing file moves on to the next location, any other failure raises so the worker retries
+    # instead of marking the version as checked
+    def fetch_packaging_file(package, version, path)
+      packaging_file_urls(package, version, path).each do |url|
+        response = request(url)
+        return response.body if response.success? && response.body.present?
+        raise PackagingFileError, "#{url} returned HTTP #{response.status}" unless response.success? || response.status == 404
+      end
+      nil
+    end
+
+    class PackagingFileError < StandardError; end
+
+    # salsa.debian.org packaging repositories serve raw files at their default branch
+    def packaging_file_urls(package, version, path)
+      repo = package.read_attribute(:repository_url).to_s.chomp('/')
+      repo.match?(%r{\Ahttps://salsa\.debian\.org/[^/]+/[^/]+\z}) ? ["#{repo}/-/raw/HEAD/#{path}"] : []
+    end
+
+    # Repository-Browse is the web page, Repository may be a clone url, UrlParser turns either into the repository url
+    def upstream_metadata_repository(body)
+      return if body.blank?
+
+      fields = begin
+        YAML.safe_load(body)
+      rescue Psych::Exception
+        nil
+      end
+      fields = body.scan(/^(Repository(?:-Browse)?):[ \t]*(\S+)/).to_h unless fields.is_a?(Hash)
+
+      fields.values_at('Repository-Browse', 'Repository').each do |value|
+        url = repository_from(value)
+        return url if url
+      end
+      nil
+    end
+
+    # Only the header paragraph of a machine readable debian/copyright has the Source field
+    def copyright_source_repository(body)
+      return if body.blank?
+
+      header = body.split(/\n[ \t]*\n/, 2).first.to_s
+      source = header.lines.drop_while { |line| !line.start_with?('Source:') }
+      return if source.empty?
+
+      field = [source.first.delete_prefix('Source:')] + source.drop(1).take_while { |line| line.start_with?(' ', "\t") }
+      field.join(' ').scan(%r{https?://\S+|git://\S+}).each do |value|
+        url = repository_from(value)
+        return url if url
+      end
+      nil
+    end
+
+    def repository_from(value)
+      return unless value.is_a?(String) && value.present?
+
+      UrlParser.try_all(value.strip) rescue nil
     end
 
     def versions_metadata(pkg_metadata, existing_version_numbers = [])

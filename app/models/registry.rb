@@ -337,6 +337,9 @@ class Registry < ApplicationRecord
       end
 
       previous_repository_url = package.repository_or_homepage_url if maintenance
+      if package.persisted? && package_metadata.key?(:metadata)
+        package_metadata[:metadata] = ecosystem_instance.merge_existing_metadata(package.metadata, package_metadata[:metadata])
+      end
       package.assign_attributes(package_metadata.except(:name, :releases, :versions, :version, :dependencies, :properties, :page, :time, :download_stats, :tags_url, :releases_url, :packagist_malware_constraint, :packagist_package_id))
       if maintenance && previous_repository_url != package.repository_or_homepage_url
         package.assign_attributes(repo_metadata: {}, repo_metadata_updated_at: nil, issue_metadata: nil)
@@ -415,6 +418,7 @@ class Registry < ApplicationRecord
     return package if maintenance
 
     ecosystem_instance.update_dependency_links(package)
+    ecosystem_instance.after_package_synced(package)
     package.update_dependent_repos_count_async if ecosystem_instance.has_dependent_repos?
     if ecosystem_class.instance_methods(false).include? :maintainers_metadata
       if ecosystem_instance.sync_maintainers_inline?

@@ -320,7 +320,7 @@ paths:
       parameters:
         - name: repository_url
           in: query
-          description: repository URL
+          description: repository URL, also matching the upstream repository of Debian and Ubuntu packages (metadata.upstream_repository_url)
           required: false
           schema:
             type: string
