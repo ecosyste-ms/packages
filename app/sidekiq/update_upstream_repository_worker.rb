@@ -1,6 +1,6 @@
 class UpdateUpstreamRepositoryWorker
   include Sidekiq::Worker
-  sidekiq_options lock: :until_executed, lock_ttl: 1.hour.to_i
+  sidekiq_options queue: :low, lock: :until_executed, lock_ttl: 1.hour.to_i
 
   def perform(package_id)
     package = Package.includes(:registry).find_by_id(package_id)

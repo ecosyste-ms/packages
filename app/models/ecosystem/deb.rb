@@ -166,7 +166,6 @@ module Ecosystem
 
     # repository_url is the packaging repository (Vcs-Browser), so the upstream project is kept separately in
     # metadata, from debian/upstream/metadata or debian/copyright when they have it and Homepage otherwise
-    UPSTREAM_REPOSITORY_KEYS = %w[upstream_repository_url upstream_repository_source upstream_repository_checked].freeze
     PACKAGING_UPSTREAM_SOURCES = %w[debian/upstream/metadata debian/copyright].freeze
 
     def homepage_upstream_repository(homepage)
