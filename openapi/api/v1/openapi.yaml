@@ -1900,6 +1900,7 @@ components:
         - homepage
         - licenses
         - normalized_licenses
+        - license_expression
         - repository_url
         - keywords_array
         - namespace
@@ -1960,6 +1961,10 @@ components:
           type: array
           items:
             type: string
+        license_expression:
+          type: string
+          nullable: true
+          description: SPDX license expression keeping AND, OR and WITH, null when it cannot be derived without guessing
         repository_url:
           type: string
           nullable: true
@@ -2085,6 +2090,8 @@ components:
         - number
         - published_at
         - licenses
+        - normalized_licenses
+        - license_expression
         - integrity
         - status
         - download_url
@@ -2112,6 +2119,16 @@ components:
         licenses:
           type: string
           nullable: true
+        normalized_licenses:
+          type: array
+          nullable: true
+          items:
+            type: string
+          description: SPDX license ids normalized from licenses, null when the version has no license
+        license_expression:
+          type: string
+          nullable: true
+          description: SPDX license expression keeping AND, OR and WITH, null when it cannot be derived without guessing
         integrity:
           type: string
           nullable: true
@@ -2156,6 +2173,8 @@ components:
         - number
         - published_at
         - licenses
+        - normalized_licenses
+        - license_expression
         - integrity
         - status
         - download_url
@@ -2184,6 +2203,16 @@ components:
           licenses:
             type: string
             nullable: true
+          normalized_licenses:
+            type: array
+            nullable: true
+            items:
+              type: string
+            description: SPDX license ids normalized from licenses, null when the version has no license
+          license_expression:
+            type: string
+            nullable: true
+            description: SPDX license expression keeping AND, OR and WITH, null when it cannot be derived without guessing
           integrity:
             type: string
             nullable: true
@@ -2275,6 +2304,7 @@ components:
         license_expression:
           type: string
           nullable: true
+          description: SPDX license expression for the version, or for the package when the version has no license, null when it cannot be derived without guessing
         identifiers:
           type: object
           properties:
@@ -2305,6 +2335,8 @@ components:
         - number
         - published_at
         - licenses
+        - normalized_licenses
+        - license_expression
         - integrity
         - status
         - download_url
@@ -2333,6 +2365,16 @@ components:
         licenses:
           type: string
           nullable: true
+        normalized_licenses:
+          type: array
+          nullable: true
+          items:
+            type: string
+          description: SPDX license ids normalized from licenses, null when the version has no license
+        license_expression:
+          type: string
+          nullable: true
+          description: SPDX license expression keeping AND, OR and WITH, null when it cannot be derived without guessing
         integrity:
           type: string
           nullable: true

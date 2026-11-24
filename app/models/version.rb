@@ -33,6 +33,15 @@ class Version < ApplicationRecord
     metadata['immutable'] if metadata.is_a?(Hash)
   end
 
+  # nil when the registry reported no license for this version
+  def normalized_licenses
+    LicenseNormalization.normalize(licenses) if licenses.present?
+  end
+
+  def license_expression
+    LicenseNormalization.expression(licenses, multiple: package&.multiple_licenses_operator)
+  end
+
   def opam_archived?
     package&.ecosystem == 'opam' && metadata&.dig('archived') == true
   end

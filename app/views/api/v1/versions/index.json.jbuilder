@@ -1,5 +1,5 @@
 json.array! @versions do |version|
-  json.extract! version, :id, :number, :published_at, :licenses, :integrity, :status, :download_url, :registry_url, :documentation_url, :install_command, :immutable, :metadata, :created_at, :updated_at, :purl, :related_tag, :latest
+  json.extract! version, :id, :number, :published_at, :licenses, :normalized_licenses, :license_expression, :integrity, :status, :download_url, :registry_url, :documentation_url, :install_command, :immutable, :metadata, :created_at, :updated_at, :purl, :related_tag, :latest
   json.version_url api_v1_registry_package_version_url(@registry, @package, version)
   json.advisories version.version_scoped_advisories
   # json.dependencies version.dependencies do |dependency|

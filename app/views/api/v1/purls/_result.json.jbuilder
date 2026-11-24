@@ -10,7 +10,7 @@ if result.version
     json.name package.name
     json.version version.number
     json.purl version.purl
-    json.license_expression version.licenses.presence || package.licenses
+    json.license_expression version.licenses.present? ? version.license_expression : package.license_expression
     json.identifiers({ purl: version.purl, integrity: version.integrity }.compact)
     json.artifacts artifact.present? ? [artifact] : []
     json.dependencies version.dependencies do |dependency|

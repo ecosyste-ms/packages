@@ -134,14 +134,12 @@ class PackageTest < ActiveSupport::TestCase
     assert_equal @package.normalized_licenses, ["MIT"]
   end
 
-  test 'spdx_license does not match other to GPL' do
-    package = @registry.packages.create(name: 'test_other', ecosystem: @registry.ecosystem, licenses: 'other')
-    assert_equal [], package.spdx_license
+  test 'spdx_ids does not match other to GPL' do
+    assert_equal [], LicenseNormalization.spdx_ids('other')
   end
 
-  test 'spdx_license does not match unknown to any license' do
-    package = @registry.packages.create(name: 'test_unknown', ecosystem: @registry.ecosystem, licenses: 'unknown')
-    assert_equal [], package.spdx_license
+  test 'spdx_ids does not match unknown to any license' do
+    assert_equal [], LicenseNormalization.spdx_ids('unknown')
   end
 
   test 'normalize_licenses returns Other for unrecognized license strings' do
@@ -235,6 +233,21 @@ class PackageTest < ActiveSupport::TestCase
     package = Package.new(licenses: 'MIT/Apache-2.0')
     package.normalize_licenses
     assert_equal ['MIT', 'Apache-2.0'], package.normalized_licenses
+  end
+
+  test 'license_expression keeps the SPDX expression' do
+    package = Package.new(ecosystem: 'pypi', licenses: '(Apache-2.0 OR BSD-3-Clause) AND PSF-2.0')
+    assert_equal '(Apache-2.0 OR BSD-3-Clause) AND PSF-2.0', package.license_expression
+  end
+
+  test 'license_expression joins maven licenses with OR' do
+    package = Package.new(ecosystem: 'maven', licenses: 'Eclipse Public License 2.0,GNU General Public License, version 2 with the GNU Classpath Exception')
+    assert_equal 'EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0', package.license_expression
+  end
+
+  test 'license_expression falls back to the repository license' do
+    package = Package.new(ecosystem: 'npm', repo_metadata: { 'license' => 'mit' })
+    assert_equal 'MIT', package.license_expression
   end
 
   test 'set_latest_release_published_at' do

@@ -471,67 +471,21 @@ class Package < ApplicationRecord
   end
 
   def normalize_licenses
-    self.normalized_licenses =
-      if licenses.blank?
-        []
-      elsif licenses.length > 150
-        ["Other"]
-      else
-        spdx = spdx_license
-        if spdx.empty?
-          ["Other"]
-        else
-          spdx
-        end
-      end
+    self.normalized_licenses = LicenseNormalization.normalize(licenses)
   end
 
   def licenses
     read_attribute(:licenses).presence || repo_metadata && repo_metadata['license']
   end
 
-  NON_SPDX_LICENSE_VALUES = ["other", "unknown", "none", "noassertion", "proprietary", "custom", "see license", "open source"].freeze
-
-  def spdx_license
-    return Spdx.parse_spdx(licenses).licenses if Spdx.valid_spdx?(licenses)
-
-    licenses
-      .downcase
-      .sub(/^\(/, "")
-      .sub(/\)$/, "")
-      .split(" or ")
-      .flat_map { |l| l.split(" and ") }
-      .map { |l| manual_license_format(l) }
-      .flat_map { |l| l.split(/[,\/]/) }
-      .map(&:strip)
-      .reject { |l| l.blank? || l.match?(/\A(version\s+)?[\d.]+\z/) }
-      .map { |l| NON_SPDX_LICENSE_VALUES.include?(l) ? nil : find_spdx_license(l) }
-      .compact
-      .map(&:id)
+  def license_expression
+    LicenseNormalization.expression(licenses, multiple: multiple_licenses_operator)
   end
 
-  # Common registry license names that Spdx.find fuzzy matches to the wrong license (e.g. "ASF 2.0" to MulanPSL-2.0)
-  LICENSE_NAME_PATTERNS = {
-    /\A(asf|asl|al)[\s-]?v?2(\.0)?\z/ => "Apache-2.0",
-    /\A(eclipse distribution license|edl)\b.*(?<![\d.])1\.0\z/ => "BSD-3-Clause",
-    /\Agpl ?v?2 with cpe\z/ => "GPL-2.0-with-classpath-exception"
-  }.freeze
-
-  def find_spdx_license(name)
-    LICENSE_NAME_PATTERNS.each { |pattern, id| return Spdx.find(id) if name.match?(pattern) }
-
-    # "EPL 2.0" or "Apache 2.0" are exact SPDX ids once the space is a hyphen, so skip the fuzzy match
-    hyphenated = name.sub(/\s+v?(?=\d)/, "-")
-    (hyphenated != name && Spdx.lookup(hyphenated)) || Spdx.find(name)
-  end
-
-  def manual_license_format(license)
-    # fixes "Apache License, Version 2.0" etc being incorrectly split on the comma
-    # and "GPL2 w/ CPE" being split on the slash
-    license
-      .gsub(/\b(license|licence)( \([a-z]+\))?, version\b/, 'license\2 version')
-      .gsub(/\b(license|licence)( \([a-z]+\))?, v(\d)/, 'license\2 v\3')
-      .gsub(%r{\bw/\s*}, 'with ')
+  # Maven lists every license a project may be used under, so several licenses mean the user can pick any of them
+  # https://maven.apache.org/ref/current/maven-model/maven.html
+  def multiple_licenses_operator
+    'OR' if ecosystem == 'maven'
   end
 
   def sync
