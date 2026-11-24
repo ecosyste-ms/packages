@@ -314,6 +314,15 @@ module Ecosystem
       nil
     end
 
+    # Lets an ecosystem keep metadata it filled in outside the registry index when a sync replaces package metadata
+    def merge_existing_metadata(_existing, metadata)
+      metadata
+    end
+
+    def after_package_synced(_package)
+      nil
+    end
+
     REPOS_TAGS_PER_PAGE = 1000
 
     def sync_tag_backed_versions(package, versions_metadata, complete: nil)

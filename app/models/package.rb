@@ -104,6 +104,8 @@ class Package < ApplicationRecord
   scope :top, -> (percent = 1) { where("(rankings->>'average')::text::float < ?", percent) }
  
   scope :repository_url, ->(url) { where("lower(repository_url) IN (?)", Array(url).compact.map { |u| u.to_s.downcase }) }
+  # Debian and Ubuntu keep the packaging repository in repository_url and the upstream project in metadata
+  scope :upstream_repository_url, ->(url) { where("lower(metadata->>'upstream_repository_url') IN (?)", Array(url).compact.map { |u| u.to_s.downcase }) }
 
   scope :name_prefix, ->(prefix) { where("lower(name) LIKE ?", "#{prefix.downcase}%") }
   scope :name_postfix, ->(postfix) { where("lower(name) LIKE ?", "%#{postfix.downcase}") }

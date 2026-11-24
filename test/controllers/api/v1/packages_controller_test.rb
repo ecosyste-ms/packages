@@ -226,6 +226,23 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal actual_response.first['name'], @package.name
   end
 
+  test 'lookup by repository_url also matches the upstream repository of debian packages' do
+    debian = Registry.create!(name: 'debian-13', url: 'https://packages.debian.org/trixie', ecosystem: 'debian', metadata: { 'codename' => 'trixie' })
+    deb_package = debian.packages.create!(name: 'ruby-rack', ecosystem: 'debian', repository_url: 'https://salsa.debian.org/ruby-team/ruby-rack',
+                                          metadata: { 'upstream_repository_url' => 'https://github.com/rack/rack' })
+    gem = @registry.packages.create!(name: 'rack', ecosystem: 'cargo', repository_url: 'https://github.com/rack/rack')
+
+    get lookup_api_v1_packages_path, params: { repository_url: 'https://github.com/Rack/Rack' }
+    assert_response :success
+    assert_equal [deb_package.id, gem.id].sort, Oj.load(@response.body).map { |package| package['id'] }.sort
+
+    get lookup_api_v1_packages_path, params: { repository_url: 'https://salsa.debian.org/ruby-team/ruby-rack' }
+    assert_equal [deb_package.id], Oj.load(@response.body).map { |package| package['id'] }
+
+    get lookup_api_v1_packages_path, params: { repository_url: 'https://github.com/rack/rack', ecosystem: 'debian' }
+    assert_equal [deb_package.id], Oj.load(@response.body).map { |package| package['id'] }
+  end
+
   test 'lookup by oci purl matches the registry named in repository_url' do
     registry = Registry.create(name: 'ollama.com', url: 'https://ollama.com', ecosystem: 'ollama', default: true)
     package = registry.packages.create(ecosystem: 'ollama', name: 'all-minilm')

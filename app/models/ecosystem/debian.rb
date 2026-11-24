@@ -22,6 +22,14 @@ module Ecosystem
       url
     end
 
+    # sources.debian.org has the unpacked source of every version in the archive, so try it before salsa
+    def packaging_file_urls(package, version, path)
+      component = package.metadata.to_h['component'].presence || 'main'
+      prefix = package_pool_prefix(package.name)
+      sources_url = "https://sources.debian.org/data/#{component}/#{prefix}/#{ERB::Util.url_encode(package.name)}/#{ERB::Util.url_encode(version)}/#{path}"
+      [sources_url] + super
+    end
+
     def documentation_url(package, version = nil)
       "https://packages.debian.org/#{registry_codename}/#{package.name}"
     end
