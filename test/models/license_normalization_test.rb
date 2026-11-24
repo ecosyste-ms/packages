@@ -70,6 +70,25 @@ class LicenseNormalizationTest < ActiveSupport::TestCase
     assert_nil LicenseNormalization.expression('GPLv2,MIT')
   end
 
+  test 'keeps a license name with a v. version together' do
+    assert_equal ['MPL-2.0'], LicenseNormalization.normalize('Mozilla Public License, v. 2.0')
+    assert_equal 'MPL-2.0', LicenseNormalization.expression('Mozilla Public License, v. 2.0', multiple: 'OR')
+  end
+
+  test 'expression does not join a list that has a fragment that is only a version' do
+    ['Mozilla Public, v. 2.0', 'Eclipse Public, version 2.0,MIT', 'Some Public, 2.0,MIT'].each do |licenses|
+      assert_nil LicenseNormalization.expression(licenses, multiple: 'OR'), licenses
+    end
+  end
+
+  test 'resolves each license name once across normalize and expression' do
+    LicenseNormalization.expects(:find_spdx_license).with('apache license version 2.0').once.returns(Spdx.lookup('Apache-2.0'))
+
+    assert_equal ['Apache-2.0'], LicenseNormalization.normalize('Apache License, Version 2.0')
+    assert_equal 'Apache-2.0', LicenseNormalization.expression('Apache License, Version 2.0')
+    assert_equal 'Apache-2.0', LicenseNormalization.expression('Apache License, Version 2.0', multiple: 'OR')
+  end
+
   test 'expression does not join licenses whose string already says how they combine' do
     assert_nil LicenseNormalization.expression('GPLv2 and MIT', multiple: 'OR')
   end

@@ -110,14 +110,12 @@ class PackageTest < ActiveSupport::TestCase
     assert_equal @package.normalized_licenses, ["MIT"]
   end
 
-  test 'spdx_license does not match other to GPL' do
-    package = @registry.packages.create(name: 'test_other', ecosystem: @registry.ecosystem, licenses: 'other')
-    assert_equal [], package.spdx_license
+  test 'spdx_ids does not match other to GPL' do
+    assert_equal [], LicenseNormalization.spdx_ids('other')
   end
 
-  test 'spdx_license does not match unknown to any license' do
-    package = @registry.packages.create(name: 'test_unknown', ecosystem: @registry.ecosystem, licenses: 'unknown')
-    assert_equal [], package.spdx_license
+  test 'spdx_ids does not match unknown to any license' do
+    assert_equal [], LicenseNormalization.spdx_ids('unknown')
   end
 
   test 'normalize_licenses returns Other for unrecognized license strings' do

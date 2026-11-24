@@ -471,16 +471,12 @@ class Package < ApplicationRecord
     read_attribute(:licenses).presence || repo_metadata && repo_metadata['license']
   end
 
-  def spdx_license
-    LicenseNormalization.spdx_ids(licenses)
-  end
-
   def license_expression
     LicenseNormalization.expression(licenses, multiple: multiple_licenses_operator)
   end
 
   # Maven lists every license a project may be used under, so several licenses mean the user can pick any of them
-  # https://maven.apache.org/pom.html#Licenses
+  # https://maven.apache.org/ref/current/maven-model/maven.html
   def multiple_licenses_operator
     'OR' if ecosystem == 'maven'
   end

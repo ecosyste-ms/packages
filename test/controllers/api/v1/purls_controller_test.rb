@@ -26,6 +26,26 @@ class ApiV1PurlsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "sha256-old", response.dig("version", "artifacts", 0, "integrity")
   end
 
+  test "returns the version license expression rather than the raw license string" do
+    @old_version.update!(licenses: "Apache License, Version 2.0")
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:cargo/rand@0.7.0" }
+
+    assert_response :success
+    assert_equal "Apache-2.0", Oj.load(@response.body).dig("version", "license_expression")
+  end
+
+  test "returns no license expression when the package licenses cannot be combined without guessing" do
+    @package.update!(licenses: "GPLv2,MIT")
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:cargo/rand@0.7.0" }
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert response["version"].key?("license_expression")
+    assert_nil response.dig("version", "license_expression")
+  end
+
   test "looks up the latest version when the PURL has no version" do
     Package.any_instance.expects(:latest_version).never
 

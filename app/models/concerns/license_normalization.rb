@@ -20,6 +20,9 @@ module LicenseNormalization
 
   EMPTY_SPDX_EXPRESSIONS = ["NONE", "NOASSERTION"].freeze
 
+  # A fragment left over from splitting a license name on a comma, such as "v. 2.0" or "version 2.0"
+  VERSION_FRAGMENT = /\A(version\s+|v\.?\s*)?[\d.]+\z/
+
   MISSING = Object.new.freeze
 
   @cache = Concurrent::Map.new
@@ -66,11 +69,15 @@ module LicenseNormalization
     def compute_spdx_ids(licenses)
       return Spdx.parse_spdx(licenses).licenses if Spdx.valid_spdx?(licenses)
 
-      license_names(licenses).filter_map { |name| resolve_license_name(name) }.map(&:id)
+      license_names(licenses).filter_map { |name| license_name_id(name) }
     end
 
     # The individual license names in a string that is not a valid SPDX expression
     def license_names(licenses)
+      license_fragments(licenses).reject { |l| l.match?(/\A(version\s+)?[\d.]+\z/) }
+    end
+
+    def license_fragments(licenses)
       licenses
         .downcase
         .sub(/^\(/, "")
@@ -80,11 +87,12 @@ module LicenseNormalization
         .map { |l| manual_license_format(l) }
         .flat_map { |l| l.split(/[,\/]/) }
         .map(&:strip)
-        .reject { |l| l.blank? || l.match?(/\A(version\s+)?[\d.]+\z/) }
+        .reject(&:blank?)
     end
 
-    def resolve_license_name(name)
-      NON_SPDX_LICENSE_VALUES.include?(name) ? nil : find_spdx_license(name)
+    # Cached per name, so normalized_licenses and license_expression fuzzy match each name only once
+    def license_name_id(name)
+      cached([:name, name]) { NON_SPDX_LICENSE_VALUES.include?(name) ? nil : find_spdx_license(name)&.id }
     end
 
     def compute_expression(licenses, multiple)
@@ -94,15 +102,22 @@ module LicenseNormalization
       return replace_deprecated_ids(spdx) if spdx
 
       # every listed license has to resolve, so "MIT,unknown" is not reported as just "MIT"
-      resolved = license_names(licenses).map { |name| resolve_license_name(name) }
-      return if resolved.empty? || resolved.include?(nil)
+      ids = license_names(licenses).map { |name| license_name_id(name) }
+      return if ids.empty? || ids.include?(nil)
 
-      ids = resolved.map(&:id).uniq
+      ids = ids.uniq
       return replace_deprecated_ids(ids.first) if ids.one?
-      # only join a list of licenses, never a string that itself says how they combine ("CDDL and GPL")
-      return ids.map { |id| replace_deprecated_ids(id) }.join(" #{multiple} ") if multiple && ids.many? && !licenses.match?(/\s(and|or)\s/i)
+      return unless multiple && joinable_list?(licenses)
 
-      nil
+      ids.map { |id| replace_deprecated_ids(id) }.join(" #{multiple} ")
+    end
+
+    # Only join a plain list of license names. A string that says how they combine ("CDDL and GPL") or a fragment
+    # that is only a version (one license name split on its comma) would turn into a choice that was never offered.
+    def joinable_list?(licenses)
+      return false if licenses.match?(/\s(and|or)\s/i)
+
+      license_fragments(licenses).none? { |fragment| fragment.match?(VERSION_FRAGMENT) }
     end
 
     # The string as given when it is already a valid SPDX expression, also accepting lowercase operators ("MIT or Apache-2.0")
@@ -128,11 +143,11 @@ module LicenseNormalization
     end
 
     def manual_license_format(license)
-      # fixes "Apache License, Version 2.0" etc being incorrectly split on the comma
+      # fixes "Apache License, Version 2.0" and "Mozilla Public License, v. 2.0" etc being incorrectly split on the comma
       # and "GPL2 w/ CPE" being split on the slash
       license
         .gsub(/\b(license|licence)( \([a-z]+\))?, version\b/, 'license\2 version')
-        .gsub(/\b(license|licence)( \([a-z]+\))?, v(\d)/, 'license\2 v\3')
+        .gsub(/\b(license|licence)( \([a-z]+\))?, v\.?\s*(\d)/, 'license\2 v\3')
         .gsub(%r{\bw/\s*}, 'with ')
     end
   end
