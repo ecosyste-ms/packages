@@ -182,6 +182,35 @@ class DebUpstreamRepositoryTest < ActiveSupport::TestCase
     assert_equal 'optional', metadata['priority']
   end
 
+  test 'syncing a new version of an existing package keeps its build dependencies' do
+    @package.update!(metadata: { 'component' => 'main', 'upstream_repository_url' => 'https://github.com/rack/rack',
+                                 'upstream_repository_source' => 'debian/upstream/metadata', 'upstream_repository_checked' => '3.1.20-0+deb13u1' })
+    @package.versions.create!(number: '3.1.20-0+deb13u1')
+    @ecosystem.stubs(:fetch_package_metadata).returns({ name: 'ruby-rack', version: '3.1.20-0+deb13u2', homepage: 'https://rack.github.io/',
+                                                         repository_url: 'https://salsa.debian.org/ruby-team/ruby-rack',
+                                                         metadata: { component: 'main', build_depends: 'debhelper-compat (= 13), gem2deb (>= 1)' } })
+    @registry.stubs(:ecosystem_instance).returns(@ecosystem)
+    Package.any_instance.stubs(:update_repo_metadata_async)
+
+    @registry.sync_package('ruby-rack')
+
+    version = @package.versions.find_by!(number: '3.1.20-0+deb13u2')
+    assert_equal %w[debhelper-compat gem2deb], version.dependencies.order(:package_name).pluck(:package_name)
+    assert_equal 'debian/upstream/metadata', @package.reload.metadata['upstream_repository_source']
+  end
+
+  test 'packaging files are read from salsa projects in nested groups' do
+    { 'https://salsa.debian.org/python-team/packages/python-rack' => 'https://salsa.debian.org/python-team/packages/python-rack',
+      'https://salsa.debian.org/ruby-team/ruby-rack/-/tree/debian/main' => 'https://salsa.debian.org/ruby-team/ruby-rack',
+      'https://salsa.debian.org/ruby-team/ruby-rack.git' => 'https://salsa.debian.org/ruby-team/ruby-rack' }.each do |vcs, project|
+      package = Package.new(name: 'rack', repository_url: vcs)
+      assert_equal ["#{project}/-/raw/HEAD/debian/copyright"], Ecosystem::Ubuntu.new(@registry).packaging_file_urls(package, '1.0-1', 'debian/copyright'), vcs
+    end
+
+    assert_equal [], Ecosystem::Ubuntu.new(@registry).packaging_file_urls(Package.new(name: 'rack', repository_url: 'https://salsa.debian.org/ruby-rack'), '1.0-1', 'debian/copyright')
+    assert_equal [], Ecosystem::Ubuntu.new(@registry).packaging_file_urls(Package.new(name: 'rack', repository_url: 'https://git.launchpad.net/ubuntu/+source/rack'), '1.0-1', 'debian/copyright')
+  end
+
   test 'the worker updates the package' do
     stub_request(:get, "#{@sources}/debian/upstream/metadata").to_return(status: 200, body: UPSTREAM_METADATA)
 

@@ -232,10 +232,13 @@ module Ecosystem
 
     class PackagingFileError < StandardError; end
 
-    # salsa.debian.org packaging repositories serve raw files at their default branch
+    # salsa.debian.org packaging repositories serve raw files at their default branch. Projects can sit in nested
+    # groups (python-team/packages/foo) and Vcs-Browser sometimes points at a page inside the project (/-/tree/...)
+    SALSA_PROJECT = %r{\Ahttps://salsa\.debian\.org/[^/]+(?:/[^/]+)+\z}
+
     def packaging_file_urls(package, version, path)
-      repo = package.read_attribute(:repository_url).to_s.chomp('/')
-      repo.match?(%r{\Ahttps://salsa\.debian\.org/[^/]+/[^/]+\z}) ? ["#{repo}/-/raw/HEAD/#{path}"] : []
+      repo = package.read_attribute(:repository_url).to_s.sub(%r{/-/.*\z}, '').chomp('/').delete_suffix('.git')
+      repo.match?(SALSA_PROJECT) ? ["#{repo}/-/raw/HEAD/#{path}"] : []
     end
 
     # Repository-Browse is the web page, Repository may be a clone url, UrlParser turns either into the repository url
