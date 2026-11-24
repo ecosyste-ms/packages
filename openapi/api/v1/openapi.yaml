@@ -2304,7 +2304,7 @@ components:
         license_expression:
           type: string
           nullable: true
-          description: SPDX license expression for the version, falling back to the package, null when it cannot be derived without guessing
+          description: SPDX license expression for the version, or for the package when the version has no license, null when it cannot be derived without guessing
         identifiers:
           type: object
           properties:

@@ -46,6 +46,15 @@ class ApiV1PurlsControllerTest < ActionDispatch::IntegrationTest
     assert_nil response.dig("version", "license_expression")
   end
 
+  test "does not fall back to the package license when the version license cannot be combined" do
+    @old_version.update!(licenses: "GPLv2,MIT")
+
+    get lookup_api_v1_purls_path, params: { purl: "pkg:cargo/rand@0.7.0" }
+
+    assert_response :success
+    assert_nil Oj.load(@response.body).dig("version", "license_expression")
+  end
+
   test "looks up the latest version when the PURL has no version" do
     Package.any_instance.expects(:latest_version).never
 
