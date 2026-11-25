@@ -36,7 +36,8 @@ module Ecosystem
       component = package.metadata['component'] || 'main'
       name = package.name
       prefix = package_pool_prefix(name)
-      "#{mirror_url}/pool/#{component}/#{prefix}/#{name}/#{name}_#{version.number}.orig.tar.gz"
+      mirror = security_suite?(version.metadata.to_h['suite']) ? security_mirror_url : mirror_url
+      "#{mirror}/pool/#{component}/#{prefix}/#{name}/#{name}_#{version.number}.orig.tar.gz"
     end
 
     def check_status(package)
@@ -47,28 +48,76 @@ module Ecosystem
       "apt-get install #{package.name}"
     end
 
-    def fetch_packages_for_component(component)
+    # A release publishes into its own suite plus -updates (stable updates and point release fixes) and
+    # -security, so a version only in -security is still one the distribution published for that release
+    def suites
       codename = registry_codename
       return [] unless codename.present?
 
-      url = "#{mirror_url}/dists/#{codename}/#{component}/source/Sources.gz"
-      cache_key = "#{purl_namespace}-#{codename}-#{component}"
-      cached_file = download_and_cache(url, cache_key)
-      parse_sources(cached_file, component)
+      [
+        { mirror: mirror_url, suite: codename },
+        { mirror: mirror_url, suite: "#{codename}-updates" },
+        { mirror: security_mirror_url, suite: security_suite_name }
+      ]
+    end
+
+    def security_mirror_url
+      @registry.metadata['security_mirror'] || @registry.metadata[:security_mirror] || default_security_mirror_url
+    end
+
+    def default_security_mirror_url
+      mirror_url
+    end
+
+    def security_suite_name
+      @registry.metadata['security_suite'] || @registry.metadata[:security_suite] || "#{registry_codename}-security"
+    end
+
+    def security_suite?(suite)
+      suite.present? && suite == security_suite_name
+    end
+
+    def fetch_packages_for_component(component, suite: nil)
+      suite ||= suites.first
+      return [] if suite.blank?
+
+      cached_file = download_sources(suite, component)
+      parse_sources(cached_file, component).each { |entry| entry[:suite] = suite[:suite] }
     rescue => e
-      Rails.logger.error "Error fetching #{purl_namespace} packages for #{component}: #{e.message}"
+      Rails.logger.error "Error fetching #{purl_namespace} packages for #{suite&.dig(:suite)} #{component}: #{e.message}"
       []
+    end
+
+    # Main suites publish Sources.gz, the -security and -updates suites of recent Debian releases only Sources.xz
+    def download_sources(suite, component)
+      base = "#{suite[:mirror]}/dists/#{suite[:suite]}/#{component}/source/Sources"
+      cache_key = "#{purl_namespace}-#{suite[:suite].tr('/', '-')}-#{component}"
+      download_and_cache("#{base}.gz", cache_key) || download_and_cache("#{base}.xz", cache_key)
+    end
+
+    GZIP_MAGIC = "\x1F\x8B".b
+    XZ_MAGIC = "\xFD7zXZ\x00".b
+
+    def open_sources(file_path, &block)
+      magic = File.binread(file_path, 6).to_s
+      if magic.start_with?(GZIP_MAGIC)
+        Zlib::GzipReader.open(file_path, &block)
+      elsif magic.start_with?(XZ_MAGIC)
+        IO.popen(['xz', '--decompress', '--stdout', file_path.to_s], &block)
+      else
+        File.open(file_path, &block)
+      end
     end
 
     def parse_sources(file_path, component)
       return [] if file_path.nil? || !File.exist?(file_path)
 
-      # Stream the Sources.gz file line-by-line to avoid loading
+      # Stream the Sources file line-by-line to avoid loading
       # multi-gigabyte uncompressed content into memory at once
       results = []
       current_entry = []
 
-      Zlib::GzipReader.open(file_path) do |gz|
+      open_sources(file_path) do |gz|
         gz.each_line do |line|
           if line.strip.empty?
             unless current_entry.empty?
@@ -132,11 +181,30 @@ module Ecosystem
     end
 
     def packages
-      @packages ||= components.flat_map { |c| fetch_packages_for_component(c) }
+      @packages ||= suites.flat_map do |suite|
+        components.flat_map { |component| fetch_packages_for_component(component, suite: suite) }
+      end
     end
 
+    # One entry per source package, described by its newest version, with every version the release
+    # published across its suites in :versions
     def packages_by_name
-      @packages_by_name ||= packages.index_by { |p| p[:name] }
+      @packages_by_name ||= packages.group_by { |p| p[:name] }.transform_values { |entries| merge_suite_entries(entries) }
+    end
+
+    def merge_suite_entries(entries)
+      entries = entries.select { |entry| entry[:version].present? }.presence || entries
+      newest = entries.max { |a, b| compare_deb_versions(a[:version], b[:version]) }
+      versions = entries.uniq { |entry| entry[:version] }.map do |entry|
+        { number: entry[:version], suite: entry[:suite], metadata: entry[:metadata] }
+      end
+      newest.merge(versions: versions)
+    end
+
+    def compare_deb_versions(a, b)
+      Vers.compare_with_scheme(a.to_s, b.to_s, version_scheme)
+    rescue StandardError
+      a.to_s <=> b.to_s
     end
 
     def all_package_names
@@ -280,21 +348,35 @@ module Ecosystem
       UrlParser.try_all(value.strip) rescue nil
     end
 
+    # Versions are only added, so a release keeps every version it was seen publishing
     def versions_metadata(pkg_metadata, existing_version_numbers = [])
       data = fetch_package_metadata(pkg_metadata[:name])
       return [] if data.blank? || data[:version].blank?
-      return [] if existing_version_numbers.include?(data[:version])
 
-      [{
-        number: data[:version],
-        metadata: {
-          architecture: data.dig(:metadata, :architecture)
+      suite_versions(data).filter_map do |version|
+        next if existing_version_numbers.include?(version[:number])
+
+        {
+          number: version[:number],
+          metadata: {
+            architecture: version.dig(:metadata, :architecture),
+            suite: version[:suite]
+          }.compact
         }
-      }]
+      end
     end
 
+    def suite_versions(data)
+      data[:versions].presence || [{ number: data[:version], suite: data[:suite], metadata: data[:metadata] }]
+    end
+
+    # Build dependencies come from the suite entry for that version, falling back to the newest one
     def dependencies_metadata(name, version, pkg_metadata)
       return [] if pkg_metadata.blank?
+
+      data = fetch_package_metadata(name) if version.present?
+      entry = data.present? ? suite_versions(data).find { |v| v[:number] == version } : nil
+      pkg_metadata = { metadata: entry[:metadata] } if entry&.dig(:metadata).present?
 
       deps = []
 

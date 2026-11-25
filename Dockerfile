@@ -23,6 +23,7 @@ RUN apk add --update \
     libffi-dev \
     jemalloc \
     brotli \
+    xz \
  && rm -rf /var/cache/apk/*
 
 ARG POM_VERSION=0.1.7
