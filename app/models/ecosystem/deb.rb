@@ -35,9 +35,11 @@ module Ecosystem
       return nil unless version.present?
       component = package.metadata['component'] || 'main'
       name = package.name
-      prefix = package_pool_prefix(name)
-      mirror = security_suite?(version.metadata.to_h['suite']) ? security_mirror_url : mirror_url
-      "#{mirror}/pool/#{component}/#{prefix}/#{name}/#{name}_#{version.number}.orig.tar.gz"
+      version_metadata = version.metadata.to_h
+      mirror = security_suite?(version_metadata['suite']) ? security_mirror_url : mirror_url
+      # Directory from the Sources entry is the real pool path, e.g. pool/updates/main/o/openssl on Debian's security mirror
+      directory = version_metadata['directory'].presence || "pool/#{component}/#{package_pool_prefix(name)}/#{name}"
+      "#{mirror}/#{directory}/#{name}_#{version.number}.orig.tar.gz"
     end
 
     def check_status(package)
@@ -91,9 +93,12 @@ module Ecosystem
     # Main suites publish Sources.gz, the -security and -updates suites of recent Debian releases only Sources.xz
     def download_sources(suite, component)
       base = "#{suite[:mirror]}/dists/#{suite[:suite]}/#{component}/source/Sources"
-      cache_key = "#{purl_namespace}-#{suite[:suite].tr('/', '-')}-#{component}"
+      # escape the slash so the legacy buster/updates security suite can't share buster-updates' cache file
+      cache_key = "#{purl_namespace}-#{suite[:suite].gsub('/', '%2F')}-#{component}"
       download_and_cache("#{base}.gz", cache_key) || download_and_cache("#{base}.xz", cache_key)
     end
+
+    class SourcesDecompressionError < StandardError; end
 
     GZIP_MAGIC = "\x1F\x8B".b
     XZ_MAGIC = "\xFD7zXZ\x00".b
@@ -103,7 +108,10 @@ module Ecosystem
       if magic.start_with?(GZIP_MAGIC)
         Zlib::GzipReader.open(file_path, &block)
       elsif magic.start_with?(XZ_MAGIC)
-        IO.popen(['xz', '--decompress', '--stdout', file_path.to_s], &block)
+        result = IO.popen(['xz', '--decompress', '--stdout', file_path.to_s], &block)
+        # IO.popen doesn't raise when xz fails part way, so a truncated index would pass as a short one
+        raise SourcesDecompressionError, "xz failed to decompress #{file_path} (#{$?})" unless $?.success?
+        result
       else
         File.open(file_path, &block)
       end
@@ -172,6 +180,7 @@ module Ecosystem
           priority: data['Priority'],
           binary: data['Binary'],
           standards_version: data['Standards-Version'],
+          directory: data['Directory'],
           maintainer: data['Maintainer'],
           build_depends: data['Build-Depends'],
           build_depends_indep: data['Build-Depends-Indep'],
@@ -360,7 +369,8 @@ module Ecosystem
           number: version[:number],
           metadata: {
             architecture: version.dig(:metadata, :architecture),
-            suite: version[:suite]
+            suite: version[:suite],
+            directory: version.dig(:metadata, :directory)
           }.compact
         }
       end

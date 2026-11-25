@@ -1,10 +1,11 @@
 require "test_helper"
 
 class DebSuitesTest < ActiveSupport::TestCase
-  def sources_entry(version, build_depends: 'debhelper-compat (= 13)')
+  def sources_entry(version, build_depends: 'debhelper-compat (= 13)', directory: 'pool/main/o/openssl')
     <<~ENTRY
       Package: openssl
       Version: #{version}
+      Directory: #{directory}
       Section: utils
       Homepage: https://www.openssl.org/
       Vcs-Browser: https://salsa.debian.org/debian/openssl
@@ -78,7 +79,8 @@ class DebSuitesTest < ActiveSupport::TestCase
       files = {
         'bookworm' => write_sources(dir, 'main', sources_entry('3.0.20-1~deb12u2'), :gz),
         'bookworm-updates' => nil,
-        'bookworm-security' => write_sources(dir, 'security', sources_entry('3.0.22-1~deb12u2', build_depends: 'debhelper-compat (= 13), perl:native'), :xz)
+        'bookworm-security' => write_sources(dir, 'security', sources_entry('3.0.22-1~deb12u2', build_depends: 'debhelper-compat (= 13), perl:native',
+                                                                            directory: 'pool/updates/main/o/openssl'), :xz)
       }
       @ecosystem.stubs(:components).returns(['main'])
       @ecosystem.stubs(:download_sources).with(has_entry(suite: 'bookworm'), 'main').returns(files['bookworm'])
@@ -94,6 +96,7 @@ class DebSuitesTest < ActiveSupport::TestCase
       versions = @ecosystem.versions_metadata({ name: 'openssl' }, [])
       assert_equal [['3.0.20-1~deb12u2', 'bookworm'], ['3.0.22-1~deb12u2', 'bookworm-security']], versions.map { |v| [v[:number], v[:metadata][:suite]] }
       assert_equal ['3.0.22-1~deb12u2'], @ecosystem.versions_metadata({ name: 'openssl' }, ['3.0.20-1~deb12u2']).map { |v| v[:number] }
+      assert_equal %w[pool/main/o/openssl pool/updates/main/o/openssl], versions.map { |v| v[:metadata][:directory] }
 
       pkg_metadata = @ecosystem.map_package_metadata(entry)
       assert_equal %w[debhelper-compat], @ecosystem.dependencies_metadata('openssl', '3.0.20-1~deb12u2', pkg_metadata).map { |d| d[:package_name] }
@@ -101,13 +104,53 @@ class DebSuitesTest < ActiveSupport::TestCase
     end
   end
 
-  test 'download_url uses the security mirror for a version published in the security suite' do
+  test 'download_url uses the security mirror and the pool directory of the suite the version came from' do
     package = Package.new(ecosystem: 'debian', name: 'openssl', metadata: { 'component' => 'main' })
+    security = package.versions.build(number: '3.0.22-1~deb12u2', metadata: { 'suite' => 'bookworm-security', 'directory' => 'pool/updates/main/o/openssl' })
+    release = package.versions.build(number: '3.0.20-1~deb12u2', metadata: { 'suite' => 'bookworm', 'directory' => 'pool/main/o/openssl' })
 
-    assert_equal 'http://security.debian.org/debian-security/pool/main/o/openssl/openssl_3.0.22-1~deb12u2.orig.tar.gz',
-                 @ecosystem.download_url(package, package.versions.build(number: '3.0.22-1~deb12u2', metadata: { 'suite' => 'bookworm-security' }))
-    assert_equal 'http://deb.debian.org/debian/pool/main/o/openssl/openssl_3.0.20-1~deb12u2.orig.tar.gz',
-                 @ecosystem.download_url(package, package.versions.build(number: '3.0.20-1~deb12u2', metadata: { 'suite' => 'bookworm' }))
+    assert_equal 'http://security.debian.org/debian-security/pool/updates/main/o/openssl/openssl_3.0.22-1~deb12u2.orig.tar.gz', @ecosystem.download_url(package, security)
+    assert_equal 'http://deb.debian.org/debian/pool/main/o/openssl/openssl_3.0.20-1~deb12u2.orig.tar.gz', @ecosystem.download_url(package, release)
+  end
+
+  test 'download_url keeps the ubuntu pool layout for security versions' do
+    registry = Registry.new(name: 'ubuntu-24.04', ecosystem: 'ubuntu', metadata: { 'codename' => 'noble' })
+    package = Package.new(ecosystem: 'ubuntu', name: 'openssl', metadata: { 'component' => 'main' })
+    version = package.versions.build(number: '3.0.13-0ubuntu3.16', metadata: { 'suite' => 'noble-security', 'directory' => 'pool/main/o/openssl' })
+
+    assert_equal 'http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/openssl_3.0.13-0ubuntu3.16.orig.tar.gz', Ecosystem::Ubuntu.new(registry).download_url(package, version)
+  end
+
+  test 'legacy security and updates suites do not share a cache file' do
+    registry = Registry.new(name: 'debian-10', version: '10', ecosystem: 'debian', metadata: { 'codename' => 'buster', 'mirror' => 'http://archive.debian.org/debian' })
+    ecosystem = Ecosystem::Debian.new(registry)
+    updates, security = ecosystem.suites.last(2)
+    cache_dir = Rails.root.join('tmp', 'cache', 'ecosystems')
+    keys = ['debian-buster-updates-main', 'debian-buster%2Fupdates-main']
+    keys.each { |key| FileUtils.rm_f(cache_dir.join(key)) }
+    ecosystem.stubs(:system).with('wget', '-q', '-P', anything, anything) do |_wget, _q, _p, dir, url|
+      next false unless url.end_with?('.gz')
+      Zlib::GzipWriter.open(File.join(dir, 'Sources.gz')) { |gz| gz.write(sources_entry(url.include?('debian-security') ? '1.1.1n-0+deb10u6' : '1.1.1n-0+deb10u3')) }
+      true
+    end.returns(true)
+
+    assert_equal ['1.1.1n-0+deb10u3'], ecosystem.fetch_packages_for_component('main', suite: updates).map { |entry| entry[:version] }
+    assert_equal ['1.1.1n-0+deb10u6'], ecosystem.fetch_packages_for_component('main', suite: security).map { |entry| entry[:version] }
+    assert_equal ['buster/updates'], ecosystem.fetch_packages_for_component('main', suite: security).map { |entry| entry[:suite] }
+  ensure
+    keys&.each { |key| FileUtils.rm_f(cache_dir.join(key)) }
+  end
+
+  test 'parse_sources raises when xz fails part way through and the suite is skipped' do
+    Dir.mktmpdir do |dir|
+      xz = write_sources(dir, 'xz', sources_entry('3.0.22-1~deb12u2') * 200, :xz)
+      File.truncate(xz, File.size(xz) - 40)
+
+      assert_raises(Ecosystem::Deb::SourcesDecompressionError) { @ecosystem.parse_sources(xz, 'main') }
+
+      @ecosystem.stubs(:download_sources).returns(xz)
+      assert_equal [], @ecosystem.fetch_packages_for_component('main', suite: @ecosystem.suites.last)
+    end
   end
 
   test 'syncing a package records the versions from every suite' do
