@@ -9,6 +9,19 @@ module Ecosystem
       ['main', 'contrib', 'non-free', 'non-free-firmware']
     end
 
+    # Releases before bullseye published security updates as <codename>/updates on the archive's own security mirror
+    LEGACY_SECURITY_LAYOUT = %w[buster stretch jessie wheezy squeeze].freeze
+
+    def default_security_mirror_url
+      mirror_url.include?('archive.debian.org') ? 'http://archive.debian.org/debian-security' : 'http://security.debian.org/debian-security'
+    end
+
+    def security_suite_name
+      return super if @registry.metadata['security_suite'].present? || @registry.metadata[:security_suite].present?
+
+      LEGACY_SECURITY_LAYOUT.include?(registry_codename) ? "#{registry_codename}/updates" : super
+    end
+
     def purl_namespace
       'debian'
     end
