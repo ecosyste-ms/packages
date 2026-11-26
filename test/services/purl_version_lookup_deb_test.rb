@@ -57,6 +57,18 @@ class PurlVersionLookupDebTest < ActiveSupport::TestCase
     assert_equal 'matched', lookup('pkg:deb/debian/postgresql-15@15.3-0%2Bdeb12u1?distro=debian-12').match_status
   end
 
+  test 'does not resolve an explicit source purl through the binary fallback' do
+    assert_equal 'missing', lookup('pkg:deb/debian/openssl@3.0.22-1~deb12u2%2Bb2?arch=source&distro=debian-12').match_status
+    assert_equal 'matched', lookup('pkg:deb/debian/openssl@3.0.22-1~deb12u2%2Bb2?arch=amd64&distro=debian-12').match_status
+  end
+
+  test 'matches only the source version given in the upstream qualifier' do
+    result = lookup('pkg:deb/debian/libssl3@3.0.22-1~deb12u2?arch=amd64&distro=debian-12&upstream=openssl%403.0.20-1~deb12u2')
+
+    assert_equal 'matched', result.match_status
+    assert_equal @release, result.version
+  end
+
   test 'does not match a binary name that is only a prefix of a listed binary' do
     assert_equal 'missing', lookup('pkg:deb/debian/libssl@3.0.22-1~deb12u2?distro=debian-12').match_status
   end

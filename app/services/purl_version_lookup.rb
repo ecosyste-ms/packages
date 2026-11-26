@@ -78,8 +78,9 @@ class PurlVersionLookup
   # source packages (openssl). Resolve the binary to its source package, from Syft's upstream qualifier
   # (upstream=openssl or upstream=glibc@2.36-9+deb12u4) or the source package's Binary field, so the lookup
   # still answers whether the release published that version
+  # arch=source names the source package itself, so there is no binary to resolve
   def deb_binary_lookup?
-    @purl.type == "deb" && @purl.version.present?
+    @purl.type == "deb" && @purl.version.present? && @purl.qualifiers.to_h["arch"] != "source"
   end
 
   def deb_binary_versions
@@ -94,8 +95,9 @@ class PurlVersionLookup
                  packages.where("? = ANY(regexp_split_to_array(packages.metadata->>'binary', '\\s*,\\s*'))", @purl.name)
                end
 
-    source_version = deb_version(source_version) if source_version
-    numbers = [source_version, purl_version, without_binnmu(purl_version)].compact_blank.map(&:downcase).uniq
+    # a source version in upstream says exactly which source version the binary came from
+    numbers = source_version.present? ? [deb_version(source_version)] : [purl_version, without_binnmu(purl_version)]
+    numbers = numbers.map(&:downcase).uniq
     Version.where(package: packages).where("LOWER(versions.number) IN (?)", numbers)
            .includes(:dependencies, package: :registry).order(:id).to_a
   end
