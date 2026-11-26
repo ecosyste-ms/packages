@@ -142,11 +142,16 @@ r.assign_attributes(
 r.save
 
 ubuntu_registries = []
-# Ubuntu LTS and current releases - https://releases.ubuntu.com/
+# Ubuntu releases - https://changelogs.ubuntu.com/meta-release
+# Releases move to old-releases.ubuntu.com some months after end of life, so give them that mirror once they do
 ubuntu_releases = [
+  {codename: 'stonking', version: '26.10'},
+  {codename: 'resolute', version: '26.04'},   # LTS until 2031
+  {codename: 'questing', version: '25.10'},
+  {codename: 'plucky', version: '25.04'},
   {codename: 'noble', version: '24.04'},      # LTS until 2029
   {codename: 'jammy', version: '22.04'},      # LTS until 2027
-  {codename: 'focal', version: '20.04'},      # LTS until 2025
+  {codename: 'focal', version: '20.04'},      # LTS, standard support ended 2025
   {codename: 'oracular', version: '24.10', mirror: 'http://old-releases.ubuntu.com/ubuntu'},
   {codename: 'mantic', version: '23.10', mirror: 'http://old-releases.ubuntu.com/ubuntu'},
   {codename: 'lunar', version: '23.04', mirror: 'http://old-releases.ubuntu.com/ubuntu'},
@@ -171,10 +176,10 @@ end
 
 debian_registries = []
 debian_releases = [
-  {codename: 'bookworm', version: '12'},   # stable
-  {codename: 'bullseye', version: '11'},   # oldstable
+  {codename: 'bookworm', version: '12'},   # oldstable
+  {codename: 'bullseye', version: '11'},   # oldoldstable (LTS)
   {codename: 'buster', version: '10', mirror: 'http://archive.debian.org/debian'},  # archived
-  {codename: 'trixie', version: '13'},     # testing
+  {codename: 'trixie', version: '13'},     # stable
 ]
 debian_releases.each do |release|
   metadata = { codename: release[:codename] }
