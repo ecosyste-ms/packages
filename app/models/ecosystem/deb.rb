@@ -157,7 +157,7 @@ module Ecosystem
 
       lines.each do |line|
         if line.start_with?(' ')
-          next unless current_key && %w[Build-Depends Build-Depends-Indep Build-Depends-Arch].include?(current_key)
+          next unless current_key && %w[Binary Build-Depends Build-Depends-Indep Build-Depends-Arch].include?(current_key)
           data[current_key] = "#{data[current_key]} #{line.strip}"
         elsif line.include?(': ')
           key, value = line.split(': ', 2)

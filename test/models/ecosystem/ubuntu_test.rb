@@ -96,6 +96,19 @@ class UbuntuTest < ActiveSupport::TestCase
     assert_equal 'main', result[:metadata][:component]
   end
 
+  test 'parse_source_entry joins a Binary field that wraps onto continuation lines' do
+    entry = <<~ENTRY
+      Package: gcc-12
+      Binary: gcc-12-base, libgcc-s1,
+       libstdc++6, gcc-12
+      Version: 12.2.0-13
+    ENTRY
+
+    result = @ecosystem.parse_source_entry(entry, 'main')
+
+    assert_equal 'gcc-12-base, libgcc-s1, libstdc++6, gcc-12', result[:metadata][:binary]
+  end
+
   test 'maintainers_metadata parses maintainer string' do
     @ecosystem.instance_variable_set(:@packages_by_name, {
       'aalib' => {

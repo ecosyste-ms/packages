@@ -1,0 +1,83 @@
+require "test_helper"
+
+class PurlVersionLookupDebTest < ActiveSupport::TestCase
+  setup do
+    @bookworm = Registry.create!(name: 'debian-12', version: '12', url: 'https://packages.debian.org/bookworm', ecosystem: 'debian', metadata: { 'codename' => 'bookworm' })
+    @trixie = Registry.create!(name: 'debian-13', version: '13', url: 'https://packages.debian.org/trixie', ecosystem: 'debian', metadata: { 'codename' => 'trixie' })
+    @openssl = @bookworm.packages.create!(name: 'openssl', ecosystem: 'debian',
+                                          metadata: { 'binary' => 'openssl, libssl3, libssl-dev, libssl-doc, openssl-provider-legacy' })
+    @release = @openssl.versions.create!(number: '3.0.20-1~deb12u2', registry: @bookworm, metadata: { 'suite' => 'bookworm' })
+    @security = @openssl.versions.create!(number: '3.0.22-1~deb12u2', registry: @bookworm, metadata: { 'suite' => 'bookworm-security' })
+    @postgresql = @bookworm.packages.create!(name: 'postgresql-15', ecosystem: 'debian', metadata: { 'binary' => 'postgresql-15, postgresql-client-15' })
+    @postgresql.versions.create!(number: '15.3-0+deb12u1', registry: @bookworm)
+  end
+
+  def lookup(purl)
+    PurlVersionLookup.new(purl).call
+  end
+
+  test 'matches a source package directly' do
+    result = lookup('pkg:deb/debian/openssl@3.0.22-1~deb12u2?arch=source&distro=debian-12')
+
+    assert_equal 'matched', result.match_status
+    assert_equal @security, result.version
+  end
+
+  test 'resolves a binary package through the upstream qualifier' do
+    result = lookup('pkg:deb/debian/libssl3@3.0.22-1~deb12u2?arch=amd64&distro=debian-12.7&upstream=openssl')
+
+    assert_equal 'matched', result.match_status
+    assert_equal @security, result.version
+  end
+
+  test 'uses the source version from the upstream qualifier when the binary version differs' do
+    result = lookup('pkg:deb/debian/libssl3@3.0.20-1~deb12u2+b1?arch=amd64&distro=debian-12&upstream=openssl%403.0.20-1~deb12u2')
+
+    assert_equal 'matched', result.match_status
+    assert_equal @release, result.version
+  end
+
+  test 'resolves a binary package through the Binary field without an upstream qualifier' do
+    result = lookup('pkg:deb/debian/libssl-dev@3.0.20-1~deb12u2?arch=amd64&distro=debian-12')
+
+    assert_equal 'matched', result.match_status
+    assert_equal @release, result.version
+  end
+
+  test 'matches a binNMU version to the source version it was rebuilt from' do
+    result = lookup('pkg:deb/debian/libssl3@3.0.22-1~deb12u2%2Bb2?arch=amd64&distro=debian-12')
+
+    assert_equal 'matched', result.match_status
+    assert_equal @security, result.version
+  end
+
+  test 'reads an unencoded plus in a deb version as a plus' do
+    assert_equal @security, lookup('pkg:deb/debian/libssl3@3.0.22-1~deb12u2+b2?arch=amd64&distro=debian-12').version
+    assert_equal 'matched', lookup('pkg:deb/debian/postgresql-15@15.3-0+deb12u1?distro=debian-12').match_status
+    assert_equal 'matched', lookup('pkg:deb/debian/postgresql-15@15.3-0%2Bdeb12u1?distro=debian-12').match_status
+  end
+
+  test 'does not match a binary name that is only a prefix of a listed binary' do
+    assert_equal 'missing', lookup('pkg:deb/debian/libssl@3.0.22-1~deb12u2?distro=debian-12').match_status
+  end
+
+  test 'reports a vendor build of a package the distribution also ships as missing' do
+    assert_equal 'missing', lookup('pkg:deb/debian/postgresql-15@15.3-1.pgdg120+1?arch=amd64&distro=debian-12').match_status
+    assert_equal 'missing', lookup('pkg:deb/debian/postgresql-client-15@15.3-1.pgdg120+1?arch=amd64&distro=debian-12&upstream=postgresql-15').match_status
+  end
+
+  test 'reports a version the release did not publish as missing' do
+    assert_equal 'missing', lookup('pkg:deb/debian/libssl3@3.0.11-1~deb12u1?arch=amd64&distro=debian-12&upstream=openssl').match_status
+  end
+
+  test 'only looks in the release named by the distro qualifier' do
+    assert_equal 'missing', lookup('pkg:deb/debian/libssl3@3.0.22-1~deb12u2?arch=amd64&distro=debian-13&upstream=openssl').match_status
+  end
+
+  test 'leaves other package types alone' do
+    registry = Registry.create!(name: 'crates.io', url: 'https://crates.io', ecosystem: 'cargo')
+    registry.packages.create!(name: 'rand', ecosystem: 'cargo').versions.create!(number: '0.8.5')
+
+    assert_equal 'missing', lookup('pkg:cargo/rand@0.8.5+b1').match_status
+  end
+end
