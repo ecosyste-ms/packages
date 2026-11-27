@@ -101,6 +101,9 @@ class Api::V1::PackagesController < Api::V1::ApplicationController
       if params[:purl].present?
         begin
           purl = Purl.parse(params[:purl])
+          namespace_error = purl.validation_errors.grep(Purl::InvalidNamespaceError).first
+          raise namespace_error if namespace_error
+
           resolver = PurlLookupResolver.new(purl)
           name = resolver.package_name
           registry = Registry.where(id: resolver.registry_ids).first

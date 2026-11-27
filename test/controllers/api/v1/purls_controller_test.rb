@@ -132,6 +132,26 @@ class ApiV1PurlsControllerTest < ActionDispatch::IntegrationTest
     assert_equal ["6.0", "5.5.2"], response.map { |result| result.dig("version", "version") }
   end
 
+  test "reads an unencoded plus in a name or version as a plus" do
+    go = Registry.create!(name: "proxy.golang.org", url: "https://proxy.golang.org", ecosystem: "go")
+    go.packages.create!(ecosystem: "go", name: "github.com/a/b").versions.create!(number: "v2.0.0+incompatible")
+    debian = Registry.create!(name: "debian-12", version: "12", url: "https://packages.debian.org/bookworm", ecosystem: "debian", metadata: { "codename" => "bookworm" })
+    debian.packages.create!(ecosystem: "debian", name: "postgresql-15").versions.create!(number: "15.3-0+deb12u1")
+    debian.packages.create!(ecosystem: "debian", name: "gtk+3.0").versions.create!(number: "3.24.38-2~deb12u3")
+
+    purls = [
+      "pkg:golang/github.com/a/b@v2.0.0+incompatible",
+      "pkg:deb/debian/postgresql-15@15.3-0+deb12u1?distro=debian-12",
+      "pkg:deb/debian/gtk+3.0@3.24.38-2~deb12u3?distro=debian-12",
+    ]
+    post bulk_lookup_api_v1_purls_path, params: { purls: purls }, as: :json
+
+    assert_response :success
+    response = Oj.load(@response.body)
+    assert_equal %w[matched matched matched], response.pluck("match_status")
+    assert_equal ["github.com/a/b", "postgresql-15", "gtk+3.0"], response.map { |result| result.dig("version", "name") }
+  end
+
   test "resolves Swift PURLs case-insensitively against stored GitHub identities" do
     registry = Registry.create!(name: "swiftpackageindex.com", url: "https://swiftpackageindex.com", ecosystem: "swiftpm")
     package = registry.packages.create!(ecosystem: "swiftpm", name: "github.com/Apple/swift-nio", metadata: { "normalized_name" => "github.com/apple/swift-nio" })
