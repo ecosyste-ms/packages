@@ -364,6 +364,15 @@ class ApiV1PackagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal 'Invalid PURL format: garbage', actual_response['error']
   end
 
+  test 'lookup by purl without a required namespace returns 422' do
+    Registry.create!(name: 'repo1.maven.org', url: 'https://repo1.maven.org/maven2', ecosystem: 'maven', default: true)
+
+    get lookup_api_v1_packages_path(purl: 'pkg:maven/junit')
+
+    assert_response :unprocessable_content
+    assert_equal 'Invalid PURL format: pkg:maven/junit', Oj.load(@response.body)['error']
+  end
+
   test 'lookup by purl with missing type' do
     invalid_purl = 'pkg:/software.amazon.awssdk%3Ametrics-spi'
   
