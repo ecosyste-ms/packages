@@ -156,8 +156,9 @@ module Ecosystem
       current_key = nil
 
       lines.each do |line|
-        if line.start_with?(' ')
-          next unless current_key && %w[Build-Depends Build-Depends-Indep Build-Depends-Arch].include?(current_key)
+        # folded fields continue on lines that start with a space or a tab
+        if line.start_with?(' ', "\t")
+          next unless current_key && %w[Binary Build-Depends Build-Depends-Indep Build-Depends-Arch].include?(current_key)
           data[current_key] = "#{data[current_key]} #{line.strip}"
         elsif line.include?(': ')
           key, value = line.split(': ', 2)
@@ -370,7 +371,8 @@ module Ecosystem
           metadata: {
             architecture: version.dig(:metadata, :architecture),
             suite: version[:suite],
-            directory: version.dig(:metadata, :directory)
+            directory: version.dig(:metadata, :directory),
+            binary: version.dig(:metadata, :binary)
           }.compact
         }
       end

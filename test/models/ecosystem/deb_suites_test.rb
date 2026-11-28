@@ -6,6 +6,7 @@ class DebSuitesTest < ActiveSupport::TestCase
       Package: openssl
       Version: #{version}
       Directory: #{directory}
+      Binary: openssl, libssl3
       Section: utils
       Homepage: https://www.openssl.org/
       Vcs-Browser: https://salsa.debian.org/debian/openssl
@@ -97,6 +98,7 @@ class DebSuitesTest < ActiveSupport::TestCase
       assert_equal [['3.0.20-1~deb12u2', 'bookworm'], ['3.0.22-1~deb12u2', 'bookworm-security']], versions.map { |v| [v[:number], v[:metadata][:suite]] }
       assert_equal ['3.0.22-1~deb12u2'], @ecosystem.versions_metadata({ name: 'openssl' }, ['3.0.20-1~deb12u2']).map { |v| v[:number] }
       assert_equal %w[pool/main/o/openssl pool/updates/main/o/openssl], versions.map { |v| v[:metadata][:directory] }
+      assert_equal ['openssl, libssl3', 'openssl, libssl3'], versions.map { |v| v[:metadata][:binary] }
 
       pkg_metadata = @ecosystem.map_package_metadata(entry)
       assert_equal %w[debhelper-compat], @ecosystem.dependencies_metadata('openssl', '3.0.20-1~deb12u2', pkg_metadata).map { |d| d[:package_name] }

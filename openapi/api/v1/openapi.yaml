@@ -263,7 +263,7 @@ paths:
       parameters:
         - name: purl
           in: query
-          description: package URL, with an optional version
+          description: package URL, with an optional version. A deb binary package (libssl3) is resolved to its source package through the upstream qualifier or the source package's Binary field, and a binNMU version (+bN) matches the source version it was rebuilt from
           required: true
           schema:
             type: string

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_24_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_28_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -134,6 +134,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_120000) do
     t.index "(((repo_metadata ->> 'stargazers_count'::text))::integer) DESC NULLS LAST", name: "index_packages_on_stargazers_desc", where: "(length((repo_metadata)::text) > 2)"
     t.index "lower((metadata ->> 'upstream_repository_url'::text))", name: "index_packages_on_lower_upstream_repository_url", where: "((metadata ->> 'upstream_repository_url'::text) IS NOT NULL)"
     t.index "lower((repository_url)::text)", name: "index_packages_on_lower_repository_url"
+    t.index "regexp_split_to_array((metadata ->> 'binary'::text), '\\s*,\\s*'::text)", name: "index_packages_on_binary_names", where: "((metadata ->> 'binary'::text) IS NOT NULL)", using: :gin
     t.index "registry_id, (((repo_metadata ->> 'forks_count'::text))::integer) DESC NULLS LAST", name: "index_packages_on_registry_forks_desc"
     t.index "registry_id, (((repo_metadata ->> 'forks_count'::text))::integer)", name: "index_packages_on_forks_count"
     t.index "registry_id, (((repo_metadata ->> 'stargazers_count'::text))::integer) DESC NULLS LAST", name: "index_packages_on_registry_stargazers_desc"

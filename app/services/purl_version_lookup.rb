@@ -1,6 +1,8 @@
 class PurlVersionLookup
   Result = Data.define(:purl, :match_status, :version)
 
+  BINARY_NAMES_SQL = "regexp_split_to_array((packages.metadata ->> 'binary'), '\\s*,\\s*')".freeze
+
   def initialize(purl_string)
     @purl_string = purl_string.to_s
   end
@@ -8,6 +10,7 @@ class PurlVersionLookup
   def call
     @purl = Purl.parse(@purl_string.gsub("npm/@", "npm/%40"))
     versions = matching_versions(package_scope)
+    versions = deb_binary_versions if versions.empty? && deb_binary_lookup?
 
     if versions.empty?
       result("missing")
@@ -71,6 +74,46 @@ class PurlVersionLookup
     end
 
     Version.where(id: marked_versions.select(:id)).or(Version.where(id: fallback_version_ids))
+  end
+
+  # Debian and Ubuntu registries index source packages, while scanners report the binaries installed in an image.
+  # arch=source names the source package itself, so there is no binary to resolve
+  def deb_binary_lookup?
+    @purl.type == "deb" && @purl.version.present? && @purl.qualifiers.to_h["arch"] != "source"
+  end
+
+  def deb_binary_versions
+    resolver = PurlLookupResolver.new(@purl)
+    return [] if resolver.ecosystem.blank?
+
+    source_name, source_version = @purl.qualifiers.to_h["upstream"].to_s.split("@", 2)
+    packages = Package.where(registry_id: resolver.registry_ids, ecosystem: resolver.ecosystem)
+    packages = if source_name.present?
+                 packages.where(name: source_name)
+               else
+                 # matches the expression of index_packages_on_binary_names, so the GIN index serves it
+                 packages.where("(packages.metadata->>'binary') IS NOT NULL")
+                         .where("#{BINARY_NAMES_SQL} @> ARRAY[?]::text[]", @purl.name)
+               end
+
+    # a source version in upstream says exactly which source version the binary came from
+    numbers = source_version.present? ? [source_version] : [@purl.version, without_binnmu(@purl.version)]
+    numbers = numbers.map(&:downcase).uniq
+    versions = Version.where(package: packages).where("LOWER(versions.number) IN (?)", numbers)
+                      .includes(:dependencies, package: :registry).order(:id).to_a
+    source_name.present? ? versions : versions.select { |version| built_binary?(version) }
+  end
+
+  # The package's Binary field is its newest version's, so check the version's own list when it was recorded,
+  # since an older source version may not have built that binary yet
+  def built_binary?(version)
+    binary = version.metadata.to_h["binary"]
+    binary.blank? || binary.split(/\s*,\s*/).include?(@purl.name)
+  end
+
+  # A binNMU rebuilds the binaries without a source change and adds +bN to their version (3.0.11-1~deb12u1+b1)
+  def without_binnmu(version)
+    version.sub(/\+b\d+\z/, "")
   end
 
   def result(match_status, version = nil)
