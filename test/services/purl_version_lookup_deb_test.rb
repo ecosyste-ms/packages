@@ -86,6 +86,19 @@ class PurlVersionLookupDebTest < ActiveSupport::TestCase
     assert_equal @release, result.version
   end
 
+  test 'does not match a binary that the matched source version did not build' do
+    tool = @bookworm.packages.create!(name: 'tool-src', ecosystem: 'debian', metadata: { 'binary' => 'tool, tool-extra' })
+    tool.versions.create!(number: '1.0-1', registry: @bookworm, metadata: { 'binary' => 'tool' })
+    tool.versions.create!(number: '1.1-1', registry: @bookworm, metadata: { 'binary' => 'tool, tool-extra' })
+    tool.versions.create!(number: '0.9-1', registry: @bookworm)
+
+    assert_equal 'missing', lookup('pkg:deb/debian/tool-extra@1.0-1?arch=amd64&distro=debian-12').match_status
+    assert_equal 'matched', lookup('pkg:deb/debian/tool-extra@1.1-1?arch=amd64&distro=debian-12').match_status
+    assert_equal 'matched', lookup('pkg:deb/debian/tool@1.0-1?arch=amd64&distro=debian-12').match_status
+    # versions stored before Binary was recorded per version can't be checked, so they still match
+    assert_equal 'matched', lookup('pkg:deb/debian/tool-extra@0.9-1?arch=amd64&distro=debian-12').match_status
+  end
+
   test 'does not match a binary name that is only a prefix of a listed binary' do
     assert_equal 'missing', lookup('pkg:deb/debian/libssl@3.0.22-1~deb12u2?distro=debian-12').match_status
   end

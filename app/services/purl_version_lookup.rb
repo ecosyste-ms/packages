@@ -99,8 +99,16 @@ class PurlVersionLookup
     # a source version in upstream says exactly which source version the binary came from
     numbers = source_version.present? ? [source_version] : [@purl.version, without_binnmu(@purl.version)]
     numbers = numbers.map(&:downcase).uniq
-    Version.where(package: packages).where("LOWER(versions.number) IN (?)", numbers)
-           .includes(:dependencies, package: :registry).order(:id).to_a
+    versions = Version.where(package: packages).where("LOWER(versions.number) IN (?)", numbers)
+                      .includes(:dependencies, package: :registry).order(:id).to_a
+    source_name.present? ? versions : versions.select { |version| built_binary?(version) }
+  end
+
+  # The package's Binary field is its newest version's, so check the version's own list when it was recorded,
+  # since an older source version may not have built that binary yet
+  def built_binary?(version)
+    binary = version.metadata.to_h["binary"]
+    binary.blank? || binary.split(/\s*,\s*/).include?(@purl.name)
   end
 
   # A binNMU rebuilds the binaries without a source change and adds +bN to their version (3.0.11-1~deb12u1+b1)

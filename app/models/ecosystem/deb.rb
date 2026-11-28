@@ -370,7 +370,8 @@ module Ecosystem
           metadata: {
             architecture: version.dig(:metadata, :architecture),
             suite: version[:suite],
-            directory: version.dig(:metadata, :directory)
+            directory: version.dig(:metadata, :directory),
+            binary: version.dig(:metadata, :binary)
           }.compact
         }
       end
